@@ -125,7 +125,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hot{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:6}
 #hot button{width:42px;height:42px;border-radius:10px;background:rgba(14,17,18,.78);border:1px solid var(--line);font-size:20px;position:relative;padding:0;display:grid;place-items:center;touch-action:none}
 #hot button.on{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}#hot button small{position:absolute;right:3px;bottom:1px;font-size:10px;color:var(--fg);font-weight:800}
-.ov2{position:fixed;inset:0;background:rgba(2,8,10,.78);z-index:25;display:grid;place-items:center}
+.ov2{position:fixed;inset:0;background:rgba(2,8,10,.78);z-index:25;display:grid;place-items:center;overflow:auto;padding:6px}
 .wbox{width:min(330px,90vw);background:linear-gradient(180deg,rgba(8,30,38,.97),rgba(6,18,24,.97));border:1px solid rgba(110,225,255,.6);border-radius:12px;padding:16px;text-align:center;box-shadow:0 0 30px rgba(80,200,255,.25)}
 .wbox .st{color:#7fe6ff;font-weight:800}.wbox p{margin:4px 0 10px;font-size:13px;color:#bfe8f2}#whc{width:260px;height:260px}#whR{min-height:36px;font-size:13.5px;color:#e8fbff;margin:6px 0}#whR b{color:#ffd070}
 #tut{position:fixed;left:50%;transform:translateX(-50%);top:30%;width:min(320px,86vw);z-index:24;background:linear-gradient(180deg,rgba(8,30,38,.96),rgba(6,18,24,.96));border:1px solid rgba(110,225,255,.6);border-radius:10px;padding:10px 12px}
@@ -155,7 +155,11 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
  #qLog{width:min(360px,50vw)}
  #grabUI{top:24%}
  #tut{top:22%}#tut.low{bottom:auto;top:18%}
- .wbox{transform:scale(.82)}
+ .wbox{transform:none;max-height:calc(100dvh - 12px);overflow:auto;padding:12px}
+ #wheel .wbox{display:grid;grid-template-columns:auto 1fr;grid-template-areas:'c t' 'c p' 'c r' 'c b';column-gap:18px;align-items:center;width:min(640px,94vw);text-align:left}
+ #wheel .st{grid-area:t;align-self:end}#wheel .wbox p{grid-area:p;margin:2px 0}#whc{grid-area:c;width:min(calc(100dvh - 40px),260px);height:min(calc(100dvh - 40px),260px)}#whR{grid-area:r}#whGo{grid-area:b;align-self:start}
+ .talbox{transform:none}#talC button{padding:8px 4px}#talC .ic{font-size:24px}
+ .mpbox .big{padding:9px}.mprow{margin-top:6px}
  #prog{top:38%}
  #rotHint{display:none!important}
 }
@@ -212,7 +216,7 @@ body.nvglow #gl{filter:grayscale(1) brightness(.3) contrast(1.6)}
 body.fp #nvgO .tube{display:block}
 #nvgO .bat{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 84px);font:700 11px var(--body);color:#b8ff9a;text-shadow:0 0 6px #4f4;display:flex;gap:6px;align-items:center}#nvgO .bat i{width:60px;height:6px;border:1px solid #9f9;border-radius:2px;display:block}#nvgO .bat b{display:block;height:100%;background:#9f9}
 body.nvg #edgeV,body.nvg #vig{opacity:.4}
-@media (orientation:landscape) and (max-height:600px){#bossB{top:44px;width:min(380px,44vw)}#cmp{top:40px}#nvgO .bat{top:68px}#rpgP{width:min(400px,56vw)}#lvC{font-size:10px}#lvC b{font-size:12px}.talbox{transform:scale(.9)}}
+@media (orientation:landscape) and (max-height:600px){#bossB{top:44px;width:min(380px,44vw)}#cmp{top:40px}#nvgO .bat{top:68px}#rpgP{width:min(400px,56vw)}#lvC{font-size:10px}#lvC b{font-size:12px}}
 
 /* ===== multiplayer ===== */
 .big.mpb{background:rgba(20,60,74,.9);color:#bff2ff;border:1px solid rgba(110,225,255,.6)}
