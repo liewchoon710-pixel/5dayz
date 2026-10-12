@@ -182,6 +182,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
   <button id="zIn" aria-label="拉近">＋</button>
   <button id="zOut" aria-label="拉远">－</button>
   <button id="bQuest" aria-label="任务">📜</button>
+  <button id="bVoice" aria-label="系统语音">🗣</button>
   <button id="bMusic" aria-label="背景音乐">🎵</button>
   <button id="bMute" aria-label="声音">🔊</button>
 </div>
@@ -240,7 +241,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v2.2 · 建议横屏 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v2.3 · 建议横屏 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1766,10 +1767,28 @@ function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X
 
 // ================= 末日系统 (personal "system" in web-novel style) + world announcements + quick bar + tutorial =================
 const SYS={q:[],temp:null,tempT:70,story:0,seen:{},queue:[],busy:false,stats:{kills:0,loot:0,builds:new Set()}};
+
+// ---------- system voice (female, web-novel style) via the browser's speech synthesis ----------
+const VOICE={on:true,v:null,q:[],busy:false,ready:false};try{VOICE.on=localStorage.getItem('scwr-voice')!=='0'}catch(e){}
+function pickVoice(){const S=window.speechSynthesis;if(!S)return null;const vs=S.getVoices().filter(v=>/^zh|cmn/i.test(v.lang));if(!vs.length)return null;
+ const fem=/ting|xiaoxiao|xiaoyi|huihui|yaoyao|meijia|sin-?ji|xiaohan|xiaomo|xiaorui|xiaoxuan|female|女|lili|hanhan|zhiyu|mei-?jia/i;
+ const cn=vs.filter(v=>/zh[-_]CN|cmn/i.test(v.lang));return (cn.find(v=>fem.test(v.name)&&/natural|online|neural/i.test(v.name))||cn.find(v=>fem.test(v.name))||vs.find(v=>fem.test(v.name))||cn.find(v=>!/kangkang|yunxi|yunyang|male|男/i.test(v.name))||cn[0]||vs[0])}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{VOICE.v=pickVoice()};VOICE.v=pickVoice()}
+function voiceUnlock(){try{const S=window.speechSynthesis;if(!S||VOICE.ready)return;const u=new SpeechSynthesisUtterance(' ');u.volume=0;S.speak(u);VOICE.ready=true}catch(e){}}
+function plain(h){return h.replace(/<br\s*\/?>/g,'。').replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,'').replace(/（[^）]*小地图[^）]*）/g,'').replace(/★|·/g,'，').replace(/\s+/g,' ').replace(/[。，]{2,}/g,'。').replace(/！。/g,'！').trim()}
+function say(text,prio){const S=window.speechSynthesis;if(!S||!VOICE.on||AUD.mute)return;text=plain(text);if(!text)return;
+ if(prio){VOICE.q=VOICE.q.filter(q=>q.prio);if(VOICE.busy&&!VOICE.curPrio){S.cancel();VOICE.busy=false}}
+ if(VOICE.q.length>2)VOICE.q.shift();VOICE.q.push({text,prio});pumpVoice()}
+function pumpVoice(){const S=window.speechSynthesis;if(VOICE.busy&&S.speaking)return;const it=VOICE.q.shift();if(!it){duck(false);return}
+ const u=new SpeechSynthesisUtterance(it.text);if(!VOICE.v)VOICE.v=pickVoice();if(VOICE.v)u.voice=VOICE.v;u.lang=VOICE.v?VOICE.v.lang:'zh-CN';
+ VOICE.curPrio=!!it.prio;u.rate=it.prio?1.08:1.12;u.pitch=it.prio?1.15:1.3;u.volume=1;VOICE.busy=true;duck(true);
+ u.onend=u.onerror=()=>{VOICE.busy=false;setTimeout(pumpVoice,180)};try{S.speak(u)}catch(e){VOICE.busy=false}}
+function duck(on){if(MUS.out&&AUD.ctx&&MUS.on)MUS.out.gain.setTargetAtTime(on?1.0:2.4,AUD.ctx.currentTime,.25)}
+function toggleVoice(){VOICE.on=!VOICE.on;try{localStorage.setItem('scwr-voice',VOICE.on?'1':'0')}catch(e){}if(!VOICE.on&&window.speechSynthesis)speechSynthesis.cancel();$('bVoice').classList.toggle('on',VOICE.on);toast(VOICE.on?'系统语音：开':'系统语音：关')}
 // ---------- UI: personal system popup (cyan) and world banner (red ❗) ----------
-function sysMsg(title,html,o={}){const el=$('sysPop');const d=document.createElement('div');d.className='sp'+(o.kind?' '+o.kind:'');d.innerHTML=`<div class="st">【末日系统】${title}</div><div class="sb">${html}</div>`;el.appendChild(d);sfx('sys');
+function sysMsg(title,html,o={}){if(!o.mute)say((o.kind==='bad'?'警告！':'叮！')+title+'。'+html,false);const el=$('sysPop');const d=document.createElement('div');d.className='sp'+(o.kind?' '+o.kind:'');d.innerHTML=`<div class="st">【末日系统】${title}</div><div class="sb">${html}</div>`;el.appendChild(d);sfx('sys');
  const close=()=>{d.classList.add('out');setTimeout(()=>d.remove(),300)};d.onclick=close;setTimeout(close,o.t||5200);while(el.children.length>2)el.firstChild.remove()}
-function sysWorld(text,sub){const el=$('sysWorld');el.innerHTML=`<div class="wi">❗</div><div><div class="wt">【世界系统】${text}</div>${sub?`<div class="ws">${sub}</div>`:''}</div>`;el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');sfx('alarmSys');buzz(150);
+function sysWorld(text,sub){say('警告！世界通报：'+text+(sub?'。'+sub:''),true);const el=$('sysWorld');el.innerHTML=`<div class="wi">❗</div><div><div class="wt">【世界系统】${text}</div>${sub?`<div class="ws">${sub}</div>`:''}</div>`;el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');sfx('alarmSys');buzz(150);
  clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true},5200)}
 // ---------- quests ----------
 const STORY=[
@@ -1856,11 +1875,11 @@ function showWheel(done){const ov=$('wheel');ov.hidden=false;G.pause=true;const 
  const draw=()=>{g.clearRect(0,0,280,280);g.save();g.translate(140,140);g.rotate(ang);for(let i=0;i<N;i++){g.beginPath();g.moveTo(0,0);g.arc(0,0,R,i*2*Math.PI/N,(i+1)*2*Math.PI/N);g.closePath();g.fillStyle=i%2?'#1c2a30':'#13343c';g.fill();g.strokeStyle='rgba(120,230,255,.5)';g.stroke();
    g.save();g.rotate((i+.5)*2*Math.PI/N);g.textAlign='right';g.fillStyle='#d8f6ff';g.font='20px sans-serif';g.fillText(IT[WHEEL[i][0]].ic,R-12,7);g.font='11px sans-serif';g.fillStyle='#9ad8e8';g.fillText(WHEEL[i][1],R-40,5);g.restore()}
   g.restore();g.fillStyle='#ff5040';g.beginPath();g.moveTo(140,4);g.lineTo(130,24);g.lineTo(150,24);g.fill();g.beginPath();g.arc(140,140,16,0,7);g.fillStyle='#0e1a1e';g.fill();g.strokeStyle='#6ae0ff';g.stroke()};draw();
- $('whR').textContent='';$('whGo').disabled=false;$('whGo').textContent='开始抽取';
+ $('whR').textContent='';say('新手礼包已发放。请宿主转动末日轮盘。',false);$('whGo').disabled=false;$('whGo').textContent='开始抽取';
  $('whGo').onclick=()=>{if(spinning)return;if($('whGo').dataset.done){ov.hidden=true;$('whGo').dataset.done='';G.pause=false;done&&done();return}spinning=true;$('whGo').disabled=true;sfx('click');
   const pickI=Math.floor(Math.random()*N);const target=-Math.PI/2-(pickI+.5)*2*Math.PI/N;let end=target-Math.PI*2*6;while(end>ang-Math.PI*12)end-=Math.PI*2;const start=ang,T0=performance.now(),DUR=3600;let lastSeg=-1;
   const step=now=>{const k=Math.min(1,(now-T0)/DUR);const e=1-Math.pow(1-k,3.4);ang=start+(end-start)*e;draw();const seg=Math.floor(((-ang-Math.PI/2)%(2*Math.PI)+4*Math.PI)%(2*Math.PI)/(2*Math.PI/N));if(seg!==lastSeg){lastSeg=seg;sfx('click')}
-   if(k<1)requestAnimationFrame(step);else{spinning=false;const W=WHEEL[pickI];const got=giveRewards(W[2]);$('whR').innerHTML=`获得：<b>${got}</b>`;sfx('craft');$('whGo').disabled=false;$('whGo').textContent='收下，开始求生';$('whGo').dataset.done='1'}};requestAnimationFrame(step)}}
+   if(k<1)requestAnimationFrame(step);else{spinning=false;const W=WHEEL[pickI];const got=giveRewards(W[2]);$('whR').innerHTML=`获得：<b>${got}</b>`;sfx('craft');say('叮！恭喜宿主获得：'+got,true);$('whGo').disabled=false;$('whGo').textContent='收下，开始求生';$('whGo').dataset.done='1'}};requestAnimationFrame(step)}}
 // ---------- tutorial (coach marks, skippable, first game only) ----------
 const TUT=[
  [null,'欢迎来到尸城。我是你的<b>末日系统</b>。接下来几步教你怎么活下去（随时可以跳过）。'],
@@ -1874,13 +1893,13 @@ const TUT=[
  [null,'最后：<b>别一直躲在同一个地方</b>——会饿、气味会越积越重。<b>屋顶是生路</b>，梯子能收、木板能搭桥。祝你好运。'],
 ];
 function startTutorial(done){let i=0;G.pause=true;const box=$('tut'),ring=$('tutRing');box.hidden=false;
- const show=()=>{const [id,html]=TUT[i];$('tutT').innerHTML=html;$('tutN').textContent=i<TUT.length-1?'下一步':'开始';$('tutC').textContent=`${i+1}/${TUT.length}`;
+ const show=()=>{const [id,html]=TUT[i];$('tutT').innerHTML=html;say(html,true);$('tutN').textContent=i<TUT.length-1?'下一步':'开始';$('tutC').textContent=`${i+1}/${TUT.length}`;
   const el=id&&$(id);if(el&&!el.hidden&&id!=='gl'){const r=el.getBoundingClientRect();ring.hidden=false;Object.assign(ring.style,{left:(r.left-6)+'px',top:(r.top-6)+'px',width:(r.width+12)+'px',height:(r.height+12)+'px'})}else ring.hidden=true;
   box.classList.toggle('low',!!(el&&el.getBoundingClientRect().top<innerHeight*.45))};
- const end=()=>{box.hidden=true;ring.hidden=true;G.pause=false;try{localStorage.setItem('scwr-tut','1')}catch(e){}done&&done()};
+ const end=()=>{if(window.speechSynthesis)speechSynthesis.cancel();box.hidden=true;ring.hidden=true;G.pause=false;try{localStorage.setItem('scwr-tut','1')}catch(e){}done&&done()};
  $('tutN').onclick=()=>{i++;if(i>=TUT.length)end();else show()};$('tutS').onclick=end;show()}
 function sysStart(){sysInit();let tutDone=false;try{tutDone=localStorage.getItem('scwr-tut')==='1'}catch(e){}
- setTimeout(()=>{sysMsg('绑定成功',`宿主你好。末日系统已激活。<br>主线任务：<b>撑过 3 晚，第 4 天黎明登上直升机</b>。<br>新手礼包已发放，请抽取。`,{t:4500});
+ setTimeout(()=>{sysMsg('绑定成功',`检测到宿主生命体征……绑定成功。宿主你好，末日系统已激活。<br>主线任务：<b>撑过 3 晚，第 4 天黎明登上直升机</b>。<br>新手礼包已发放，请抽取。`,{t:4500});
   showWheel(()=>{const go=()=>{sysMsg('剧情任务',`<b>${STORY[0].n}</b>`,{t:5000});renderQuests()};if(!tutDone||SYS.forceTut){SYS.forceTut=0;startTutorial(go)}else go()})},400)}
 
 
@@ -2045,7 +2064,7 @@ document.querySelectorAll('#mdlSeg button').forEach(b=>{b.classList.toggle('sel'
 document.querySelectorAll('#diffSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#diffSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');diff=+b.dataset.v});
 document.querySelectorAll('#lenSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#lenSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');len=+b.dataset.v});
 let loadingNow=false;
-function begin(){if(loadingNow)return;audInit();if(!renderer){gl();initLights()}applyQuality();
+function begin(){if(loadingNow)return;audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
  if(MODELS.want&&MODELS.state!=='ready'&&MODELS.state!=='fail'){loadingNow=true;const btn=$('go');const t0=btn.textContent;btn.textContent='载入素材 0%';btn.disabled=true;
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin()},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
@@ -2058,19 +2077,19 @@ function begin(){if(loadingNow)return;audInit();if(!renderer){gl();initLights()}
  hotSig='';renderHot();$('qTrack').hidden=false;sysStart();
  const portrait=innerHeight>innerWidth&&matchMedia('(pointer:coarse)').matches;$('rotHint').hidden=!portrait;if(portrait)setTimeout(()=>{$('rotHint').hidden=true},12000);
  try{history.pushState({sc:1},'')}catch(e){}}
-function endGame(win,how){if(G.over)return;G.over=true;const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
+function endGame(win,how){if(G.over)return;G.over=true;say(win?'叮！恭喜宿主成功撤离。末日系统任务完成。':how==='turned'?'警告！宿主感染值已满。系统……解除绑定。':'警告！宿主生命体征消失。系统解除绑定。',true);const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
  setTimeout(()=>{$('endT').innerHTML=win?'成功<em style="color:var(--inf)">获救</em>':how==='turned'?'你<em>变成了丧尸</em>':how==='heli'?'直升机<em>飞走了</em>':'你<em>死了</em>';
   $('endD').textContent=win?`你撑过了 3 个夜晚，在第 4 天黎明登上了直升机。`:how==='turned'?`感染值满了。你在第 ${G.day} ${G.night?'晚':'天'}变成了它们的一员。（多人版里你会加入丧尸方继续玩）`:how==='heli'?'你没能及时赶到办公楼楼顶。':`你在第 ${G.day} ${G.night?'晚':'天'}倒下了。`;
   $('endS').innerHTML=[[s.kills,'击杀'],[fmt(G.t),'存活时间'],[s.looted,'搜刮'],[s.climbs,'爬梯子'],[s.planks,'搭木板'],[Math.round(s.dmgTaken),'受到伤害']].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join('');
   $('end').hidden=false;['hud','mini','side','joy','acts','hand','ctx','prog','bag','hot','qTrack','qLog','rotHint'].forEach(i=>$(i).hidden=true)},1300)}
 $('go').onclick=begin;$('again').onclick=()=>{$('end').hidden=true;$('start').hidden=false};
 const tap=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();fn()});
-tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
+tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('bVoice').onclick=toggleVoice;$('bVoice').classList.toggle('on',VOICE.on);$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
 $('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
 $('bLight').onclick=()=>toggleFlash();$('zIn').onclick=()=>cam.dist=clamp(cam.dist/1.25,5,34);$('zOut').onclick=()=>cam.dist=clamp(cam.dist*1.25,5,34);
 $('bView').onclick=()=>{cam.fp=!cam.fp;$('bView').classList.toggle('on',cam.fp);if(cam.fp){cam.yaw=G.p.ang+Math.PI;cam.fpPitch=-.1;toast('第一人称 · 拖动屏幕转头')}};
 $('bMusic').onclick=()=>toggleMusic();$('bMusic').classList.toggle('on',MUS.on);
-$('bMute').onclick=()=>{AUD.mute=!AUD.mute;try{localStorage.setItem('scwr-mute',AUD.mute?'1':'0')}catch(e){}if(AUD.mg)AUD.mg.gain.value=AUD.mute?0:1;$('bMute').textContent=AUD.mute?'🔇':'🔊'};$('bMute').textContent=AUD.mute?'🔇':'🔊';
+$('bMute').onclick=()=>{AUD.mute=!AUD.mute;if(AUD.mute&&window.speechSynthesis)speechSynthesis.cancel();try{localStorage.setItem('scwr-mute',AUD.mute?'1':'0')}catch(e){}if(AUD.mg)AUD.mg.gain.value=AUD.mute?0:1;$('bMute').textContent=AUD.mute?'🔇':'🔊'};$('bMute').textContent=AUD.mute?'🔇':'🔊';
 $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=false};$('map').onclick=()=>{$('map').hidden=true};
 ['bBag','ctx','side','mini','qTrack','hot','qLog','tut','wheel','sysPop'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
