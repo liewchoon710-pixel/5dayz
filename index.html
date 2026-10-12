@@ -122,6 +122,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
   <button id="bLight" aria-label="手电筒">🔦</button>
   <button id="zIn" aria-label="拉近">＋</button>
   <button id="zOut" aria-label="拉远">－</button>
+  <button id="bMusic" aria-label="背景音乐">🎵</button>
   <button id="bMute" aria-label="声音">🔊</button>
 </div>
 <div id="msg"></div>
@@ -168,7 +169,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.6 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.7 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1602,6 +1603,65 @@ function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X
  g.save();g.translate(X(px),Z(pz));g.rotate(-p.ang+Math.PI);g.fillStyle='#fff';g.beginPath();g.moveTo(0,-5);g.lineTo(4,4);g.lineTo(-4,4);g.closePath();g.fill();g.restore()}
 
 
+// ================= adaptive music (all synthesized, no files) =================
+// One intensity value 0..1 drives the mix: calm piano + pad -> heartbeat, bass ostinato, string tremolo -> full drums & stabs.
+const MUS={on:true,I:0,It:0,step:0,next:0,bar:0,timer:null,ambT:8,stepT:0};
+try{MUS.on=localStorage.getItem('scwr-music')!=='0'}catch(e){}
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+// D phrygian-ish minor: chords as midi roots + intervals
+const PROG=[[50,[0,3,7]],[46,[0,4,7]],[43,[0,3,7]],[45,[0,3,7,10]]];// Dm Bb Gm Am7
+const PROG_HOPE=[[50,[0,4,7]],[55,[0,4,7]],[47,[0,3,7]],[45,[0,4,7]]];// D G Bm A (helicopter)
+function musInit(){const c=AUD.ctx;if(!c||MUS.out)return;
+ MUS.out=c.createGain();MUS.out.gain.value=MUS.on?.9:0;MUS.out.connect(AUD.in);
+ // cheap reverb
+ const len=c.sampleRate*2.6,ir=c.createBuffer(2,len,c.sampleRate);for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
+ MUS.rev=c.createConvolver();MUS.rev.buffer=ir;const rg=c.createGain();rg.gain.value=.55;MUS.rev.connect(rg);rg.connect(MUS.out);
+ // sustained string tremolo layer (gain set from intensity)
+ MUS.trem=c.createGain();MUS.trem.gain.value=0;const tf=c.createBiquadFilter();tf.type='lowpass';tf.frequency.value=2600;MUS.trem.connect(tf);tf.connect(MUS.out);tf.connect(MUS.rev);
+ const am=c.createGain();am.gain.value=.5;const lfo=c.createOscillator();lfo.frequency.value=11;const lg=c.createGain();lg.gain.value=.5;lfo.connect(lg);lg.connect(am.gain);lfo.start();am.connect(MUS.trem);
+ MUS.tremO=[74,75,81].map((n,i)=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=NOTE(n);o.detune.value=(i-1)*7;const g=c.createGain();g.gain.value=.05;o.connect(g);g.connect(am);o.start();return o});
+ // dread drone near the smoke edge
+ MUS.dread=c.createGain();MUS.dread.gain.value=0;const df=c.createBiquadFilter();df.type='lowpass';df.frequency.value=220;MUS.dread.connect(df);df.connect(MUS.out);
+ for(const n of [26,27,33]){const o=c.createOscillator();o.type='sawtooth';o.frequency.value=NOTE(n);o.detune.value=rnd(-9,9);o.connect(MUS.dread);o.start()}
+ MUS.next=c.currentTime+.1;MUS.timer=setInterval(musSched,90)}
+function mv(n,t,dur,type,v,dest,a=.01,cut){const c=AUD.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=NOTE(n);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+dur);
+ let node=o;if(cut){const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=cut;o.connect(f);node=f}node.connect(g);g.connect(dest||MUS.out);o.start(t);o.stop(t+a+dur+.05);return g}
+function mnz(t,dur,type,f,q,v,dest){const c=AUD.ctx,s=c.createBufferSource();s.buffer=AUD.noise;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(fl);fl.connect(g);g.connect(dest||MUS.out);s.start(t,Math.random()*.4,dur+.05)}
+function kick(t,v){const c=AUD.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(42,t+.18);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.32);o.connect(g);g.connect(MUS.out);o.start(t);o.stop(t+.35)}
+function musSched(){const c=AUD.ctx;if(!c||!G||!MUS.out)return;if(MUS.next<c.currentTime-1)MUS.next=c.currentTime+.05;
+ while(MUS.next<c.currentTime+.35){const t=MUS.next,I=MUS.I,s=MUS.step%16;const bpm=58+I*78;const st=60/bpm/4;
+  const hope=!!G.heli,prog=hope?PROG_HOPE:PROG;const ch=prog[Math.floor(MUS.step/32)%prog.length];const root=ch[0],iv=ch[1];
+  if(!G.over&&MUS.on){
+   // pad: every 2 bars
+   if(MUS.step%32===0){for(const k of iv){for(const dt_ of [-6,6]){const g=mv(root+12+k,t,st*30,'sawtooth',.012+I*.01,MUS.rev,.9,500+I*1500);g&&0}}mv(root,t,st*30,'triangle',.05,MUS.out,.6)}
+   // calm piano: sparse notes, fade out as tension rises
+   if(I<.55&&s%2===0&&Math.random()<.22*(1-I/.55)){const n=root+24+iv[Math.floor(Math.random()*iv.length)]+(Math.random()<.3?12:0);mv(n,t,2.4,'triangle',.05,MUS.rev,.005);mv(n,t,1.2,'sine',.04,MUS.out,.005)}
+   // heartbeat (lub-dub) in the middle band
+   if(I>.25&&I<.8&&(s===0||s===8)){kick(t,.18*(I-.2));kick(t+st*1.1,.12*(I-.2))}
+   // bass ostinato
+   if(I>.3){const every=I>.65?1:2;if(s%every===0){const n=root-12+(s%8===6?1:0)+(s===14?3:0);mv(n,t,st*every*.9,'sawtooth',.05+I*.06,MUS.out,.005,220+I*500)}}
+   // drums at the peak
+   if(I>.58){if(s===0||s===8||(I>.82&&(s===6||s===11)))kick(t,.45);if(s===4||s===12)mnz(t,.18,'bandpass',1800,.8,.22);if(I>.72&&s%2===1)mnz(t,.04,'highpass',7000,1,.06);
+    if(I>.8&&MUS.step%64>=60)mnz(t,.12,'bandpass',600+s*80,2,.18)}
+   // brass-ish stabs on the downbeat when it peaks
+   if(I>.7&&s===0&&MUS.step%32<16){for(const k of iv)mv(root+12+k,t,st*3,'sawtooth',.03,MUS.out,.01,1600)}
+  }
+  MUS.step++;MUS.next+=st}}
+// intensity from what's happening around the player
+function musicTick(dt){if(!AUD.ctx||!G)return;musInit();const p=G.p;let I=G.night?.18:.06;
+ if(!G.over){const zs=zList();let near=99,ch=0;for(const z of zs){if(z.dead)continue;const d=dd(z.x,z.z,p.x,p.z);if(d<near)near=d;if(z.state==='chase'&&d<20)ch++}
+  I=Math.max(I,Math.min(.95,ch*.13+(near<7?(7-near)/7*.45:0)));
+  if(p.grab)I=1;if(p.hp<30)I+=.15;if(G.inside){const b=G.interiors[G.inside].b;if(b.bangTipT&&G.t<b.bangTipT)I=Math.max(I,.72);if(G.zs.some(z=>z.door===b||z.entry&&z.entry.b===b))I=Math.max(I,.5)}
+  if(G.heli)I=Math.max(I,.78);if(p.inCar&&p.inCar.driving)I=Math.max(I,.6);if(p.hide&&!p.grab)I=Math.min(I,.45);}
+ MUS.It=clamp(I,0,1);MUS.I+=(MUS.It-MUS.I)*Math.min(1,dt*(MUS.It>MUS.I?1.6:.12));const t=AUD.ctx.currentTime;
+ MUS.trem.gain.setTargetAtTime(MUS.on?Math.max(0,(MUS.I-.38))*.55:0,t,.4);
+ const edge=G.inside?99:HALF-Math.max(Math.abs(p.x),Math.abs(p.z));MUS.dread.gain.setTargetAtTime(MUS.on?clamp((9-edge)/9,0,1)*.12:0,t,.5);
+ // distant ambience: things happening somewhere in the city
+ MUS.ambT-=dt;if(MUS.ambT<=0&&!G.over){MUS.ambT=rnd(10,26);if(MUS.I<.45){const a=rnd(0,6.28),d=rnd(15,21);const x=p.x+Math.cos(a)*d,z=p.z+Math.sin(a)*d;sfx(pick(G.night?['scream','groan','gun','dog','crow','siren','glass']:['crow','crow','dog','siren','glass','groan']),x,z)}}}
+function footstep(dt){const p=G.p;if(!p.mv||p.crouch||p.climb||p.roll||p.inCar)return;MUS.stepT-=dt*(p.mv>1?1.6:1);if(MUS.stepT<=0){MUS.stepT=.36;sfx(p.mv>1?'stepR':'step')}}
+function toggleMusic(){MUS.on=!MUS.on;try{localStorage.setItem('scwr-music',MUS.on?'1':'0')}catch(e){}if(MUS.out)MUS.out.gain.value=MUS.on?.9:0;$('bMusic').classList.toggle('on',MUS.on);toast(MUS.on?'背景音乐：开':'背景音乐：关')}
+
+
 // ================= audio (synthesized) =================
 const AUD={ctx:null,mute:false,last:{}};try{AUD.mute=localStorage.getItem('scwr-mute')==='1'}catch(e){}
 function audInit(){if(AUD.ctx){if(AUD.ctx.state==='suspended')AUD.ctx.resume().catch(()=>{});return}const C=window.AudioContext||window.webkitAudioContext;if(!C)return;try{AUD.ctx=new C()}catch(e){return}
@@ -1615,7 +1675,7 @@ function audInit(){if(AUD.ctx){if(AUD.ctx.state==='suspended')AUD.ctx.resume().c
 function env(g,t,a,p,d){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
 function nz(t,dur,type,f,q,v,d){const c=AUD.ctx,s=c.createBufferSource();s.buffer=AUD.noise;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=c.createGain();env(g,t,.004,v,d);s.connect(fl);fl.connect(g);g.connect(AUD.in);s.start(t,Math.random()*.5,dur)}
 function osc(t,type,f1,f2,dur,v,a=.005){const c=AUD.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);env(g,t,a,v,dur);o.connect(g);g.connect(AUD.in);o.start(t);o.stop(t+a+dur+.05)}
-const GAP={struggle:.06,roll:.15,groan:.35,zhit:.08,bang:.25,alarm:.5,caralarm:.5,ladder:.2};
+const GAP={step:.2,stepR:.15,struggle:.06,roll:.15,groan:.35,zhit:.08,bang:.25,alarm:.5,caralarm:.5,ladder:.2};
 function sfx(n,x,z){if(!AUD.ctx||AUD.mute)return;const c=AUD.ctx,t=c.currentTime;if((AUD.last[n]||0)>t-(GAP[n]||.04))return;AUD.last[n]=t;let v=1;
  if(x!=null&&G){const d=dd(x,z,G.p.x,G.p.z);v=Math.max(0,1-d/26);if(v<.04)return}
  switch(n){
@@ -1645,6 +1705,11 @@ function sfx(n,x,z){if(!AUD.ctx||AUD.mute)return;const c=AUD.ctx,t=c.currentTime
   case 'roar':{const o=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter(),l=c.createOscillator(),lg=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(rnd(48,62),t);o.frequency.linearRampToValueAtTime(rnd(30,40),t+2.4);l.frequency.value=rnd(6,11);lg.gain.value=rnd(8,16);l.connect(lg);lg.connect(o.frequency);fl.type='lowpass';fl.frequency.value=380;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.5);g.gain.linearRampToValueAtTime(0,t+2.6);o.connect(fl);fl.connect(g);g.connect(AUD.in);o.start(t);l.start(t);o.stop(t+2.7);l.stop(t+2.7);nz(t+.2,2.2,'lowpass',220,.8,.18,2);break}
   case 'scream':{const o=c.createOscillator(),g2=c.createGain(),fl=c.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(700,t);o.frequency.linearRampToValueAtTime(1300,t+.3);o.frequency.linearRampToValueAtTime(500,t+1.4);fl.type='bandpass';fl.frequency.value=1100;fl.Q.value=1.2;g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.35*v,t+.1);g2.gain.linearRampToValueAtTime(0,t+1.5);o.connect(fl);fl.connect(g2);g2.connect(AUD.in);o.start(t);o.stop(t+1.6);nz(t,1.4,'bandpass',2000,1,.15*v,1.2);break}
   case 'engine':osc(t,'sawtooth',55,70,.9,.12*v,.1);nz(t,.9,'lowpass',260,.7,.12*v,.8);break;
+  case 'step':nz(t,.06,'lowpass',G&&G.inside?900:600,1,.05,.05);break;
+  case 'stepR':nz(t,.07,'lowpass',G&&G.inside?1000:700,1,.09,.06);break;
+  case 'dog':for(let i=0;i<3;i++){osc(t+i*.32,'sawtooth',420,260,.12,.16*v);nz(t+i*.32,.1,'bandpass',900,2,.12*v,.09)}break;
+  case 'crow':for(let i=0;i<2;i++){osc(t+i*.4,'sawtooth',900,600,.22,.07*v);nz(t+i*.4,.2,'bandpass',1500,3,.06*v,.18)}break;
+  case 'siren':{const o=c.createOscillator(),g2=c.createGain();o.type='triangle';o.frequency.setValueAtTime(600,t);for(let i=0;i<6;i++)o.frequency.linearRampToValueAtTime(i%2?600:950,t+.5+i*.5);g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.08*v,t+.5);g2.gain.linearRampToValueAtTime(0,t+3.4);o.connect(g2);g2.connect(AUD.in);o.start(t);o.stop(t+3.5);break}
   case 'cough':nz(t,.12,'bandpass',600,1.2,.18,.1);nz(t+.18,.14,'bandpass',520,1.2,.16,.12);break;
   case 'chop':nz(t,.12,'bandpass',2400,1.2,.35*v,.1);nz(t+.03,.15,'lowpass',600,1,.3*v,.12);osc(t,'sawtooth',180,60,.1,.08*v);break;
   case 'gun':nz(t,.25,'lowpass',1800,.7,.9*v,.2);osc(t,'square',160,40,.12,.25*v);nz(t+.05,.6,'lowpass',400,.5,.25*v,.55);break;
@@ -1675,7 +1740,7 @@ function renderHUD(){const p=G.p;$('hpB').style.width=Math.max(0,p.hp)+'%';$('hp
 // ================= main =================
 let last=performance.now(),ctxT=0,hudT=0,miniT=0;
 function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;if(G&&G.hs>0){G.hs-=dt;dt*=.06}
- try{if(G&&renderer){if(!G.over&&!G.pause){tickWorld(dt);tickPlayer(dt)}fxTick(dt);smokeTick(dt);
+ try{if(G&&renderer){if(!G.over&&!G.pause){tickWorld(dt);tickPlayer(dt)}fxTick(dt);smokeTick(dt);musicTick(dt);if(!G.over)footstep(dt);
   ctxT-=dt;if(ctxT<=0){ctxT=.15;computeCtx();renderCtx();renderHand()}
   hudT-=dt;if(hudT<=0){hudT=.2;renderHUD()}
   miniT-=dt;if(miniT<=0){miniT=.3;drawMini($('mc'),208,false)}
@@ -1711,13 +1776,14 @@ tap('bAtk',doAttack);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',do
 $('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
 $('bLight').onclick=()=>toggleFlash();$('zIn').onclick=()=>cam.dist=clamp(cam.dist/1.25,5,34);$('zOut').onclick=()=>cam.dist=clamp(cam.dist*1.25,5,34);
 $('bView').onclick=()=>{cam.fp=!cam.fp;$('bView').classList.toggle('on',cam.fp);if(cam.fp){cam.yaw=G.p.ang+Math.PI;cam.fpPitch=-.1;toast('第一人称 · 拖动屏幕转头')}};
+$('bMusic').onclick=()=>toggleMusic();$('bMusic').classList.toggle('on',MUS.on);
 $('bMute').onclick=()=>{AUD.mute=!AUD.mute;try{localStorage.setItem('scwr-mute',AUD.mute?'1':'0')}catch(e){}if(AUD.mg)AUD.mg.gain.value=AUD.mute?0:1;$('bMute').textContent=AUD.mute?'🔇':'🔊'};$('bMute').textContent=AUD.mute?'🔇':'🔊';
 $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=false};$('map').onclick=()=>{$('map').hidden=true};
 ['bBag','ctx','side','mini'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={MUS,BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
