@@ -262,6 +262,14 @@ body.incar #fpHud .br{display:none}
 #radioRx{position:fixed;left:calc(env(safe-area-inset-left,0px) + 14px);top:calc(44% - 52px);background:rgba(10,20,14,.85);border:1px solid rgba(122,208,112,.6);border-radius:8px;padding:5px 9px;font-size:12px;color:#d8ffd0;z-index:8;pointer-events:none}
 #radioRx .sig{color:#7ad070;letter-spacing:-1px}
 @media (orientation:landscape) and (max-height:600px){#bRadio{top:40%;width:56px;height:56px;font-size:20px}#radioRx{top:calc(40% - 50px)}}
+
+/* first person under a car */
+#underO{position:fixed;inset:0;pointer-events:none;display:none}body.undercar #underO{display:block}
+#underO .chassis{position:absolute;left:0;right:0;top:0;height:46%;background:linear-gradient(180deg,#050505 0,#0d0e0f 55%,rgba(13,14,15,.85) 80%,rgba(13,14,15,0));}
+#underO .chassis::after{content:'';position:absolute;left:12%;right:12%;bottom:22%;height:10px;background:repeating-linear-gradient(90deg,#1c1d1e 0 40px,#0a0a0a 40px 52px);opacity:.8}
+#underO .wl,#underO .wr{position:absolute;bottom:8%;width:13%;height:46%;background:radial-gradient(ellipse at center,#141414 55%,#060606 70%,rgba(0,0,0,0) 72%)}#underO .wl{left:-3%}#underO .wr{right:-3%}
+#underO span{position:absolute;left:50%;bottom:20%;transform:translateX(-50%);font:700 12px var(--body);color:#8fb88a;opacity:.8}
+body.undercar #fpHud .br{display:none}
 </style>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -344,9 +352,10 @@ body.incar #fpHud .br{display:none}
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10 兆）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="cont" hidden></button>
     <button class="big" id="go">开始求生</button>
+    <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 2.8 · 建议横屏 · 单人 / 多人联机 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 2.9 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1918,7 +1927,7 @@ function initLights(){fireLights=[0,1,2].map(()=>{const l=new T3.PointLight(0xff
 
 // ================= camera & lighting =================
 function updateCamera(dt){const p=G.p;const k=Math.min(1,dt*8);cam.shk=Math.max(0,(cam.shk||0)-dt*1.6);cam.tx=lerp(cam.tx,p.x,k);cam.ty=lerp(cam.ty,p.y,k);cam.tz=lerp(cam.tz,p.z,k);
- if(cam.fp){camera.fov=72;camera.updateProjectionMatrix();const eh=p.inCar?1.12:p.bike?1.75:1.62;camera.position.set(p.x,p.y+eh,p.z);const yaw=cam.yaw+Math.PI;camera.lookAt(p.x+Math.sin(yaw)*Math.cos(cam.fpPitch)*5,p.y+eh+Math.sin(cam.fpPitch)*5,p.z+Math.cos(yaw)*Math.cos(cam.fpPitch)*5);
+ if(cam.fp){camera.fov=72;camera.updateProjectionMatrix();const eh=p.hide?.2:p.inCar?1.12:p.bike?1.75:1.62;if(p.hide)cam.fpPitch=clamp(cam.fpPitch,-.12,.1);camera.position.set(p.x,p.y+eh,p.z);const yaw=cam.yaw+Math.PI;camera.lookAt(p.x+Math.sin(yaw)*Math.cos(cam.fpPitch)*5,p.y+eh+Math.sin(cam.fpPitch)*5,p.z+Math.cos(yaw)*Math.cos(cam.fpPitch)*5);
   if(joy.x||joy.y||keys.w||keys.s||keys.a||keys.d){}return}
  if(camera.fov!==50){camera.fov=50;camera.updateProjectionMatrix()}
  const D=G.inside?Math.min(cam.dist,11):cam.dist,ph=cam.pitch;const h=Math.sin(ph)*D,r=Math.cos(ph)*D;
@@ -2495,7 +2504,7 @@ const fin=v=>typeof v==='number'&&isFinite(v);
 // ---------- lobby ----------
 function mpDom(){if($('mpP'))return;const P=document.createElement('div');P.id='mpP';P.className='ov2';P.hidden=true;
  P.innerHTML=`<div class="wbox mpbox"><div class="st">【末日系统】多人联机</div>
- <div id="mpA"><p>合作求生：一起撑 5 晚。可以打队友、推队友、抢东西；死了会变成<b>尸化体</b>，继续去抓活人。最多 6 人。</p>
+ <div id="mpA"><p>合作求生：一起撑 5 晚。可以打队友、推队友、抢东西；死了会变成<b>尸化体</b>，继续去抓活人。最多 8 人。</p>
   <label class="mpl">你的名字<input id="mpName" maxlength="8" autocomplete="off"></label>
   <button id="mpCreate" class="big">创建房间</button>
   <div class="mprow"><input id="mpCode" maxlength="6" placeholder="6 位房号" autocomplete="off" autocapitalize="characters"><button id="mpJoin">加入房间</button></div></div>
@@ -2522,39 +2531,72 @@ function netReconnect(){if(NET.rc||!NET.on)return;NET.rc=1;toast('📶 联机断
  const go=()=>{if(!NET.on)return;try{NET.tr&&NET.tr.close()}catch(e){}let T;try{T=netTransport(NET.room)}catch(e){setTimeout(go,4000);return}NET.tr=T;
   T.on('e',netOnEvent);T.on('w',netOnWorld);T.on('p',netOnPlayer);T.on('start',netOnStart);T.presence(netOnPresence);
   T.subscribe(st=>{if(st==='SUBSCRIBED'){NET.rc=0;T.track({id:NET.me,name:NET.name,host:NET.host,t:NET.T0});toast('📶 已重新连上','good');if(!NET.host)netSend({k:'hello',from:NET.me})}else if(st!=='SUBSCRIBED'&&NET.rc){setTimeout(go,4000)}})};setTimeout(go,1500)}
-function mpLeave(){if(NET.tr){try{NET.tr.close()}catch(e){}}NET.tr=null;NET.on=false;NET.started=false;$('mpA')&&($('mpA').hidden=false);$('mpB')&&($('mpB').hidden=true)}
+function mpLeave(){clearMP();if(NET.tr){try{NET.tr.close()}catch(e){}}NET.tr=null;NET.on=false;NET.started=false;$('mpA')&&($('mpA').hidden=false);$('mpB')&&($('mpB').hidden=true)}
 function netOnPresence(st){const ps=[];for(const k in st){const o=st[k][0];if(o)ps.push(o)}ps.sort((a,b)=>a.t-b.t);NET.lastPres=ps;
  if(ps.some(o=>o.host))NET.hostSeen=1;
- const el=$('mpList');if(el){el.innerHTML=ps.map(o=>`<div class="mpp">${o.host?'👑':'🧍'} ${esc(o.name)}${o.id===NET.me?'（你）':''}${NET.host&&!o.host&&!NET.started?`<button class="kick" data-id="${esc(o.id)}">请出</button>`:''}</div>`).join('')+`<small>${ps.length}/6 人</small>`;
+ const el=$('mpList');if(el){el.innerHTML=ps.map(o=>`<div class="mpp">${o.host?'👑':'🧍'} ${esc(o.name)}${o.id===NET.me?'（你）':''}${NET.host&&!o.host&&!NET.started?`<button class="kick" data-id="${esc(o.id)}">请出</button>`:''}</div>`).join('')+`<small>${ps.length}/8 人</small>`;
   el.querySelectorAll('.kick').forEach(b=>b.onclick=()=>{NET.ban=NET.ban||new Set();NET.ban.add(b.dataset.id);NET.tr.send('e',{k:'kick',to:b.dataset.id,from:NET.me});b.parentNode.remove()})}
- if(!NET.started){if(!NET.host&&ps.length>6&&ps[ps.length-1].id===NET.me){mpMsg('房间满了');mpLeave()}return}
+ if(!NET.started){if(!NET.host&&ps.length>8&&ps[ps.length-1].id===NET.me){mpMsg('房间满了');mpLeave()}return}
  // in game: someone left
  const ids=new Set(ps.map(o=>o.id));for(const id in NET.peers){const q=NET.peers[id];
   if(ids.has(id)&&q.gone){q.gone=false;q.goneT=0;toast(`📶 ${esc(q.name)} 重新连上了`,'good');if(NET.host)netResync(id)}
   if(!ids.has(id)&&!q.gone){q.gone=true;q.goneT=Date.now();toast(`📶 ${esc(q.name)} 断线了`);
    // give a dropped host 25 s to come back before the room ends
-   if(q.host&&!NET.ended){sysMsg('联机','房主断线了，等待重连（25 秒）',{kind:'warn'});setTimeout(()=>{if(q.gone&&!NET.ended){NET.ended=true;sysWorld('房主断开了连接','联机已结束');setTimeout(()=>endGame(false,'net'),2500)}},25000)}}}}
+   if(q.host&&!NET.ended){sysMsg('联机','房主断线了，等待重连（60 秒）',{kind:'warn'});setTimeout(()=>{if(q.gone&&!NET.ended){NET.ended=true;sysWorld('房主断开了连接','联机已结束');setTimeout(()=>endGame(false,'net'),2500)}},60000)}}}}
 function esc(s){return String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
-function mpStart(){if(!NET.host)return;const list=(NET.lastPres||[]).filter(o=>!(NET.ban&&NET.ban.has(o.id))).slice(0,6).map(o=>({id:o.id,name:String(o.name).slice(0,8)}));const seed=Math.floor(Math.random()*1e9);
+function mpStart(){if(!NET.host)return;const list=(NET.lastPres||[]).filter(o=>!(NET.ban&&NET.ban.has(o.id))).slice(0,8).map(o=>({id:o.id,name:String(o.name).slice(0,8)}));const seed=Math.floor(Math.random()*1e9);
  const msg={seed,diff,len,list,from:NET.me};NET.tr.send('start',msg);netOnStart(msg)}
 function netOnStart(m){if(NET.started||!m||!Array.isArray(m.list))return;const h=(NET.lastPres||[]).find(o=>o.host);if(m.from!==NET.me&&(!h||h.id!==m.from))return;if(!m.list.some(o=>o.id===NET.me)){mpMsg('游戏已经开始了，没能加入');return}
  NET.started=true;NET.seed=m.seed;NET.list=m.list;diff=m.diff;len=m.len;NET.peers={};
  for(const o of m.list)if(o.id!==NET.me)NET.peers[o.id]={id:o.id,name:o.name,host:o.id===m.list[0].id,st:0,x:0,y:0,z:0,sc:'out',hp:100,car:-1,gb:[]};
  $('mpP').hidden=true;begin()}
+// ---------- surviving a page reload: remember the room and our state, rejoin with the same id ----------
+const MPS_K='scwr-mp';
+function readMP(){try{const s=JSON.parse(localStorage.getItem(MPS_K)||'null');if(s&&s.room&&Date.now()-s.at<10*60*1000)return s}catch(e){}return null}
+function clearMP(){try{localStorage.removeItem(MPS_K)}catch(e){}}
+function netDoorArr(){return BLD.map(b=>[Math.round(b.ds.hp),Math.round(b.ds.barr),(b.ds.broken?1:0)|(b.ds.open?2:0)|((b.ds.planks||0)<<2),(b.wins||[]).reduce((a,W,i)=>a|((W.broken?1:0)<<(i*2))|((W.boarded?1:0)<<(i*2+1)),0)])}
+function netPersist(){if(!NET.on||!NET.started||!G||NET.ended)return;try{const p=G.p;const P={};
+ for(const k of ['hp','inf','food','inv','weapon','throwSel','gear','lv','xp','pts','attr','tal','titles','hid','cr','nvgB'])P[k]=p[k];P.x=r1(p.x);P.z=r1(p.z);P.y=r1(p.y);P.sc=G.inside||'out';P.zp=NET.zp?1:0;
+ const o={at:Date.now(),room:NET.room,me:NET.me,name:NET.name,host:NET.host,seed:NET.seed,diff:G.diff,len:G.len,list:NET.list,T0:NET.T0,p:P,day:G.day,sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK}};
+ if(NET.host)o.w={t:G.t,ph:G.phaseT,n:G.night?1:0,dropDay:G.dropDay,ds:netDoorArr(),cp:(G.corpses||[]).map(c=>c.done?1:0),ld:Object.keys(G.interiors).map(k=>[k,G.interiors[k].loot.map(l=>l.done?1:0)]),
+  it:G.items.filter(it=>it.nid).map(it=>[it.nid,it.k,r1(it.x),r1(it.z),r1(it.y),it.inside||null,it.uses]),L:G.ladders.filter(L=>!L.fixed).map(L=>({x:L.x,z:L.z,nx:L.nx,nz:L.nz,base:L.base,top:L.top})),P:G.planks.map(P=>{const q={...P};delete q.id;return q}),
+  zs:G.zs.filter(z=>!z.dead).map(z=>[z.kind,r1(z.x),r1(z.z),Math.round(z.hp),Math.round(z.mhp)]),drop:G.drop?{x:G.drop.x,z:G.drop.z,t:G.drop.t,items:G.drop.items,open:G.drop.open,flare:G.drop.flare}:null,heli:G.heli?G.heli.t:null};
+ localStorage.setItem(MPS_K,JSON.stringify(o))}catch(e){console.warn('persist',e)}}
+addEventListener('pagehide',()=>netPersist());
+function mpBackLabel(){const b=$('mpBack');if(!b)return;const s=readMP();b.hidden=!s;if(s)b.innerHTML=`📶 回到联机房间 ${esc(s.room)}<small>${s.host?'你是房主 · ':''}第 ${s.day} 天 · ${Math.max(1,Math.round((Date.now()-s.at)/60000))} 分钟前</small>`}
+function mpRejoin(){const S=readMP();if(!S)return;mpDom();goFull();
+ Object.assign(NET,{on:true,host:!!S.host,me:S.me,name:S.name,room:S.room,peers:{},list:S.list,started:false,ended:false,zp:!!S.p.zp,esc:false,known:new Set(),gone:new Set(),hostSeen:1,T0:S.T0,rejoin:S});
+ let T;try{T=netTransport(S.room)}catch(e){NET.on=false;toast(e.message,'bad');return}NET.tr=T;
+ T.on('e',netOnEvent);T.on('w',netOnWorld);T.on('p',netOnPlayer);T.on('start',netOnStart);T.presence(netOnPresence);toast('📶 正在回到房间 '+esc(S.room)+'……');
+ T.subscribe(st=>{if(st==='SUBSCRIBED'){T.track({id:NET.me,name:NET.name,host:NET.host,t:NET.T0});if(NET.started)return;
+   NET.started=true;NET.seed=S.seed;diff=S.diff;len=S.len;NET.peers={};for(const o of S.list)if(o.id!==NET.me)NET.peers[o.id]={id:o.id,name:o.name,host:o.id===S.list[0].id,st:0,x:0,y:0,z:0,sc:'out',hp:100,car:-1,gb:[]};begin()}
+  else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'){if(!NET.started)toast('连不上房间，检查网络后再试','bad')}})}
+function netRestore(S){const p=G.p,P=S.p;for(const k in P)if(!['x','y','z','sc','zp'].includes(k))p[k]=P[k];
+ if(P.sc&&P.sc!=='out'){const b=BID[String(P.sc).split('#')[0]];if(b&&b.door){const [fx,fz]=doorFront(b);p.x=fx;p.z=fz;p.y=0}}else{p.x=P.x;p.z=P.z;p.y=supportAt(P.x,P.z,(P.y||0)+.3)}
+ cam.tx=p.x;cam.tz=p.z;G.day=S.day;Object.assign(RPG.kingN,(S.rpg&&S.rpg.kingN)||{});Object.assign(RPG.scanK,(S.rpg&&S.rpg.scanK)||{});
+ if(P.zp){NET.zp=true;document.body.classList.add('zp');p.hp=Math.max(60,p.hp)}
+ const W=S.w;if(NET.host&&W){G.t=W.t;G.phaseT=W.ph;G.night=!!W.n;G.dropDay=W.dropDay;
+  W.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;ds.hp=a[0];ds.barr=a[1];ds.broken=!!(a[2]&1);ds.open=!!(a[2]&2);ds.planks=a[2]>>2;updDoor(b);(b.wins||[]).forEach((Wn,j)=>{Wn.broken=!!(a[3]>>(j*2)&1);Wn.boarded=!!(a[3]>>(j*2+1)&1);updWindow(Wn)})});
+  (W.cp||[]).forEach((d,i)=>{if(d&&G.corpses[i])G.corpses[i].done=true});for(const [key,arr] of W.ld||[]){const [bid,f]=String(key).split('#');if(!BID[bid])continue;const I=interior(bid,+f);arr.forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}
+  G.items=[];NET.known=new Set();for(const [nid,k,x,z,y,ins,u] of W.it||[])if(IT[k]){NET.known.add(nid);G.items.push({id:G.uid++,nid,k,x,z,y,inside:ins,uses:u})}netApplyLP(W);
+  G.zs=(W.zs||[]).filter(a=>ZK[a[0]]).map(([k,x,z,hp,mhp])=>{const q=mkZombie(k,x,z);q.hp=hp;q.mhp=mhp;return q});G.drop=W.drop;if(W.heli!=null)G.heli={x:BID.office.pad.x,z:BID.office.pad.z,y:BID.office.h,t:W.heli,on:0}}
+ NET.rejoinSys=S.sys;NET.rejoin=null;renderThrow();renderHand();renderLv();
+ setTimeout(()=>{sysMsg('联机',`已回到房间 <b>${esc(NET.room)}</b>${NET.host?' · 你是房主，世界从断开前的状态继续':''}`,{t:5000});if(!NET.host)netSend({k:'hello',from:NET.me})},1200)}
 // ---------- world setup in a multiplayer game (called from begin) ----------
 function netSpawnIdx(){return Math.max(0,NET.list.findIndex(o=>o.id===NET.me))}
-function netSetup(){const p=G.p;G.lp=p;const i=netSpawnIdx();const off=[[0,0],[1.6,0],[-1.6,0],[0,1.6],[0,-1.6],[1.6,1.6]][i]||[0,0];p.x+=off[0];p.z+=off[1];
+function netSetup(){const p=G.p;G.lp=p;const i=netSpawnIdx();const off=[[0,0],[1.6,0],[-1.6,0],[0,1.6],[0,-1.6],[1.6,1.6],[-1.6,1.6],[1.6,-1.6]][i]||[0,0];p.x+=off[0];p.z+=off[1];
  G.items.forEach((it,j)=>{it.nid='s'+j;NET.known.add(it.nid)});if(!NET.host)G.zs.length=0;
  NET.nobody={remote:true,id:'_',x:9999,z:9999,y:0,hp:100,sc:'out',grab:null};document.body.classList.add('mp');
- setTimeout(()=>sysMsg('联机',`已进入房间 <b>${NET.room}</b> · 队友 ${Object.keys(NET.peers).length} 人<br>合作求生，也可以内讧：打队友会掉东西。死了会变成尸化体。`,{t:6500}),5200)}
+ if(NET.rejoin){NET.rejoinSys=NET.rejoin.sys;return}setTimeout(()=>sysMsg('联机',`已进入房间 <b>${NET.room}</b> · 队友 ${Object.keys(NET.peers).length} 人<br>合作求生，也可以内讧：打队友会掉东西。死了会变成尸化体。`,{t:6500}),5200)}
 // ---------- per-frame ----------
 function netTick(dt){if(!NET.on||!NET.started||!G)return;const p=G.p;radioTick();
  // Supabase free plan: 100 events/s per project (every delivery counts) -> keep the room around 70/s
- const n=1+Object.values(NET.peers).filter(q=>!q.gone).length;const wHz=n<=2?4:n<=4?3:2.5;const pHz=clamp((72/n-wHz)/n,1.8,6);
+ const n=1+Object.values(NET.peers).filter(q=>!q.gone).length;const wHz=n<=2?4:n<=4?3:n<=6?2.5:2;const pHz=clamp((76/n-wHz)/n,1,6);
  NET.nzT-=dt;if(NET.nz&&NET.nzT<=0){netSend(NET.nz);NET.nz=null;NET.nzT=.6}
  NET.sendT-=dt;if(NET.sendT<=0){NET.sendT=1/pHz;netSendState()}
  if(NET.host&&!NET.ended){NET.snapT-=dt;if(NET.snapT<=0){NET.snapT=1/wHz;netSendWorld()}
   NET.endT-=dt;if(NET.endT<=0){NET.endT=1;netCheckEnd()}}
+ NET.psT=(NET.psT||0)-dt;if(NET.psT<=0){NET.psT=5;netPersist()}
  NET.syncT-=dt;if(NET.syncT<=0){NET.syncT=.3;netSyncItems();netSyncLP();if(!NET.host)netSyncDoors()}
  for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st)continue;const k=Math.min(1,dt*10);q.rx=q.rx==null?q.x:lerp(q.rx,q.x,k);q.ry=q.ry==null?q.y:lerp(q.ry,q.y,k);q.rz=q.rz==null?q.z:lerp(q.rz,q.z,k);let da=q.a-(q.ra??q.a);da=Math.atan2(Math.sin(da),Math.cos(da));q.ra=(q.ra??q.a)+da*k;
   if(q.car>=0&&q.dv&&G.cars[q.car])netCarMove(G.cars[q.car],q.cx,q.cz,q.ca);
@@ -2745,12 +2787,14 @@ function extraRender(dt){if(G.inside)return;const p=G.p,RM=MODELS.state==='ready
  const pe=ENT.get(MODELS.state==='ready'?(NET.zp?'playerZR':'playerR'):(NET.zp?'playerZ':'player'));if(pe&&p.bike)pe.m.position.y=p.y+.3}
 // ---- first person inside a car: sit in the seat, hide the body shell, draw a cabin frame ----
 const CARV={hid:null};
-function carViewTick(dt){const p=G.p,c=p.inCar,fp=!!cam.fp&&!G.over;document.body.classList.toggle('incar',!!(fp&&c));
+function carViewTick(dt){const p=G.p,c=p.inCar,fp=!!cam.fp&&!G.over;document.body.classList.toggle('incar',!!(fp&&c));document.body.classList.toggle('undercar',!!(fp&&p.hide));
+ // lying under a car: look out from ground level between the wheels
+ if(fp&&p.hide&&!CARV.under){CARV.under=1;const cc=p.hide.car;cam.yaw=(p.hide.ox!=null?Math.atan2(p.hide.ox-cc.x,p.hide.oz-cc.z):cam.yaw)-Math.PI;cam.fpPitch=0}else if(!(fp&&p.hide))CARV.under=0;
  if(fp&&c){if(CARV.hid!==c){if(CARV.hid&&CARV.hid.mesh)CARV.hid.mesh.visible=true;CARV.hid=c;if(c.mesh)c.mesh.visible=false;cam.yaw=c.ang-Math.PI;cam.fpPitch=-.08}
   if(c.driving&&!cam.drag){let d=(c.ang-Math.PI)-cam.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));cam.yaw+=d*Math.min(1,dt*3)}
   const sp=$('carSp');if(sp)sp.textContent=c.driving?Math.round(Math.abs(c.sp||0)*3.6)+' 公里/时':'躲在车里 · 窗 '+Math.max(0,Math.round(c.glass))}
  else if(CARV.hid){if(CARV.hid.mesh)CARV.hid.mesh.visible=true;CARV.hid=null}}
-function carViewDom(){if($('carO'))return;const d=document.createElement('div');d.id='carO';d.innerHTML='<div class="roof"></div><div class="pl"></div><div class="pr"></div><div class="mir"></div><div class="dash"><div class="wheel"></div><span id="carSp"></span></div>';$('gl').after(d)}
+function carViewDom(){if(!$('underO')){const u=document.createElement('div');u.id='underO';u.innerHTML='<div class="chassis"></div><div class="wl"></div><div class="wr"></div><span>躲在车底 · 丧尸看不见你</span>';$('gl').after(u)}if($('carO'))return;const d=document.createElement('div');d.id='carO';d.innerHTML='<div class="roof"></div><div class="pl"></div><div class="pr"></div><div class="mir"></div><div class="dash"><div class="wheel"></div><span id="carSp"></span></div>';$('gl').after(d)}
 // ---- hard mode: everyone is dropped by parachute somewhere different ----
 function snapRoad(x,z){let best=null,bd=1e9;for(const [c] of CITY.lines){if(Math.abs(x-c)<bd){bd=Math.abs(x-c);best=[c,z]}if(Math.abs(z-c)<bd){bd=Math.abs(z-c);best=[x,c]}}return best}
 function hardDrop(){const p=G.p;const mp=NET.on&&NET.started;const n=mp?Math.max(1,NET.list.length):1,i=mp?netSpawnIdx():0;let spot=null;
@@ -2923,20 +2967,20 @@ function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)loa
  for(const [,e] of ENT)e.parent.remove(e.m);ENT.clear();
  if(!load&&!mp)clearSave();const R0=Math.random;if(mp)Math.random=mulberry('scwr'+NET.seed);const seed=mp?NET.seed:load&&load.mapSeed?load.mapSeed:Math.floor(R0()*1e9);newState(diff,len,seed);pInit(G.p);survInit(G.p);rpgInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
  for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);for(const [k,x,z] of CITY.items)if(!G.solids.some(s=>inRect(s,x,z,.3)))dropItem(k,x,z,0,null);initZombies();spawnCops();makeCorpses();makeBikes();Math.random=R0;if(mp)netSetup();else{G.lp=G.p;document.body.classList.remove('mp')}
- if(!load&&G.diff>=2)hardDrop();
- if(!G.p.inv)G.p.inv={};G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);G.king=null;if(load)applySave(load);renderThrow();
+ if(!load&&G.diff>=2&&!NET.rejoinSys)hardDrop();
+ if(!G.p.inv)G.p.inv={};G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);G.king=null;if(load)applySave(load);if(NET.rejoin)netRestore(NET.rejoin);renderThrow();
  cam.yaw=0;if(!load){cam.tx=G.p.x;cam.tz=G.p.z}
  $('start').hidden=true;$('end').hidden=true;['hud','mini','side','joy','acts','hand'].forEach(i=>$(i).hidden=false);joyHome();
- hotSig='';renderHot();$('qTrack').hidden=false;sysStart(load||null);
+ hotSig='';renderHot();$('qTrack').hidden=false;sysStart(load||(NET.rejoinSys?{sys:NET.rejoinSys}:null));NET.rejoinSys=null;
  const portrait=innerHeight>innerWidth&&matchMedia('(pointer:coarse)').matches;$('rotHint').hidden=!portrait;if(portrait)setTimeout(()=>{$('rotHint').hidden=true},12000);
  try{history.pushState({sc:1},'')}catch(e){}}
-function endGame(win,how){if(G.over)return;if(NET.on&&NET.started){if(NET.zp&&how==='heli')how=(NET.esc||Object.values(NET.peers).some(q=>q.es))?'zplose':'zpwin';if(how==='heli'||how==='zpwin'||how==='zplose'||how==='net')NET.ended=true}if(NET.on&&NET.started&&!win&&(how==='dead'||how==='turned')&&!NET.ended){if(NET.zp){netZpDown();return}netBecomeZombie();return}if(NET.on&&NET.started&&win)NET.esc=true;G.over=true;say(win?'叮！恭喜宿主成功撤离。末日系统任务完成。':how==='turned'?'警告！宿主感染值已满。系统……解除绑定。':'警告！宿主生命体征消失。系统解除绑定。',true);const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
+function endGame(win,how){if(G.over)return;if(NET.on&&NET.started){if(NET.zp&&how==='heli')how=(NET.esc||Object.values(NET.peers).some(q=>q.es))?'zplose':'zpwin';if(how==='heli'||how==='zpwin'||how==='zplose'||how==='net')NET.ended=true}if(NET.on&&NET.started&&!win&&(how==='dead'||how==='turned')&&!NET.ended){if(NET.zp){netZpDown();return}netBecomeZombie();return}if(NET.on&&NET.started&&win)NET.esc=true;G.over=true;if(NET.on)clearMP();say(win?'叮！恭喜宿主成功撤离。末日系统任务完成。':how==='turned'?'警告！宿主感染值已满。系统……解除绑定。':'警告！宿主生命体征消失。系统解除绑定。',true);const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
  setTimeout(()=>{$('endT').innerHTML=how==='zpwin'?'尸潮<em>获胜</em>':how==='zplose'?'幸存者<em>逃走了</em>':how==='net'?'联机<em>中断</em>':win?'成功<em style="color:var(--inf)">获救</em>':how==='turned'?'你<em>变成了丧尸</em>':how==='heli'?'直升机<em>飞走了</em>':'你<em>死了</em>';
   $('endD').textContent=how==='zpwin'?'没有一个幸存者活着离开这座城。':how==='zplose'?'有人登上了直升机。尸化体没能抓住他们。':how==='net'?'和房主的连接断开了。':win?`你撑过了 5 个夜晚，在第 ${G.day} 天黎明登上了直升机。${G.p.lv} 级 · 称号 ${G.p.titles.length} 个。`:how==='turned'?`感染值满了。你在第 ${G.day} ${G.night?'晚':'天'}变成了它们的一员。（多人版里你会加入丧尸方继续玩）`:how==='heli'?'你没能及时赶到办公楼楼顶。':`你在第 ${G.day} ${G.night?'晚':'天'}倒下了。`;
   if(win&&!NET.on)clearSave();const SV=NET.on?null:readSave();$('retry').hidden=win||!SV;if(SV)$('retry').textContent=`从第 ${SV.day} 天黎明的存档重来`;
   $('endS').innerHTML=[[s.kills,'击杀'],[G.p.lv,'等级'],[fmt(G.t),'存活时间'],[s.looted,'搜刮'],[s.climbs,'爬梯子'],[s.planks,'搭木板'],[Math.round(s.dmgTaken),'受到伤害']].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join('');
   $('end').hidden=false;['hud','mini','side','joy','acts','hand','ctx','prog','bag','hot','qTrack','qLog','rotHint'].forEach(i=>$(i).hidden=true)},1300)}
-$('go').onclick=()=>{goFull();begin()};$('cont').onclick=()=>{goFull();begin(true)};$('retry').onclick=()=>{goFull();$('end').hidden=true;begin(true)};$('clock').addEventListener('pointerdown',e=>{e.stopPropagation();toggleFull()});$('again').onclick=()=>{if(NET.on){mpLeave();document.body.classList.remove('mp','zp');NET.zp=false;NET.esc=false}$('end').hidden=true;$('start').hidden=false;contLabel()};$('mpBtn').onclick=()=>openMP();contLabel();
+$('go').onclick=()=>{goFull();begin()};$('cont').onclick=()=>{goFull();begin(true)};$('retry').onclick=()=>{goFull();$('end').hidden=true;begin(true)};$('clock').addEventListener('pointerdown',e=>{e.stopPropagation();toggleFull()});$('again').onclick=()=>{mpBackLabel();if(NET.on){mpLeave();document.body.classList.remove('mp','zp');NET.zp=false;NET.esc=false}$('end').hidden=true;$('start').hidden=false;contLabel()};$('mpBtn').onclick=()=>openMP();$('mpBack').onclick=()=>mpRejoin();mpBackLabel();contLabel();
 const tap=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();fn()});
 tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('bVoice').onclick=toggleVoice;$('bVoice').classList.toggle('on',VOICE.on);$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
 $('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
