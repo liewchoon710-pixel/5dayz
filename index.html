@@ -1065,7 +1065,15 @@ function zList(){return G.inside?G.interiors[G.inside].zs:G.zs}
 function noise(x,z,r,label){const sc=G.inside||'out';G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
  if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;
  if(G.inside&&r>=9){const I=G.interiors[G.inside];if(I.b.door)G.noises.push({x:I.b.door.x,z:I.b.door.z,r:r*.6,t:.5,sc:'out'})}}
-function canSee(z,p){if(p.hide)return false;if(p.inCar&&!p.inCar.driving)return z.sawCar===p.inCar&&dd(z.x,z.z,p.x,p.z)<12;const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1)*sightK();const d=dd(z.x,z.z,p.x,p.z);if(Math.abs(p.y-z.y)>2.5)s*=1.15;return d<s}
+function sightR(z,p){const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1)*sightK();if(Math.abs(p.y-z.y)>2.5)s*=1.15;return s}
+function canSee(z,p){if(p.hide)return false;if(p.inCar&&!p.inCar.driving)return z.sawCar===p.inCar&&dd(z.x,z.z,p.x,p.z)<12;const d=dd(z.x,z.z,p.x,p.z);if(d>=sightR(z,p))return false;if(z.state==='chase'&&d<6)return true;
+ // walls, containers, parked trucks block the view (checked a few times a second)
+ if(!(z.losT>G.t)){z.losT=G.t+.25;z.los=losClear(z,p,G.inside||'out')}return z.los}
+function zEye(z){return z.y+(z.kind==='crawler'?.5:ZK[z.kind].big?2.2:1.6)}
+function losClear(z,p,sc){const list=sc==='out'?G.solids:(G.interiors[sc]?G.interiors[sc].solids:[]);const ax=z.x,az=z.z,ay=zEye(z),bx=p.x,bz=p.z,by=p.y+(p.crouch?.95:1.6);
+ const mnx=Math.min(ax,bx),mxx=Math.max(ax,bx),mnz=Math.min(az,bz),mxz=Math.max(az,bz);const n=Math.max(2,Math.ceil(dd(ax,az,bx,bz)/.35));
+ for(const s of list){if(s.x1<mnx||s.x0>mxx||s.z1<mnz||s.z0>mxz||s.top<Math.min(ay,by))continue;
+  for(let i=1;i<n;i++){const t=i/n,x=ax+(bx-ax)*t,zz=az+(bz-az)*t;if(!inRect(s,x,zz))continue;const h=ay+(by-ay)*t;if(s.top>h&&(s.bot==null||s.bot<h))return false}}return true}
 // getting hit a few times knocks something loose from the bag (works for any attacker; ready for player-vs-player later)
 function bagSpill(p,from){const ks=Object.keys(p.inv).filter(k=>k!==p.weapon&&!IT[k].big);if(!ks.length)return;const k=pick(ks);invUse(k);const a=rnd(0,6.28),r=rnd(.9,1.6);
  const fx_=from?Math.atan2(p.x-from.x,p.z-from.z)+rnd(-.8,.8):a;const x=p.x+Math.sin(fx_)*r,z=p.z+Math.cos(fx_)*r;const y=G.inside?0:supportAt(x,z,p.y+.3);
@@ -2040,7 +2048,7 @@ function toggleMusic(){MUS.on=!MUS.on;try{localStorage.setItem('scwr-music',MUS.
 const RPG={pendTal:0,miss:0,grabN:0,kingN:{},disc:0,scan:null,sn:{},snLast:-99,scanK:{},idle:0,ftx:[],scanCd:0,tab:'attr'};
 const ATTR={str:['力量','💪','近战伤害 +8%、推得更远、挣脱更快、投掷更狠'],vit:['体质','❤️','血量上限 +8、体力上限 +6%'],agi:['敏捷','🏃','移动速度 +4%、体力恢复 +8%、出手更快'],per:['感知','👁','暴击率 +3%、爆头率 +3%、小地图看得更远']};
 const TAL={
- eagle:{n:'鹰眼',ic:'🦅',d:'隔着墙也能看到 20 米内丧尸的位置，小地图范围翻倍'},
+ eagle:{n:'鹰眼',ic:'🦅',d:'隔着墙看到 20 米内的丧尸：灰=闲逛、黄=在找你、红=发现你；地上画出它们的视野圈，走进圈里才会被看见。小地图范围翻倍'},
  stealth:{n:'敛息',ic:'🌫️',d:'气味积累速度减半'},
  crit:{n:'暴击',ic:'💥',d:'暴击率 +15%，暴击伤害从 1.6 倍提升到 2.2 倍'},
  stomach:{n:'铁胃',ic:'🥫',d:'饿得慢 40%'},
@@ -2225,9 +2233,15 @@ function onNight(){G.p.nightDmg=0;G.nightTrack=true}
 function onDawn(){const p=G.p;if(G.nightTrack&&p.nightDmg<1)hid('phoenix');G.nightTrack=false;RPG.disc=Math.floor(Math.random()*SHOP.length);
  setTimeout(()=>snark('dawn',pick(['又活过一晚。本系统对宿主的评价从“废物”上调为“勉强能用”。','天亮了。宿主居然还活着，本系统有点意外。']),400),6000);
  if(saveGame())setTimeout(()=>sysMsg('自动存档',`第 ${G.day} 天的进度已保存 · 关掉网页后可以在开始画面【继续游戏】`,{kind:'ok',mute:true,t:4200}),2500)}
+// ---- eagle eye: colour by state + each zombie's sight ring on the ground ----
+function zCol(z){return z.state==='chase'?[255,74,58]:z.state==='investigate'||z.door||z.entry?[240,192,80]:[170,176,170]}
+function eagleDraw(p){const zs=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=20);
+ for(const z of zs){const R=sightR(z,p),c=zCol(z),d=dd(z.x,z.z,p.x,p.z),inside=d<R;const pts=[];for(let i=0;i<=32;i++){const a=i/32*Math.PI*2;const s=proj(z.x+Math.cos(a)*R,z.y+.05,z.z+Math.sin(a)*R);if(!s){pts.length=0;break}pts.push(s)}
+  if(pts.length){oc.beginPath();pts.forEach((s,i)=>i?oc.lineTo(s[0],s[1]):oc.moveTo(s[0],s[1]));oc.closePath();oc.fillStyle=`rgba(${c},${inside?.16:.07})`;oc.fill();oc.setLineDash(inside?[]:[6,5]);oc.lineWidth=inside?2:1.2;oc.strokeStyle=`rgba(${c},${inside?.85:.45})`;oc.stroke();oc.setLineDash([])}}
+ for(const z of zs){const d=dd(z.x,z.z,p.x,p.z);const s=proj(z.x,z.y+1,z.z);if(!s)continue;const c=zCol(z);oc.globalAlpha=Math.max(.35,.95*(1-d/26));oc.strokeStyle=`rgb(${c})`;oc.fillStyle=`rgba(${c},.25)`;oc.lineWidth=2;oc.beginPath();oc.moveTo(s[0],s[1]-9);oc.lineTo(s[0]+6,s[1]);oc.lineTo(s[0],s[1]+9);oc.lineTo(s[0]-6,s[1]);oc.closePath();oc.fill();oc.stroke()}oc.globalAlpha=1}
 // ---- overlay: scan card, floating numbers, eagle-eye marks ----
 function rpgOverlay(){const p=G.p;const sc=G.inside||'out';
- if(hasT('eagle')){for(const z of zList()){if(z.dead)continue;const d=dd(z.x,z.z,p.x,p.z);if(d>20)continue;const s=proj(z.x,z.y+1,z.z);if(!s)continue;oc.globalAlpha=.75*(1-d/24);oc.strokeStyle='#ff4a3a';oc.lineWidth=2;oc.beginPath();oc.moveTo(s[0],s[1]-9);oc.lineTo(s[0]+6,s[1]);oc.lineTo(s[0],s[1]+9);oc.lineTo(s[0]-6,s[1]);oc.closePath();oc.stroke()}oc.globalAlpha=1}
+ if(hasT('eagle'))eagleDraw(p);
  for(const f of RPG.ftx){if(f.sc!==sc)continue;const k=1-f.t/.9;const s=proj(f.x,f.y+k*.9,f.z);if(!s)continue;oc.globalAlpha=Math.min(1,f.t*2.2);oc.font=`900 ${f.big?20:14}px "Noto Sans SC",sans-serif`;oc.textAlign='center';oc.lineWidth=3;oc.strokeStyle='rgba(0,0,0,.7)';oc.strokeText(f.s,s[0],s[1]);oc.fillStyle=f.c;oc.fillText(f.s,s[0],s[1])}oc.globalAlpha=1;
  const S=RPG.scan;if(S&&zList().includes(S.z)){const z=S.z,K=ZK[z.kind];const s=proj(z.x,z.y+(K.big?2.9:2.2),z.z);if(s){const W=210,H=104;let x=clamp(s[0]+18,8,innerWidth-W-8),y=clamp(s[1]-H,60,innerHeight-H-8);const a=Math.min(1,S.t*2);oc.globalAlpha=a;
    oc.fillStyle='rgba(6,26,34,.84)';oc.strokeStyle='rgba(120,230,255,.85)';oc.lineWidth=1;oc.beginPath();oc.roundRect?oc.roundRect(x,y,W,H,6):oc.rect(x,y,W,H);oc.fill();oc.stroke();
