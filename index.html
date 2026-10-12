@@ -54,6 +54,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #acts button.on{border-color:var(--amber);color:var(--amber)}
 #bAtk{right:0;bottom:0;width:80px;height:80px;font-size:16px;border-color:var(--blood)!important}
 #bShove{right:90px;bottom:4px;width:60px;height:60px;font-size:15px}
+#acts.driving #bShove,#acts.driving #bBlock,#acts.driving #bDodge,#acts.driving #bJump,#acts.driving #bCrouch,#acts.driving #bThrow{display:none}
 #bShove.grab{background:#8a1c16;border-color:#ff6a50;color:#fff;animation:pulse .45s infinite alternate}
 @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.12)}}
 #bBlock{right:8px;bottom:90px;width:58px;height:58px;font-size:15px}
@@ -152,21 +153,22 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div class="ov" id="start">
   <div class="wrap">
     <h1 class="logo">尸城<em>五日</em></h1>
-    <p class="lede">城市沦陷的第一天。你醒来时，街上全是游荡的尸体。广播说：第四天黎明，救援直升机会降落在城东办公楼的楼顶。在那之前，活下去。</p>
+    <p class="lede">城市沦陷的第一天。你醒来时，街上全是游荡的尸体。广播说：第四天黎明，救援直升机会降落在城东南的办公楼的楼顶。在那之前，活下去。</p>
     <ul class="rules">
-      <li><b>楼顶是生路：</b>丧尸只能在地面走。找梯子爬上屋顶，用木板在楼与楼之间搭桥。爬上去后可以把梯子收起来。</li>
+      <li><b>楼顶是生路：</b>丧尸一开始只能在地面走（第 2 晚起会叠罗汉往上爬，越往后爬得越高）。找梯子爬上屋顶，用木板在楼与楼之间搭桥。爬上去后可以把梯子收起来。</li>
       <li><b>声音会引来尸群：</b>打斗、砸车、扔酒瓶都会发出声音。也可以反过来用闹钟、汽车警报把尸群引开。</li>
-      <li><b>进屋搜物资：</b>公寓、便利店、医院可以进去，一层层搜。被追进屋时可以用木板堵门。</li>
-      <li><b>夜晚尸潮会进化：</b>第 2 晚出现疾行尸，第 3 晚出现会爬梯子的攀爬尸。被咬会累积感染，满了就变成丧尸。</li>
+            <li><b>丧尸：</b>满血时它们只会追看得见的你；<b>受伤流血会被闻到</b>。声音会引来尸群。被咬会累积感染，满了就变成丧尸。</li>
       <li><b>打法：</b>【攻击】用手上的武器/枪 · 【推】把丧尸推开（被抓住时变成【挣脱】，狂点） · 按住【挡】格挡 · 【翻滚】躲开包围 · 【蹲】安静潜行、钻车底 · 【跳】跳上矮处。都会消耗<b>体力</b>，跑步也会。</li>
-      <li><b>目标：</b>撑过 3 晚，第 4 天黎明登上东边办公楼楼顶的直升机。</li>
+      <li><b>屋子：</b>每栋楼都能进 · 门、窗户、通风管、消防梯、屋顶天台门都是入口。丧尸会撞门，搬<b>家具</b>或钉<b>木板</b>堵门；安静一阵它们会散开。高级丧尸会开门、爬窗、钻通风管。</li>
+      <li><b>汽车：</b>可以坐进去躲；少数车能开（小地图上黄色/绿色）——需要<b>车钥匙</b>+搬<b>汽油桶</b>加油。蹲下靠近车还能<b>钻到车底</b>。</li>
+      <li><b>目标：</b>撑过 3 晚，第 4 天黎明登上东南边办公楼楼顶的直升机。</li>
     </ul>
     <div><div class="lab">难度</div><div class="seg" id="diffSeg"><button data-v="0">简单</button><button data-v="1" class="sel">普通</button><button data-v="2">困难</button></div></div>
     <div><div class="lab">一天的长度</div><div class="seg" id="lenSeg"><button data-v="0.6">短 · 约 8 分钟</button><button data-v="1" class="sel">标准 · 约 13 分钟</button></div></div>
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.5 · 单人 · 一个街区 · 3 栋可进入的建筑 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.6 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -316,7 +318,7 @@ const ZLOOK={walker:s=>({seed:s,skin:pick([0x6e735c,0x646b54,0x787c64,0x5e6452])
  climber:s=>({seed:s,skin:0x52584a,top:0x2e2a26,bot:0x2e2a26,zombie:1,hunch:.45,thin:1,longArm:1,tornL:1,tornR:1,scale:1.05}),
  brute:s=>({seed:s,skin:0x60604c,top:0x4a3a2a,bot:0x2a2620,zombie:1,hunch:.22,wide:1.45,scale:1.42,tornR:1,ribs:1})};
 function playerModel(){return human({seed:7,skin:0xc89e7c,top:0x4c5838,bot:0x2c3442,shoe:0x2a2018,pack:1,cap:0x2a2e26,hair:0x2a1c12})}
-function zombieModel(z){const o=ZLOOK[z.kind](z.id);const g=human(o);g.userData.look=o;return g}
+function zombieModel(z){const o=(ZLOOK[z.kind]||ZLOOK.walker)(z.id);const g=human(o);g.userData.look=o;return g}
 function weaponMesh(k){const g=new T3.Group();if(!k)return g;
  if(k==='pipe')mesh(new T3.CylinderGeometry(.022,.022,.9,10),std(0x6a6c6a,{m:.8,r:.35}),g,0,-.3,.05).rotation.x=1.4;
  else if(k==='crowbar'){const m=std(0x8a2020,{m:.6,r:.4});const b=mesh(new T3.CylinderGeometry(.018,.018,.8,8),m,g,0,-.28,.05);b.rotation.x=1.4;mesh(new T3.TorusGeometry(.05,.016,6,10,Math.PI),m,g,0,-.63,.12).rotation.y=Math.PI/2}
@@ -373,6 +375,7 @@ function deadTree(g,x,z){const tm=std(0x3a2e24,{r:1});const t=mesh(new T3.Cylind
 // GitHub Pages: same-origin assets/ ; elsewhere (claude artifact): jsDelivr mirror of the repo's cdn branch
 const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/ShichengWuri@563148ea628996e13a148409e7122bebfc67d8f3/'})();
 const CHAR_SRC={player:'chars/Characters_Matt.glb',walker:'chars/Zombie_Basic.glb',runner:'chars/Zombie_Arm.glb',climber:'chars/Zombie_Ribcage.glb',brute:'chars/Zombie_Chubby.glb'};
+const KMODEL={crawler:'climber',screamer:'walker',stalker:'runner'};
 const PROP_SRC={container:1,sofa:1,couch:1,vending:1,forklift:1,bus:1,tvstand:1,door:1,bike:1,laptop:1,chair:1};
 for(const k of ['vehicle_pickup','vehicle_truck','vehicle_sports','vehicle_pickup_armored','vehicle_truck_armored','pallet','pallet_broken','cinderblock','plasticbarrier','trafficbarrier_1','trafficbarrier_2','watertower','pipes','wheels_stack','trashbag_1','trashbag_2','chest'])PROP_SRC['k_'+k]=1;
 const FACADE={apt:['apt',12,12],hosp:['hosp',18,18],police:['police',18,18],office:['office',21,21],park:['park',18,18],shop:['plaster',4,4,'plaster_n']};
@@ -407,15 +410,15 @@ function facadeMat(b,u,v){const f=FACADE[b.id];if(!f||!MODELS.tex[f[0]])return n
 // pull the cartoon atlas colours toward grimy, desaturated tones
 function desat(m,s){m.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n{float gL=dot(diffuseColor.rgb,vec3(.299,.587,.114));diffuseColor.rgb=mix(vec3(gL),diffuseColor.rgb,'+s.toFixed(2)+')*.92;}')};m.customProgramCacheKey=()=>'ds'+s}
 const CRP={ul:-.7,ll:1.2,ft:-.5,to:.35,y:.12,ua:-1.2,uz:.3,la:-1.1};
-const ZTINT={walker:[.78,.8,.74],runner:[.74,.72,.7],climber:[.7,.72,.66],brute:[.8,.74,.7]};
+const ZTINT={walker:[.78,.8,.74],runner:[.74,.72,.7],climber:[.7,.72,.66],brute:[.8,.74,.7],crawler:[.66,.6,.56],screamer:[1,.95,.92],stalker:[.42,.42,.48]};
 const ZH={walker:1.8,runner:1.78,climber:1.7,brute:2.05,player:1.78};
 const WNODE={axe:'Axe',pistol:'Pistol',nailbat:'WoodenBat_Barbed',knife:'Knife'};
-function realModel(kind){// kind: 'player' or zombie kind
- const G_=MODELS.g[kind]||MODELS.g.walker;const root=T3.SkeletonUtils.clone(G_.scene);const wrap=new T3.Group();const lean=new T3.Group();wrap.add(lean);lean.add(root);
- const sc=(ZH[kind]||1.8)/G_.h;root.scale.setScalar(sc);
+function realModel(kind,v){// kind: 'player' or zombie kind
+ const G_=MODELS.g[kind]||MODELS.g[KMODEL[kind]]||MODELS.g.walker;const root=T3.SkeletonUtils.clone(G_.scene);const wrap=new T3.Group();const lean=new T3.Group();wrap.add(lean);lean.add(root);
+ const sc=(ZH[kind]||ZH[KMODEL[kind]]||1.8)/G_.h*(v?v.s:1);root.scale.setScalar(sc);
  const z=kind!=='player';const bones={},wn={};
  root.traverse(o=>{if(o.isMesh||o.isSkinnedMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
-   const mats=Array.isArray(o.material)?o.material:[o.material];const nm=mats.map(m=>{const c=m.clone();const t=z?(ZTINT[kind]||ZTINT.walker):[.86,.84,.82];c.color.setRGB(t[0],t[1],t[2]);c.roughness=.9;c.metalness=0;c.envMapIntensity=.3;desat(c,z?.38:.62);return c});o.material=Array.isArray(o.material)?nm:nm[0]}
+   const mats=Array.isArray(o.material)?o.material:[o.material];const nm=mats.map(m=>{const c=m.clone();const t=z?(ZTINT[kind]||ZTINT.walker):[.86,.84,.82];const vt=v?v.t:1;c.color.setRGB(t[0]*vt,t[1]*(vt*.5+.5),t[2]*(2-vt)*.9);c.roughness=.9;c.metalness=0;c.envMapIntensity=.3;desat(c,z?.38:.62);return c});o.material=Array.isArray(o.material)?nm:nm[0]}
   if(o.isBone)bones[o.name.toLowerCase()]=o;
   if(!z&&/^(Axe|Guitar|Knife|Pistol|Rifle|Shotgun|SMG|Spear|WoodenBat_Barbed|WoodenBat_Saw)$/.test(o.name)){wn[o.name]=o;o.visible=false}});
  const mixer=new T3.AnimationMixer(root);const act={};for(const k in G_.clips){act[k]=mixer.clipAction(G_.clips[k]);act[k].setEffectiveWeight(0)}
@@ -431,7 +434,7 @@ function playOnce(ud,name,ts=1){const a=ud.act[name];if(!a)return false;if(ud.on
 function setWeapon(ud,k){for(const n in ud.wn)ud.wn[n].visible=false;const n=WNODE[k];if(n&&ud.wn[n]){ud.wn[n].visible=true;return true}return false}
 function animReal(ud,dt,speed,o={}){// speed in m/s
  const A=ud.act;let base;
- if(ud.zombie){base=o.climb?'walk':speed>2.6?(A.run_arms?'run_arms':'run'):speed>.15?'walk':'idle';if(ud.kind==='climber'&&o.crawl&&A.crawl)base='crawl'}
+ if(ud.zombie){base=o.climb?'walk':speed>2.6?(A.run_arms?'run_arms':'run'):speed>.15?'walk':'idle';if(o.crawl&&A.crawl)base=speed>.05||true?'crawl':base}
  else{const gun=(o.gun||o.block)&&A.idle_gun;base=o.climb?'walk':speed>3?(gun?'run_gun':'run'):speed>.15?(gun?'walk_gun':'walk'):(gun?'idle_gun':'idle');}
  if(!A[base])base='idle';
  // one-shot triggers
@@ -460,27 +463,52 @@ function animReal(ud,dt,speed,o={}){// speed in m/s
 
 
 // ================= world layout =================
-const HALF=32;
-const BLD=[
- {id:'apt',n:'公寓',x0:-26,z0:-23,x1:-14,z1:-11,h:9,floors:3,enter:1,door:{x:-20,z:-11,nx:0,nz:1},style:'brick'},
- {id:'shop',n:'便利店',x0:-11,z0:-17,x1:-6.5,z1:-8,h:4,floors:1,enter:1,door:{x:-8.75,z:-8,nx:0,nz:1},style:'plaster',sign:'便利店'},
- {id:'hosp',n:'医院',x0:6.5,z0:-24,x1:20,z1:-10,h:8,floors:2,enter:1,door:{x:13,z:-10,nx:0,nz:1},style:'concrete',sign:'医院'},
- {id:'garage',n:'车库',x0:22,z0:-20,x1:28,z1:-12,h:3.5,style:'metal'},
- {id:'police',n:'警察局',x0:-26,z0:8,x1:-13,z1:20,h:6,style:'concrete',sign:'警察局'},
- {id:'ware',n:'仓库',x0:-10,z0:9,x1:-6.5,z1:19,h:6,style:'metal'},
- {id:'office',n:'办公楼',x0:7,z0:9,x1:17,z1:21,h:13,style:'glass',heli:1},
- {id:'park',n:'停车楼',x0:20,z0:10,x1:27,z1:18,h:12,style:'concrete'},
+// 4x4 city blocks between a cross of main roads (x=0, z=0, 8m) and secondary roads (x=±25, z=±25, 4.4m).
+const HALF=46;
+const FLOOR_H=3;
+// id, name, type, x0,z0,x1,z1, floors, facade style, door side, extras
+const BDEF=[
+ ['firest','消防站','firest',-43,-42,-30,-29,2,'brick','s'],
+ ['house1','民宅','house',-21,-43,-13,-35,2,'plaster','s'],
+ ['bar','酒吧','bar',-11,-43,-6,-33,1,'plaster','e',{sign:'酒吧'}],
+ ['pharm','药店','pharmacy',-21,-32.5,-12,-28.5,2,'plaster','s',{sign:'药店'}],
+ ['school','学校','school',7,-43,21,-30,3,'beige','s',{sign:'学校'}],
+ ['house2','民宅','house',29,-43,36,-35,1,'plaster','s'],
+ ['house3','民宅','house',38.5,-43,44,-35,2,'brick','s'],
+ ['guns','枪店','gunshop',29,-32.5,38,-28.5,1,'plaster','s',{sign:'枪店'}],
+ ['apt3','老公寓','apt',-44,-22,-36,-6,4,'brick','e',{fire:1}],
+ ['motel1','汽车旅馆','motel',-33.5,-22,-28,-10,2,'brick','e',{sign:'旅馆'}],
+ ['apt','公寓','apt',-22,-22,-13.5,-6,3,'brick','s'],
+ ['shop','便利店','shop',-11,-15,-6,-6,1,'plaster','s',{sign:'便利店'}],
+ ['hosp','医院','hosp',6,-22,22,-9,3,'resi','s',{sign:'医院'}],
+ ['garage','车库','garage',29,-22,35.5,-13,1,'metal','w'],
+ ['hware','五金店','hardware',38,-22,44,-8,2,'plaster','s',{sign:'五金'}],
+ ['house4','民宅','house',-44,6,-36,13,2,'plaster','n'],
+ ['house5','民宅','house',-44,15.5,-37,22,2,'brick','e'],
+ ['police','警察局','police',-22,7,-13.5,21,2,'beige','n',{sign:'警察局'}],
+ ['ware','仓库','ware',-11,8,-6,22,2,'metal','e'],
+ ['office','办公楼','office',6,7,15,21,5,'glass','n',{heli:1}],
+ ['apt2','公寓','apt',17,6,22,21,5,'resi','n'],
+ ['park','停车楼','park',29,7,37,19,4,'concrete','w'],
+ ['house6','民宅','house',39.5,6,44,13,1,'plaster','n'],
+ ['house7','民宅','house',-22,29,-15,37,2,'plaster','n'],
+ ['church','教堂','church',-12,29,-6,43,2,'plaster','e',{sign:'教堂'}],
+ ['mall','超市','mall',7,29,21,41,2,'resi','n',{sign:'超市'}],
+ ['motel2','汽车旅馆','motel',29,29,44,35,2,'brick','n'],
 ];
+const BLD=BDEF.map(([id,n,type,x0,z0,x1,z1,floors,style,ds,ex])=>{const b={id,n,type,x0,z0,x1,z1,floors,h:floors*FLOOR_H,style,enter:1,ds,...(ex||{})};
+ const cx=(x0+x1)/2,cz=(z0+z1)/2;b.door=ds==='s'?{x:cx,z:z1,nx:0,nz:1}:ds==='n'?{x:cx,z:z0,nx:0,nz:-1}:ds==='e'?{x:x1,z:cz,nx:1,nz:0}:{x:x0,z:cz,nx:-1,nz:0};return b});
 const BID={};BLD.forEach(b=>BID[b.id]=b);
-const CARS=[[-16,1.8,0,0x6a2a22],[-9,-2,.12,0x2a3a4a],[11,-1.6,0,0xc8c2b0],[2,-15,Math.PI/2,0x3a4a2a],[-1.8,14,Math.PI/2+.15,0x555555],[24,2.2,.08,0x7a6a20],[-28,-2.2,0,0x222222],[17,1.9,Math.PI,0x8a8f94]];
-const DUMPS=[[-13,-9.4,0],[5.2,7.6,Math.PI/2],[21,-8.8,0],[-11.6,7,0],[28.5,8.5,Math.PI/2]];
+// abandoned cars along the roads: x,z,rot,colour
+const CARS=[[-16,1.8,0,0x6a2a22],[-9,-2,.12,0x2a3a4a],[11,-1.6,0,0xc8c2b0],[1.8,-15,Math.PI/2,0x3a4a2a],[-1.8,14,Math.PI/2+.15,0x555555],[17,2.2,.08,0x7a6a20],[-38,-1.9,0,0x222222],[36,1.9,Math.PI,0x8a8f94],
+ [24.2,-30,Math.PI/2,0x5a4a3a],[-25.8,16,Math.PI/2-.1,0x3a3a44],[-25.6,-36,Math.PI/2,0x6a6a60],[12,24.4,0,0x2a3a2a],[-32,-25.6,.1,0x7a2a1a],[25.6,38,Math.PI/2,0x4a5a6a]];
+const DUMPS=[[-12.3,-4.9,0],[-12.2,6.8,0],[16,-23.6,0],[16.2,23.2,0],[-27.5,-2.8+10.4,Math.PI/2],[34,-11,0],[-34.5,23.6,0],[37.5,24,0],[-4.6,-33,Math.PI/2],[23.2,-37,Math.PI/2]];
 const START_ITEMS=[
- ['ladder',-28.5,27.5],['plank',-6.5,24.2],['plank',-5.6,24.9],['plank',-29,-8.5],['ladder',25.5,-8.6],['gascan',24,-10.6],
- ['brick',2.5,-13],['brick',3,-12.4],['brick',-2.6,15.5],['brick',14,6.6],['bottle',-6,-6.8],['bottle',-5.2,-7],['bottle',9,7.2],
- ['pipe',5.2,-5.2],['brick',-20,6.8],['bandage',-19,14,6],['bottle',23,9],['brick',23.5,9.4],
- ['hardhat',-28.4,24.4],['cinder',-29.1,27.9],['cinder',-28.3,28.4],['pistol',-2.6,-26.2],['ammo',-3.3,-25.4],['ammo',-2.2,-25.7],['vest',-4.3,-26.9],['shotgun',5.2,-23.5],['shells',5.7,-23.2],['shield',-7.4,-3.6],['knife',12.2,8.4]];
-const SPAWN={x:-3,z:-9.5};
-
+ ['ladder',-36,40],['plank',-40,32],['plank',-39.4,32.6],['plank',-9.4,23.4],['ladder',36.6,-11.5],['gascan',33,-11],['gascan',-8.6,23.6],
+ ['brick',3.2,-11.6],['brick',3.6,-11],['brick',-3.2,17.2],['brick',14,4.6],['bottle',-4.6,-6.8],['bottle',-5.2,-7.4],['bottle',9,5.2],
+ ['pipe',4.6,-5.6],['brick',-20,5.6],['bandage',-19,4.8],['bottle',23,7.6],['brick',23.5,5.2],
+ ['hardhat',-35,36],['cinder',-37.4,38.5],['cinder',-36.6,39],['pistol',-2.6,-39.2],['ammo',-3.3,-38.4],['ammo',-2.2,-38.7],['vest',-4.3,-39.9],['shotgun',5.2,-36.5],['shells',5.7,-36.2],['shield',-7.4,-3.6],['knife',16.4,5.2],['ladder',-30,-5.2]];
+const SPAWN={x:-3,z:-8};
 // ================= game state =================
 let G=null;
 const SC={};// scene refs
@@ -529,135 +557,263 @@ addEventListener('resize',resize);
 
 // ================= build exterior =================
 function signTex(text,bg,fg){const [c,g]=cvs(256,64);g.fillStyle=bg;g.fillRect(0,0,256,64);g.fillStyle=fg;g.font='800 38px "Noto Sans SC",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(text,128,34);grime(g,256,64,.4);const t=new T3.CanvasTexture(c);t.encoding=T3.sRGBEncoding;return t}
+// ================= build exterior =================
+function signTex(text,bg,fg){const [c,g]=cvs(256,64);g.fillStyle=bg;g.fillRect(0,0,256,64);g.fillStyle=fg;g.font='800 38px "Noto Sans SC",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(text,128,34);grime(g,256,64,.4);const t=new T3.CanvasTexture(c);t.encoding=T3.sRGBEncoding;return t}
 function buildExterior(){
  outGroup.clear();const g=outGroup;
  // ground
- const gm=texMat('dirt',10,10,{bs:.06});const ground=M('plane',gm,HALF*2+40,HALF*2+40,1,0,0,0,g,false);ground.rotation.x=-Math.PI/2;
- const road=texMat('asphalt',8,1,{bs:.03,r:.95});const r1=M('plane',road,HALF*2,8,1,0,.02,0,g,false);r1.rotation.x=-Math.PI/2;
- const road2=texMat('asphalt',1,8,{bs:.03,r:.95});const r2=M('plane',road2,8,HALF*2,1,0,.021,0,g,false);r2.rotation.x=-Math.PI/2;
- const lineM=std(0xd8c890,{r:.7});for(let x=-HALF+2;x<HALF;x+=4){if(Math.abs(x)<5)continue;const l=M('plane',lineM,2,.15,1,x,.03,0,g,false);l.rotation.x=-Math.PI/2}
- for(let z=-HALF+2;z<HALF;z+=4){if(Math.abs(z)<5)continue;const l=M('plane',lineM,.15,2,1,0,.031,z,g,false);l.rotation.x=-Math.PI/2}
- const walk=texMat('walk',16,1,{bs:.05});const walkV=texMat('walk',1,16,{bs:.05});
- for(const z of [-5,5]){BX(walk,HALF*2,.12,2,0,0,z,g,false)}for(const x of [-5,5]){BX(walkV,2,.121,HALF*2,x,0,0,g,false)}
- const curb=std(0x9a968c);
+ const gm=texMat('dirt',14,14,{bs:.06});const ground=M('plane',gm,HALF*2+40,HALF*2+40,1,0,0,0,g,false);ground.rotation.x=-Math.PI/2;
+ const roadH=(x0,z0,x1,z1,y)=>{const w=x1-x0,d=z1-z0;const m=texMat('asphalt',Math.max(1,w/8),Math.max(1,d/8),{bs:.03,r:.95});const r=M('plane',m,w,d,1,(x0+x1)/2,y,(z0+z1)/2,g,false);r.rotation.x=-Math.PI/2};
+ roadH(-HALF,-4,HALF,4,.02);roadH(-4,-HALF,4,HALF,.021);
+ for(const c of [-25,25]){roadH(-HALF,c-2.2,HALF,c+2.2,.019);roadH(c-2.2,-HALF,c+2.2,HALF,.0185)}
+ const lineM=std(0xd8c890,{r:.7});
+ for(let x=-HALF+2;x<HALF;x+=4){if(Math.abs(x)<5||Math.abs(Math.abs(x)-25)<3)continue;const l=M('plane',lineM,2,.15,1,x,.03,0,g,false);l.rotation.x=-Math.PI/2}
+ for(let z=-HALF+2;z<HALF;z+=4){if(Math.abs(z)<5||Math.abs(Math.abs(z)-25)<3)continue;const l=M('plane',lineM,.15,2,1,0,.031,z,g,false);l.rotation.x=-Math.PI/2}
+ // sidewalks along the main cross and the secondary roads
+ const walk=texMat('walk',24,1,{bs:.05}),walkV=texMat('walk',1,24,{bs:.05});
+ for(const z of [-4.75,4.75])BX(walk,HALF*2,.12,1.5,0,0,z,g,false);for(const x of [-4.75,4.75])BX(walkV,1.5,.121,HALF*2,x,0,0,g,false);
+ for(const c of [-25,25])for(const o of [-2.6,2.6]){BX(walk,HALF*2,.1,.8,0,0,c+o,g,false);BX(walkV,.8,.101,HALF*2,c+o,0,0,g,false)}
  // buildings
- for(const b of BLD){const w=b.x1-b.x0,d=b.z1-b.z0,cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;
-  const side=facadeMat(b,d,b.h)||texMat(b.style,d/4,b.h/3,{bs:.05,r:b.style==='glass'?.35:.9,m:b.style==='glass'?.3:b.style==='metal'?.25:0}),front=facadeMat(b,w,b.h)||texMat(b.style,w/4,b.h/3,{bs:.05,r:b.style==='glass'?.35:.9,m:b.style==='glass'?.3:b.style==='metal'?.25:0});
-  const roof=texMat('roof',w/4,d/4,{bs:.08});
-  const mesh=new T3.Mesh(GEO.box,[side,side,roof,roof,front,front]);mesh.scale.set(w,b.h,d);mesh.position.set(cx,b.h/2,cz);mesh.castShadow=mesh.receiveShadow=true;g.add(mesh);
-  const par=std(0x6a665e);for(const [px,pz,sx,sz] of [[cx,b.z0+.1,w,.2],[cx,b.z1-.1,w,.2],[b.x0+.1,cz,.2,d],[b.x1-.1,cz,.2,d]])BX(par,sx,.45,sz,px,b.h,pz,g);
-  // ground-floor band
-  BX(std(0x3a3632,{r:.95}),w+.06,.5,d+.06,cx,0,cz,g,false);
-  addSolid({x0:b.x0,z0:b.z0,x1:b.x1,z1:b.z1,top:b.h,kind:'bld',ref:b});
-  // roof props
-  const rp=[];if(b.id!=='office'){rp.push(['ac',b.x0+1.4,b.z0+1.4]);if(w*d>60)rp.push(['tank',b.x1-1.8,b.z1-1.8])}
-  for(const [k,x,z] of rp){if(k==='ac'){const m=std(0x8a8c88,{m:.4,r:.6});BX(m,1.2,.9,1,x,b.h,z,g);BX(std(0x2a2a2a),.8,.05,.8,x,b.h+.9,z,g);addSolid({x0:x-.6,z0:z-.5,x1:x+.6,z1:z+.5,top:b.h+.9,kind:'prop'})}
-   else{const m=std(0x5a5048,{r:.8});const t=M('cyl',m,1.6,1.6,1.6,x,b.h+1.4,z,g);for(const [lx,lz] of [[-.6,-.6],[.6,-.6],[-.6,.6],[.6,.6]])BX(std(0x2a2826),.12,.6,.12,x+lx,b.h,z+lz,g);addSolid({x0:x-.8,z0:z-.8,x1:x+.8,z1:z+.8,top:b.h+2.2,kind:'prop'})}}
-  if(b.enter){const hx=b.x0+1.2,hz=b.z1-1.6;BX(std(0x3a3a38,{m:.4}),1,.35,1,hx,b.h,hz,g);BX(std(0x1a1a1a),.8,.05,.8,hx,b.h+.35,hz,g);b.hatch={x:hx,z:hz}}
-  if(b.heli){const hp=M('cyl',std(0x3a3a3a,{r:.7}),7,.06,7,cx,b.h+.03,cz,g,false);const [c,gg]=cvs(256,256);gg.fillStyle='rgba(0,0,0,0)';gg.clearRect(0,0,256,256);gg.strokeStyle='#e8d070';gg.lineWidth=10;gg.beginPath();gg.arc(128,128,110,0,7);gg.stroke();gg.fillStyle='#e8d070';gg.font='900 150px Oswald,sans-serif';gg.textAlign='center';gg.textBaseline='middle';gg.fillText('H',128,138);
-   const tx=new T3.CanvasTexture(c);tx.encoding=T3.sRGBEncoding;const hm=M('plane',new T3.MeshStandardMaterial({map:tx,transparent:true,roughness:.8}),6,6,1,cx,b.h+.07,cz,g,false);hm.rotation.x=-Math.PI/2;b.pad={x:cx,z:cz}}
-  // doors
-  if(b.door){const D=b.door;const dm=std(0x2a221c,{r:.7});const fm=std(0x5a5650);const ox=D.x+D.nx*.06,oz=D.z+D.nz*.06;
-   const dw=1.6;let door;const dg=prop('door',ox,oz,Math.atan2(D.nx,D.nz),1,g);if(dg){dg.scale.set(.95,1.08,1);door=dg}else{door=BX(dm,D.nz?dw:.1,2.3,D.nz?.1:dw,ox,0,oz,g);BX(fm,D.nz?dw+.3:.14,.18,D.nz?.14:dw+.3,ox,2.3,oz,g)}
-   const lamp=glowSprite(0xffd890,1.2,.5);lamp.position.set(ox+D.nx*.3,2.7,oz+D.nz*.3);g.add(lamp);b.doorMesh=door}
-  if(b.sign){const tx=signTex(b.sign,b.id==='hosp'?'#e8e4dc':b.id==='police'?'#1c2a44':'#2a4a3a',b.id==='hosp'?'#b02020':'#f0ead8');const s=M('plane',new T3.MeshStandardMaterial({map:tx,roughness:.6,emissive:0x222222}),3.2,.8,1,b.door?b.door.x:cx,b.door?3.2:b.h-1,(b.door?b.door.z:b.z1)+.08,g,false)}
-  if(b.id==='shop'){const gl_=new T3.MeshStandardMaterial({color:0x223038,roughness:.15,metalness:.4,transparent:true,opacity:.75});BX(gl_,3,1.8,.06,b.x0+1.8,.4,b.z1+.04,g,false)}
-  if(b.id==='garage'){BX(std(0x6a6e6a,{m:.5,r:.5}),3.6,2.8,.08,25,0,b.z1+.04,g,false);for(let y=.3;y<2.8;y+=.3)BX(std(0x4a4e4a),3.6,.03,.1,25,y,b.z1+.06,g,false)}
- }
- // fixed fire-escape ladder on parking building east wall
- addLadder(27,14,1,0,0,12,true);
+ for(const b of BLD)buildBuilding(g,b);
+ // fire escape ladders (apartments with fire:1) + fixed ladder on parking garage
+ // construction site (south-west): lumber crates, a half-built concrete frame you can climb
+ const cs=M('plane',texMat('dirt',3,3),16,16,1,-36,.015,36,g,false);cs.rotation.x=-Math.PI/2;
+ for(const [x,z] of [[-42,30],[-30.5,42],[-42.6,42]]){BX(std(0x7a5a38,{r:.9}),1.2,1,1.2,x,0,z,g);addSolid({x0:x-.6,z0:z-.6,x1:x+.6,z1:z+.6,top:1,kind:'crate',climb:1})}
+ {const cm=std(0x8a8780,{r:.95});const fx0=-40,fz0=33,fx1=-33,fz1=39;for(const [px,pz] of [[fx0,fz0],[fx1,fz0],[fx0,fz1],[fx1,fz1]])BX(cm,.4,6,.4,px,0,pz,g);
+  BX(cm,fx1-fx0+.4,.3,fz1-fz0+.4,(fx0+fx1)/2,2.7,(fz0+fz1)/2,g);addSolid({x0:fx0-.2,z0:fz0-.2,x1:fx1+.2,z1:fz1+.2,top:3,bot:2.7,kind:'slab'});
+  BX(cm,fx1-fx0+.4,.3,(fz1-fz0)/2,(fx0+fx1)/2,5.7,fz0+(fz1-fz0)/4,g);addSolid({x0:fx0-.2,z0:fz0-.2,x1:fx1+.2,z1:(fz0+fz1)/2,top:6,bot:5.7,kind:'slab'});
+  for(const [px,pz] of [[fx0,fz0],[fx1,fz0],[fx0,fz1],[fx1,fz1]])addSolid({x0:px-.2,z0:pz-.2,x1:px+.2,z1:pz+.2,top:6,kind:'prop'})}
+ const fen=std(0x8a8a80,{m:.5,r:.5});for(let z=29;z<=43;z+=2)BX(fen,.06,1.6,1.9,-28.6,0,z,g);
+ // street lamps
+ const pole=std(0x3a3c3e,{m:.6,r:.5});SC.lampPos=[];
+ for(const [x,z] of [[-36,-5.6],[-20,-5.6],[-8,5.6],[10,-5.6],[22,5.6],[36,-5.6],[5.6,-36],[5.6,-20],[-5.6,22],[5.6,36],[-5.6,-26],[22.4,-14],[-22.4,14],[27.6,30],[-27.6,-30]]){
+  M('cyl',pole,.14,6,.14,x,3,z,g);const ox=Math.abs(z)>Math.abs(x)||Math.abs(Math.abs(x)-22)<1||Math.abs(Math.abs(x)-28)<1?(x>0?-1:1):0,oz=ox?0:(z>0?-1:1);BX(pole,ox?1.2:.1,.1,oz?1.2:.1,x+ox*.5,5.9,z+oz*.5,g);BX(std(0x222222),.45,.15,.45,x+ox,5.85,z+oz,g);SC.lampPos.push([x+ox,z+oz])}
+ // dead trees
+ for(const [x,z] of [[-32,2],[32,-3],[-3,32],[44,44.5],[-31,-31],[33,-26.5],[3,-31],[-13,26.5],[29,26.5],[-26.5,-44],[44,-26],[-44,26.5],[18,-26.6],[-17,-26.6],[40,-6.5],[-8,-26.4]])deadTree(g,x,z);
  // cars
- CARS.forEach(([x,z,rot,col],i)=>{const c=i===4?carModel(col,'van'):i===6?carModel(col,'sedan',true):i===1?policeCar():carModel(col);c.position.set(x,0,z);c.rotation.y=rot;g.add(c);const al=Math.abs(Math.cos(rot))>.7;const hw=al?2.1:.95,hd=al?.95:2.1;const s=addSolid({x0:x-hw,z0:z-hd,x1:x+hw,z1:z+hd,top:1.45,kind:'car',climb:1});G.cars.push({x,z,s,alarm:1,mesh:c})})
+ CARS.forEach(([x,z,rot,col],i)=>{const c=i===4?carModel(col,'van'):i===6||i===11?carModel(col,'sedan',true):i===1?policeCar():carModel(col);c.position.set(x,0,z);c.rotation.y=rot;g.add(c);const al=Math.abs(Math.cos(rot))>.7;const hw=al?2.1:.95,hd=al?.95:2.1;const s=addSolid({x0:x-hw,z0:z-hd,x1:x+hw,z1:z+hd,top:1.45,kind:'car',climb:1});G.cars.push({x,z,s,alarm:i!==6&&i!==11?1:0,mesh:c,burnt:i===6||i===11})});
  for(const [x,z,rot] of DUMPS){const d=new T3.Group();const dm=std(0x2e4a38,{r:.7,m:.3});BX(dm,1.8,1.1,1.1,0,.15,0,d);BX(std(0x26302a),1.9,.12,1.2,0,1.25,0,d);for(const wx of [-.7,.7])M('cyl',std(0x111111),.25,.08,.25,wx,.12,0,d).rotation.x=Math.PI/2;d.position.set(x,0,z);d.rotation.y=rot;g.add(d);
   const al=Math.abs(Math.cos(rot))>.7;const hw=al?.95:.6,hd=al?.6:.95;addSolid({x0:x-hw,z0:z-hd,x1:x+hw,z1:z+hd,top:1.35,kind:'dump',climb:1})}
- // construction site & lumber
- const cs=M('plane',texMat('dirt',2,2),6,10,1,-29,.015,26.5,g,false);cs.rotation.x=-Math.PI/2;
- for(const [x,z] of [[-30,23.5],[-27.2,30.2],[-30.6,30]]){BX(std(0x7a5a38,{r:.9}),1.2,1,1.2,x,0,z,g);addSolid({x0:x-.6,z0:z-.6,x1:x+.6,z1:z+.6,top:1,kind:'crate',climb:1})}
- const fen=std(0x8a8a80,{m:.5,r:.5});for(let z=21.5;z<=31.5;z+=2)BX(fen,.06,1.6,1.9,-25.6,0,z,g);
- // street lamps
- const pole=std(0x3a3c3e,{m:.6,r:.5});for(const [x,z] of [[-20,-5.6],[-8,5.6],[10,-5.6],[22,5.6],[5.6,-20],[-5.6,22],[5.6,26],[-5.6,-26]]){M('cyl',pole,.14,6,.14,x,3,z,g);const arm=BX(pole,.1,.1,1.2,x,5.9,z+(z>0?-.5:.5),g);const head=BX(std(0x222222),.4,.15,.5,x,5.85,z+(z>0?-1:1),g)}
- // dead trees
- for(const [x,z] of [[-30,4],[30,-4],[-4,30],[31,30],[-31,-30],[31,-28],[4,-30],[-12,30],[29,22]])deadTree(g,x,z)
  buildProps(g);
- // rubble & debris decoration
- for(let i=0;i<60;i++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(G.solids.some(s=>inRect(s,x,z,.6)))continue;const m=std(pick([0x5a5650,0x6a6258,0x48443e,0x3a2a22]),{flat:true});const r_=BX(m,rnd(.15,.6),rnd(.08,.3),rnd(.15,.6),x,0,z,g);r_.rotation.y=rnd(0,3)}
- for(let i=0;i<26;i++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(G.solids.some(s=>inRect(s,x,z,.4)))continue;const p_=M('plane',std(pick([0xd8d0c0,0xc8b890,0x8a8070]),{ds:true}),rnd(.2,.4),rnd(.25,.35),1,x,.03,z,g,false);p_.rotation.x=-Math.PI/2;p_.rotation.z=rnd(0,3)}
- // blood decals
- for(let i=0;i<14;i++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);const d=M('cyl',std(0x3a0a08,{r:.4,t:true,o:.75}),rnd(.6,1.6),.01,rnd(.6,1.6),x,.035,z,g,false)}
+ // rubble & paper
+ const free=(x,z,r)=>!G.solids.some(s=>inRect(s,x,z,r));
+ for(let i=0;i<110;i++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(!free(x,z,.6))continue;const m=std(pick([0x5a5650,0x6a6258,0x48443e,0x3a2a22]),{flat:true});const r_=BX(m,rnd(.15,.6),rnd(.08,.3),rnd(.15,.6),x,0,z,g);r_.rotation.y=rnd(0,3)}
+ for(let i=0;i<50;i++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(!free(x,z,.4))continue;const p_=M('plane',std(pick([0xd8d0c0,0xc8b890,0x8a8070]),{ds:true}),rnd(.2,.4),rnd(.25,.35),1,x,.03,z,g,false);p_.rotation.x=-Math.PI/2;p_.rotation.z=rnd(0,3)}
+ for(let i=0;i<26;i++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);M('cyl',std(0x3a0a08,{r:.4,t:true,o:.75}),rnd(.6,1.6),.01,rnd(.6,1.6),x,.035,z,g,false)}
  buildDetails(g);
  buildSmoke();
 }
-
-function buildProps(g){
- // trash bags along buildings
- for(const [x,z,n] of [[-13.4,-10.5,4],[-6,-9,3],[6.1,-11,3],[21.5,-10,4],[-12.5,8.6,3],[-6,10,3],[18,8.6,3],[28,9,2],[-26.5,-10.4,3]])for(let i=0;i<n;i++)trashBag(g,x+rnd(-.8,.8),z+rnd(-.5,.5));
- tireStack(g,28.6,-11.4,4);tireStack(g,29.4,-11,3);tireStack(g,-27,21.5,3);
- for(const [x,z,f] of [[-3,-3,0],[-2,-1.5,1],[3,2.5,0],[6.5,3,1],[-3.2,6,0],[-3.6,-22.8,1],[3.4,-22.6,0],[-2.8,23.2,0]])cone(g,x,z,f);
- for(const [x,z] of [[-4.6,-12],[4.6,13],[-4.6,24],[4.6,-24]])hydrant(g,x,z);
- bench(g,-15,-5.4,0);bench(g,15,5.4,Math.PI);bench(g,-5.4,15,Math.PI/2);
- // bus stop
- const bs=new T3.Group();bs.position.set(10,0,5.6);g.add(bs);const pm=std(0x3a3c3e,{m:.7,r:.4});for(const x of [-1.4,1.4])mesh(new T3.CylinderGeometry(.05,.05,2.4,8),pm,bs,x,1.2,0);mesh(new T3.BoxGeometry(3,.08,1.2),pm,bs,0,2.4,0);
- mesh(new T3.BoxGeometry(2.8,1.6,.03),new T3.MeshStandardMaterial({color:0x8aa0aa,transparent:true,opacity:.25,roughness:.05,metalness:.3}),bs,0,1.3,-.5,1,1,1,false);mesh(new T3.BoxGeometry(2.2,.06,.4),std(0x5a4a3a),bs,0,.5,-.3);
- // police barricade + sandbags
- for(let i=0;i<7;i++){const sb=mesh(sphG(10),std(0x7a6a48,{r:1}),g,-20+i*.75,.2,6.9,.75,.32,.45);sb.rotation.y=rnd(-.2,.2)}for(let i=0;i<6;i++)mesh(sphG(10),std(0x6e5f40,{r:1}),g,-19.6+i*.75,.48,6.9,.72,.3,.42);
- // explosive barrels & plain barrels (visual for now)
- for(const [x,z,c] of [[23,-10.2,0xb02018],[29,-14,0xb02018],[-27.5,24,0xb02018],[-7.6,21,0x3a5a7a],[-8.4,21.4,0x4a6a3a],[19.5,8.4,0xb02018]]){const b=barrel(c);b.position.set(x,0,z);g.add(b);addSolid({x0:x-.32,z0:z-.32,x1:x+.32,z1:z+.32,top:.9,kind:'barrel',climb:1})}
- // vending machine
- {const v=prop('vending',-5.3,-10.5,Math.PI/2,1,g)||vending();if(!v.parent){v.position.set(-5.3,0,-10.5);v.rotation.y=Math.PI/2;g.add(v)}else{const sc_=glowSprite(0x9ad0ff,1.6,.25);sc_.position.set(-4.85,1.25,-10.5);g.add(sc_)}addSolid({x0:-5.8,z0:-11,x1:-4.8,z1:-10,top:1.9,kind:'vend'})}
- // realistic set pieces (only when the asset pack loaded)
- if(prop('bus',-24,2.1,Math.PI/2+.06,1,g)){addSolid({x0:-30,z0:.6,x1:-18,z1:3.6,top:3.45,kind:'bus'});const sg=new T3.Mesh(new T3.PlaneGeometry(1,1),std(0x111111,{t:true,o:.55}));sg.rotation.x=-Math.PI/2;sg.scale.set(12.4,3.4,1);sg.position.set(-24,.03,2.1);g.add(sg)}
- for(const [x,z,cx,cz] of [[30.2,-17.4,30.2,-13.3],[-30.2,-16,-30.2,-12.3]]){if(prop('container',x,z,0,1,g)){addSolid({x0:x-1.29,z0:z-3.03,x1:x+1.29,z1:z+3.03,top:2.56,kind:'container',climb:1});BX(std(0x7a5a38,{r:.9}),1.1,1,1.1,cx,0,cz,g);addSolid({x0:cx-.55,z0:cz-.55,x1:cx+.55,z1:cz+.55,top:1,kind:'crate',climb:1})}}
- if(prop('forklift',-12.2,22.6,-.6,1,g))addSolid({x0:-13.4,z0:21.6,x1:-11,z1:23.6,top:2.1,kind:'fork'});
- {const bk=prop('bike',-23.2,-9.7,1.2,1,g);if(bk){bk.rotation.z=1.35;bk.position.y=.33}}
- for(const [x,z,r,tilt] of [[-14.6,-9.8,.4,0],[11.2,-8.9,2.1,1.5],[-3.4,12.3,-.7,1.5]]){const c=prop('chair',x,z,r,1,g);if(c&&tilt){c.rotation.x=tilt;c.position.y=.2}}
- buildClutter(g);
- // power poles + wires
- const tops=[];for(const x of [-28,-18,-8,8,18,28])tops.push(powerPole(g,x,-6.6));for(let i=0;i<tops.length-1;i++)if(tops[i+1][0]-tops[i][0]<12)for(const o of [-.65,0,.65])wire(g,[tops[i][0]+o,tops[i][1],tops[i][2]],[tops[i+1][0]+o,tops[i+1][1],tops[i+1][2]]);
- // traffic lights
- for(const [x,z,r] of [[-4.6,-4.6,0],[4.6,4.6,Math.PI]]){const t=new T3.Group();t.position.set(x,0,z);t.rotation.y=r;g.add(t);mesh(new T3.CylinderGeometry(.07,.07,4,8),std(0x2a2c2e,{m:.6}),t,0,2,0);mesh(new T3.BoxGeometry(.3,.85,.3),std(0x1a1a1a),t,0,4.2,0);for(let i=0;i<3;i++)mesh(sphG(8),std([0x3a0a0a,0x3a300a,0x0a2a0a][i],{e:i===0?0x400000:0,r:.3}),t,0,4.45-i*.25,.16,.13,.13,.06,false)}
- // shop awning
- {const aw=new T3.Mesh(new T3.CylinderGeometry(.6,.6,4.5,12,1,true,0,Math.PI/2),new T3.MeshStandardMaterial({color:0x2a5a3a,roughness:.9,side:T3.DoubleSide}));aw.rotation.z=Math.PI/2;aw.position.set(-8.75,2.6,-7.95);g.add(aw)}
- // graffiti storytelling
- graffiti(g,'别进医院',13,2.2,-9.93,0,'#c02018');graffiti(g,'直升机 → 东',-14,2.2,-10.93,0,'#e0c040',3.2);graffiti(g,'救命 3楼',-20,5,-10.93,0,'#d02a20',2.5);graffiti(g,'他们晚上会爬',-6.45,2.4,14,Math.PI/2,'#d0d0c0',3);graffiti(g,'楼顶安全',27.05,2.2,-16,Math.PI/2,'#40c060',2.6);
- // puddles
- for(const [x,z,r] of [[-12,1,1.6],[6,-2.5,1.2],[1.5,9,1],[-2,-20,1.3],[20,-1,1.8],[-24,2.4,1]])puddle(g,x,z,r);
+// ---------- one building: shell, door, windows, balconies, vents, roof ----------
+function bFacade(b,u,v){const fs={brick:'brick',resi:'concrete',beige:'plaster',glass:'glass',concrete:'concrete',plaster:'plaster',metal:'metal'}[b.style]||'concrete';
+ return facadeMat(b,u,v)||texMat(fs,u/4,v/3,{bs:.05,r:fs==='glass'?.35:.9,m:fs==='glass'?.3:fs==='metal'?.25:0})}
+function buildBuilding(g,b){const w=b.x1-b.x0,d=b.z1-b.z0,cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;
+ b.ds={hp:b.type==='police'||b.type==='gunshop'?160:90,barr:0,broken:false,open:false,mhp:0};b.ds.mhp=b.ds.hp;
+ const side=bFacade(b,d,b.h),front=bFacade(b,w,b.h),roof=texMat('roof',w/4,d/4,{bs:.08});
+ const mesh=new T3.Mesh(GEO.box,[side,side,roof,roof,front,front]);mesh.scale.set(w,b.h,d);mesh.position.set(cx,b.h/2,cz);mesh.castShadow=mesh.receiveShadow=true;g.add(mesh);
+ const par=std(0x6a665e);for(const [px,pz,sx,sz] of [[cx,b.z0+.1,w,.2],[cx,b.z1-.1,w,.2],[b.x0+.1,cz,.2,d],[b.x1-.1,cz,.2,d]])BX(par,sx,.45,sz,px,b.h,pz,g);
+ BX(std(0x3a3632,{r:.95}),w+.06,.5,d+.06,cx,0,cz,g,false);
+ addSolid({x0:b.x0,z0:b.z0,x1:b.x1,z1:b.z1,top:b.h,kind:'bld',ref:b});
+ // roof: AC, tank, hatch, vent, heli pad
+ const r=mulberry(b.id);
+ if(!b.heli){const x=b.x0+1.4,z=b.z0+1.4;const m=std(0x8a8c88,{m:.4,r:.6});BX(m,1.2,.9,1,x,b.h,z,g);BX(std(0x2a2a2a),.8,.05,.8,x,b.h+.9,z,g);addSolid({x0:x-.6,z0:z-.5,x1:x+.6,z1:z+.5,top:b.h+.9,kind:'prop'});
+  if(w*d>80&&r()<.7){const tx=b.x1-1.8,tz=b.z1-1.8;M('cyl',std(0x5a5048,{r:.8}),1.6,1.6,1.6,tx,b.h+1.4,tz,g);for(const [lx,lz] of [[-.6,-.6],[.6,-.6],[-.6,.6],[.6,.6]])BX(std(0x2a2826),.12,.6,.12,tx+lx,b.h,tz+lz,g);addSolid({x0:tx-.8,z0:tz-.8,x1:tx+.8,z1:tz+.8,top:b.h+2.2,kind:'prop'})}}
+ {const hx=b.x0+1.2,hz=b.z1-1.6;BX(std(0x3a3a38,{m:.4}),1,.35,1,hx,b.h,hz,g);BX(std(0x1a1a1a),.8,.05,.8,hx,b.h+.35,hz,g);b.hatch={x:hx,z:hz}}
+ b.vents=[];{const vx=b.x1-1.3,vz=b.z0+1.3+(b.heli?0:1.2);const vm=std(0x7a7e80,{m:.6,r:.45});BX(vm,.9,.6,.9,vx,b.h,vz,g);for(let i=0;i<4;i++)BX(std(0x1a1c1e),.7,.04,.06,vx,b.h+.15+i*.12,vz+.46,g,false);b.vents.push({x:vx,z:vz+.9,y:b.h,f:b.floors-1,roof:1,ix:vx,iz:vz})}
+ if(['school','mall','hosp','office','police','ware','motel'].includes(b.type)){// ground vent in a side wall
+  const sd=b.ds==='n'||b.ds==='s'?(r()<.5?'e':'w'):(r()<.5?'n':'s');const [vx,vz,nx,nz]=sidePt(b,sd,.3+r()*.4);const vm=std(0x6a6e70,{m:.6,r:.45});const vg=BX(vm,nz?.8:.08,.55,nz?.08:.8,vx+nx*.04,.15,vz+nz*.04,g,false);b.vents.push({x:vx+nx*.7,z:vz+nz*.7,y:0,f:0,nx,nz,wx:vx,wz:vz})}
+ if(b.heli){const hp=M('cyl',std(0x3a3a3a,{r:.7}),7,.06,7,cx,b.h+.03,cz,g,false);const [c,gg]=cvs(256,256);gg.clearRect(0,0,256,256);gg.strokeStyle='#e8d070';gg.lineWidth=10;gg.beginPath();gg.arc(128,128,110,0,7);gg.stroke();gg.fillStyle='#e8d070';gg.font='900 150px Oswald,sans-serif';gg.textAlign='center';gg.textBaseline='middle';gg.fillText('H',128,138);
+  const tx=new T3.CanvasTexture(c);tx.encoding=T3.sRGBEncoding;const hm=M('plane',new T3.MeshStandardMaterial({map:tx,transparent:true,roughness:.8}),6,6,1,cx,b.h+.07,cz,g,false);hm.rotation.x=-Math.PI/2;b.pad={x:cx,z:cz}}
+ // front door
+ {const D=b.door;const ox=D.x+D.nx*.06,oz=D.z+D.nz*.06;const dw=1.6;let door;const dg=prop('door',ox,oz,Math.atan2(D.nx,D.nz),1,g);
+  if(dg){dg.scale.set(.95,1.08,1);door=dg}else{door=BX(std(0x2a221c,{r:.7}),D.nz?dw:.1,2.3,D.nz?.1:dw,ox,0,oz,g);BX(std(0x5a5650),D.nz?dw+.3:.14,.18,D.nz?.14:dw+.3,ox,2.3,oz,g)}
+  const lamp=glowSprite(0xffd890,1.2,.5);lamp.position.set(ox+D.nx*.3,2.7,oz+D.nz*.3);g.add(lamp);b.doorMesh=door;b.doorBase={x:door.position.x,z:door.position.z,ry:door.rotation.y}}
+ if(b.sign){const D=b.door;const tx=signTex(b.sign,b.type==='hosp'?'#e8e4dc':b.type==='police'?'#1c2a44':b.type==='gunshop'?'#3a1a14':'#2a4a3a',b.type==='hosp'?'#b02020':'#f0ead8');const s=M('plane',new T3.MeshStandardMaterial({map:tx,roughness:.6,emissive:0x222222}),3.2,.8,1,D.x+D.nx*.08,3.2,D.z+D.nz*.08,g,false);s.rotation.y=Math.atan2(D.nx,D.nz)}
+ if(b.type==='garage'){const D=b.door;BX(std(0x6a6e6a,{m:.5,r:.5}),.08,2.8,3.6,D.x-.04,0,D.z+2.6,g,false)}
+ // windows that can be used as entrances: 1-2 on the ground floor, and a balcony window on each upper floor (fire escape on fire:1)
+ b.wins=[];const sides=['n','s','e','w'].filter(s=>s!==b.ds);
+ const nG=w*d>90?2:1;for(let i=0;i<nG;i++){const sd=sides[(i+Math.floor(r()*3))%sides.length];const t=.25+r()*.5;const [x,z,nx,nz]=sidePt(b,sd,t);if(b.wins.some(q=>dd(q.x,q.z,x,z)<3))continue;b.wins.push({x,z,nx,nz,f:0,y:0,broken:r()<.25,boarded:false})}
+ if(b.floors>=2&&b.type!=='park'){const sd=b.fire?b.ds:sides[Math.floor(r()*sides.length)];const nf=b.fire?b.floors-1:1;for(let f=1;f<=nf;f++){const [x,z,nx,nz]=sidePt(b,sd,b.fire?.75:.5);b.wins.push({x,z,nx,nz,f,y:f*FLOOR_H,broken:r()<.3,boarded:false,balc:1})}}
+ for(const W of b.wins)buildWindow(g,b,W);
+ if(b.fire){const W=b.wins.find(q=>q.balc&&q.f===1);if(W)addLadder(W.x+W.nx*1.2,W.z+W.nz*1.2,W.nx,W.nz,0,W.y,true)}
+ if(b.type==='park')addLadder(b.x0,cz-4,-1,0,0,b.h,true);
 }
-
-// ================= extra clutter: abandoned vehicles, checkpoint, cargo (asset pack only) =================
+function mulberry(s){let h=1779033703;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),3432918353);return()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return((h^=h>>>16)>>>0)/4294967296}}
+function sidePt(b,sd,t){if(sd==='s')return[lerp(b.x0+1,b.x1-1,t),b.z1,0,1];if(sd==='n')return[lerp(b.x0+1,b.x1-1,t),b.z0,0,-1];if(sd==='e')return[b.x1,lerp(b.z0+1,b.z1-1,t),1,0];return[b.x0,lerp(b.z0+1,b.z1-1,t),-1,0]}
+function buildWindow(g,b,W){const gr=new T3.Group();gr.position.set(W.x+W.nx*.03,W.y,W.z+W.nz*.03);gr.rotation.y=Math.atan2(W.nx,W.nz);g.add(gr);
+ mesh(new T3.BoxGeometry(1.5,1.3,.1),std(0x2a2622),gr,0,1.55,0);
+ const gm=new T3.MeshStandardMaterial({color:0x26323a,roughness:.1,metalness:.5,transparent:true,opacity:.8});const glass=mesh(new T3.BoxGeometry(1.3,1.1,.04),gm,gr,0,1.55,.05,1,1,1,false);
+ const shards=new T3.Group();gr.add(shards);for(let i=0;i<5;i++){const s=mesh(new T3.BoxGeometry(rnd(.2,.4),rnd(.15,.35),.02),gm,shards,rnd(-.5,.5),1.55+(i%2?.4:-.4)+rnd(-.1,.1),.05,1,1,1,false);s.rotation.z=rnd(-.6,.6)}
+ const boards=new T3.Group();gr.add(boards);for(const y of [1.2,1.6,2.0]){const p_=mesh(new T3.BoxGeometry(1.6,.18,.06),std(0x8a6a44),boards,0,y,.1);p_.rotation.z=rnd(-.12,.12)}
+ W.mesh={glass,shards,boards};
+ if(W.balc){const bl=new T3.Group();bl.position.set(W.x,W.y,W.z);bl.rotation.y=Math.atan2(W.nx,W.nz);g.add(bl);const bm=std(0x6a665e),rm=std(0x2a2c2e,{m:.6});
+  mesh(new T3.BoxGeometry(2.6,.18,1.2),bm,bl,0,-.09,.6);for(let i=0;i<10;i++)mesh(new T3.CylinderGeometry(.02,.02,.95,6),rm,bl,-1.25+i*.28,.47,1.17,1,1,1,false);mesh(new T3.BoxGeometry(2.6,.05,.05),rm,bl,0,.95,1.17,1,1,1,false);
+  const hw=W.nz?1.3:.6,hd=W.nz?.6:1.3;const cx=W.x+W.nx*.6,cz=W.z+W.nz*.6;addSolid({x0:cx-hw,z0:cz-hd,x1:cx+hw,z1:cz+hd,top:W.y,bot:W.y-.2,kind:'balc',ref:b});
+  if(b.fire){const fe=std(0x3a3c3e,{m:.6,r:.5});mesh(new T3.BoxGeometry(W.nz?1.2:.05,.05,W.nz?.05:1.2),fe,g,W.x+W.nx*1.2+(W.nz?1:0),W.y+.95,W.z+W.nz*1.2+(W.nx?1:0))}}
+ updWindow(W)}
+function updWindow(W){if(!W.mesh)return;W.mesh.glass.visible=!W.broken;W.mesh.shards.visible=W.broken&&!W.boarded;W.mesh.boards.visible=W.boarded}
+function updDoor(b){const m=b.doorMesh;if(!m||!b.doorBase)return;const B=b.doorBase;if(b.ds.broken){m.rotation.set(-1.45,B.ry,0);m.position.set(B.x+b.door.nx*1.1,.1,B.z+b.door.nz*1.1)}else if(b.ds.open){m.rotation.set(0,B.ry+1.4,0);m.position.set(B.x,0,B.z)}else{m.rotation.set(0,B.ry,0);m.position.set(B.x,0,B.z)}}
+function buildProps(g){
+ // trash bags by every front door, tyres, cones, hydrants, benches
+ for(const b of BLD){const D=b.door;const tx=D.nz?1:0,tz=D.nx?1:0;const x=D.x+D.nx*.55+tx*2.2,z=D.z+D.nz*.55+tz*2.2;if(G.solids.some(s=>s.kind!=='bld'&&inRect(s,x,z,.6)))continue;for(let i=0;i<3;i++)trashBag(g,x+rnd(-.5,.5)*(tx||.4),z+rnd(-.5,.5)*(tz||.4))}
+ tireStack(g,36.8,-14.2,4);tireStack(g,37.2,-15.2,3);tireStack(g,-27,40.5,3);
+ for(const [x,z,f] of [[-3,-3,0],[-2,-1.5,1],[3,2.5,0],[6.5,3,1],[-3.2,6,0],[-3.6,-35.8,1],[3.4,-35.6,0],[-2.8,36.2,0],[24,-3,1],[-25.5,3.2,0]])cone(g,x,z,f);
+ for(const [x,z] of [[-5,-12],[5,13],[-5,24],[5,-24],[22.4,-18],[-22.4,18]])hydrant(g,x,z);
+ bench(g,-15,-5.1,0);bench(g,15,5.1,Math.PI);bench(g,-5.1,15,Math.PI/2);bench(g,5.1,-30,-Math.PI/2);
+ // bus stop
+ const bs=new T3.Group();bs.position.set(10,0,5.3);g.add(bs);const pm=std(0x3a3c3e,{m:.7,r:.4});for(const x of [-1.4,1.4])mesh(new T3.CylinderGeometry(.05,.05,2.4,8),pm,bs,x,1.2,0);mesh(new T3.BoxGeometry(3,.08,1.2),pm,bs,0,2.4,0);
+ mesh(new T3.BoxGeometry(2.8,1.6,.03),new T3.MeshStandardMaterial({color:0x8aa0aa,transparent:true,opacity:.25,roughness:.05,metalness:.3}),bs,0,1.3,-.5,1,1,1,false);mesh(new T3.BoxGeometry(2.2,.06,.4),std(0x5a4a3a),bs,0,.5,-.3);
+ // police barricade + sandbags in front of the police station
+ for(let i=0;i<7;i++){const sb=mesh(sphG(10),std(0x7a6a48,{r:1}),g,-21+i*.75,.2,6.2,.75,.32,.45);sb.rotation.y=rnd(-.2,.2)}for(let i=0;i<6;i++)mesh(sphG(10),std(0x6e5f40,{r:1}),g,-20.6+i*.75,.48,6.2,.72,.3,.42);
+ addSolid({x0:-21.4,z0:5.95,x1:-16.1,z1:6.45,top:.7,kind:'crate',climb:1});
+ // barrels
+ for(const [x,z,c] of [[37,-19,0xb02018],[-30,41,0xb02018],[-12.3,23.4,0x3a5a7a],[-13.1,23.1,0x4a6a3a],[35.6,24,0xb02018],[-34,-24,0xb02018],[22.4,-34.2,0x3a5a7a]]){const b=barrel(c);b.position.set(x,0,z);g.add(b);addSolid({x0:x-.32,z0:z-.32,x1:x+.32,z1:z+.32,top:.9,kind:'barrel',climb:1})}
+ // vending machine by the shop
+ {const v=prop('vending',-5.45,-11,Math.PI/2,1,g)||vending();if(!v.parent){v.position.set(-5.45,0,-11);v.rotation.y=Math.PI/2;g.add(v)}else{const sc_=glowSprite(0x9ad0ff,1.6,.25);sc_.position.set(-5,1.25,-11);g.add(sc_)}addSolid({x0:-5.95,z0:-11.5,x1:-4.95,z1:-10.5,top:1.9,kind:'vend'})}
+ // power poles + wires along the north side of the main road
+ const tops=[];for(const x of [-40,-30,-20.5,-8,8,19,30,40])tops.push(powerPole(g,x,-5.3));for(let i=0;i<tops.length-1;i++)if(tops[i+1][0]-tops[i][0]<13)for(const o of [-.65,0,.65])wire(g,[tops[i][0]+o,tops[i][1],tops[i][2]],[tops[i+1][0]+o,tops[i+1][1],tops[i+1][2]]);
+ for(const [x,z,r] of [[-4.6,-4.6,0],[4.6,4.6,Math.PI],[22.4,-22.4,0],[-22.4,22.4,Math.PI]]){const t=new T3.Group();t.position.set(x,0,z);t.rotation.y=r;g.add(t);mesh(new T3.CylinderGeometry(.07,.07,4,8),std(0x2a2c2e,{m:.6}),t,0,2,0);mesh(new T3.BoxGeometry(.3,.85,.3),std(0x1a1a1a),t,0,4.2,0);for(let i=0;i<3;i++)mesh(sphG(8),std([0x3a0a0a,0x3a300a,0x0a2a0a][i],{e:i===0?0x400000:0,r:.3}),t,0,4.45-i*.25,.16,.13,.13,.06,false)}
+ {const aw=new T3.Mesh(new T3.CylinderGeometry(.6,.6,4.5,12,1,true,0,Math.PI/2),new T3.MeshStandardMaterial({color:0x2a5a3a,roughness:.9,side:T3.DoubleSide}));aw.rotation.z=Math.PI/2;aw.position.set(-8.5,2.6,-5.95);g.add(aw)}
+ graffiti(g,'别进医院',13,2.2,-8.93,0,'#c02018');graffiti(g,'直升机 → 东南',-16,2.2,-5.93,0,'#e0c040',3.2);graffiti(g,'救命 3楼',-20,5,-5.93,0,'#d02a20',2.5);graffiti(g,'他们晚上会爬',-5.95,2.4,14,Math.PI/2,'#d0d0c0',3);graffiti(g,'楼顶安全',28.95,2.2,-17,-Math.PI/2,'#40c060',2.6);graffiti(g,'枪店还有货',33.5,2.2,-28.43,0,'#e0c040',2.8);graffiti(g,'别靠近黑烟',-3,2.2,-42.93,0,'#c02018',3);
+ for(const [x,z,r] of [[-12,1,1.6],[6,-2.5,1.2],[1.5,9,1],[-2,-20,1.3],[20,-1,1.8],[-24,-2.4,1],[25,14,1.4],[-25,-14,1.2],[14,25,1.5],[-30,-25,1.1]])puddle(g,x,z,r);
+ const c0=[[-14.6,-4.6,.4,0],[11.2,-7.6,2.1,1.5],[-3.4,12.3,-.7,1.5]];for(const [x,z,r,tilt] of c0){const c=prop('chair',x,z,r,1,g);if(c&&tilt){c.rotation.x=tilt;c.position.y=.2}}
+ buildClutter(g);
+}
 const VD={k_vehicle_pickup:[5.18,2.31,1.85],k_vehicle_sports:[5.66,2.67,1.86],k_vehicle_truck:[5.26,2.71,2.88],k_vehicle_pickup_armored:[5.51,2.65,2],k_vehicle_truck_armored:[5.59,2.98,2.9]};
 function tintClone(o,hex){const c=new T3.Color(hex);o.traverse(q=>{if(q.isMesh){q.material=(Array.isArray(q.material)?q.material:[q.material]).map(m=>{const n=m.clone();n.color.multiply(c);return n});if(q.material.length===1)q.material=q.material[0]}});return o}
-function buildClutter(g){if(!MODELS.props.k_pallet&&!MODELS.props.k_vehicle_pickup)return;
+function buildClutter(g){
+ if(prop('bus',-24.5,2.1,Math.PI/2+.06,1,g)){addSolid({x0:-30.5,z0:.6,x1:-18.5,z1:3.6,top:3.45,kind:'bus'});const sg=new T3.Mesh(new T3.PlaneGeometry(1,1),std(0x111111,{t:true,o:.55}));sg.rotation.x=-Math.PI/2;sg.scale.set(12.4,3.4,1);sg.position.set(-24.5,.03,2.1);g.add(sg)}
+ {const bk=prop('bike',-23.6,-5.2,1.2,1,g);if(bk){bk.rotation.z=1.35;bk.position.y=.33}}
+ if(prop('forklift',31.5,-9.8,-.6,1,g))addSolid({x0:30.3,z0:-10.8,x1:32.7,z1:-8.8,top:2.1,kind:'fork'});
+ for(const [x,z,r,t] of [[-30.5,15,0,0],[34,40.5,Math.PI/2,0x5a7a9a],[34,37.9,Math.PI/2,0xb07060]]){const c=prop('container',x,z,r,1,g);if(c){if(t)tintClone(c,t);const al=Math.abs(Math.sin(r))>.7;const hw=al?3.03:1.29,hd=al?1.29:3.03;addSolid({x0:x-hw,z0:z-hd,x1:x+hw,z1:z+hd,top:2.56,kind:'container',climb:1})}}
+ for(const [x,z] of [[-30.5,10.8],[29.8,40.5]]){BX(std(0x7a5a38,{r:.9}),1.1,1,1.1,x,0,z,g);addSolid({x0:x-.55,z0:z-.55,x1:x+.55,z1:z+.55,top:1,kind:'crate',climb:1})}
+ {const c=prop('couch',12.6,5,Math.PI/2+.3,.9,g);if(c)addSolid({x0:11.5,z0:4.55,x1:13.7,z1:5.45,top:.8,kind:'crate',climb:1})}
+ if(!MODELS.props.k_pallet&&!MODELS.props.k_vehicle_pickup)return;
  const veh=(k,x,z,rot,s,alarm,tint)=>{const m=prop(k,x,z,rot+Math.PI/2,s,g);if(!m)return null;if(tint)tintClone(m,tint);const d=VD[k];const L=d[0]*s,W=d[1]*s,H=d[2]*s;const al=Math.abs(Math.cos(rot))>.7;const hw=(al?L:W)/2,hd=(al?W:L)/2;
-  const sd=addSolid({x0:x-hw,z0:z-hd,x1:x+hw,z1:z+hd,top:H,kind:'car',climb:H<=1.7?1:0});if(alarm)G.cars.push({x,z,s:sd,alarm:1,mesh:{rotation:{y:rot}}});addBlob(g,(al?L:W)+.6,(al?W:L)+.6).position.set(x,.03,z);return m};
+  const sd=addSolid({x0:x-hw,z0:z-hd,x1:x+hw,z1:z+hd,top:H,kind:'car',climb:H<=1.7?1:0});G.cars.push({x,z,s:sd,alarm:alarm?1:0,mesh:{rotation:{y:rot}},kit:k});addBlob(g,(al?L:W)+.6,(al?W:L)+.6).position.set(x,.03,z);return m};
  const box=(k,x,z,r,s,top,w,d,climb=1)=>{const m=prop(k,x,z,r,s,g);if(m&&top)addSolid({x0:x-w/2,z0:z-d/2,x1:x+w/2,z1:z+d/2,top,kind:'crate',climb});return m};
- // military checkpoint at the north end (quarantine line)
- veh('k_vehicle_truck_armored',-1.2,-28.6,0,.9);veh('k_vehicle_pickup_armored',3.8,-26.4,.5,.9);
- for(let i=0;i<9;i++){const sb=mesh(sphG(10),std(0x6e6448,{r:1}),g,-4+i*.7,.2,-24.6,.72,.32,.45);sb.rotation.y=rnd(-.2,.2)}for(let i=0;i<8;i++)mesh(sphG(10),std(0x645a40,{r:1}),g,-3.65+i*.7,.48,-24.6,.7,.3,.42);
- addSolid({x0:-4.4,z0:-24.9,x1:2.0,z1:-24.3,top:.7,kind:'crate',climb:1});
- box('k_trafficbarrier_1',3.3,-24.4,0,1,.85,1.56,.6);box('k_trafficbarrier_2',-5.2,-24.2,.2,1,.75,1.56,.6);
- box('k_chest',-3.6,-26.4,.3,1.2,.55,.8,.6);dropItem('bandage',-2.8,-26.9,0,null);
- // pile-up at the south end
- veh('k_vehicle_pickup',-1.4,27.8,1.2,.82,1,0x9a8a78);veh('k_vehicle_sports',2.0,25.2,-.3,.82,1,0x8a9aa8);
- // abandoned cars elsewhere
- veh('k_vehicle_pickup_armored',30,-1.6,0,.9);veh('k_vehicle_sports',20.5,-2.1,.08,.82,1,0xa89080);veh('k_vehicle_truck',-2.4,-18,Math.PI/2+.1,.82);veh('k_vehicle_pickup',21.5,21.5,.4,.82,1,0x7a8a70);
- // container yard south-east
- for(const [x,z,t] of [[24.5,26.5,0x5a7a9a],[24.5,23.8,0xb07060]]){const c=prop('container',x,z,Math.PI/2,1,g);if(c){tintClone(c,t);addSolid({x0:x-3.03,z0:z-1.29,x1:x+3.03,z1:z+1.29,top:2.56,kind:'container',climb:1})}}
- BX(std(0x7a5a38,{r:.9}),1.1,1,1.1,20.6,0,26.5,g);addSolid({x0:20.05,z0:25.95,x1:21.15,z1:27.05,top:1,kind:'crate',climb:1});
- for(let i=0;i<3;i++)box('k_pallet',23.4+i*.1,26.6,i*.15,1,0);
- // cargo in the police/warehouse alley
- for(let i=0;i<4;i++){const p_=prop('k_pallet',-11.5,10.6,i*.12,1,g);if(p_)p_.position.y=i*.14}addSolid({x0:-12.1,z0:10,x1:-10.9,z1:11.2,top:.56,kind:'crate',climb:1});
- {const pb=prop('k_pallet_broken',-10.6,14.6,1.4,1,g);if(pb){pb.rotation.z=1.1;pb.position.y=.5}}
- for(const [x,z,s] of [[-12.2,17.4,.7],[-11.4,17.9,.55],[-12,18.3,.45]]){BX(std(0x9a7a50,{r:.95}),s,s*.8,s,x,0,z,g)}addSolid({x0:-12.6,z0:17,x1:-11,z1:18.6,top:.56,kind:'crate',climb:1});
- // construction site: pipes, cinder blocks
- box('k_pipes',-27.6,25.3,0,1,.7,.8,3.4);for(let i=0;i<6;i++)prop('k_cinderblock',-29.2+rnd(-.6,.6),27.2+rnd(-.6,.6),rnd(0,3),1,g);
- // water tower on the police roof
- {const w=prop('k_watertower',-16,10.8,.3,.9,g);if(w){w.position.y=6;addSolid({x0:-17.2,z0:9.6,x1:-14.8,z1:12,top:14.4,kind:'prop'})}}
- // tyres, bags, barriers, dumped couch
- prop('k_wheels_stack',21.6,-10.9,.4,1,g);prop('k_wheels_stack',-24.6,6.6,1.2,1,g);
- for(const [x,z] of [[6.6,7.9],[7,7.2],[22.4,-9.6],[-9.2,-7.4],[-7.8,-7.3],[16,-9.3],[-19,-9.6],[9.5,9.6]])prop(pick(['k_trashbag_1','k_trashbag_2']),x,z,rnd(0,6),1,g);
+ // military checkpoint at the north end of the main road
+ veh('k_vehicle_truck_armored',-1.2,-41.6,0,.9);veh('k_vehicle_pickup_armored',3.8,-39.4,.5,.9);
+ for(let i=0;i<9;i++){const sb=mesh(sphG(10),std(0x6e6448,{r:1}),g,-4+i*.7,.2,-37.6,.72,.32,.45);sb.rotation.y=rnd(-.2,.2)}for(let i=0;i<8;i++)mesh(sphG(10),std(0x645a40,{r:1}),g,-3.65+i*.7,.48,-37.6,.7,.3,.42);
+ addSolid({x0:-4.4,z0:-37.9,x1:2.0,z1:-37.3,top:.7,kind:'crate',climb:1});
+ box('k_trafficbarrier_1',3.3,-37.4,0,1,.85,1.56,.6);box('k_trafficbarrier_2',-5.2,-37.2,.2,1,.75,1.56,.6);box('k_chest',-3.6,-39.4,.3,1.2,.55,.8,.6);dropItem('bandage',-2.8,-39.9,0,null);
+ // pile-ups and abandoned vehicles
+ veh('k_vehicle_pickup',-1.4,40.8,1.2,.82,1,0x9a8a78);veh('k_vehicle_sports',2.0,38.2,-.3,.82,1,0x8a9aa8);
+ veh('k_vehicle_pickup_armored',44.5,-1.6,0,.9);veh('k_vehicle_sports',20.5,-2.1,.08,.82,1,0xa89080);veh('k_vehicle_truck',-2.4,-18,Math.PI/2+.1,.82);veh('k_vehicle_pickup',12,-25.2,.05,.82,1,0x7a8a70);veh('k_vehicle_truck',-25,30,Math.PI/2,.82,0,0x8a7a6a);veh('k_vehicle_sports',25.4,-8,Math.PI/2-.2,.82,1,0x6a6a7a);
+ for(let i=0;i<3;i++)box('k_pallet',32.3+i*.1,40.5,i*.15,1,0);
+ for(let i=0;i<4;i++){const p_=prop('k_pallet',-12.25,10.5,i*.12,1,g);if(p_)p_.position.y=i*.14}addSolid({x0:-12.85,z0:9.9,x1:-11.65,z1:11.1,top:.56,kind:'crate',climb:1});
+ {const pb=prop('k_pallet_broken',-12.1,14.6,1.4,1,g);if(pb){pb.rotation.z=1.1;pb.position.y=.5}}
+ for(const [x,z,s] of [[-12.4,17.4,.7],[-12,18.2,.55]])BX(std(0x9a7a50,{r:.95}),s,s*.8,s,x,0,z,g);addSolid({x0:-12.8,z0:17,x1:-11.6,z1:18.6,top:.56,kind:'crate',climb:1});
+ box('k_pipes',-42.5,36,0,1,.7,.8,3.4);for(let i=0;i<6;i++)prop('k_cinderblock',-37+rnd(-.6,.6),39+rnd(-.6,.6),rnd(0,3),1,g);
+ {const w=prop('k_watertower',-17,14,.3,.9,g);if(w){w.position.y=6;addSolid({x0:-18.2,z0:12.8,x1:-15.8,z1:15.2,top:14.4,kind:'prop'})}}
+ prop('k_wheels_stack',38.2,-13.4,.4,1,g);prop('k_wheels_stack',-26.4,22.8,1.2,1,g);
+ for(const D of DUMPS)for(let i=0;i<2;i++)prop(pick(['k_trashbag_1','k_trashbag_2']),D[0]+rnd(-1.4,1.4),D[1]+(i?1:-1)*rnd(.9,1.3),rnd(0,6),1,g);
  box('k_plasticbarrier',14,-3.6,.1,1,.6,1.1,.4);box('k_plasticbarrier',15.2,-3.5,-.1,1,.6,1.1,.4);
- {const c=prop('couch',12.6,6.6,Math.PI/2+.3,.9,g);if(c)addSolid({x0:11.5,z0:6.1,x1:13.7,z1:7.1,top:.8,kind:'crate',climb:1})}
 }
+
+
+// ================= interiors: every building, every floor =================
+// Each floor is its own small scene. Floor size follows the building footprint (capped), so windows and vents
+// on the outside map to matching spots inside.
+const FURN={shelf:{sz:[2.6,.6,1.8],mov:150,n:'货架'},counter:{sz:[2.2,.7,1]},bed:{sz:[1.1,2,.6],mov:170,n:'床'},sofa:{sz:[2,.9,.8],mov:140,n:'沙发'},table:{sz:[1.4,1,.8],mov:90,n:'桌子'},
+ cabinet:{sz:[1,.6,1.9],mov:160,n:'柜子'},desk:{sz:[1.6,.8,.8],mov:100,n:'书桌'},tv:{sz:[2.2,.6,.6],mov:80,n:'电视柜'},locker:{sz:[1.2,.5,2],mov:150,n:'铁柜'},pew:{sz:[3,.7,.9],mov:120,n:'长椅'},rack:{sz:[2.8,.8,2.2]},pillar:{sz:[.6,.6,3]}};
+const FTPL={house:['bed','sofa','table','cabinet','tv','shelf'],apt:['bed','sofa','table','cabinet','tv','shelf'],motel:['bed','bed','cabinet','tv','table'],shop:['shelf','shelf','shelf','counter'],pharmacy:['shelf','shelf','counter','cabinet'],
+ bar:['counter','table','table','table','shelf'],gunshop:['rack','rack','counter','cabinet'],hardware:['rack','rack','shelf','counter'],hosp:['bed','bed','bed','cabinet','desk'],police:['desk','desk','locker','locker','cabinet'],
+ firest:['locker','locker','table','rack'],school:['desk','desk','desk','desk','locker','shelf'],office:['desk','desk','desk','cabinet','sofa'],ware:['rack','rack','rack','shelf'],garage:['rack','shelf','table'],park:['pillar','pillar','pillar','pillar'],
+ church:['pew','pew','pew','pew','table'],mall:['shelf','shelf','shelf','shelf','counter','counter']};
+const LOOT_T={house:['bandage','cloth','bottle','knife','bat','alarm','jacket','lighter','cloth','bottle','carkey'],apt:['bandage','cloth','bottle','knife','bat','alarm','jacket','lighter','helmet','antibio','brick'],
+ motel:['bandage','bottle','knife','cloth','carkey','alarm'],shop:['bottle','lighter','nails','cloth','bandage','alarm','bottle'],pharmacy:['bandage','bandage','antibio','cloth','antibio'],bar:['bottle','bottle','bottle','lighter','bat'],
+ gunshop:['pistol','ammo','ammo','shotgun','shells','vest','knife','ammo'],hardware:['crowbar','nails','axe','cinder','nails','lighter'],hosp:['bandage','antibio','cloth','bandage','machete'],police:['ammo','pistol','vest','shield','carkey','helmet','ammo'],
+ firest:['axe','hardhat','jacket','crowbar','bandage'],school:['bat','cloth','alarm','bottle','bandage'],office:['alarm','lighter','cloth','bandage','carkey'],ware:['crowbar','nails','cinder','brick','bottle'],garage:['carkey','crowbar','nails','lighter'],
+ park:['carkey','cinder','brick'],church:['bandage','cloth','bottle','alarm'],mall:['bottle','bandage','cloth','lighter','alarm','knife','jacket','bandage']};
+const BIGLOOT={hardware:['plank','ladder'],ware:['plank','gascan'],garage:['gascan'],park:['gascan'],firest:['ladder']};
+function interiorKey(bid,f){return bid+'#'+f}
+function i2x(I,x,z,inset=.7){const b=I.b,cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;return[clamp((x-cx)*I.sx,-I.w/2+inset,I.w/2-inset),clamp((z-cz)*I.sz,-I.d/2+inset,I.d/2-inset)]}
+function genInterior(b,f){const bw=b.x1-b.x0,bd=b.z1-b.z0;const w=clamp(bw-.6,6,16),d=clamp(bd-.6,6,16);const R=mulberry(b.id+'#'+f);const rr=(a,c)=>a+R()*(c-a);
+ const I={key:interiorKey(b.id,f),b,f,w,d,sx:w/bw,sz:d/bd,solids:[],loot:[],zs:[],door:null,up:null,down:null,roof:null,wins:[],vents:[],built:false,group:null};
+ const top=f===b.floors-1;
+ if(f===0){const [x,z]=i2x(I,b.door.x,b.door.z,.5);I.door={x,z,nx:b.door.nx,nz:b.door.nz}}
+ // stairs in the two back corners (away from the door)
+ {const [dx,dz]=i2x(I,b.door.x,b.door.z,.5);const cs=[[1,1],[1,-1],[-1,1],[-1,-1]].map(([a,c])=>({x:a*(w/2-1.2),z:c*(d/2-1.2)})).sort((p_,q_)=>dd(q_.x,q_.z,dx,dz)-dd(p_.x,p_.z,dx,dz));
+  if(!top)I.up=cs[0];if(f>0)I.down=cs[1]}
+ if(top){const [x,z]=i2x(I,b.hatch.x,b.hatch.z,1);I.roof={x,z}}
+ for(const W of b.wins)if(W.f===f){const [x,z]=i2x(I,W.x,W.z,.55);I.wins.push({x,z,W})}
+ for(const V of b.vents)if(V.f===f){const [x,z]=V.roof?i2x(I,V.ix,V.iz,1):i2x(I,V.wx,V.wz,.55);I.vents.push({x,z,V})}
+ const keep=[I.door,I.up,I.down,I.roof,...I.wins,...I.vents].filter(Boolean);
+ const occ=[];const free=(x,z,hw,hd)=>!occ.some(o=>Math.abs(o[0]-x)<o[2]+hw+.5&&Math.abs(o[1]-z)<o[3]+hd+.5)&&keep.every(q=>Math.abs(q.x-x)>hw+1.1||Math.abs(q.z-z)>hd+1.1);
+ const tpl=FTPL[b.type]||FTPL.house;const n=clamp(Math.round(w*d/15),3,9);
+ for(let i=0;i<n;i++){const k=tpl[i%tpl.length];const F=FURN[k];let [sw,sd,sh]=F.sz;if(R()<.5&&k!=='pillar')[sw,sd]=[sd,sw];
+  for(let t=0;t<50;t++){const x=rr(-w/2+sw/2+.35,w/2-sw/2-.35),z=rr(-d/2+sd/2+.35,d/2-sd/2-.35);if(!free(x,z,sw/2,sd/2))continue;occ.push([x,z,sw/2,sd/2]);
+   I.solids.push({id:G.uid++,x0:x-sw/2,z0:z-sd/2,x1:x+sw/2,z1:z+sd/2,top:sh,kind:k,mov:F.mov||0,fname:F.n});break}}
+ // loot spots next to furniture
+ const pool=LOOT_T[b.type]||LOOT_T.house;const nl=clamp(Math.round(w*d/30),2,5);
+ for(let i=0;i<nl;i++){const items=[pool[Math.floor(R()*pool.length)]];if(R()<.45)items.push(pool[Math.floor(R()*pool.length)]);if(R()<.15)items.length=0;
+  for(let t=0;t<60;t++){const s=I.solids[Math.floor(R()*I.solids.length)];if(!s)break;const side=R()<.5;const x=side?(R()<.5?s.x0-.45:s.x1+.45):rr(s.x0,s.x1),z=side?rr(s.z0,s.z1):(R()<.5?s.z0-.45:s.z1+.45);
+   if(Math.abs(x)>w/2-.5||Math.abs(z)>d/2-.5||I.solids.some(o=>inRect(o,x,z,.25))||I.loot.some(l=>dd(l.x,l.z,x,z)<1))continue;I.loot.push({x,z,items,done:false,s});break}}
+ if(BIGLOOT[b.type]&&f===0){for(const k of BIGLOOT[b.type]){for(let t=0;t<30;t++){const x=rr(-w/2+1,w/2-1),z=rr(-d/2+1,d/2-1);if(I.solids.some(o=>inRect(o,x,z,.6)))continue;G.items.push({id:G.uid++,k,x,z,y:0,inside:I.key,uses:k==='gascan'?3:undefined});break}}}
+ // a few zombies already inside
+ const nz=Math.floor(R()*({hosp:3,police:2,school:3,mall:3,office:2,church:2}[b.type]||2));
+ for(let i=0;i<nz;i++){for(let t=0;t<40;t++){const x=rr(-w/2+1,w/2-1),z=rr(-d/2+1,d/2-1);if(I.solids.some(o=>inRect(o,x,z,.4))||(I.door&&dd(x,z,I.door.x,I.door.z)<3))continue;I.zs.push(mkZombie(R()<.15?'crawler':'walker',x,z,0));break}}
+ return I}
+function interior(bid,f){const k=interiorKey(bid,f);return G.interiors[k]||(G.interiors[k]=genInterior(BID[bid],f))}
+function furnMesh(s){const g=new T3.Group();const sx=s.x1-s.x0,sz=s.z1-s.z0;g.position.set((s.x0+s.x1)/2,0,(s.z0+s.z1)/2);s.g=g;const k=s.kind;
+ const FM={shelf:std(0x5a4a3a),counter:std(0x6a5a48),table:std(0x6a5038),cabinet:std(0x4a4440,{m:.3}),desk:std(0x5a5048),locker:std(0x5a6a72,{m:.5,r:.5}),pew:std(0x5a3e28),rack:std(0x4a4c4e,{m:.6,r:.5}),pillar:std(0x7a7872)};
+ const m=FM[k]||std(0x555555);
+ if(k==='bed'){BX(std(0x3a3a3c,{m:.5}),sx,.45,sz,0,0,0,g);BX(std(0xc8c4b8),sx-.1,.15,sz-.1,0,.45,0,g);BX(std(0x7a2a24,{t:true,o:.6}),sx*.5,.01,sz*.3,0,.61,rnd(-.3,.3),g,false)}
+ else if(k==='shelf'||k==='rack'){for(let y=0;y<s.top;y+=.6)BX(m,sx,.05,sz,0,y,0,g);for(const x of [-sx/2+.05,sx/2-.05])BX(m,.06,s.top,sz,x,0,0,g);for(let i=0;i<8;i++)BX(std(pick([0xc04030,0xd0c070,0x3070a0,0x60a050,0x8a7a60])),rnd(.12,.25),rnd(.15,.3),rnd(.12,.25),rnd(-sx/2+.2,sx/2-.2),Math.floor(rnd(0,3))*.6+.05,0,g)}
+ else if(k==='sofa'&&prop('sofa',0,0,sz>sx?Math.PI/2:0,1,g)){}
+ else if(k==='tv'&&prop('tvstand',0,0,sz>sx?0:Math.PI/2,1,g)){BX(std(0x0a0c0e,{r:.2,m:.4}),sz>sx?.05:1.3,.75,sz>sx?1.3:.05,0,s.top,0,g)}
+ else{BX(m,sx,s.top,sz,0,0,0,g);if(k==='desk'||k==='table'){const lp=prop('laptop',rnd(-.3,.3),0,rnd(-.4,.4),1,g);if(lp)lp.position.y=s.top;prop('chair',0,sz>sx?0:sz/2+.35,Math.PI,1,g)}}
+ return g}
+function buildInteriorMesh(I){const g=new T3.Group();const w=I.w,d=I.d,b=I.b;
+ const fl=M('plane',texMat(['hosp','shop','pharmacy','mall','school','police'].includes(b.type)?'tile':b.type==='park'||b.type==='ware'||b.type==='garage'?'roof':'floor',w/3,d/3,{bs:.05}),w,d,1,0,0,0,g,false);fl.rotation.x=-Math.PI/2;
+ const wm=texMat('wall',3,1,{bs:.06});const H_=1.15;
+ // back wall full height = the side opposite the door (or north); others are low so the camera can see in
+ const tall=b.door.nz>0||!b.door.nz&&true?'n':'n';
+ BX(wm,w+.3,3,.3,0,0,-d/2-.15,g);BX(wm,.3,H_,d+.3,-w/2-.15,0,0,g);BX(wm,.3,H_,d+.3,w/2+.15,0,0,g);BX(wm,w+.3,H_,.3,0,0,d/2+.15,g);
+ if(I.door){const D=I.door;const dr=BX(std(0x2a221c),D.nz?1.6:.12,2.2,D.nz?.12:1.6,D.x+D.nx*.25,0,D.z+D.nz*.25,g,false);I.doorMesh=dr;I.barMesh=new T3.Group();g.add(I.barMesh);renderBar(I)}
+ for(const q of I.wins){const W=q.W;const wx=q.x+W.nx*.5,wz=q.z+W.nz*.5;const win=M('plane',new T3.MeshBasicMaterial({color:W.broken?0x9aaab8:0x8a9aa8,transparent:true,opacity:.45}),1.4,1.1,1,wx,1.6,wz,g,false);win.rotation.y=Math.atan2(-W.nx,-W.nz);q.mesh=win}
+ for(const q of I.vents){const V=q.V;if(V.roof){BX(std(0x3a3c3e,{m:.5}),1,.05,1,q.x,2.9,q.z,g,false);BX(std(0x6a6c6a,{m:.5}),.08,2.9,.08,q.x+.45,0,q.z,g,false)}else BX(std(0x6a6e70,{m:.6,r:.45}),V.nz?.8:.06,.55,V.nz?.06:.8,q.x+V.nx*.45,.15,q.z+V.nz*.45,g,false)}
+ for(const s of I.solids)g.add(furnMesh(s));
+ const mk=(q,col)=>{if(!q)return;M('cyl',new T3.MeshBasicMaterial({color:col,transparent:true,opacity:.45}),1.2,.02,1.2,q.x,.03,q.z,g,false);const s=glowSprite(col,1,.4);s.position.set(q.x,.4,q.z);g.add(s)};
+ if(I.up){BX(std(0x5a5650),1.4,.3,1.4,I.up.x,0,I.up.z,g);BX(std(0x5a5650),1.4,.3,1,I.up.x,.3,I.up.z,g);mk(I.up,0xf0c060)}
+ if(I.down)mk(I.down,0x9ad0f0);if(I.roof){BX(std(0x6a6c6a,{m:.5}),.5,2.6,.05,I.roof.x,0,I.roof.z-.6,g);mk(I.roof,0xf0c060)}
+ if(I.door)mk(I.door,0x9ad0f0);for(const q of I.wins)mk(q,0x9ad0f0);for(const q of I.vents)mk(q,0xa0a0a0);
+ const lamp=new T3.PointLight(0xffd8a0,.5,Math.max(w,d)*1.1,2);lamp.position.set(0,2.6,0);g.add(lamp);I.lamp=lamp;
+ I.group=g;return g}
+function renderBar(I){if(!I.barMesh)return;I.barMesh.clear();const ds=I.b.ds;const D=I.door;if(!D)return;
+ if(ds.planks){const m=std(0x8a6a44);for(let i=0;i<Math.min(3,ds.planks);i++){const b=BX(m,D.nz?2:.08,.18,D.nz?.08:2,D.x+D.nx*.15,.5+i*.55,D.z+D.nz*.15,I.barMesh);b.rotation[D.nz?'z':'x']=rnd(-.15,.15)}}}
+// ================= transitions =================
+function enterInterior(bid,f,at,ref){const I=interior(bid,f);const p=G.p;const from=G.inside;const b=BID[bid];
+ let chasers=[];
+ if(!from&&at==='door'){for(const z of G.zs)if(!z.dead&&(z.state==='chase'||z.state==='investigate')&&dd(z.x,z.z,b.door.x,b.door.z)<9&&z.y<.5){z.door=b;z.stimT=G.t;z.state='investigate';z.tx=b.door.x;z.tz=b.door.z}}
+ if(from&&G.interiors[from].b===b){const F=G.interiors[from];for(const z of F.zs)if(!z.dead&&z.state==='chase'&&dd(z.x,z.z,p.x,p.z)<7)chasers.push(z)}
+ G.inside=I.key;p.y=0;p.climb=null;p.vy=0;
+ let q=at==='door'?I.door:at==='down'?I.down:at==='up'?I.up:at==='roof'?I.roof:null;let ox=0,oz=0;
+ if(at==='win'){const w=I.wins.find(o=>o.W===ref)||I.wins[0];q=w;ox=-ref.nx*.7;oz=-ref.nz*.7}
+ else if(at==='vent'){const v=I.vents.find(o=>o.V===ref)||I.vents[0];q=v;if(!ref.roof){ox=-ref.nx*.7;oz=-ref.nz*.7}else ox=.8}
+ else if(at==='door'){ox=-I.door.nx*.9;oz=-I.door.nz*.9}else oz=.9;
+ q=q||{x:0,z:0};p.x=q.x+ox;p.z=q.z+oz;
+ if(!I.group)buildInteriorMesh(I);inGroup.clear();for(const [k,e] of ENT)if(e.parent===inGroup)ENT.delete(k);inGroup.add(I.group);outGroup.visible=false;inGroup.visible=true;
+ for(const z of chasers){const F=G.interiors[from];F.zs.splice(F.zs.indexOf(z),1);z.pend=dd(z.x,z.z,p.x,p.z)/zSpeed(z)+1.5;z.pendTo=I.key;z.pendAt={x:q.x,z:q.z+.5};G.pendZ.push(z)}
+ const n=G.zs.filter(z=>z.door===b&&!z.dead).length;
+ toast(`进入${b.n}${b.floors>1?' · '+(f+1)+' 楼':''}${n&&f===0?` · <b style="color:#e06050">${n} 只丧尸跟到门口了</b>，搬家具或用木板堵门`:''}${chasers.length?` · <b style="color:#e06050">${chasers.length} 只追上楼来了</b>`:''}`,n||chasers.length?'bad':'');
+ sfx('door')}
+function exitTo(x,z,y,how){const p=G.p;const I=G.interiors[G.inside];const chasers=I?I.zs.filter(q=>!q.dead&&q.state==='chase'&&dd(q.x,q.z,p.x,p.z)<5):[];
+ G.inside=null;p.x=x;p.z=z;p.y=y;p.vy=0;outGroup.visible=true;inGroup.visible=false;
+ if(I&&how==='door')for(const q of chasers){I.zs.splice(I.zs.indexOf(q),1);q.pend=1.5;q.pendTo='out';q.pendAt={x,z};G.pendZ.push(q)}
+ sfx('door')}
+// ================= barricading with furniture =================
+function nearFurn(I,p){let best=null,bd=1.1;for(const s of I.solids){if(!s.mov)continue;const cx=clamp(p.x,s.x0,s.x1),cz=clamp(p.z,s.z0,s.z1);const d=dd(cx,cz,p.x,p.z);if(d<bd){bd=d;best=s}}return best}
+function liftFurn(I,s){const p=G.p;I.solids.splice(I.solids.indexOf(s),1);if(s.g)s.g.visible=false;if(s.atDoor){I.b.ds.barr=Math.max(0,I.b.ds.barr-s.mov);s.atDoor=0}
+ p.carry={k:'furn',s,I};toast(`搬起了<b>${s.fname}</b> · 很重，走得慢 · 拖到门口可以堵门`);sfx('drop',p.x,p.z);noise(p.x,p.z,3)}
+function placeFurn(){const p=G.p,c=p.carry,I=G.interiors[G.inside];if(!c||c.k!=='furn'||!I||c.I!==I){return false}const s=c.s;const sx=s.x1-s.x0,sz=s.z1-s.z0;let x,z,atDoor=false;
+ if(I.door&&dd(p.x,p.z,I.door.x,I.door.z)<2.2&&!I.b.ds.broken){const D=I.door;const across=Math.max(sx,sz),thin=Math.min(sx,sz);const k=I.solids.filter(o=>o.atDoor).reduce((a,o)=>a+Math.min(o.x1-o.x0,o.z1-o.z0)+.05,0);
+  const nsx=D.nz?across:thin,nsz=D.nz?thin:across;x=D.x-D.nx*(thin/2+.15+k);z=D.z-D.nz*(thin/2+.15+k);s.x0=x-nsx/2;s.x1=x+nsx/2;s.z0=z-nsz/2;s.z1=z+nsz/2;atDoor=true}
+ else{x=p.x+Math.sin(p.ang)*(Math.max(sx,sz)/2+.5);z=p.z+Math.cos(p.ang)*(Math.max(sx,sz)/2+.5);x=clamp(x,-I.w/2+sx/2+.1,I.w/2-sx/2-.1);z=clamp(z,-I.d/2+sz/2+.1,I.d/2-sz/2-.1);s.x0=x-sx/2;s.x1=x+sx/2;s.z0=z-sz/2;s.z1=z+sz/2;
+  if(inRect(s,p.x,p.z,.3)){toast('这里放不下');return true}}
+ I.solids.push(s);if(s.g){s.g.parent&&s.g.parent.remove(s.g)}I.group.add(furnMesh(s));p.carry=null;sfx('thud',p.x,p.z);noise(p.x,p.z,4);
+ if(atDoor){s.atDoor=1;I.b.ds.barr+=s.mov;toast(`用${s.fname}堵住了门 · 门的耐久 +${s.mov}（${Math.round(I.b.ds.barr+I.b.ds.hp)}）`,'good')}
+ return true}
 
 
 // ================= items =================
@@ -680,6 +836,8 @@ const IT={
  vest:{n:'防弹背心',ic:'🦺',gear:'body',d:'穿戴（身）：受到伤害 -40%。'},
  shield:{n:'防暴盾',ic:'🛡️',gear:'off',d:'穿戴（副手）：按住【挡】几乎挡掉所有正面攻击，正面也抓不住你；推的力度更大。'},
  brick:{n:'砖头',ic:'🧱',thr:{dm:22,noise:7,stun:1.6,kb:.8,down:.35},max:6,d:'投掷：砸中会把丧尸砸退、打晕，有机会砸倒。'},
+ carkey:{n:'车钥匙',ic:'🔑',max:3,d:'某辆车的钥匙。找到能开的车（带钥匙图标），加满油就能开走。'},
+ furn:{n:'家具',ic:'🛋️',big:1,d:'搬着家具：拖到门口放下可以堵门。'},
  cinder:{n:'水泥砖',ic:'🪨',thr:{dm:32,noise:8,stun:2.2,kb:1.3,down:.8},max:2,d:'投掷：很重，砸中基本会把丧尸砸翻在地。'},
  bottle:{n:'酒瓶',ic:'🍾',thr:{dm:8,noise:13,kb:.15},max:5,d:'投掷：碎裂声很响，可以把尸群引到别处。靠近汽油桶可以灌成燃烧瓶。'},
  molotov:{n:'燃烧瓶',ic:'🔥',thr:{fire:1,noise:10},max:4,d:'投掷：落地燃起大火，烧伤范围内的丧尸。'},
@@ -743,63 +901,6 @@ function findPlankSpot(p){const S=curSolid(p);if(!S||S.kind!=='bld')return null;
   if(G.solids.some(o=>o!==S&&inRect(o,qx,qz)&&o.top>S.top-1.3))return null}
  return null}
 
-// ================= interiors =================
-const LOOT={apt:[[['alarm','bottle'],['cloth','knife'],['brick','brick']],[['bat'],['bandage','jacket'],['cloth','nails']],[['bottle','bottle'],['antibio','helmet'],['brick','cinder']]],shop:[[['lighter','crowbar'],['nails','bottle'],['bandage','cloth'],['bottle']]],hosp:[[['bandage','bandage'],['cloth','cloth'],['axe']],[['antibio','machete'],['antibio','bandage'],['bandage']]]};
-const INZ={apt:[0,2,1],shop:[1],hosp:[2,2]};
-function interiorKey(bid,f){return bid+'#'+f}
-function genInterior(b,f){
- const w=b.id==='shop'?9:12,d=b.id==='shop'?8:9;const I={key:interiorKey(b.id,f),b,f,w,d,solids:[],loot:[],zs:[],door:null,up:null,down:null,roof:null,barr:0,built:false,group:null};
- const top=f===b.floors-1;
- if(f===0)I.door={x:0,z:d/2-.5};
- if(!top)I.up={x:w/2-1.2,z:-d/2+1.2};
- if(f>0)I.down={x:-w/2+1.2,z:-d/2+1.2};
- if(top&&b.hatch)I.roof={x:w/2-1.2,z:-d/2+1.2};
- // furniture
- const occ=[];const free=(x,z,r)=>!occ.some(o=>Math.abs(o[0]-x)<o[2]+r&&Math.abs(o[1]-z)<o[3]+r)&&[I.door,I.up,I.down,I.roof].every(q=>!q||dd(q.x,q.z,x,z)>1.8);
- const kinds=b.id==='shop'?['shelf','shelf','shelf','counter']:b.id==='hosp'?['bed','bed','bed','cabinet','desk']:['bed','sofa','table','cabinet','shelf','tv'];
- for(const k of kinds){const sz={shelf:[2.6,.6,1.8],counter:[2.2,.7,1],bed:[1.1,2,.6],sofa:[2,.9,.8],table:[1.4,1,.8],cabinet:[1,.6,1.9],desk:[1.6,.8,.8],tv:[2.2,.6,.6]}[k];
-  for(let tries=0;tries<40;tries++){const x=rnd(-w/2+sz[0]/2+.4,w/2-sz[0]/2-.4),z=rnd(-d/2+sz[1]/2+.4,d/2-sz[1]/2-1.2);if(!free(x,z,.5))continue;occ.push([x,z,sz[0]/2,sz[1]/2]);
-   I.solids.push({id:G.uid++,x0:x-sz[0]/2,z0:z-sz[1]/2,x1:x+sz[0]/2,z1:z+sz[1]/2,top:sz[2],kind:k});break}}
- const loot=(LOOT[b.id]&&LOOT[b.id][f])||[];
- for(const items of loot){for(let tries=0;tries<60;tries++){const s=pick(I.solids);const side=Math.random()<.5;const x=side?(Math.random()<.5?s.x0-.45:s.x1+.45):rnd(s.x0,s.x1),z=side?rnd(s.z0,s.z1):(Math.random()<.5?s.z0-.45:s.z1+.45);
-  if(Math.abs(x)>w/2-.5||Math.abs(z)>d/2-.5||I.solids.some(o=>inRect(o,x,z,.25))||I.loot.some(l=>dd(l.x,l.z,x,z)<1))continue;I.loot.push({x,z,items:items.slice(),done:false,s});break}}
- const nz=(INZ[b.id]&&INZ[b.id][f])||0;for(let i=0;i<nz;i++){for(let tries=0;tries<40;tries++){const x=rnd(-w/2+1,w/2-1),z=rnd(-d/2+1,d/2-2.5);if(I.solids.some(o=>inRect(o,x,z,.4)))continue;I.zs.push(mkZombie('walker',x,z,0));break}}
- return I}
-function interior(bid,f){const k=interiorKey(bid,f);return G.interiors[k]||(G.interiors[k]=genInterior(BID[bid],f))}
-function buildInteriorMesh(I){const g=new T3.Group();const w=I.w,d=I.d;
- const fl=M('plane',texMat(I.b.id==='hosp'||I.b.id==='shop'?'tile':'floor',w/3,d/3,{bs:.05}),w,d,1,0,0,0,g,false);fl.rotation.x=-Math.PI/2;
- const wm=texMat('wall',3,1,{bs:.06});const H_=1.15;
- BX(wm,w+.3,3,.3,0,0,-d/2-.15,g);BX(wm,.3,H_,d+.3,-w/2-.15,0,0,g);BX(wm,.3,H_,d+.3,w/2+.15,0,0,g);
- if(I.door){BX(wm,w/2-.9,H_,.3,-w/4-.45,0,d/2+.15,g);BX(wm,w/2-.9,H_,.3,w/4+.45,0,d/2+.15,g);const dr=BX(std(0x2a221c),1.6,.08,.12,0,0,d/2+.12,g,false);I.doorMesh=dr;I.barMesh=new T3.Group();g.add(I.barMesh)}
- else BX(wm,w+.3,H_,.3,0,0,d/2+.15,g);
- // window light patches on back wall
- for(let x=-w/2+2;x<w/2-1;x+=3.5){const win=M('plane',new T3.MeshBasicMaterial({color:0x8a9aa8,transparent:true,opacity:.35}),1.4,1.1,1,x,1.8,-d/2+.01,g,false)}
- const FM={shelf:std(0x5a4a3a),counter:std(0x6a5a48),bed:std(0x8a8a90),sofa:std(0x4a3a3a),table:std(0x6a5038),cabinet:std(0x4a4440,{m:.3}),desk:std(0x5a5048)};
- for(const s of I.solids){const sx=s.x1-s.x0,sz=s.z1-s.z0,cx=(s.x0+s.x1)/2,cz=(s.z0+s.z1)/2;const m=FM[s.kind]||std(0x555555);
-  if(s.kind==='bed'){BX(std(0x3a3a3c,{m:.5}),sx,.45,sz,cx,0,cz,g);BX(std(0xc8c4b8),sx-.1,.15,sz-.1,cx,.45,cz,g);BX(std(0x7a2a24,{t:true,o:.6}),sx*.5,.01,sz*.3,cx,.61,cz+rnd(-.3,.3),g,false)}
-  else if(s.kind==='shelf'){for(let y=0;y<s.top;y+=.6)BX(m,sx,.05,sz,cx,y,cz,g);for(const x of [s.x0+.05,s.x1-.05])BX(m,.06,s.top,sz,x,0,cz,g);for(let i=0;i<8;i++)BX(std(pick([0xc04030,0xd0c070,0x3070a0,0x60a050])),rnd(.12,.25),rnd(.15,.3),rnd(.12,.25),rnd(s.x0+.2,s.x1-.2),Math.floor(rnd(0,3))*.6+.05,cz,g)}
-  else if(s.kind==='sofa'&&(prop('sofa',cx,cz,s.z0<0?0:Math.PI,1,g)||prop('couch',cx,cz,Math.PI/2,.85,g))){}
-  else if(s.kind==='tv'&&prop('tvstand',cx,cz,Math.PI/2,1,g)){const scr=BX(std(0x0a0c0e,{r:.2,m:.4}),1.3,.75,.05,cx,s.top,cz,g)}
-  else{BX(m,sx,s.top,sz,cx,0,cz,g);if(s.kind==='desk'||s.kind==='table'){const lp=prop('laptop',cx+rnd(-.3,.3),cz,rnd(-.4,.4),1,g);if(lp)lp.position.y=s.top;for(const sd of (s.kind==='table'?[-1,1]:[1])){const ch=prop('chair',cx+sd*.3,cz+sd*(sz/2+.35),sd>0?Math.PI:0,1,g)}}}}
- const mk=(q,col,label)=>{if(!q)return;const r=M('cyl',new T3.MeshBasicMaterial({color:col,transparent:true,opacity:.45}),1.2,.02,1.2,q.x,.03,q.z,g,false);const s=glowSprite(col,1,.4);s.position.set(q.x,.4,q.z);g.add(s)};
- if(I.up){BX(std(0x5a5650),1.4,.3,1.4,I.up.x,0,I.up.z,g);BX(std(0x5a5650),1.4,.3,1,I.up.x,.3,I.up.z-.2,g);mk(I.up,0xf0c060)}
- if(I.down)mk(I.down,0x9ad0f0);if(I.roof){BX(std(0x6a6c6a,{m:.5}),.5,2.6,.05,I.roof.x,0,I.roof.z-.6,g);mk(I.roof,0xf0c060)}
- if(I.door)mk(I.door,0x9ad0f0);
- const lamp=new T3.PointLight(0xffd8a0,.5,10,2);lamp.position.set(0,2.6,0);g.add(lamp);I.lamp=lamp;
- I.group=g;return g}
-
-// ================= transitions =================
-function enterInterior(bid,f,at){const I=interior(bid,f);const p=G.p;const from=G.inside;
- const chasers=[];if(!from){const b=BID[bid];for(const z of G.zs)if(!z.dead&&z.state==='chase'&&dd(z.x,z.z,b.door.x,b.door.z)<7&&z.y<.5)chasers.push(z)}
- G.inside=I.key;p.y=0;const q=at==='door'?I.door:at==='down'?I.down:at==='up'?I.up:at==='roof'?I.roof:I.door;p.x=q.x;p.z=q.z+(at==='door'?-.9:.9);p.climb=null;p.vy=0;
- if(!I.group)buildInteriorMesh(I);inGroup.clear();for(const [k,e] of ENT)if(e.parent===inGroup)ENT.delete(k);inGroup.add(I.group);outGroup.visible=false;inGroup.visible=true;
- for(const z of chasers){G.zs.splice(G.zs.indexOf(z),1);z.pend=dd(z.x,z.z,BID[bid].door.x,BID[bid].door.z)/zSpeed(z)+1.2;z.pendTo=I.key;G.pendZ.push(z)}
- toast(`进入${I.b.n}${I.b.floors>1?' · '+(f+1)+' 楼':''}${chasers.length?` · <b style="color:#e06050">${chasers.length} 只丧尸跟过来了</b>，可以用木板堵门`:''}`,chasers.length?'bad':'');
- sfx('door')}
-function exitTo(x,z,y){const p=G.p;const I=G.interiors[G.inside];const chasers=I?I.zs.filter(q=>!q.dead&&q.state==='chase'&&dd(q.x,q.z,p.x,p.z)<5):[];
- G.inside=null;p.x=x;p.z=z;p.y=y;p.vy=0;outGroup.visible=true;inGroup.visible=false;
- if(I&&I.door&&y<.5)for(const q of chasers){I.zs.splice(I.zs.indexOf(q),1);q.pend=1.5;q.pendTo='out';q.pendAt={x,z};G.pendZ.push(q)}
- sfx('door')}
 
 
 // ================= zombies =================
@@ -807,15 +908,19 @@ const ZK={
  walker:{n:'行尸',hp:55,sp:.95,dm:9,inf:8,cd:1.25,sight:8,grab:.4},
  runner:{n:'疾行尸',hp:40,sp:2.9,dm:7,inf:7,cd:.9,sight:10,grab:.25},
  climber:{n:'攀爬尸',hp:70,sp:1.35,dm:10,inf:10,cd:1.1,sight:9,climb:1,grab:.35},
+ crawler:{n:'爬行尸',hp:35,sp:.55,dm:6,inf:9,cd:1.4,sight:6,grab:.55,low:1},
+ screamer:{n:'尖叫尸',hp:45,sp:1.1,dm:7,inf:8,cd:1.2,sight:11,grab:.3,scream:1},
+ stalker:{n:'潜伏尸',hp:60,sp:1.7,dm:10,inf:10,cd:1,sight:10,grab:.45,smart:1},
  brute:{n:'巨尸',hp:220,sp:.8,dm:22,inf:16,cd:1.7,sight:7,big:1},
 };
 function mkZombie(kind,x,z,y=0){const K=ZK[kind];const day=G?G.day:1;const hpK=(1+.15*(day-1))*[0.8,1,1.25][G?G.diff:1];
- return{id:(G?G.uid++:Math.random()*1e9|0),kind,x,z,y,hp:K.hp*hpK,mhp:K.hp*hpK,ang:rnd(0,6.28),state:'idle',tx:x,tz:z,cd:rnd(0,1),stun:0,burn:0,mv:0,stuck:0,lx:x,lz:z,detour:0,dang:0,anim:rnd(0,6),dead:false,deadT:0,seenT:0,vy:0,climb:null,hitT:0,groan:rnd(2,8),kv:null,down:0,grabbing:false,flashT:0}}
+ return{id:(G?G.uid++:Math.random()*1e9|0),kind,x,z,y,hp:K.hp*hpK,mhp:K.hp*hpK,ang:rnd(0,6.28),state:'idle',tx:x,tz:z,cd:rnd(0,1),stun:0,burn:0,mv:0,stuck:0,lx:x,lz:z,detour:0,dang:0,anim:rnd(0,6),dead:false,deadT:0,seenT:0,vy:0,climb:null,hitT:0,groan:rnd(2,8),kv:null,down:0,grabbing:false,flashT:0,v:{s:rnd(.92,1.1),t:rnd(.85,1.12)}}}
 function zSpeed(z){const K=ZK[z.kind];return K.sp*(G.night?1.3:1)*(1+.05*(G.day-1))*(z.stun>0?0:1)*(z.burn>0?1.2:1)}
 function zList(){return G.inside?G.interiors[G.inside].zs:G.zs}
 function noise(x,z,r,label){const sc=G.inside||'out';G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
+ if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;
  if(G.inside&&r>=9){const I=G.interiors[G.inside];if(I.b.door)G.noises.push({x:I.b.door.x,z:I.b.door.z,r:r*.6,t:.5,sc:'out'})}}
-function canSee(z,p){if(p.hide)return false;const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1);const d=dd(z.x,z.z,p.x,p.z);if(Math.abs(p.y-z.y)>2.5)s*=1.15;return d<s}
+function canSee(z,p){if(p.hide)return false;if(p.inCar&&!p.inCar.driving)return z.sawCar===p.inCar&&dd(z.x,z.z,p.x,p.z)<12;const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1);const d=dd(z.x,z.z,p.x,p.z);if(Math.abs(p.y-z.y)>2.5)s*=1.15;return d<s}
 function hurtPlayer(dm,inf,src){const p=G.p;if(G.over)return;const k=[.7,1,1.3][G.diff];p.hp-=dm*k;p.inf=Math.min(100,p.inf+inf*k*(G.night?1.25:1));p.hurtT=.4;G.stats.dmgTaken+=dm*k;if(inf&&!G.biteTip){G.biteTip=1;toast('被咬了！<b style="color:#8bd14a">感染值</b>满 100 就会变成丧尸 · 抗生素可以降低（医院 2 楼有）','bad')}sfx('hurt');buzz(40);
  if(p.busy){p.busy=null;$('prog').hidden=true}
  if(p.hp<=0)endGame(false,'dead');else if(p.inf>=100)endGame(false,'turned')}
@@ -831,6 +936,7 @@ function tickZombie(z,dt,sc){
  if(z.burn>0){z.burn-=dt;hitZombie(z,22*dt,'fire');if(z.dead)return}
  if(z.groan<=0){z.groan=rnd(4,10);sfx('groan',z.x,z.z)}
  // climbing a ladder
+ if(z.climb&&z.climb.pile){const C=z.climb;C.t+=dt/C.dur;if(C.t>=1){z.climb=null;z.x=C.x1;z.z=C.z1;z.y=C.y1;return}const k=C.t;z.y=lerp(C.y0,C.y1,Math.min(1,k/.8));const m=k<.8?0:(k-.8)/.2;z.x=lerp(C.x0,C.x1,m);z.z=lerp(C.z0,C.z1,m);return}
  if(z.climb){const L=z.climb.L;z.climb.t+=dt/1.6;const [bx,bz]=ladderBottom(L),[tx,tz]=ladderTop(L);if(!G.ladders.includes(L)){z.climb=null;z.y=0;return}
   if(z.climb.t>=1){z.climb=null;z.x=tx;z.z=tz;z.y=L.top}else{z.x=lerp(bx,L.x,Math.min(1,z.climb.t*1.3));z.z=lerp(bz,L.z,Math.min(1,z.climb.t*1.3));z.y=lerp(L.base,L.top,z.climb.t)}return}
  // gravity
@@ -838,22 +944,25 @@ function tickZombie(z,dt,sc){
  if(z.stun>0)return;
  const same=(sc===(G.inside||'out'));
  // senses
- if(same&&!G.over&&canSee(z,p)){z.state='chase';z.seenT=4}
+ if(same&&!G.over&&canSee(z,p)){if(z.state!=='chase'&&K.scream&&!(z.scrT>G.t)){z.scrT=G.t+15;noise(z.x,z.z,22);sfx('scream',z.x,z.z);shake(.12);if(!G.scrTip){G.scrTip=1;toast('<b>尖叫尸</b>在尖叫！附近的丧尸都会被引过来','bad')}}z.state='chase';z.seenT=4}
  else if(z.state==='chase'){z.seenT-=dt;if(z.seenT<=0){z.state='investigate';z.tx=p.x;z.tz=p.z}}
  if(z.state!=='chase')for(const n of G.noises)if(n.sc===sc&&dd(n.x,n.z,z.x,z.z)<n.r){z.state='investigate';z.tx=n.x+rnd(-1,1);z.tz=n.z+rnd(-1,1)}
- if(G.night&&sc==='out'&&z.state==='idle'&&G.hunt&&Math.random()<dt*.4){z.state='investigate';z.tx=G.hunt.x+rnd(-4,4);z.tz=G.hunt.z+rnd(-4,4)}
- // door bashing
- if(z.door){const I=z.door;if(!I.barr){z.door=null}else{z.ang=Math.atan2(I.b.door.x-z.x,I.b.door.z-z.z);if(dd(z.x,z.z,I.b.door.x,I.b.door.z)>1.1){stepTo(z,I.b.door.x,I.b.door.z+.6,dt,sc)}else if(z.cd<=0){z.cd=K.cd;I.barr-=K.big?60:18;sfx('bang',z.x,z.z);noise(z.x,z.z,6);if(I.barr<=0){I.barr=0;toast(`${I.b.n}的门被撞开了！`,'bad');renderBar(I)}}return}}
+ if(same&&z.state==='idle'&&p.hp<100&&!p.hide){const R=(100-p.hp)/100*20;if(dd(z.x,z.z,p.x,p.z)<R&&Math.random()<dt*.6){z.state='investigate';z.tx=p.x+rnd(-3,3);z.tz=p.z+rnd(-3,3);z.smell=1}}
+ if(G.night&&sc==='out'&&z.state==='idle'&&G.hunt&&Math.random()<dt*.15){z.state='investigate';z.tx=G.hunt.x+rnd(-4,4);z.tz=G.hunt.z+rnd(-4,4)}
+ if(sc==='out'&&(z.door||z.entry)){zBreakIn(z,dt,K);return}
  let tx=z.tx,tz=z.tz;
  if(z.state==='chase'&&same){tx=p.x;tz=p.z;
   const dy=p.y-z.y;
   if(dy>1.7&&K.climb&&sc==='out'){// find ladder to player's level
    let L=null,bd=18;for(const l of G.ladders){if(Math.abs(l.top-p.y)>1.5&&!(l.top>z.y+1.5))continue;const [bx,bz]=ladderBottom(l);const d=dd(bx,bz,z.x,z.z);if(d<bd&&Math.abs(l.base-z.y)<.6){bd=d;L=l}}
    if(L){const [bx,bz]=ladderBottom(L);if(dd(bx,bz,z.x,z.z)<.6){z.climb={L,t:0};return}tx=bx;tz=bz}}
+  if(p.inCar&&sc==='out'){const c=p.inCar;if(!c.driving&&dd(z.x,z.z,c.x,c.z)<2.9){z.ang=Math.atan2(c.x-z.x,c.z-z.z);if(z.cd<=0)carBash(z,c);return}}
+  if(dy>1.6&&sc==='out'&&!z.climb){const ph=pileMax();if(dy<=ph+.3){z.pileCd=(z.pileCd||0)-dt;const S=solidUnder(p);if(S&&z.pileCd<=0){const ex=clamp(z.x,S.x0,S.x1),ez=clamp(z.z,S.z0,S.z1);const de=dd(ex,ez,z.x,z.z);if(de<.9){const n=zList().filter(o=>o!==z&&!o.dead&&Math.abs(o.y-z.y)<.5&&dd(o.x,o.z,z.x,z.z)<2.4).length+1;
+     if(n>=pileNeed()){z.pileCd=3;const ix=clamp(ex+(ex-z.x)*.0,S.x0+.4,S.x1-.4),iz=clamp(ez,S.z0+.4,S.z1-.4);z.climb={pile:true,t:0,dur:1.4+dy*.35,x0:z.x,z0:z.z,y0:z.y,x1:ix,z1:iz,y1:S.top};sfx('groan',z.x,z.z);if(!G.pileTip){G.pileTip=1;toast('<b>丧尸叠罗汉爬上来了！</b> 越往后它们爬得越高','bad')}return}}else{tx=ex;tz=ez}}}}
   const d=dd(z.x,z.z,p.x,p.z);
   if(d<(K.big?1.25:.95)&&Math.abs(dy)<1.7&&!p.climb&&!p.hide){z.ang=Math.atan2(p.x-z.x,p.z-z.z);if(z.cd<=0){z.cd=K.cd*(p.grab&&!p.grab.zs.includes(z)?.8:1);z.lunge=.3;zAttack(z)}return}
- }else if(z.state==='idle'){if(Math.random()<dt*.15){z.tx=z.x+rnd(-4,4);z.tz=z.z+rnd(-4,4)}tx=z.tx;tz=z.tz}
- if(dd(z.x,z.z,tx,tz)<.4){if(z.state==='investigate')z.state='idle';return}
+ }else if(z.state==='idle'||z.state==='wander'){if(z.state==='wander'&&dd(z.x,z.z,z.tx,z.tz)<.6)z.state='idle';if(z.state==='idle'&&Math.random()<dt*.15){z.tx=z.x+rnd(-4,4);z.tz=z.z+rnd(-4,4)}tx=z.tx;tz=z.tz}
+ if(dd(z.x,z.z,tx,tz)<.4){if(z.state==='investigate'){z.state='idle';z.smell=0}return}
  stepTo(z,tx,tz,dt,sc)}
 function supportAtFor(e,sc){const old=G.inside;G.inside=sc==='out'?null:sc;const s=supportAt(e.x,e.z,e.y);G.inside=old;return s}
 function stepTo(z,tx,tz,dt,sc){const old=G.inside;G.inside=sc==='out'?null:sc;
@@ -865,17 +974,57 @@ function stepTo(z,tx,tz,dt,sc){const old=G.inside;G.inside=sc==='out'?null:sc;
  const moved=dd(ox,oz,z.x,z.z);if(moved<sp*.3){z.stuck+=dt;if(z.stuck>.6){z.stuck=0;z.detour=rnd(.8,1.6);z.dang=(Math.random()<.5?-1:1)*rnd(1.1,1.8)}}else z.stuck=Math.max(0,z.stuck-dt);
  G.inside=old}
 
+// ================= breaking into buildings =================
+function pileMax(){const d=G.day,n=G.night;if(d>=4)return 7;if(d===3)return n?5.2:4.2;if(d===2&&n)return 3.4;return 0}
+function pileNeed(){const d=G.day,n=G.night;if(d>=4)return 2;if(d===3)return n?3:4;return 5}
+function solidUnder(p){let best=null;for(const s of G.solids)if(inRect(s,p.x,p.z)&&Math.abs(s.top-p.y)<.15)best=s;return best}
+function playerIn(b){return G.inside&&G.interiors[G.inside].b===b}
+function zEnter(z,b,f,x,zz){const i=G.zs.indexOf(z);if(i>=0)G.zs.splice(i,1);const I=interior(b.id,f);z.x=x;z.z=zz;z.y=0;z.door=null;z.entry=null;z.climb=null;z.kv=null;
+ z.state=G.inside===I.key?'chase':'investigate';z.tx=0;z.tz=0;I.zs.push(z)}
+function doorFront(b){const D=b.door;return[D.x+D.nx*.8,D.z+D.nz*.8]}
+function hitDoor(b,dm,z){const ds=b.ds;sfx('bang',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:6,t:.5,sc:'out'});const inB=playerIn(b);
+ if(inB){if(G.inside===interiorKey(b.id,0))sfx('bang');shake(.08);if(!(b.bangTipT>G.t)){b.bangTipT=G.t+7;toast(`<b>有东西在撞门！</b>（门 ${Math.max(0,Math.round(ds.hp+ds.barr))}）`,'bad')}}
+ if(ds.barr>0){ds.barr-=dm;if(ds.barr<=0){ds.barr=0;ds.planks=0;const I=G.interiors[interiorKey(b.id,0)];if(I){for(const s of I.solids.filter(o=>o.atDoor)){s.atDoor=0;s.mov&&(s.x0+=-b.door.nx*1.2,s.x1+=-b.door.nx*1.2,s.z0+=-b.door.nz*1.2,s.z1+=-b.door.nz*1.2);if(s.g){s.g.position.x-=b.door.nx*1.2;s.g.position.z-=b.door.nz*1.2}}renderBar(I)}if(inB)toast('堵门的东西被撞开了！','bad')}}
+ else{ds.hp-=dm;if(ds.hp<=0){ds.hp=0;ds.broken=true;updDoor(b);sfx('thud',b.door.x,b.door.z);if(inB)toast(`<b>${b.n}的门被撞破了！</b>`,'bad')}}}
+function zBreakIn(z,dt,K){const p=G.p;
+ // smart zombies sneaking in through a window or vent
+ if(z.entry){const E=z.entry;const b=E.b;if(!playerIn(b)&&G.t-(z.stimT||0)>8){z.entry=null;z.state='idle';return}
+  const W=E.W,V=E.V;const ox=W?W.x+W.nx*.7:V.x,oz=W?W.z+W.nz*.7:V.z;
+  if(dd(z.x,z.z,ox,oz)>.6){stepTo(z,ox,oz,dt,'out');return}
+  z.ang=Math.atan2((W?W.x:V.wx)-z.x,(W?W.z:V.wz)-z.z);E.t=(E.t||0)+dt;
+  if(W){if(W.boarded){if(z.cd<=0){z.cd=K.cd;W.bhp=(W.bhp??90)-14;sfx('bang',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:5,t:.5,sc:'out'});if(W.bhp<=0){W.boarded=false;W.broken=true;updWindow(W);if(playerIn(b))toast('窗户上的木板被扯掉了！','bad')}}return}
+   if(!W.broken){W.broken=true;updWindow(W);sfx('glass',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:10,t:.5,sc:'out'});if(playerIn(b))toast('<b>有丧尸砸碎了窗户！</b>','bad');E.t=0;return}
+   if(E.t>1.6){const I=interior(b.id,0);const q=I.wins.find(o=>o.W===W);zEnter(z,b,0,q?q.x-W.nx*.6:0,q?q.z-W.nz*.6:0);if(playerIn(b))toast(`${ZK[z.kind].n}从窗户爬进来了！`,'bad')}}
+  else if(E.t>2.6){const I=interior(b.id,0);const q=I.vents.find(o=>o.V===V);zEnter(z,b,0,q?q.x-V.nx*.6:0,q?q.z-V.nz*.6:0);if(playerIn(b))toast(`${ZK[z.kind].n}从通风管钻进来了！`,'bad')}
+  return}
+ const b=z.door,ds=b.ds;const [fx,fz]=doorFront(b);
+ const stim=Math.max(z.stimT||0,b.lastNoise||0);
+ if(!playerIn(b)&&G.t-stim>6||G.t-stim>15){// nothing heard or seen for a while: give up and drift away
+  z.door=null;z.state='wander';const a=rnd(0,6.28),r=rnd(8,15);z.tx=clamp(z.x+Math.cos(a)*r,-HALF+2,HALF-2);z.tz=clamp(z.z+Math.sin(a)*r,-HALF+2,HALF-2);z.giveT=G.t+10;
+  if(playerIn(b)&&!(b.quietT>G.t)){b.quietT=G.t+20;setTimeout(()=>{if(G&&!G.zs.some(q=>q.door===b))toast('撞门声停了……它们好像散开了','good')},1500)}return}
+ if(dd(z.x,z.z,fx,fz)>.9){stepTo(z,fx,fz,dt,'out');return}
+ z.ang=Math.atan2(b.door.x-z.x,b.door.z-z.z);
+ if(ds.broken||ds.open){zEnter(z,b,0,interior(b.id,0).door.x-b.door.nx*.8,interior(b.id,0).door.z-b.door.nz*.8);return}
+ if(K.smart){if(ds.barr<=0){z.openT=(z.openT||0)+dt;if(z.openT>1.4){z.openT=0;ds.open=true;updDoor(b);sfx('door',b.door.x,b.door.z);if(playerIn(b))toast(`<b>${ZK[z.kind].n}自己把门打开了！</b>`,'bad');}return}
+  const opts=[...b.wins.filter(W=>W.f===0).map(W=>({b,W,d:dd(W.x,W.z,z.x,z.z)})),...b.vents.filter(V=>!V.roof).map(V=>({b,V,d:dd(V.x,V.z,z.x,z.z)+3}))].sort((a,c)=>a.d-c.d);
+  if(opts.length){z.entry=opts[0];z.door=null;return}}
+ if(z.cd<=0){z.cd=K.cd*1.15;hitDoor(b,(K.big?55:13)+(G.day-1)*3,z)}}
+// zombies inside a building follow the player between floors
+function tickFloors(dt){if(!G.inside)return;const cur=G.interiors[G.inside];const b=cur.b;
+ for(let f=0;f<b.floors;f++){if(f===cur.f)continue;const I=G.interiors[interiorKey(b.id,f)];if(!I)continue;const goUp=cur.f>f;const tgt=goUp?I.up:I.down;if(!tgt)continue;
+  for(const z of I.zs.slice()){if(z.dead||z.state==='idle')continue;if(dd(z.x,z.z,tgt.x,tgt.z)>.8){stepTo(z,tgt.x,tgt.z,dt,I.key);continue}
+   I.zs.splice(I.zs.indexOf(z),1);const N=interior(b.id,f+(goUp?1:-1));const q=goUp?N.down:N.up;z.x=q?q.x:0;z.z=q?q.z+.6:0;z.state=N===cur?'chase':'investigate';N.zs.push(z);if(N===cur)toast(`${ZK[z.kind].n}从楼梯追上来了`,'bad')}}}
 // ================= spawning & day/night =================
 function edgePoint(){for(let i=0;i<30;i++){const s=Math.floor(Math.random()*4),t=rnd(-HALF+2,HALF-2);const x=s===0?-HALF+1:s===1?HALF-1:t,z=s===2?-HALF+1:s===3?HALF-1:t;if(!G.solids.some(o=>inRect(o,x,z,.5))&&dd(x,z,G.p.x,G.p.z)>14)return[x,z]}return[-HALF+1,0]}
 function spawnWave(n,types){for(let i=0;i<n;i++){const [x,z]=edgePoint();const zz=mkZombie(pick(types),x+rnd(-1,1),z+rnd(-1,1));zz.state='investigate';zz.tx=G.p.x+rnd(-8,8);zz.tz=G.p.z+rnd(-8,8);G.zs.push(zz)}}
-function nightTypes(n){return n===1?['walker']:n===2?['walker','walker','runner']:['walker','runner','climber','climber']}
-function initZombies(){const k=[8,11,14][G.diff];for(let i=0;i<k;i++){for(let t=0;t<40;t++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(G.solids.some(o=>inRect(o,x,z,.6))||dd(x,z,SPAWN.x,SPAWN.z)<12)continue;G.zs.push(mkZombie('walker',x,z));break}}}
+function nightTypes(n){return n===1?['walker','walker','crawler']:n===2?['walker','walker','runner','screamer','stalker','crawler']:['walker','runner','climber','climber','stalker','screamer']}
+function initZombies(){const k=[8,11,14][G.diff];for(let i=0;i<k;i++){for(let t=0;t<40;t++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(G.solids.some(o=>inRect(o,x,z,.6))||dd(x,z,SPAWN.x,SPAWN.z)<12)continue;G.zs.push(mkZombie(Math.random()<.18?'crawler':Math.random()<.12?'screamer':'walker',x,z));break}}}
 function tickWorld(dt){
  G.t+=dt;G.phaseT+=dt;
  const len=G.night?G.nightLen:G.dayLen;
  if(G.phaseT>=len){G.phaseT=0;
   if(!G.night){G.night=true;const n=G.day;const cnt=Math.round((6+n*6)*[.7,1,1.35][G.diff]);spawnWave(cnt,nightTypes(n));if(n>=3)for(let i=0;i<[0,1,2][G.diff]+1;i++)spawnWave(1,['brute']);
-   toast(`<b style="color:#7fc8e8">第 ${n} 晚</b> · 尸潮来了${n===2?' · 出现会狂奔的<b>疾行尸</b>':n===3?' · 出现会<b>爬梯子</b>的攀爬尸和巨尸！把梯子收起来':''}`,'bad');sfx('horn')}
+   toast(`<b style="color:#7fc8e8">第 ${n} 晚</b> · 尸潮来了${n===2?' · 出现<b>疾行尸</b>、会尖叫引尸的<b>尖叫尸</b>、会开门爬窗的<b>潜伏尸</b> · 它们开始会叠罗汉往上爬':n===3?' · 出现会<b>爬梯子</b>的攀爬尸和巨尸！它们叠得更高了':''}`,'bad');sfx('horn')}
   else{G.night=false;G.day++;if(G.day>=4){startHeli()}else toast(`<b style="color:#f0b24a">第 ${G.day} 天</b> · 天亮了，丧尸变慢了。抓紧搜物资`,'good')}}
  // night hunting: zombies drift toward player region
  if(G.night){G.huntT=(G.huntT||0)-dt;if(G.huntT<=0){G.huntT=9;G.hunt={x:G.p.x,z:G.p.z};if(G.inside){const I=G.interiors[G.inside];G.hunt={x:I.b.door?I.b.door.x:(I.b.x0+I.b.x1)/2,z:I.b.door?I.b.door.z:(I.b.z0+I.b.z1)/2}}}
@@ -887,11 +1036,12 @@ function tickWorld(dt){
  // pending zombies following through doors
  for(const z of G.pendZ){z.pend-=dt;if(z.pend>0)continue;
   if(z.pendTo==='out'){const a=z.pendAt;z.x=a.x+rnd(-.4,.4);z.z=a.z+rnd(-.4,.4);z.y=0;G.zs.push(z);z.done=1}
-  else{const I=G.interiors[z.pendTo];if(I.barr>0){z.x=I.b.door.x+rnd(-.6,.6);z.z=I.b.door.z+.9;z.y=0;z.door=I;z.state='chase';G.zs.push(z);z.done=1}else{z.x=I.door.x+rnd(-.4,.4);z.z=I.door.z-.5;z.y=0;z.state='chase';I.zs.push(z);z.done=1}}}
+  else{const I=G.interiors[z.pendTo];const a=z.pendAt||I.door||{x:0,z:0};z.x=a.x+rnd(-.4,.4);z.z=a.z+rnd(-.4,.4);z.y=0;z.state='chase';I.zs.push(z);z.done=1}}
  G.pendZ=G.pendZ.filter(z=>!z.done);
- // zombies outside bashing a barricaded door get there by chasing player's last known building
- for(const z of G.zs)if(!z.dead&&!z.door&&G.inside&&z.state==='investigate'){const I=G.interiors[G.inside];if(I.b.door&&I.barr>0&&I.f===0&&dd(z.x,z.z,I.b.door.x,I.b.door.z)<3)z.door=I}
- for(const z of G.zs)if(!z.dead&&!z.door&&G.inside&&z.state!=='idle'){const I=G.interiors[G.inside];const b=I.b;if(b.door&&dd(z.x,z.z,b.door.x,b.door.z)<1.2&&I.f===0){const I0=interior(b.id,0);if(I0.barr>0)z.door=I0;else{G.zs.splice(G.zs.indexOf(z),1);z.x=I0.door.x;z.z=I0.door.z-.5;z.state='investigate';z.tx=0;z.tz=0;I0.zs.push(z);break}}}
+ // zombies investigating near the building the player is hiding in start working on the door
+ if(G.inside){const b=G.interiors[G.inside].b;const [fx,fz]=doorFront(b);for(const z of G.zs)if(!z.dead&&!z.door&&!z.entry&&!(z.giveT>G.t)&&(z.state==='investigate'||z.state==='chase')&&dd(z.x,z.z,fx,fz)<4){z.door=b;z.stimT=G.t}
+  for(const z of G.zs)if(z.door===b&&(G.t-(b.lastNoise||0))<1)z.stimT=G.t}
+ tickFloors(dt);
  // noises decay
  for(const n of G.noises)n.t-=dt;G.noises=G.noises.filter(n=>n.t>0);
  // fires
@@ -950,7 +1100,7 @@ function zAttack(z){const p=G.p,K=ZK[z.kind];
  const d=dd(p.x,p.z,z.x,z.z)||1;const push=K.big?1.4:.25;moveEnt(p,(p.x-z.x)/d*push,(p.z-z.z)/d*push,.3);if(K.big){p.stag=.5;shake(.45);hitStop(.06)}else shake(.12)}
 // ---- player actions ----
 function weaponOf(){const p=G.p;return p.weapon?IT[p.weapon]:IT._fist}
-function doAttack(){const p=G.p;if(!G||G.over||p.climb||p.atkCd>0||p.roll||p.hide)return;if(p.carry){toast('手上搬着'+IT[p.carry.k].n+'，先放下才能打');return}
+function doAttack(){const p=G.p;if(p.inCar){if(p.atkCd>0)return;p.atkCd=1.2;sfx('horn',p.x,p.z);noise(p.x,p.z,20);if(!G.hornTip){G.hornTip=1;toast('按喇叭 · 很响，会把丧尸都引过来')}return}if(!G||G.over||p.climb||p.atkCd>0||p.roll||p.hide)return;if(p.carry){toast('手上搬着'+IT[p.carry.k].n+'，先放下才能打');return}
  const W=weaponOf();const tired=p.st<12;
  // grabbed: stab out with a blade, shoot point blank, or weak hits
  if(p.grab){const z=p.grab.zs[0];p.atkCd=W.cd||.5;p.swing=1;
@@ -980,20 +1130,20 @@ function fireGun(W){const p=G.p;p.atkCd=W.cd;if(!p.inv[W.ammo]){sfx('click');toa
  else{const tx=t?t.x:p.x+Math.sin(p.ang)*W.rg,tz=t?t.z:p.z+Math.cos(p.ang)*W.rg;gunFx(tx,tz,W);
   if(t){const head=Math.random()<.3;hitZombie(t,W.wpn*(head?2.2:1),'melee');flashZ(t);if(!t.dead)knock(t,p.x,p.z,.5,.5,.1);const d=dd(t.x,t.z,p.x,p.z)||1;fx3('spray',t.x,t.y+(head?1.6:1.2),t.z,{t:.4,dx:(t.x-p.x)/d,dz:(t.z-p.z)/d})}}}
 let mzl=null;function muzzleLight(){if(!mzl){mzl=new T3.PointLight(0xffc070,0,9,2);scene.add(mzl)}const p=G.p;mzl.position.set(p.x+Math.sin(p.ang)*.8,p.y+1.3,p.z+Math.cos(p.ang)*.8);mzl.intensity=3.5;setTimeout(()=>{if(mzl)mzl.intensity=0},60)}
-function doShove(){const p=G.p;if(!G||G.over||p.climb||p.hide)return;if(p.grab){struggle();return}
+function doShove(){const p=G.p;if(!G||G.over||p.climb||p.hide||p.inCar)return;if(p.grab){struggle();return}
  if(p.shoveCd>0||p.roll)return;if(p.carry){toast('先放下手上的东西');return}if(!useSt(14)){toast('没力气了 · 先缓一缓');return}
  p.shoveCd=.55;p.swing=1;p.shoveT=.3;let n=0;
  for(const z of zList()){if(z.dead||Math.abs(z.y-p.y)>1.4)continue;const d=dd(z.x,z.z,p.x,p.z);if(d>1.75||facingTo(p,z.x,z.z)>1.0)continue;n++;
   const sh=p.gear.off==='shield'?1.4:1;knock(z,p.x,p.z,1.25*sh,.9,.14*sh);if(n===1)p.ang=Math.atan2(z.x-p.x,z.z-p.z)}
  sfx('shove',p.x,p.z);if(n){shake(.14);hitStop(.035)}}
 function setBlock(on){const p=G.p;if(!G||G.over)return;if(on&&(p.grab||p.roll||p.carry||p.climb||p.st<4))return;p.block=on;$('bBlock')&&$('bBlock').classList.toggle('on',on)}
-function doRoll(){const p=G.p;if(!G||G.over||p.climb||p.grab||p.roll||p.rollCd>0||p.busy||p.hide)return;if(p.carry){toast('搬着东西翻不了');return}if(!useSt(18)){toast('没力气翻滚了');return}
+function doRoll(){const p=G.p;if(!G||G.over||p.climb||p.grab||p.roll||p.rollCd>0||p.busy||p.hide||p.inCar)return;if(p.carry){toast('搬着东西翻不了');return}if(!useSt(18)){toast('没力气翻滚了');return}
  let mx=joy.x,mz=joy.y;if(keys.w)mz=-1;if(keys.s)mz=1;if(keys.a)mx=-1;if(keys.d)mx=1;let dx,dz;
  if(Math.hypot(mx,mz)>.15){const fx=Math.sin(cam.yaw),fz=Math.cos(cam.yaw);dx=mz*fx+mx*fz;dz=mz*fz-mx*fx;const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l}else{dx=-Math.sin(p.ang);dz=-Math.cos(p.ang)}
  p.roll={t:0,dx,dz};p.rollCd=.6;p.crouch=false;p.block=false;p.ang=Math.atan2(dx,dz);sfx('roll',p.x,p.z);noise(p.x,p.z,2.5);updCrouchBtn()}
-function doCrouch(){const p=G.p;if(!G||G.over||p.climb)return;if(p.hide){unhide();return}p.crouch=!p.crouch;updCrouchBtn();if(p.crouch&&!G.crouchTip){G.crouchTip=1;toast('蹲下：走路没声音、不容易被看见 · 靠近汽车可以<b>钻到车底</b>躲起来')}}
+function doCrouch(){const p=G.p;if(!G||G.over||p.climb||p.inCar)return;if(p.hide){unhide();return}p.crouch=!p.crouch;updCrouchBtn();if(p.crouch&&!G.crouchTip){G.crouchTip=1;toast('蹲下：走路没声音、不容易被看见 · 靠近汽车可以<b>钻到车底</b>躲起来')}}
 function updCrouchBtn(){const b=$('bCrouch');if(b)b.classList.toggle('on',!!G.p.crouch)}
-function doJump(){const p=G.p;if(!G||G.over||p.climb||p.grab||p.roll||p.hide||p.busy)return;if(Math.abs(p.y-supportAt(p.x,p.z,p.y))>.05)return;if(p.carry){toast('搬着东西跳不起来');return}if(!useSt(8))return;
+function doJump(){const p=G.p;if(!G||G.over||p.climb||p.grab||p.roll||p.hide||p.busy||p.inCar)return;if(Math.abs(p.y-supportAt(p.x,p.z,p.y))>.05)return;if(p.carry){toast('搬着东西跳不起来');return}if(!useSt(8))return;
  p.vy=6.3;p.y+=.03;p.fallFrom=p.y;p.crouch=false;updCrouchBtn();sfx('roll',p.x,p.z)}
 // ---- hiding under cars ----
 function carNear(p){for(const c of G.cars){const s=c.s;const cx=clamp(p.x,s.x0,s.x1),cz=clamp(p.z,s.z0,s.z1);if(dd(cx,cz,p.x,p.z)<1)return c}return null}
@@ -1007,6 +1157,7 @@ function takeOff(slot){const p=G.p;const k=p.gear[slot];if(!k)return;if(invAdd(k
 // ---- per-frame player combat state ----
 function tickCombatP(dt){const p=G.p;if(p.st==null)pInit(p);
  p.stT-=dt;p.shoveCd-=dt;p.rollCd-=dt;p.stag-=dt;p.shoveT=(p.shoveT||0)-dt;
+ if(p.carry&&p.carry.k==='furn'){p.stT=Math.max(p.stT,.3);if(p.mv)p.st=Math.max(0,p.st-dt*5)}
  if(p.block){p.stT=Math.max(p.stT,.25);p.st=Math.max(0,p.st-dt*2);if(p.st<=0)setBlock(false)}
  if(p.stT<=0)p.st=Math.min(maxSt(),p.st+dt*(p.mv?12:24));if(p.exhaust&&p.st>30)p.exhaust=false;
  if(p.grab){const zs=p.grab.zs.filter(z=>!z.dead&&z.grabbing&&dd(z.x,z.z,p.x,p.z)<1.6);if(!zs.length){p.grab=null;p.strug=0}else{p.grab.zs=zs;p.strug=Math.max(0,p.strug-dt*.3*Math.sqrt(zs.length));p.grab.bite-=dt*(1+(zs.length-1)*.5);
@@ -1018,6 +1169,50 @@ let combatSig='';
 function renderCombatHUD(){const p=G.p;const st=$('stB');if(st){st.style.width=(p.st/maxSt()*100)+'%';st.parentNode.classList.toggle('low',p.exhaust||p.st<20)}
  const sh=$('bShove');if(sh){const g=!!p.grab;if(sh.dataset.g!==String(g)){sh.dataset.g=String(g);sh.innerHTML=g?'挣脱':'推';sh.classList.toggle('grab',g)}}
  const gb=$('grabUI');if(gb){gb.hidden=!p.grab;if(p.grab){$('grabB').style.width=Math.min(100,p.strug*100)+'%';$('grabT').textContent=`被 ${p.grab.zs.length} 只丧尸抓住！狂点【挣脱】`;$('biteB').style.width=Math.max(0,p.grab.bite/biteTime()*100)+'%'}}}
+
+
+// ================= cars: sit inside to hide, or drive one if you have a key and fuel =================
+const DRIVE_IDX=[0,5,9,13];// indices into CARS that can be driven
+function carInit(){G.cars.forEach((c,i)=>{if(c.mesh&&c.mesh.isObject3D&&!c.kit){c.enter=!c.burnt;c.glass=60;c.ang=c.mesh.rotation.y+Math.PI/2;c.sp=0;if(DRIVE_IDX.includes(i)){c.drive=1;c.fuel=0}}})}
+function carNearDoor(p){if(G.inside||p.y>.4)return null;for(const c of G.cars){if(!c.enter)continue;const s=c.s;const cx=clamp(p.x,s.x0,s.x1),cz=clamp(p.z,s.z0,s.z1);if(dd(cx,cz,p.x,p.z)<1.1)return c}return null}
+function enterCar(c){const p=G.p;setBusy('坐进车里…',.7,()=>{p.inCar=c;p.carFrom={x:p.x,z:p.z};p.x=c.x;p.z=c.z;p.y=0;p.crouch=false;p.block=false;sfx('door',p.x,p.z);
+  for(const z of G.zs)if(!z.dead&&z.state==='chase'&&dd(z.x,z.z,p.x,p.z)<7&&canSeeRaw(z,p))z.sawCar=c;else if(z.state==='chase'){z.state='investigate';z.tx=c.x+rnd(-3,3);z.tz=c.z+rnd(-3,3)}
+  toast(c.drive?(c.fuel>0?(p.inv.carkey?'车里 · 有钥匙有油，可以<b>发动</b>':'车里 · 有油但没钥匙'):'车里 · 这辆车能开，但<b>没油</b>（搬汽油桶来加）'+(p.inv.carkey?'':'，也缺<b>车钥匙</b>')):'躲进车里 · 丧尸看不见你（除非它们看见你上车）','good')})}
+function canSeeRaw(z,p){const K=ZK[z.kind];return dd(z.x,z.z,p.x,p.z)<K.sight*(G.night?.75:1)}
+function exitCar(){const p=G.p,c=p.inCar;if(!c)return;if(c.driving){c.driving=false;c.sp=0}
+ const s=c.s;const opts=[[s.x0-.7,c.z],[s.x1+.7,c.z],[c.x,s.z0-.7],[c.x,s.z1+.7]].sort((a,b)=>dd(a[0],a[1],p.carFrom?p.carFrom.x:c.x,p.carFrom?p.carFrom.z:c.z)-dd(b[0],b[1],p.carFrom?p.carFrom.x:c.x,p.carFrom?p.carFrom.z:c.z));
+ for(const [x,z] of opts){if(!blockedAt(x,z,0,.3)){p.x=x;p.z=z;break}}p.inCar=null;for(const z of G.zs)if(z.sawCar===c)z.sawCar=null;sfx('door',p.x,p.z);$('acts').classList.remove('driving')}
+function startCar(){const p=G.p,c=p.inCar;if(!c||!c.drive)return;if(!p.inv.carkey){toast('没有车钥匙');return}if(c.fuel<=0){toast('没油了');return}
+ c.driving=true;sfx('engine',c.x,c.z);noise(c.x,c.z,14);toast('发动了！摇杆往哪推车就往哪开 · 撞丧尸会把它们撞飞 · 很吵','good');$('acts').classList.add('driving')}
+function refuel(c){const p=G.p;if(!p.carry||p.carry.k!=='gascan')return;setBusy('加油中…',2,()=>{c.fuel=100;p.carry=null;sfx('pick',p.x,p.z);toast('加满油了 · 找到<b>车钥匙</b>就能开','good')})}
+function carBash(z,c){const K=ZK[z.kind];z.cd=K.cd;z.lunge=.3;c.glass-=K.big?30:10;sfx('bang',c.x,c.z);shake(.1);G.noises.push({x:c.x,z:c.z,r:5,t:.5,sc:'out'});
+ if(!G.carTip){G.carTip=1;toast('丧尸在砸车窗！窗碎了会把你拖出去','bad')}
+ if(c.glass<=0&&G.p.inCar===c){sfx('glass',c.x,c.z);exitCar();startGrab(z);toast('车窗被砸碎，你被拖出来了！','bad')}}
+// driving physics (arcade): steer toward the joystick direction, collide with solids, ram zombies
+function tickCar(dt){const p=G.p,c=p.inCar;if(!c)return;p.x=c.x;p.z=c.z;p.y=0;if(!c.driving)return;
+ let mx=joy.x,mz=joy.y;if(keys.w)mz=-1;if(keys.s)mz=1;if(keys.a)mx=-1;if(keys.d)mx=1;const l=Math.min(1,Math.hypot(mx,mz));
+ const fx=Math.sin(cam.yaw),fz=Math.cos(cam.yaw);const wx=mz*fx+mx*fz,wz=mz*fz-mx*fx;
+ let thr=0;if(l>.15){const ta=Math.atan2(wx,wz);let da=Math.atan2(Math.sin(ta-c.ang),Math.cos(ta-c.ang));if(Math.abs(da)>2.4&&c.sp<1.5){thr=-.5*l;da=Math.atan2(Math.sin(ta+Math.PI-c.ang),Math.cos(ta+Math.PI-c.ang))}else thr=l;
+  const tr=2.2*Math.min(1,Math.abs(c.sp)/3+.25);c.ang+=clamp(da,-tr*dt,tr*dt)}
+ const maxSp=thr<0?3:11;c.sp+=((thr*maxSp)-c.sp)*Math.min(1,dt*(thr?1.2:2.5));if(c.fuel<=0){c.sp*=Math.exp(-dt*2);if(Math.abs(c.sp)<.2&&!G.fuelTip){G.fuelTip=1;toast('没油了 · 车停了','bad');c.driving=false;$('acts').classList.remove('driving')}}
+ c.fuel=Math.max(0,c.fuel-Math.abs(c.sp)*dt*.55);
+ const nx=c.x+Math.sin(c.ang)*c.sp*dt,nz=c.z+Math.cos(c.ang)*c.sp*dt;
+ // collision against other solids using two circles (front/back)
+ const own=c.s;const hit=(x,z)=>{for(const s of G.solids){if(s===own||s.top<.4||(s.bot!=null&&s.bot>1.6))continue;for(const o of [1.4,0,-1.4]){const px=x+Math.sin(c.ang)*o,pz=z+Math.cos(c.ang)*o;if(inRect(s,px,pz,.85))return s}}return Math.abs(x)>HALF-1.5||Math.abs(z)>HALF-1.5?{edge:1}:null};
+ const hs=hit(nx,nz);if(hs){if(Math.abs(c.sp)>4){sfx('thud',c.x,c.z);shake(Math.min(.5,Math.abs(c.sp)*.05));noise(c.x,c.z,10)}c.sp*=-.25}else{c.x=nx;c.z=nz}
+ // ram zombies
+ for(const z of G.zs){if(z.dead)continue;const d=dd(z.x,z.z,c.x+Math.sin(c.ang)*1.3*Math.sign(c.sp),c.z+Math.cos(c.ang)*1.3*Math.sign(c.sp));if(d<1.3&&Math.abs(c.sp)>2.5){const sp=Math.abs(c.sp);hitZombie(z,sp*7,'melee');flashZ(z);if(!z.dead)knock(z,c.x,c.z,sp*.35,1.5,.75);else z.kv={x:Math.sin(c.ang)*sp,z:Math.cos(c.ang)*sp};fx3('spray',z.x,z.y+1,z.z,{t:.4,dx:Math.sin(c.ang),dz:Math.cos(c.ang)});sfx('thud',z.x,z.z);shake(.15);hitStop(.03);c.sp*=.9}}
+ // move mesh + solid
+ c.mesh.position.set(c.x,0,c.z);c.mesh.rotation.y=c.ang-Math.PI/2;const al=Math.abs(Math.cos(c.ang-Math.PI/2))>.7;const hw=al?2.1:.95,hd=al?.95:2.1;own.x0=c.x-hw;own.x1=c.x+hw;own.z0=c.z-hd;own.z1=c.z+hd;
+ c.noiseT=(c.noiseT||0)-dt;if(c.noiseT<=0){c.noiseT=1.2;noise(c.x,c.z,Math.abs(c.sp)>1?14:9);sfx('engine',c.x,c.z)}
+ p.x=c.x;p.z=c.z;p.ang=c.ang;c.mesh.rotation&&0}
+function carCtx(o){const p=G.p;if(p.hide)return false;
+ if(p.inCar){const c=p.inCar;if(c.drive&&!c.driving){if(c.fuel>0&&p.inv.carkey)o.unshift({l:'🔑 发动汽车',fn:startCar});else o.push({l:c.fuel<=0?'⛽ 没油（下车搬汽油桶来加）':'🔑 缺车钥匙',fn:()=>toast(c.fuel<=0?'这辆车没油了':'需要车钥匙（民宅、旅馆、警察局可能有）'),alt:1})}
+  o.push({l:c.driving?'🛑 停车下车':'🚪 下车',fn:exitCar,alt:o.length>0});return true}
+ const c=carNearDoor(p);if(!c)return false;
+ if(c.drive&&p.carry&&p.carry.k==='gascan'&&c.fuel<100)o.unshift({l:'⛽ 给车加油',fn:()=>refuel(c)});
+ if(!p.carry)o.push({l:c.drive?'🚗 坐进车里（这辆也许能开）':'🚗 坐进车里躲起来',fn:()=>enterCar(c),alt:o.length>0});
+ return false}
 
 
 // ================= input =================
@@ -1040,7 +1235,7 @@ gl_.addEventListener('wheel',e=>{cam.dist=clamp(cam.dist*(e.deltaY>0?1.1:.9),5,3
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(!G||G.over)return;const k=e.key.toLowerCase();if(e.repeat&&k!=='k')return;if(k===' '||k==='j')doAttack();if(k==='e'){const o=ctxOpts[0];if(o)o.fn()}if(k==='q')doThrow();if(k==='f')toggleFlash();if(k==='k')doShove();if(k==='l')setBlock(true);if(k==='shift')doRoll();if(k==='c')doCrouch();if(k==='v')doJump()});addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=0;if(k==='l'&&G)setBlock(false)});
 
 // ================= player tick =================
-function tickPlayer(dt){const p=G.p;p.atkCd-=dt;p.hurtT-=dt;p.swing=Math.max(0,p.swing-dt*3);tickCombatP(dt);
+function tickPlayer(dt){const p=G.p;p.atkCd-=dt;p.hurtT-=dt;p.swing=Math.max(0,p.swing-dt*3);tickCombatP(dt);if(p.inCar){tickCar(dt);return}
  if(p.climb){const C=p.climb;C.t+=dt/C.dur;if(C.t>=1){p.x=C.x1;p.z=C.z1;p.y=C.y1;p.climb=null;p.fallFrom=p.y}else{const k=C.t;p.x=lerp(C.x0,C.x1,k<.8?0:(k-.8)/.2);p.z=lerp(C.z0,C.z1,k<.8?0:(k-.8)/.2);if(C.kind==='down'){p.x=lerp(C.x0,C.x1,Math.min(1,k/.2));p.z=lerp(C.z0,C.z1,Math.min(1,k/.2))}p.y=lerp(C.y0,C.y1,C.kind==='down'?Math.max(0,(k-.2)/.8):Math.min(1,k/.8))}p.anim+=dt*4;return}
  if(p.busy){p.busy.t+=dt;$('progB').style.width=Math.min(100,p.busy.t/p.busy.dur*100)+'%';if(p.busy.t>=p.busy.dur){const b=p.busy;p.busy=null;$('prog').hidden=true;b.done()}}
  let mx=joy.x,mz=joy.y;if(keys.w)mz=-1;if(keys.s)mz=1;if(keys.a)mx=-1;if(keys.d)mx=1;
@@ -1080,7 +1275,7 @@ let ctxOpts=[],ctxSig='';
 function nearItems(r){const p=G.p,sc=G.inside;return G.items.filter(it=>it.inside===sc&&Math.abs(it.y-p.y)<1.2&&dd(it.x,it.z,p.x,p.z)<r)}
 function pickUp(it){const p=G.p;if(IT[it.k].big){if(p.carry){toast('手上已经搬着'+IT[p.carry.k].n);return}p.carry={k:it.k,uses:it.uses};G.items.splice(G.items.indexOf(it),1);toast(`搬起了<b>${IT[it.k].n}</b> · 搬着走会变慢`);sfx('pick');return}
  const got=invAdd(it.k);if(!got){toast(IT[it.k].n+'带不了更多了');return}G.items.splice(G.items.indexOf(it),1);toast(`捡到 <b>${IT[it.k].ic} ${IT[it.k].n}</b>`,'good');sfx('pick');renderThrow()}
-function placeCarry(){const p=G.p,c=p.carry;if(!c)return;const k=c.k;
+function placeCarry(){const p=G.p,c=p.carry;if(!c)return;const k=c.k;if(k==='furn'){placeFurn();return}
  if(k==='ladder'&&!G.inside){const s=findLadderSpot(p);if(s){addLadder(s.x,s.z,s.nx,s.nz,s.base,s.top);p.carry=null;toast(`梯子架好了，可以爬上 ${s.top.toFixed(0)} 米高的${s.s.ref?s.s.ref.n+'楼顶':'上面'}`,'good');sfx('ladder',p.x,p.z);noise(p.x,p.z,4);return}}
  if(k==='plank'&&!G.inside){const s=findPlankSpot(p);if(s){G.planks.push({id:G.uid++,...s});p.carry=null;G.stats.planks++;toast(`木板搭好了 · 跨过 ${s.gap.toFixed(1)} 米的空隙`,'good');sfx('ladder',p.x,p.z);noise(p.x,p.z,4);return}}
  dropItem(k,p.x+Math.sin(p.ang)*.6,p.z+Math.cos(p.ang)*.6,p.y);G.items[G.items.length-1].uses=c.uses;p.carry=null;sfx('drop')}
@@ -1090,21 +1285,37 @@ function climbLadder(L,dir){const p=G.p;const [bx,bz]=ladderBottom(L),[tx,tz]=la
  p.x=dir==='up'?bx:tx;p.z=dir==='up'?bz:tz;G.stats.climbs++;sfx('ladder',p.x,p.z)}
 function computeCtx(){const p=G.p,o=[];if(!G||G.over||p.climb){ctxOpts=[];return}
  if(p.busy){ctxOpts=[];return}
+ if(!G.inside&&carCtx(o)){ctxOpts=o.slice(0,3);return}
  // items on ground
  const its=nearItems(1.3).sort((a,b)=>dd(a.x,a.z,p.x,p.z)-dd(b.x,b.z,p.x,p.z));
  for(const it of its.slice(0,2)){if(it.k==='gascan'&&!p.carry){if(p.inv.lighter)o.push({l:'🔥 点燃汽油桶',fn:()=>igniteGas(it)});if(p.inv.bottle)o.push({l:`🍾 灌燃烧瓶（剩 ${it.uses} 次）`,fn:()=>fillMolotov(it),alt:1})}
   if(!(IT[it.k].big&&p.carry))o.push({l:`${IT[it.k].big?'搬起':'捡起'} ${IT[it.k].n}`,fn:()=>pickUp(it),alt:o.length>0})}
  if(G.inside){const I=G.interiors[G.inside];
   for(const l of I.loot)if(!l.done&&dd(l.x,l.z,p.x,p.z)<1.2){o.unshift({l:'🔍 搜索',fn:()=>setBusy('搜索中…',1.4,()=>{l.done=true;G.stats.looted++;if(!l.items.length){toast('什么都没有');return}const got=[];for(const k of l.items){if(IT[k].big)dropItem(k,p.x,p.z,0);else if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast(got.length?'找到：'+got.join('、'):'找到的东西放不下，掉在地上了','good');sfx('pick');renderThrow();noise(p.x,p.z,2.5)})});break}
-  if(I.door&&dd(I.door.x,I.door.z,p.x,p.z)<1.3){o.push({l:'🚪 出门',fn:()=>{const b=I.b;exitTo(b.door.x+b.door.nx*1,b.door.z+b.door.nz*1,0)}});
-   if(p.carry&&p.carry.k==='plank'&&I.barr<=0)o.push({l:'🪵 用木板堵门',fn:()=>{p.carry=null;I.barr=260;renderBar(I);toast('门堵上了 · 丧尸会撞门，撑不了太久','good');sfx('ladder',p.x,p.z);noise(p.x,p.z,5)}});
-   if(I.barr>0&&!p.carry)o.push({l:'拆下木板',fn:()=>{I.barr=0;renderBar(I);p.carry={k:'plank'}},alt:1})}
-  if(I.up&&dd(I.up.x,I.up.z,p.x,p.z)<1.3)o.push({l:`⬆ 上 ${I.f+2} 楼`,fn:()=>enterInterior(I.b.id,I.f+1,'down')});
-  if(I.down&&dd(I.down.x,I.down.z,p.x,p.z)<1.3)o.push({l:`⬇ 下 ${I.f} 楼`,fn:()=>enterInterior(I.b.id,I.f-1,'up')});
-  if(I.roof&&dd(I.roof.x,I.roof.z,p.x,p.z)<1.3)o.push({l:'⬆ 爬上屋顶',fn:()=>{const b=I.b;exitTo(b.hatch.x+.9,b.hatch.z,b.h)}});
+  const ds=I.b.ds;
+  if(I.door&&dd(I.door.x,I.door.z,p.x,p.z)<1.5){if(ds.barr>0&&!ds.broken)o.push({l:'门被堵住了（先搬开家具/拆木板）',fn:()=>toast('要出去得先把堵门的东西搬开，或者走窗户/通风管'),alt:1});else o.push({l:'🚪 出门',fn:()=>{const b=I.b;exitTo(b.door.x+b.door.nx*1,b.door.z+b.door.nz*1,0,'door')}});
+   if(ds.open&&!ds.broken)o.unshift({l:'🚪 关上门',fn:()=>{ds.open=false;updDoor(I.b);sfx('door',p.x,p.z);toast('门关上了','good')}});
+   if(p.carry&&p.carry.k==='plank'&&!ds.broken&&(ds.planks||0)<3)o.unshift({l:'🪵 用木板钉住门',fn:()=>{p.carry=null;ds.planks=(ds.planks||0)+1;ds.barr+=120;ds.open=false;updDoor(I.b);renderBar(I);toast(`门钉上了木板 · 门的耐久 ${Math.round(ds.hp+ds.barr)}`,'good');sfx('ladder',p.x,p.z);noise(p.x,p.z,5)}});
+   if(ds.planks>0&&!p.carry)o.push({l:'拆下一块木板',fn:()=>{ds.planks--;ds.barr=Math.max(0,ds.barr-120);renderBar(I);p.carry={k:'plank'}},alt:1});
+   if(ds.broken&&!G.brokeTip){G.brokeTip=1;toast('这扇门已经被撞坏了，堵不上了 · 去楼上或者换个地方躲','bad')}}
+  if(p.carry&&p.carry.k==='furn'){const near=I.door&&dd(p.x,p.z,I.door.x,I.door.z)<2.2&&!ds.broken;o.unshift({l:near?`🛋 用${p.carry.s.fname}堵门`:`放下${p.carry.s.fname}`,fn:placeFurn})}
+  else if(!p.carry){const s=nearFurn(I,p);if(s)o.push({l:`🛋 搬起${s.fname}`,fn:()=>liftFurn(I,s),alt:o.length>0})}
+  for(const q of I.wins){if(dd(q.x,q.z,p.x,p.z)<1.3){const W=q.W;if(W.boarded){if(!p.carry)o.push({l:'拆下窗户木板',fn:()=>{W.boarded=false;updWindow(W);p.carry={k:'plank'}},alt:1})}
+    else{if(p.carry&&p.carry.k==='plank')o.unshift({l:'🪵 用木板封住窗户',fn:()=>{p.carry=null;W.boarded=true;W.bhp=90;updWindow(W);toast('窗户封好了','good');sfx('ladder',p.x,p.z);noise(p.x,p.z,4)}});
+     if(!p.carry)o.push({l:W.f?'🪟 从窗户爬到阳台':'🪟 从窗户爬出去',fn:()=>setBusy(W.broken?'爬窗中…':'砸窗中…',W.broken?.8:1.2,()=>{if(!W.broken){W.broken=true;updWindow(W);sfx('glass',p.x,p.z);noise(p.x,p.z,9)}exitTo(W.x+W.nx*.75,W.z+W.nz*.75,W.y,'win')})})}break}}
+  for(const q of I.vents){if(dd(q.x,q.z,p.x,p.z)<1.3&&!p.carry){const V=q.V;o.push({l:V.roof?'🕳 钻通风管爬上屋顶':'🕳 钻通风管出去',fn:()=>setBusy('在通风管里爬…',2,()=>{exitTo(V.x,V.z,V.y,'vent')})});break}}
+  if(I.up&&dd(I.up.x,I.up.z,p.x,p.z)<1.3&&!(p.carry&&p.carry.k==='furn'))o.push({l:`⬆ 上 ${I.f+2} 楼`,fn:()=>enterInterior(I.b.id,I.f+1,'down')});
+  if(I.down&&dd(I.down.x,I.down.z,p.x,p.z)<1.3&&!(p.carry&&p.carry.k==='furn'))o.push({l:`⬇ 下 ${I.f} 楼`,fn:()=>enterInterior(I.b.id,I.f-1,'up')});
+  if(I.roof&&dd(I.roof.x,I.roof.z,p.x,p.z)<1.3&&!p.carry)o.push({l:'⬆ 爬上屋顶',fn:()=>{const b=I.b;exitTo(b.hatch.x+.9,b.hatch.z,b.h,'roof')}});
  }else{
-  for(const b of BLD){if(b.door&&p.y<.5&&dd(b.door.x+b.door.nx*.7,b.door.z+b.door.nz*.7,p.x,p.z)<1.4){const I0=interior(b.id,0);o.unshift({l:`🚪 进入${b.n}`,fn:()=>enterInterior(b.id,0,'door')})}
-   if(b.hatch&&Math.abs(p.y-b.h)<.3&&dd(b.hatch.x,b.hatch.z,p.x,p.z)<1.4)o.unshift({l:`⬇ 从天台门进${b.n}`,fn:()=>enterInterior(b.id,b.floors-1,'roof')})}
+  for(const b of BLD){const ds=b.ds;
+   if(p.y<.5&&dd(b.door.x+b.door.nx*.7,b.door.z+b.door.nz*.7,p.x,p.z)<1.5){if(ds.barr>0&&!ds.broken)o.unshift({l:`${b.n}的门从里面堵住了`,fn:()=>toast('门被堵住了 · 试试窗户、通风管或者屋顶'),alt:1});else o.unshift({l:`🚪 进入${b.n}${ds.broken?'（门坏了）':''}`,fn:()=>enterInterior(b.id,0,'door')})}
+   if(b.hatch&&Math.abs(p.y-b.h)<.3&&dd(b.hatch.x,b.hatch.z,p.x,p.z)<1.4)o.unshift({l:`⬇ 从天台门进${b.n}`,fn:()=>enterInterior(b.id,b.floors-1,'roof')});
+   for(const W of b.wins){if(Math.abs(p.y-W.y)<.6&&dd(W.x+W.nx*.7,W.z+W.nz*.7,p.x,p.z)<1.3){if(W.boarded)o.push({l:'窗户被木板封住了',fn:()=>toast('封死了，进不去'),alt:1});
+     else if(!p.carry)o.unshift({l:W.broken?`🪟 从窗户爬进${b.n}`:`🪟 砸窗爬进${b.n}（很响）`,fn:()=>setBusy(W.broken?'爬窗中…':'砸窗中…',W.broken?.9:1.3,()=>{if(!W.broken){W.broken=true;updWindow(W);sfx('glass',p.x,p.z);noise(p.x,p.z,10)}enterInterior(b.id,W.f,'win',W)})});break}}
+   for(const V of b.vents){if(Math.abs(p.y-V.y)<.5&&dd(V.x,V.z,p.x,p.z)<1.3&&!p.carry){o.unshift({l:`🕳 钻进通风管（进${b.n}${V.roof?b.floors+'楼':''}）`,fn:()=>setBusy('钻进通风管…',2,()=>enterInterior(b.id,V.f,'vent',V))});break}}
+   if(b.fire){const S=solidUnder(p);if(S&&S.kind==='balc'&&S.ref===b){const bs=b.wins.filter(q=>q.balc);const cur=bs.find(q=>Math.abs(q.y-p.y)<.3);if(cur){const up=bs.find(q=>q.f===cur.f+1),dn=bs.find(q=>q.f===cur.f-1);const go=(T,y)=>{const tx=T?T.x+T.nx*.6:clamp(p.x,b.x0+.6,b.x1-.6),tz=T?T.z+T.nz*.6:clamp(p.z,b.z0+.6,b.z1-.6);p.climb={kind:'up',x0:p.x,z0:p.z,y0:p.y,x1:tx,z1:tz,y1:y,t:0,dur:1.1};sfx('ladder',p.x,p.z)};
+     o.push({l:up?'🪜 沿消防梯往上爬':'🪜 爬消防梯上屋顶',fn:()=>up?go(up,up.y):go(null,b.h)});if(dn)o.push({l:'🪜 消防梯往下',fn:()=>{const tx=dn.x+dn.nx*.6,tz=dn.z+dn.nz*.6;p.climb={kind:'down',x0:p.x,z0:p.z,y0:p.y,x1:tx,z1:tz,y1:dn.y,t:0,dur:1};sfx('ladder',p.x,p.z)},alt:1})}}}}
   for(const L of G.ladders){const [bx,bz]=ladderBottom(L),[tx,tz]=ladderTop(L);
    if(Math.abs(p.y-L.base)<.5&&dd(bx,bz,p.x,p.z)<1.1){if(!p.carry)o.unshift({l:`🪜 爬上梯子（${(L.top-L.base).toFixed(0)} 米）`,fn:()=>climbLadder(L,'up')});else o.push({l:'先放下手上的东西才能爬',fn:()=>placeCarry(),alt:1});if(!L.fixed&&!p.carry)o.push({l:'拿走梯子',fn:()=>{G.ladders.splice(G.ladders.indexOf(L),1);p.carry={k:'ladder'};sfx('pick')},alt:1})}
    if(Math.abs(p.y-L.top)<.5&&dd(tx,tz,p.x,p.z)<1.4){if(!p.carry)o.unshift({l:'🪜 爬下梯子',fn:()=>climbLadder(L,'down')});if(!L.fixed&&!p.carry)o.push({l:'⬆ 收起梯子（丧尸就上不来了）',fn:()=>{G.ladders.splice(G.ladders.indexOf(L),1);p.carry={k:'ladder'};toast('梯子收上来了','good');sfx('ladder',p.x,p.z)},alt:1})}}
@@ -1114,7 +1325,7 @@ function computeCtx(){const p=G.p,o=[];if(!G||G.over||p.climb){ctxOpts=[];return
   // vault onto low objects
   if(!p.carry&&!p.hide)for(const s of G.solids){if(!s.climb)continue;const dh=s.top-p.y;if(dh<.5||dh>1.7)continue;const cx=clamp(p.x,s.x0,s.x1),cz=clamp(p.z,s.z0,s.z1);if(dd(cx,cz,p.x,p.z)<.9){const ix=clamp(p.x,s.x0+.3,s.x1-.3),iz=clamp(p.z,s.z0+.3,s.z1-.3);o.push({l:`爬上${s.kind==='car'?'车顶':s.kind==='dump'?'垃圾箱':s.kind==='container'?'集装箱':s.kind==='barrel'?'油桶':'木箱'}`,fn:()=>{p.climb={kind:'up',x0:p.x,z0:p.z,y0:p.y,x1:ix,z1:iz,y1:s.top,t:0,dur:.55}},alt:o.length>0});break}}
  }
- if(p.carry){const k=p.carry.k;let lab='放下 '+IT[k].n;if(k==='ladder'&&!G.inside&&findLadderSpot(p))lab='🪜 把梯子靠在墙上';if(k==='plank'&&!G.inside&&findPlankSpot(p))lab='🪵 搭木板到对面楼顶';o.push({l:lab,fn:placeCarry,alt:!/靠|搭/.test(lab)&&o.length>0})}
+ if(p.carry&&p.carry.k!=='furn'){const k=p.carry.k;let lab='放下 '+IT[k].n;if(k==='ladder'&&!G.inside&&findLadderSpot(p))lab='🪜 把梯子靠在墙上';if(k==='plank'&&!G.inside&&findPlankSpot(p))lab='🪵 搭木板到对面楼顶';o.push({l:lab,fn:placeCarry,alt:!/靠|搭/.test(lab)&&o.length>0})}
  ctxOpts=o.slice(0,3)}
 function renderCtx(){const el=$('ctx');const sig=ctxOpts.map(o=>o.l+(o.alt?'1':'0')).join('|');if(sig===ctxSig)return;ctxSig=sig;el.innerHTML='';el.hidden=!ctxOpts.length;
  ctxOpts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o.l;if(o.alt&&i>0)b.className='alt';b.onclick=e=>{e.stopPropagation();o.fn();ctxSig='';computeCtx();renderCtx();renderHand()};el.appendChild(b)})}
@@ -1123,7 +1334,6 @@ function igniteGas(it){const p=G.p;G.items.splice(G.items.indexOf(it),1);toast('
   for(const q of zList())if(!q.dead&&dd(q.x,q.z,x,z)<3.6)hitZombie(q,85,'fire');if((old||'out')===sc&&dd(G.p.x,G.p.z,x,z)<3.2&&Math.abs(G.p.y-y)<2)hurtPlayer(35,0);
   G.fires.push({x,z,y,r:3.2,t:11,sc});noise(x,z,22);fx3('boom',x,y+.5,z,{t:.9,big:1});sfx('explode',x,z);buzz(120);G.inside=old},1600)}
 function fillMolotov(it){const p=G.p;if(!p.inv.bottle)return;invUse('bottle');it.uses--;invAdd('molotov');toast('做好了一个 <b>🔥 燃烧瓶</b>','good');if(it.uses<=0){G.items.splice(G.items.indexOf(it),1);toast('汽油用完了')}if(!p.throwSel||p.throwSel==='bottle')p.throwSel='molotov';renderThrow()}
-function renderBar(I){if(!I.barMesh)return;I.barMesh.clear();if(I.barr>0){const m=std(0x8a6a44);for(const y of [.5,1.1]){const b=BX(m,2,.18,.08,0,y,I.d/2-.1,I.barMesh);b.rotation.z=rnd(-.15,.15)}}}
 
 // ================= bag UI =================
 let bagSel=null;
@@ -1206,11 +1416,9 @@ function buildDetails(g){const q=QUAL.lv;SC.lamps=[];SC.lit=[];
  // facade damage, posters
  for(const b of BLD){const n=q===0?3:q===1?6:9;for(let i=0;i<n;i++){const [x,y,z,r]=faceSpot(b);const k=pick(['crack','crack','holes','burn','poster']);decal(g,k,x,k==='burn'?Math.min(y,2):y,z,r,k==='burn'?rnd(2,3.5):k==='poster'?.8:rnd(.8,1.6),k==='burn'?rnd(2,3):k==='poster'?1:rnd(.8,1.6))}
   // lit windows at night (some flicker)
-  const nw=b.style==='glass'?6:3;for(let i=0;i<nw;i++){const [x,y,z,r]=faceSpot(b);const w=new T3.Mesh(new T3.PlaneGeometry(1,.9),new T3.MeshBasicMaterial({color:pick([0xffc870,0xffe0a0,0x9ad0ff]),transparent:true,opacity:0}));w.position.set(x,Math.max(1.2,y),z);w.rotation.y=r;w.userData.fl=Math.random()<.4;g.add(w);SC.lit.push(w)}
+  const nw=b.style==='glass'?6:Math.min(4,b.floors+1);for(let i=0;i<nw;i++){const [x,y,z,r]=faceSpot(b);const w=new T3.Mesh(new T3.PlaneGeometry(1,.9),new T3.MeshBasicMaterial({color:pick([0xffc870,0xffe0a0,0x9ad0ff]),transparent:true,opacity:0}));w.position.set(x,Math.max(1.2,y),z);w.rotation.y=r;w.userData.fl=Math.random()<.4;g.add(w);SC.lit.push(w)}
   // AC units on facades
   for(let i=0;i<(b.h>5?3:1);i++){const [x,y,z,r]=faceSpot(b);if(y<2.4)continue;const ac=new T3.Group();ac.position.set(x,y,z);ac.rotation.y=r;g.add(ac);mesh(new T3.BoxGeometry(.8,.55,.4),std(0x9a9c98,{m:.3,r:.6}),ac,0,0,.22);mesh(new T3.CylinderGeometry(.18,.18,.02,16),std(0x2a2a2a),ac,.1,0,.43,1,1,1,false).rotation.x=Math.PI/2}}
- // apartment balconies (south face)
- {const b=BID.apt;for(let f=1;f<3;f++)for(const x of [-23.5,-16.5]){const y=f*3;const bl=new T3.Group();bl.position.set(x,y,b.z1);g.add(bl);mesh(new T3.BoxGeometry(2.4,.15,1),std(0x7a766e),bl,0,0,.5);for(let i=0;i<9;i++)mesh(new T3.CylinderGeometry(.02,.02,.9,6),std(0x2a2c2e,{m:.6}),bl,-1.1+i*.275,.5,.95,1,1,1,false);mesh(new T3.BoxGeometry(2.4,.05,.05),std(0x2a2c2e,{m:.6}),bl,0,.95,.95,1,1,1,false);if(Math.random()<.6)mesh(new T3.BoxGeometry(.8,.02,.6),std(pick([0x8a3030,0x30508a,0xc0b080]),{ds:true}),bl,rnd(-.6,.6),.7,.97,1,1,1,false).rotation.x=.2}}
  // rooftop antennas / dishes
  for(const b of BLD){if(b.heli)continue;const x=b.x1-1,z=b.z0+1;mesh(new T3.CylinderGeometry(.03,.03,2.2,6),std(0x5a5c5e,{m:.7}),g,x,b.h+1.1,z);if(Math.random()<.6){const d=mesh(new T3.SphereGeometry(.4,12,8,0,Math.PI*2,0,Math.PI/2.5),std(0xd8d8d0,{ds:true}),g,x-.8,b.h+.6,z+.4);d.rotation.x=1.1}}
  // ground: glass, blood trails, leaves, weeds
@@ -1219,9 +1427,9 @@ function buildDetails(g){const q=QUAL.lv;SC.lamps=[];SC.lit=[];
  const weed=new T3.MeshStandardMaterial({color:0x4a5a2a,roughness:.9,side:T3.DoubleSide,transparent:true,alphaTest:.3,map:(()=>{const [c,gg]=cvs(64,64);gg.clearRect(0,0,64,64);gg.strokeStyle='#6a7a3a';for(let i=0;i<14;i++){gg.lineWidth=rnd(1,2.5);gg.beginPath();const x=rnd(10,54);gg.moveTo(x,64);gg.quadraticCurveTo(x+rnd(-10,10),40,x+rnd(-14,14),rnd(4,30));gg.stroke()}const t=new T3.CanvasTexture(c);t.encoding=T3.sRGBEncoding;return t})()});
  for(const b of BLD)for(let i=0;i<(q?6:2);i++){const s=Math.floor(Math.random()*4);const x=s<2?rnd(b.x0,b.x1):s===2?b.x1+.25:b.x0-.25,z=s<2?(s===0?b.z1+.25:b.z0-.25):rnd(b.z0,b.z1);for(const r of [0,Math.PI/2]){const w=new T3.Mesh(new T3.PlaneGeometry(.7,.55),weed);w.position.set(x,.27,z);w.rotation.y=r+i;g.add(w)}}
  // working street lamps (flicker) with light pools
- const lampAt=[[-20,-5.6],[22,5.6],[5.6,-20]];for(const [x,z] of lampAt){const light=new T3.PointLight(0xffc880,0,14,2);light.position.set(x,5.6,z+(z>0?-1:1));g.add(light);const halo=glowSprite(0xffd8a0,2.4,0);halo.position.copy(light.position);g.add(halo);SC.lamps.push({light,halo,flicker:Math.random()<.5})}
+ const lampAt=(SC.lampPos||[]).filter((_,i)=>i%2===0).slice(0,QUAL.lv===0?3:6);for(const [x,z] of lampAt){const light=new T3.PointLight(0xffc880,0,14,2);light.position.set(x,5.6,z);g.add(light);const halo=glowSprite(0xffd8a0,2.4,0);halo.position.copy(light.position);g.add(halo);SC.lamps.push({light,halo,flicker:Math.random()<.5})}
  // contact shadows under cars & dumpsters
- for(const c of G.cars)addBlob(g,Math.abs(Math.cos(c.mesh.rotation.y))>.7?5:2.6,Math.abs(Math.cos(c.mesh.rotation.y))>.7?2.6:5).position.set(c.x,.03,c.z);
+ for(const c of G.cars){if(c.kit)continue;if(DRIVE_IDX.includes(G.cars.indexOf(c))){addBlob(c.mesh,5,2.6).position.y=.03;continue}addBlob(g,Math.abs(Math.cos(c.mesh.rotation.y))>.7?5:2.6,Math.abs(Math.cos(c.mesh.rotation.y))>.7?2.6:5).position.set(c.x,.03,c.z)}
 }
 
 const POOLS=[];
@@ -1302,15 +1510,15 @@ function syncScene(dt){
  if(ud.real)animReal(ud,dt,p.climb?1:(p.roll?0:psp),{climb:!!p.climb,t:G.t,gun:p.weapon&&IT[p.weapon].kind==='gun',block:p.block,crouch:p.crouch,roll:p.roll?Math.min(1,p.roll.t/.48):null,grabbed:!!p.grab,shove:p.shoveT>0,attack:p.swing>.85&&!(p.shoveT>0),melee:!!p.weapon&&IT[p.weapon].kind!=='gun',stab:p.weapon==='knife',hit:p.hurtT>.3&&!p.grab,dead:p.hp<=0});else{pose(ud,p.anim,p.climb?0:(p.mv?(p.mv>1?1:.7):0),{climb:!!p.climb,t:G.t,carry:!!p.carry,swing:p.swing,aim:p.aimT>0});pm.scale.y=p.crouch?.72:1;if(p.roll){const th=Math.min(1,p.roll.t/.48)*Math.PI*2;pm.rotation.x=0;ud.body&&(ud.body.rotation.x=th)}else if(ud.body&&!p.climb)ud.body.rotation.x=0}if(p.hide){pm.visible=false}
  if(ud.wk!==p.weapon&&ud.hand){ud.wk=p.weapon;ud.hand.clear();if(!(ud.real&&setWeapon(ud,p.weapon))){const wm=weaponMesh(p.weapon);if(ud.real){wm.rotation.set(Math.PI/2,0,0)}ud.hand.add(wm)}}
  if(p.carry){if(!ud.carry||ud.carryK!==p.carry.k){if(ud.carry)pm.remove(ud.carry);ud.carry=itemModel(p.carry.k);ud.carry.userData.ring.visible=false;ud.carryK=p.carry.k;pm.add(ud.carry);if(p.carry.k==='gascan')ud.carry.position.set(0,.6,.35);else{ud.carry.position.set(0,1.25,.1);ud.carry.rotation.z=.12}}}else if(ud.carry){pm.remove(ud.carry);ud.carry=null}
- pm.visible=!cam.fp&&!p.hide;
+ pm.visible=!cam.fp&&!p.hide&&!p.inCar;
  const sc=G.inside;
  // items
  for(const it of G.items){if(it.inside!==sc)continue;const e=ent((sc?'Ii':'i')+it.id,()=>itemModel(it.k));e.m.position.set(it.x,it.y+.04,it.z);if(it.k==='ladder'||it.k==='plank')e.m.rotation.y=it.id%3;e.m.userData.ring.material.opacity=.35+Math.sin(T*4+it.id)*.2}
  if(!sc){for(const L of G.ladders)ent('l'+L.id,()=>ladderMesh(L));for(const pl of G.planks)ent('pl'+pl.id,()=>plankMesh(pl))}
  // zombies
- const zs=zList();for(const z of zs){const near=dd(z.x,z.z,p.x,p.z)<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>RM?realModel(z.kind):zombieModel(z));const m=e.m,u=m.userData;const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;
+ const zs=zList();for(const z of zs){const near=dd(z.x,z.z,p.x,p.z)<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>RM?realModel(z.kind,z.v):zombieModel(z));const m=e.m,u=m.userData;const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;
   z.lunge=(z.lunge||0)-dt;
-  if(u.real){if(z.dead?((u.dT=(u.dT??2.5)-dt)>0):near)animReal(u,dt,z.climb?1:(z.kv||z.stun>0?0:Math.min(zsp,5)),{zombie:1,t:G.t,climb:!!z.climb,attack:z.lunge>.22,hit:z.hitT>0||(z.stun>0&&!z.down),dead:!!z.dead,down:z.down,grab:z.grabbing,flash:z.flashT>0});continue}
+  if(u.real){if(z.dead?((u.dT=(u.dT??2.5)-dt)>0):near)animReal(u,dt,z.climb?1:(z.kv||z.stun>0?0:Math.min(zsp,5)),{zombie:1,t:G.t,climb:!!z.climb,crawl:z.kind==='crawler',attack:z.lunge>.22,hit:z.hitT>0||(z.stun>0&&!z.down),dead:!!z.dead,down:z.down,grab:z.grabbing,flash:z.flashT>0});continue}
   if(z.dead||z.down>0){const k=z.dead?Math.min(1,(40-z.deadT)*3):1;u.body.rotation.x=-1.45*k;u.body.position.y=.15*k;m.position.y=z.y;continue}else if(u.body.rotation.x<-1)u.body.rotation.x=0
   pose(u,z.anim,z.climb?0:(z.mv?1:.06),{zombie:1,t:G.t+z.id,lunge:z.lunge>0,climb:!!z.climb,limp:u.look.limp});
   u.body.position.y=z.hitT>0?-.06:0;if(z.stun>0)u.head.rotation.z=Math.sin(T*10)*.35}
@@ -1384,7 +1592,7 @@ function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X
  g.fillStyle='#16191a';g.fillRect(0,0,S,S);g.fillStyle='#2a2c2e';g.fillRect(0,Z(-4),S,8*k);g.fillRect(X(-4),0,8*k,S);
  for(const b of BLD){const sh=Math.round(70+b.h*7);g.fillStyle=`rgb(${sh},${sh-4},${sh-10})`;g.fillRect(X(b.x0),Z(b.z0),(b.x1-b.x0)*k,(b.z1-b.z0)*k);if(big){g.fillStyle='#111';g.font=`${Math.round(S/38)}px "Noto Sans SC",sans-serif`;g.textAlign='center';g.fillText(`${b.n} ${b.h}m`,X((b.x0+b.x1)/2),Z((b.z0+b.z1)/2)+4)}
   if(b.door){g.fillStyle='#9ad0f0';g.fillRect(X(b.door.x)-k*.8,Z(b.door.z)-k*.4,k*1.6,k*.8)}}
- g.fillStyle='#6a6a6a';for(const c_ of G.cars)g.fillRect(X(c_.s.x0),Z(c_.s.z0),(c_.s.x1-c_.s.x0)*k,(c_.s.z1-c_.s.z0)*k);
+ for(const c_ of G.cars){g.fillStyle=c_.drive?(c_.fuel>0?'#7ad070':'#c8b060'):'#6a6a6a';g.fillRect(X(c_.s.x0),Z(c_.s.z0),(c_.s.x1-c_.s.x0)*k,(c_.s.z1-c_.s.z0)*k)}
  g.fillStyle='#e8c070';for(const L of G.ladders){g.beginPath();g.moveTo(X(L.x),Z(L.z)-k);g.lineTo(X(L.x)+k,Z(L.z)+k);g.lineTo(X(L.x)-k,Z(L.z)+k);g.fill()}
  g.strokeStyle='#c8a070';g.lineWidth=Math.max(2,k*.6);for(const pl of G.planks){g.beginPath();g.moveTo(X(pl.ax),Z(pl.az));g.lineTo(X(pl.bx),Z(pl.bz));g.stroke()}
  for(const it of G.items)if(!it.inside&&IT[it.k].big){g.fillStyle='#f0a040';g.fillRect(X(it.x)-k*.6,Z(it.z)-k*.6,k*1.2,k*1.2)}
@@ -1435,6 +1643,8 @@ function sfx(n,x,z){if(!AUD.ctx||AUD.mute)return;const c=AUD.ctx,t=c.currentTime
   case 'thunder':nz(t,2.5,'lowpass',160,.6,.9,2.2);osc(t,'sine',50,28,1.6,.35);break;
   case 'horn':osc(t,'sawtooth',110,100,1.6,.12,.3);osc(t,'sawtooth',82,80,1.6,.1,.3);break;
   case 'roar':{const o=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter(),l=c.createOscillator(),lg=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(rnd(48,62),t);o.frequency.linearRampToValueAtTime(rnd(30,40),t+2.4);l.frequency.value=rnd(6,11);lg.gain.value=rnd(8,16);l.connect(lg);lg.connect(o.frequency);fl.type='lowpass';fl.frequency.value=380;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.5);g.gain.linearRampToValueAtTime(0,t+2.6);o.connect(fl);fl.connect(g);g.connect(AUD.in);o.start(t);l.start(t);o.stop(t+2.7);l.stop(t+2.7);nz(t+.2,2.2,'lowpass',220,.8,.18,2);break}
+  case 'scream':{const o=c.createOscillator(),g2=c.createGain(),fl=c.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(700,t);o.frequency.linearRampToValueAtTime(1300,t+.3);o.frequency.linearRampToValueAtTime(500,t+1.4);fl.type='bandpass';fl.frequency.value=1100;fl.Q.value=1.2;g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.35*v,t+.1);g2.gain.linearRampToValueAtTime(0,t+1.5);o.connect(fl);fl.connect(g2);g2.connect(AUD.in);o.start(t);o.stop(t+1.6);nz(t,1.4,'bandpass',2000,1,.15*v,1.2);break}
+  case 'engine':osc(t,'sawtooth',55,70,.9,.12*v,.1);nz(t,.9,'lowpass',260,.7,.12*v,.8);break;
   case 'cough':nz(t,.12,'bandpass',600,1.2,.18,.1);nz(t+.18,.14,'bandpass',520,1.2,.16,.12);break;
   case 'chop':nz(t,.12,'bandpass',2400,1.2,.35*v,.1);nz(t+.03,.15,'lowpass',600,1,.3*v,.12);osc(t,'sawtooth',180,60,.1,.08*v);break;
   case 'gun':nz(t,.25,'lowpass',1800,.7,.9*v,.2);osc(t,'square',160,40,.12,.25*v);nz(t+.05,.6,'lowpass',400,.5,.25*v,.55);break;
@@ -1482,7 +1692,7 @@ function begin(){if(loadingNow)return;audInit();if(!renderer){gl();initLights()}
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin()},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
  for(const [,e] of ENT)e.parent.remove(e.m);ENT.clear();
- newState(diff,len);pInit(G.p);G.pendZ=[];buildExterior();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
+ newState(diff,len);pInit(G.p);G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
  for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);initZombies();
  G.p.inv={};invAdd('brick',1);renderThrow();
  cam.yaw=0;cam.tx=G.p.x;cam.tz=G.p.z;
@@ -1507,7 +1717,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
