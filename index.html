@@ -132,6 +132,35 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #tut.low{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 250px)}#tut .tc{display:flex;justify-content:space-between;font-size:12px;color:#7fe6ff;font-weight:800}#tut .tc span:last-child{color:var(--mute)}#tutT{font-size:13.5px;line-height:1.55;color:#e0f6fb;margin:6px 0 9px}#tutT b{color:#fff}
 #tut .tb{display:flex;justify-content:flex-end;gap:8px}#tut .tb button{border-radius:14px;padding:6px 14px;font-weight:800;font-size:13px;border:1px solid rgba(110,225,255,.5);background:none;color:#cfeef6}#tut .tb button#tutN{background:#6ae0ff;color:#04212a;border:none}
 #tutRing{position:fixed;z-index:23;border:2px solid #6ae0ff;border-radius:12px;box-shadow:0 0 0 2000px rgba(0,6,8,.45),0 0 16px #6ae0ff;pointer-events:none;transition:all .25s}
+
+/* ================= LANDSCAPE (phones held sideways) — primary layout ================= */
+@media (orientation:landscape) and (max-height:600px){
+ #hud{left:calc(env(safe-area-inset-left,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);top:8px}
+ .bars{width:150px;gap:3px}.bar{height:7px}.blab{font-size:10px}
+ #clock{position:fixed;left:50%;transform:translateX(-50%);top:6px;text-align:center}#clock .d{font-size:18px}#clock .p{font-size:11px}
+ #mini{width:84px;height:84px;top:8px;right:calc(env(safe-area-inset-right,0px) + 10px)}
+ #side{flex-direction:row;top:8px;right:calc(env(safe-area-inset-right,0px) + 102px);gap:6px}
+ #side button{width:34px;height:34px;font-size:13px}
+ #qTrack{top:auto;bottom:auto;top:132px;left:calc(env(safe-area-inset-left,0px) + 12px);max-width:190px}
+ #msg{left:50%;transform:translateX(-50%);right:auto;top:52px;max-width:380px;align-items:center}
+ #sysPop{top:52px;width:min(360px,46vw)}
+ #sysWorld{top:28%}
+ #acts{right:calc(env(safe-area-inset-right,0px) + 8px);bottom:8px;transform:scale(.88);transform-origin:right bottom}
+ #ctx{left:auto;right:calc(env(safe-area-inset-right,0px) + 214px);bottom:14px;max-width:230px;align-items:flex-end}
+ #ctx button{padding:8px 13px;font-size:13px}
+ #hot{left:50%;top:auto;bottom:10px;transform:translateX(-50%);flex-direction:row}
+ #hot button{width:40px;height:40px}
+ #hand{left:calc(env(safe-area-inset-left,0px) + 12px);bottom:136px}
+ #bag{left:auto;top:0;width:min(400px,58vw);max-height:none;border-radius:16px 0 0 16px;border-top:none;border-left:1px solid var(--line)}
+ #qLog{width:min(360px,50vw)}
+ #grabUI{top:24%}
+ #tut{top:22%}#tut.low{bottom:auto;top:18%}
+ .wbox{transform:scale(.82)}
+ #prog{top:38%}
+ #rotHint{display:none!important}
+}
+#rotHint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 250px);z-index:14;background:rgba(6,20,26,.92);border:1px solid rgba(110,225,255,.6);border-radius:18px;padding:7px 14px;font-size:12.5px;color:#d9f4fb;display:flex;gap:8px;align-items:center}
+#rotHint button{background:none;border:none;color:var(--mute);font-size:14px;padding:0 2px}
 </style>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -165,6 +194,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div id="wheel" class="ov2" hidden><div class="wbox"><div class="st">【末日系统】新手礼包</div><p>转动末日轮盘，抽取一份开局物资</p><canvas id="whc" width="280" height="280"></canvas><div id="whR"></div><button id="whGo" class="big">开始抽取</button></div></div>
 <div id="tut" hidden><div class="tc"><span class="st">【末日系统】新手教学</span><span id="tutC"></span></div><div id="tutT"></div><div class="tb"><button id="tutS">跳过</button><button id="tutN">下一步</button></div></div>
 <div id="tutRing" hidden></div>
+<div id="rotHint" hidden>📱↻ 横屏玩视野更宽、按键更顺手 <button id="rotX" aria-label="关闭">✕</button></div>
 <div id="joy" class="idle" hidden><i></i></div>
 <div id="hand" hidden></div>
 <div id="ctx" hidden></div>
@@ -210,7 +240,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v2.1 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v2.2 · 建议横屏 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -2026,15 +2056,16 @@ function begin(){if(loadingNow)return;audInit();if(!renderer){gl();initLights()}
  cam.yaw=0;cam.tx=G.p.x;cam.tz=G.p.z;
  $('start').hidden=true;$('end').hidden=true;['hud','mini','side','joy','acts','hand'].forEach(i=>$(i).hidden=false);joyHome();
  hotSig='';renderHot();$('qTrack').hidden=false;sysStart();
+ const portrait=innerHeight>innerWidth&&matchMedia('(pointer:coarse)').matches;$('rotHint').hidden=!portrait;if(portrait)setTimeout(()=>{$('rotHint').hidden=true},12000);
  try{history.pushState({sc:1},'')}catch(e){}}
 function endGame(win,how){if(G.over)return;G.over=true;const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
  setTimeout(()=>{$('endT').innerHTML=win?'成功<em style="color:var(--inf)">获救</em>':how==='turned'?'你<em>变成了丧尸</em>':how==='heli'?'直升机<em>飞走了</em>':'你<em>死了</em>';
   $('endD').textContent=win?`你撑过了 3 个夜晚，在第 4 天黎明登上了直升机。`:how==='turned'?`感染值满了。你在第 ${G.day} ${G.night?'晚':'天'}变成了它们的一员。（多人版里你会加入丧尸方继续玩）`:how==='heli'?'你没能及时赶到办公楼楼顶。':`你在第 ${G.day} ${G.night?'晚':'天'}倒下了。`;
   $('endS').innerHTML=[[s.kills,'击杀'],[fmt(G.t),'存活时间'],[s.looted,'搜刮'],[s.climbs,'爬梯子'],[s.planks,'搭木板'],[Math.round(s.dmgTaken),'受到伤害']].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join('');
-  $('end').hidden=false;['hud','mini','side','joy','acts','hand','ctx','prog','bag','hot','qTrack','qLog'].forEach(i=>$(i).hidden=true)},1300)}
+  $('end').hidden=false;['hud','mini','side','joy','acts','hand','ctx','prog','bag','hot','qTrack','qLog','rotHint'].forEach(i=>$(i).hidden=true)},1300)}
 $('go').onclick=begin;$('again').onclick=()=>{$('end').hidden=true;$('start').hidden=false};
 const tap=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();fn()});
-tap('bAtk',doAttack);$('bQuest').onclick=openQuests;$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
+tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
 $('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
 $('bLight').onclick=()=>toggleFlash();$('zIn').onclick=()=>cam.dist=clamp(cam.dist/1.25,5,34);$('zOut').onclick=()=>cam.dist=clamp(cam.dist*1.25,5,34);
 $('bView').onclick=()=>{cam.fp=!cam.fp;$('bView').classList.toggle('on',cam.fp);if(cam.fp){cam.yaw=G.p.ang+Math.PI;cam.fpPitch=-.1;toast('第一人称 · 拖动屏幕转头')}};
