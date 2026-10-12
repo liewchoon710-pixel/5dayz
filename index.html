@@ -238,10 +238,10 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div><div class="lab">难度</div><div class="seg" id="diffSeg"><button data-v="0">简单</button><button data-v="1" class="sel">普通</button><button data-v="2">困难</button></div></div>
     <div><div class="lab">一天的长度</div><div class="seg" id="lenSeg"><button data-v="0.6">短 · 约 8 分钟</button><button data-v="1" class="sel">标准 · 约 13 分钟</button></div></div>
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
-    <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
+    <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10 兆）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v2.3 · 建议横屏 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 2.4 · 建议横屏 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -446,7 +446,7 @@ function deadTree(g,x,z){const tm=std(0x3a2e24,{r:1});const t=mesh(new T3.Cylind
 
 // ================= external 3D assets (rigged characters, realistic props, photo textures) =================
 // GitHub Pages: same-origin assets/ ; elsewhere (claude artifact): jsDelivr mirror of the repo's cdn branch
-const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/ShichengWuri@563148ea628996e13a148409e7122bebfc67d8f3/'})();
+const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/ShichengWuri@4ad7c25362f8ba9f724ba964d84b8358c3a90471/'})();
 const CHAR_SRC={player:'chars/Characters_Matt.glb',walker:'chars/Zombie_Basic.glb',runner:'chars/Zombie_Arm.glb',climber:'chars/Zombie_Ribcage.glb',brute:'chars/Zombie_Chubby.glb'};
 const KMODEL={crawler:'climber',screamer:'walker',stalker:'runner'};
 const PROP_SRC={container:1,sofa:1,couch:1,vending:1,forklift:1,bus:1,tvstand:1,door:1,bike:1,laptop:1,chair:1};
@@ -455,7 +455,7 @@ const FACADE={apt:['apt',12,12],hosp:['hosp',18,18],police:['police',18,18],offi
 const MODELS={state:'off',g:{},props:{},tex:{},want:true,done:0,total:0};
 try{MODELS.want=localStorage.getItem('scwr-real')!=='0'}catch(e){}
 function loadModels(onDone,onProg){if(MODELS.state==='loading'||MODELS.state==='ready'){onDone&&onDone(MODELS.state==='ready');return}
- if(!MODELS.want||!T3.GLTFLoader||!T3.SkeletonUtils){MODELS.state='fail';MODELS.why='no loader';onDone&&onDone(false);return}
+ if(!MODELS.want||!T3.GLTFLoader||!T3.SkeletonUtils){MODELS.state='fail';MODELS.why='加载器缺失';onDone&&onDone(false);return}
  MODELS.state='loading';const L=new T3.GLTFLoader(),TL=new T3.TextureLoader();TL.setCrossOrigin('anonymous');
  const jobs=[];const tick=()=>{MODELS.done++;onProg&&onProg(MODELS.done/MODELS.total)};
  const glb=(path,ok)=>jobs.push(new Promise(res=>{L.load(ASSET_BASE+path,g=>{try{ok(g)}catch(e){console.warn(path,e)}tick();res()},undefined,e=>{console.warn('asset fail',path);tick();res()})}));
@@ -465,7 +465,7 @@ function loadModels(onDone,onProg){if(MODELS.state==='loading'||MODELS.state==='
  const tn=new Set();for(const k in FACADE){tn.add(FACADE[k][0]);if(FACADE[k][3])tn.add(FACADE[k][3])}
  for(const n of tn)tex(n,t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=8;if(!/_n$/.test(n))t.encoding=T3.sRGBEncoding;MODELS.tex[n]=t});
  MODELS.total=jobs.length;MODELS.done=0;let fin=false;
- const end=()=>{if(fin)return;fin=true;MODELS.state=(MODELS.g.player&&MODELS.g.walker)?'ready':'fail';if(MODELS.state==='fail')MODELS.why=MODELS.done<MODELS.total?'timeout':'load error';onDone&&onDone(MODELS.state==='ready')};
+ const end=()=>{if(fin)return;fin=true;MODELS.state=(MODELS.g.player&&MODELS.g.walker)?'ready':'fail';if(MODELS.state==='fail')MODELS.why=MODELS.done<MODELS.total?'超时':'加载出错';onDone&&onDone(MODELS.state==='ready')};
  setTimeout(end,35000);Promise.all(jobs).then(end)}
 // true standing height of a skinned character (bind pose, weapons excluded)
 function skinHeight(root){root.updateMatrixWorld(true);let lo=1e9,hi=-1e9;const v=new T3.Vector3();
@@ -707,7 +707,7 @@ function buildBuilding(g,b){const w=b.x1-b.x0,d=b.z1-b.z0,cx=(b.x0+b.x1)/2,cz=(b
  b.vents=[];{const vx=b.x1-1.3,vz=b.z0+1.3+(b.heli?0:1.2);const vm=std(0x7a7e80,{m:.6,r:.45});BX(vm,.9,.6,.9,vx,b.h,vz,g);for(let i=0;i<4;i++)BX(std(0x1a1c1e),.7,.04,.06,vx,b.h+.15+i*.12,vz+.46,g,false);b.vents.push({x:vx,z:vz+.9,y:b.h,f:b.floors-1,roof:1,ix:vx,iz:vz})}
  if(['school','mall','hosp','office','police','ware','motel'].includes(b.type)){// ground vent in a side wall
   const sd=b.ds==='n'||b.ds==='s'?(r()<.5?'e':'w'):(r()<.5?'n':'s');const [vx,vz,nx,nz]=sidePt(b,sd,.3+r()*.4);const vm=std(0x6a6e70,{m:.6,r:.45});const vg=BX(vm,nz?.8:.08,.55,nz?.08:.8,vx+nx*.04,.15,vz+nz*.04,g,false);b.vents.push({x:vx+nx*.7,z:vz+nz*.7,y:0,f:0,nx,nz,wx:vx,wz:vz})}
- if(b.heli){const hp=M('cyl',std(0x3a3a3a,{r:.7}),7,.06,7,cx,b.h+.03,cz,g,false);const [c,gg]=cvs(256,256);gg.clearRect(0,0,256,256);gg.strokeStyle='#e8d070';gg.lineWidth=10;gg.beginPath();gg.arc(128,128,110,0,7);gg.stroke();gg.fillStyle='#e8d070';gg.font='900 150px Oswald,sans-serif';gg.textAlign='center';gg.textBaseline='middle';gg.fillText('H',128,138);
+ if(b.heli){const hp=M('cyl',std(0x3a3a3a,{r:.7}),7,.06,7,cx,b.h+.03,cz,g,false);const [c,gg]=cvs(256,256);gg.clearRect(0,0,256,256);gg.strokeStyle='#e8d070';gg.lineWidth=10;gg.beginPath();gg.arc(128,128,110,0,7);gg.stroke();gg.fillStyle='#e8d070';gg.font='900 130px "Noto Sans SC",sans-serif';gg.textAlign='center';gg.textBaseline='middle';gg.fillText('救',128,134);
   const tx=new T3.CanvasTexture(c);tx.encoding=T3.sRGBEncoding;const hm=M('plane',new T3.MeshStandardMaterial({map:tx,transparent:true,roughness:.8}),6,6,1,cx,b.h+.07,cz,g,false);hm.rotation.x=-Math.PI/2;b.pad={x:cx,z:cz}}
  // front door
  {const D=b.door;const ox=D.x+D.nx*.06,oz=D.z+D.nz*.06;const dw=1.6;let door;const dg=prop('door',ox,oz,Math.atan2(D.nx,D.nz),1,g);
@@ -1749,10 +1749,10 @@ function drawOverlay(){const dpr=ovc.width/innerWidth;oc.setTransform(dpr,0,0,dp
   if(z.kind!=='walker'&&d<10){oc.fillStyle='rgba(255,200,180,.85)';oc.font='600 10px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(ZK[z.kind].n,s[0],s[1]-16)}}
  if(G.heli&&!G.inside){const s=proj(G.heli.x,G.heli.y+1,G.heli.z);const W=innerWidth,H=innerHeight;let x,y,off=false;if(s){x=s[0];y=s[1];off=x<20||x>W-20||y<90||y>H-170}else off=true;
   if(off){const a=Math.atan2(G.heli.x-p.x,G.heli.z-p.z)-cam.yaw;x=W/2-Math.sin(a)*W*.42;y=H/2-Math.cos(a)*H*.33}
-  oc.fillStyle='#f0c060';oc.font='800 18px sans-serif';oc.textAlign='center';oc.fillText('★',x,y);oc.font='700 11px "Noto Sans SC",sans-serif';oc.fillText(`直升机 ${Math.ceil(G.heli.t)}s`,x,y+14)}}
+  oc.fillStyle='#f0c060';oc.font='800 18px sans-serif';oc.textAlign='center';oc.fillText('★',x,y);oc.font='700 11px "Noto Sans SC",sans-serif';oc.fillText(`直升机 ${Math.ceil(G.heli.t)}秒`,x,y+14)}}
 function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X=x=>(x+HALF)*k,Z=z=>(z+HALF)*k;const p=G.p;
  g.fillStyle='#16191a';g.fillRect(0,0,S,S);g.fillStyle='#2a2c2e';g.fillRect(0,Z(-4),S,8*k);g.fillRect(X(-4),0,8*k,S);
- for(const b of BLD){const sh=Math.round(70+b.h*7);g.fillStyle=`rgb(${sh},${sh-4},${sh-10})`;g.fillRect(X(b.x0),Z(b.z0),(b.x1-b.x0)*k,(b.z1-b.z0)*k);if(big){g.fillStyle='#111';g.font=`${Math.round(S/38)}px "Noto Sans SC",sans-serif`;g.textAlign='center';g.fillText(`${b.n} ${b.h}m`,X((b.x0+b.x1)/2),Z((b.z0+b.z1)/2)+4)}
+ for(const b of BLD){const sh=Math.round(70+b.h*7);g.fillStyle=`rgb(${sh},${sh-4},${sh-10})`;g.fillRect(X(b.x0),Z(b.z0),(b.x1-b.x0)*k,(b.z1-b.z0)*k);if(big){g.fillStyle='#111';g.font=`${Math.round(S/38)}px "Noto Sans SC",sans-serif`;g.textAlign='center';g.fillText(`${b.n} ${b.h}米`,X((b.x0+b.x1)/2),Z((b.z0+b.z1)/2)+4)}
   if(b.door){g.fillStyle='#9ad0f0';g.fillRect(X(b.door.x)-k*.8,Z(b.door.z)-k*.4,k*1.6,k*.8)}}
  for(const c_ of G.cars){g.fillStyle=c_.drive?(c_.fuel>0?'#7ad070':'#c8b060'):'#6a6a6a';g.fillRect(X(c_.s.x0),Z(c_.s.z0),(c_.s.x1-c_.s.x0)*k,(c_.s.z1-c_.s.z0)*k)}
  g.fillStyle='#e8c070';for(const L of G.ladders){g.beginPath();g.moveTo(X(L.x),Z(L.z)-k);g.lineTo(X(L.x)+k,Z(L.z)+k);g.lineTo(X(L.x)-k,Z(L.z)+k);g.fill()}
@@ -1775,7 +1775,7 @@ function pickVoice(){const S=window.speechSynthesis;if(!S)return null;const vs=S
  const cn=vs.filter(v=>/zh[-_]CN|cmn/i.test(v.lang));return (cn.find(v=>fem.test(v.name)&&/natural|online|neural/i.test(v.name))||cn.find(v=>fem.test(v.name))||vs.find(v=>fem.test(v.name))||cn.find(v=>!/kangkang|yunxi|yunyang|male|男/i.test(v.name))||cn[0]||vs[0])}
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{VOICE.v=pickVoice()};VOICE.v=pickVoice()}
 function voiceUnlock(){try{const S=window.speechSynthesis;if(!S||VOICE.ready)return;const u=new SpeechSynthesisUtterance(' ');u.volume=0;S.speak(u);VOICE.ready=true}catch(e){}}
-function plain(h){return h.replace(/<br\s*\/?>/g,'。').replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,'').replace(/（[^）]*小地图[^）]*）/g,'').replace(/★|·/g,'，').replace(/\s+/g,' ').replace(/[。，]{2,}/g,'。').replace(/！。/g,'！').trim()}
+function plain(h){return h.replace(/<br\s*\/?>/g,'。').replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu,'').replace(/（[^）]*小地图[^）]*）/g,'').replace(/（[\s★·，]*）|\([\s★·，]*\)/g,'').replace(/★|·/g,'，').replace(/\s+/g,' ').replace(/[。，]{2,}/g,'。').replace(/！。/g,'！').trim()}
 function say(text,prio){const S=window.speechSynthesis;if(!S||!VOICE.on||AUD.mute)return;text=plain(text);if(!text)return;
  if(prio){VOICE.q=VOICE.q.filter(q=>q.prio);if(VOICE.busy&&!VOICE.curPrio){S.cancel();VOICE.busy=false}}
  if(VOICE.q.length>2)VOICE.q.shift();VOICE.q.push({text,prio});pumpVoice()}
@@ -1844,7 +1844,7 @@ function sysTick(dt){if(!G||G.over||G.pause)return;const p=G.p;
  if(p.scent>=75&&!W['sc'+Math.floor(G.t/60)]){W['sc'+Math.floor(G.t/60)]=1;sysMsg('个人提示','你的气味快要暴露了 · 换个地方',{kind:'warn'})}
  if(Math.floor(G.t*2)%2===0)renderQuestTracker()}
 function renderQuestTracker(){const el=$('qTrack');if(!el)return;const S=STORY[SYS.story],T=SYS.temp;
- el.innerHTML=(T?`<div class="qt tmp">⏱ ${T.n.split('：')[1]||T.n} <b>${T.silent?'':T.c+'/'+T.max+' · '}${Math.ceil(T.t)}s</b></div>`:'')+(S?`<div class="qt">📖 ${S.n.split('：')[1]||S.n}</div>`:`<div class="qt">🚁 撑到第 4 天黎明，登上直升机</div>`)}
+ el.innerHTML=(T?`<div class="qt tmp">⏱ ${T.n.split('：')[1]||T.n} <b>${T.silent?'':T.c+'/'+T.max+' · '}${Math.ceil(T.t)}秒</b></div>`:'')+(S?`<div class="qt">📖 ${S.n.split('：')[1]||S.n}</div>`:`<div class="qt">🚁 撑到第 4 天黎明，登上直升机</div>`)}
 function renderQuests(){renderQuestTracker();const el=$('qList');if(!el||$('qLog').hidden)return;const S=STORY[SYS.story],T=SYS.temp;
  el.innerHTML=`<div class="qh">主线</div><div class="qi">🚁 撑过 3 晚，第 4 天黎明登上办公楼楼顶的直升机 · 现在：第 ${G.day} ${G.night?'晚':'天'}</div>`+
  `<div class="qh">剧情（${SYS.story}/${STORY.length}）</div>`+(S?`<div class="qi">📖 ${S.n}<small>奖励：${S.rw.map(k=>IT[k].ic).join(' ')}</small></div>`:'<div class="qi done">全部完成</div>')+
@@ -1867,7 +1867,7 @@ function drawItemHints(){const p=G.p,sc=G.inside;const list=G.items.filter(it=>i
  for(const [it,d] of list){const s=proj(it.x,it.y+.7,it.z);if(!s)continue;const T=IT[it.k];const a=d<2?1:clamp(1-(d-2)/16,.25,.9);const near=d<1.6;
   oc.globalAlpha=a;oc.font=`${near?14:12}px sans-serif`;oc.textAlign='center';const label=`${T.ic} ${T.n}`;const w=oc.measureText(label).width+12;
   oc.fillStyle=near?'rgba(240,178,74,.92)':'rgba(10,12,13,.72)';oc.beginPath();oc.roundRect?oc.roundRect(s[0]-w/2,s[1]-20,w,20,10):oc.rect(s[0]-w/2,s[1]-20,w,20);oc.fill();
-  oc.fillStyle=near?'#1c1408':'#f0ead8';oc.fillText(label,s[0],s[1]-5);if(!near&&d>4){oc.fillStyle='rgba(240,236,216,.7)';oc.font='10px sans-serif';oc.fillText(Math.round(d)+'m',s[0],s[1]+9)}}
+  oc.fillStyle=near?'#1c1408':'#f0ead8';oc.fillText(label,s[0],s[1]-5);if(!near&&d>4){oc.fillStyle='rgba(240,236,216,.7)';oc.font='10px sans-serif';oc.fillText(Math.round(d)+'米',s[0],s[1]+9)}}
  oc.globalAlpha=1}
 // ---------- starter roulette ----------
 const WHEEL=[['can','罐头×2',['can','can']],['bandage','绷带×2',['bandage','bandage']],['bat','球棒',['bat']],['pipe','铁管',['pipe']],['knife','小刀',['knife']],['gascan','汽油桶',['gascan']],['ladder','梯子',['ladder']],['pistol','手枪+子弹',['pistol','ammo']],['antibio','抗生素',['antibio']],['jacket','皮夹克',['jacket']],['water','水×2+饼干',['water','water','biscuit']],['molotov','燃烧瓶×2',['molotov','molotov']]];
