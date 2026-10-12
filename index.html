@@ -2491,7 +2491,7 @@ function netTransport(room){if(window.__fakeNet)return window.__fakeNet(room,NET
  return{send(ev,p){if(ch)ch.send({type:'broadcast',event:ev,payload:p})},on(ev,fn){hs.push([ev,fn])},presence(fn){pres=fn},
   track(o){return ch&&ch.track(o)},
   // sign in anonymously so the room can be a private channel guarded by row-level security; fall back to a public channel if that is switched off
-  async subscribe(cb){let priv=false;try{const r=await sb.auth.getSession();if(!r.data||!r.data.session){const a=await sb.auth.signInAnonymously();priv=!a.error}else priv=true;if(priv)await sb.realtime.setAuth()}catch(e){priv=false}
+  async subscribe(cb){let priv=false;try{const r=await sb.auth.getSession();let s=r.data&&r.data.session;if(!s){const a=await sb.auth.signInAnonymously();s=!a.error&&a.data&&a.data.session}if(s&&s.access_token){priv=true;sb.realtime.setAuth(s.access_token)}}catch(e){priv=false}
    NET.priv=priv;ch=sb.channel('scwr-'+room,{config:{private:priv,broadcast:{self:false,ack:false},presence:{key:NET.me}}});
    for(const [ev,fn] of hs)ch.on('broadcast',{event:ev},m=>{try{fn(m.payload)}catch(e){console.warn('net',ev,e)}});if(pres)ch.on('presence',{event:'sync'},()=>{try{pres(ch.presenceState())}catch(e){console.warn(e)}});
    ch.subscribe(st=>cb(st))},close(){try{ch&&ch.untrack();ch&&sb.removeChannel(ch)}catch(e){}}}}
@@ -2997,5 +2997,4 @@ window.__sc={get BLD(){return BLD},get BID(){return BID},CITY,RADIO,radioStart,r
 })();
 
 </script>
-
 </html>
