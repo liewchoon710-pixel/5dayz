@@ -64,7 +64,8 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #bThrow{right:132px;bottom:110px;width:52px;height:52px;font-size:11.5px;line-height:1.1}
 #bBag{right:66px;bottom:136px;width:48px;height:48px;font-size:11.5px;line-height:1.1}
 #bThrow small,#bBag small{display:block;font-size:9.5px;color:var(--mute);font-weight:600}
-.bar.sta i{background:var(--amber)}.bar.sta.low i{background:#a0502a}
+.bar.sta i{background:var(--amber)}
+.minibars{display:grid;grid-template-columns:1fr 1fr;gap:8px}.bar.food i{background:#c89a5a}.bar.food.low i{background:#a03a2a}.bar.scent i{background:#9a7ac8}.bar.scent.hot i{background:#e05a8a}.bar.sta.low i{background:#a0502a}
 #grabUI{position:fixed;left:50%;top:30%;transform:translateX(-50%);width:220px;text-align:center;pointer-events:none;background:rgba(40,6,4,.75);border:1px solid #c4342b;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800}
 #grabUI .bar{margin-top:6px}#grabUI .bar i{background:var(--amber)}#grabUI .bar.bite i{background:var(--blood)}#grabUI small{font-size:10.5px;color:#e8b0a8;font-weight:600}
 #ctx{position:fixed;right:14px;left:110px;bottom:calc(env(safe-area-inset-bottom,0px) + 238px);display:flex;flex-direction:column;align-items:flex-end;gap:7px}
@@ -114,6 +115,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div class="blab"><span>血量</span><b id="hpT">100</b></div><div class="bar"><i id="hpB" style="width:100%"></i></div>
     <div class="blab"><span>感染</span><b id="infT">0</b></div><div class="bar inf"><i id="infB" style="width:0%"></i></div>
     <div class="blab"><span>体力</span></div><div class="bar sta"><i id="stB" style="width:100%"></i></div>
+    <div class="minibars"><div><div class="blab"><span>饱食</span></div><div class="bar food"><i id="fdB" style="width:85%"></i></div></div><div><div class="blab"><span>气味</span></div><div class="bar scent"><i id="scB" style="width:0%"></i></div></div></div>
   </div>
   <div id="clock"><div class="d" id="dayT">第 1 天</div><div class="p" id="phT">白天 · 离天黑 2:30</div></div>
 </div>
@@ -163,6 +165,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
       <li><b>打法：</b>【攻击】用手上的武器/枪 · 【推】把丧尸推开（被抓住时变成【挣脱】，狂点） · 按住【挡】格挡 · 【翻滚】躲开包围 · 【蹲】安静潜行、钻车底 · 【跳】跳上矮处。都会消耗<b>体力</b>，跑步也会。</li>
       <li><b>屋子：</b>每栋楼都能进 · 门、窗户、通风管、消防梯、屋顶天台门都是入口。丧尸会撞门，搬<b>家具</b>或钉<b>木板</b>堵门；安静一阵它们会散开。高级丧尸会开门、爬窗、钻通风管。</li>
       <li><b>汽车：</b>可以坐进去躲；少数车能开（小地图上黄色/绿色）——需要<b>车钥匙</b>+搬<b>汽油桶</b>加油。蹲下靠近车还能<b>钻到车底</b>。</li>
+      <li><b>不能一直躲：</b>会<b>饿</b>（找罐头/饼干/水）· 在同一个地方待久了<b>气味</b>会越积越重，满了尸群就会围过来 · 被咬后<b>感染会慢慢恶化</b> · 每天会有一次<b>空投</b>，好东西多但红色信号烟会引丧尸。</li>
       <li><b>目标：</b>撑过 3 晚，第 4 天黎明登上东南边办公楼楼顶的直升机。</li>
     </ul>
     <div><div class="lab">难度</div><div class="seg" id="diffSeg"><button data-v="0">简单</button><button data-v="1" class="sel">普通</button><button data-v="2">困难</button></div></div>
@@ -170,7 +173,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.9 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v2.0 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -735,11 +738,11 @@ const FTPL={house:['bed','sofa','table','cabinet','tv','shelf'],apt:['bed','sofa
  bar:['counter','table','table','table','shelf'],gunshop:['rack','rack','counter','cabinet'],hardware:['rack','rack','shelf','counter'],hosp:['bed','bed','bed','cabinet','desk'],police:['desk','desk','locker','locker','cabinet'],
  firest:['locker','locker','table','rack'],school:['desk','desk','desk','desk','locker','shelf'],office:['desk','desk','desk','cabinet','sofa'],ware:['rack','rack','rack','shelf'],garage:['rack','shelf','table'],park:['pillar','pillar','pillar','pillar'],
  church:['pew','pew','pew','pew','table'],mall:['shelf','shelf','shelf','shelf','counter','counter']};
-const LOOT_T={house:['bandage','cloth','bottle','knife','bat','alarm','jacket','lighter','cloth','bottle','carkey'],apt:['bandage','cloth','bottle','knife','bat','alarm','jacket','lighter','helmet','antibio','brick'],
- motel:['bandage','bottle','knife','cloth','carkey','alarm'],shop:['bottle','lighter','nails','cloth','bandage','alarm','bottle'],pharmacy:['bandage','bandage','antibio','cloth','antibio'],bar:['bottle','bottle','bottle','lighter','bat'],
- gunshop:['pistol','ammo','ammo','shotgun','shells','vest','knife','ammo'],hardware:['crowbar','nails','axe','cinder','nails','lighter'],hosp:['bandage','antibio','cloth','bandage','machete'],police:['ammo','pistol','vest','shield','carkey','helmet','ammo'],
- firest:['axe','hardhat','jacket','crowbar','bandage'],school:['bat','cloth','alarm','bottle','bandage'],office:['alarm','lighter','cloth','bandage','carkey'],ware:['crowbar','nails','cinder','brick','bottle'],garage:['carkey','crowbar','nails','lighter'],
- park:['carkey','cinder','brick'],church:['bandage','cloth','bottle','alarm'],mall:['bottle','bandage','cloth','lighter','alarm','knife','jacket','bandage']};
+const LOOT_T={house:['can','biscuit','water','bandage','cloth','bottle','knife','bat','alarm','jacket','lighter','cloth','bottle','carkey'],apt:['can','water','biscuit','bandage','cloth','bottle','knife','bat','alarm','jacket','lighter','helmet','antibio','brick'],
+ motel:['biscuit','water','bandage','bottle','knife','cloth','carkey','alarm'],shop:['can','can','biscuit','water','water','bottle','lighter','nails','cloth','bandage','alarm','bottle'],pharmacy:['water','bandage','bandage','antibio','cloth','antibio'],bar:['water','biscuit','bottle','bottle','bottle','lighter','bat'],
+ gunshop:['pistol','ammo','ammo','shotgun','shells','vest','knife','ammo'],hardware:['can','crowbar','nails','axe','cinder','nails','lighter'],hosp:['water','bandage','antibio','cloth','bandage','machete'],police:['can','ammo','pistol','vest','shield','carkey','helmet','ammo'],
+ firest:['can','water','axe','hardhat','jacket','crowbar','bandage'],school:['biscuit','water','bat','cloth','alarm','bottle','bandage'],office:['biscuit','water','alarm','lighter','cloth','bandage','carkey'],ware:['crowbar','nails','cinder','brick','bottle'],garage:['water','carkey','crowbar','nails','lighter'],
+ park:['carkey','cinder','brick'],church:['can','biscuit','bandage','cloth','bottle','alarm'],mall:['can','can','biscuit','biscuit','water','water','bottle','bandage','cloth','lighter','alarm','knife','jacket','bandage']};
 const BIGLOOT={hardware:['plank','ladder'],ware:['plank','gascan'],garage:['gascan'],park:['gascan'],firest:['ladder']};
 function interiorKey(bid,f){return bid+'#'+f}
 function i2x(I,x,z,inset=.7){const b=I.b,cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;return[clamp((x-cx)*I.sx,-I.w/2+inset,I.w/2-inset),clamp((z-cz)*I.sz,-I.d/2+inset,I.d/2-inset)]}
@@ -851,6 +854,9 @@ const IT={
  vest:{n:'防弹背心',ic:'🦺',gear:'body',d:'穿戴（身）：受到伤害 -40%。'},
  shield:{n:'防暴盾',ic:'🛡️',gear:'off',d:'穿戴（副手）：按住【挡】几乎挡掉所有正面攻击，正面也抓不住你；推的力度更大。'},
  brick:{n:'砖头',ic:'🧱',thr:{dm:22,noise:7,stun:1.6,kb:.8,down:.35},max:6,d:'投掷：砸中会把丧尸砸退、打晕，有机会砸倒。'},
+ can:{n:'罐头',ic:'🥫',use:1,max:6,d:'吃：饱食 +40。开罐头有声音和气味。'},
+ biscuit:{n:'饼干',ic:'🍪',use:1,max:6,d:'吃：饱食 +25，安静。'},
+ water:{n:'瓶装水',ic:'💧',use:1,max:6,d:'喝：饱食 +18，体力 +25。'},
  carkey:{n:'车钥匙',ic:'🔑',max:3,d:'某辆车的钥匙。找到能开的车（带钥匙图标），加满油就能开走。'},
  furn:{n:'家具',ic:'🛋️',big:1,d:'搬着家具：拖到门口放下可以堵门。'},
  cinder:{n:'水泥砖',ic:'🪨',thr:{dm:32,noise:8,stun:2.2,kb:1.3,down:.8},max:2,d:'投掷：很重，砸中基本会把丧尸砸翻在地。'},
@@ -885,7 +891,7 @@ function itemModel(k){const g=new T3.Group();
   case 'cinder':BX(std(0x8a8a86,{flat:true,r:1}),.39,.19,.19,0,0,0,g);break;
   case 'pipe':{const p=M('cyl',std(0x6a6c6a,{m:.7,r:.4}),.05,1,.05,0,.03,0,g);p.rotation.z=Math.PI/2;break}
   case 'bat':case 'nailbat':{const p=M('cone',std(0x9a7a4a,{r:.7}),.08,.9,.08,0,.05,0,g);p.rotation.z=Math.PI/2;break}
-  default:BX(std({alarm:0xc0b080,lighter:0xd04030,bandage:0xe8e4dc,antibio:0xe8e8f0,nails:0x8a8c90,cloth:0xb0a080,molotov:0x3a6a2a,ammo:0xc8a030,shells:0xb02818}[k]||0xcccccc,{r:.6}),.2,.12,.16,0,0,0,g);
+  default:BX(std({alarm:0xc0b080,lighter:0xd04030,can:0x8a8a90,biscuit:0xc8a060,water:0x6aa0d0,bandage:0xe8e4dc,antibio:0xe8e8f0,nails:0x8a8c90,cloth:0xb0a080,molotov:0x3a6a2a,ammo:0xc8a030,shells:0xb02818}[k]||0xcccccc,{r:.6}),.2,.12,.16,0,0,0,g);
  }
  const ring=glowSprite(0xf0c060,IT[k].big?1.4:.8,.55);ring.position.y=.15;g.add(ring);g.userData.ring=ring;
  return g}
@@ -936,7 +942,11 @@ function noise(x,z,r,label){const sc=G.inside||'out';G.noises.push({x,z,r,t:.5,s
  if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;
  if(G.inside&&r>=9){const I=G.interiors[G.inside];if(I.b.door)G.noises.push({x:I.b.door.x,z:I.b.door.z,r:r*.6,t:.5,sc:'out'})}}
 function canSee(z,p){if(p.hide)return false;if(p.inCar&&!p.inCar.driving)return z.sawCar===p.inCar&&dd(z.x,z.z,p.x,p.z)<12;const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1);const d=dd(z.x,z.z,p.x,p.z);if(Math.abs(p.y-z.y)>2.5)s*=1.15;return d<s}
-function hurtPlayer(dm,inf,src){const p=G.p;if(G.over)return;const k=[.7,1,1.3][G.diff];p.hp-=dm*k;p.inf=Math.min(100,p.inf+inf*k*(G.night?1.25:1));p.hurtT=.4;G.stats.dmgTaken+=dm*k;if(inf&&!G.biteTip){G.biteTip=1;toast('被咬了！<b style="color:#8bd14a">感染值</b>满 100 就会变成丧尸 · 抗生素可以降低（医院 2 楼有）','bad')}sfx('hurt');buzz(40);
+// getting hit a few times knocks something loose from the bag (works for any attacker; ready for player-vs-player later)
+function bagSpill(p,from){const ks=Object.keys(p.inv).filter(k=>k!==p.weapon&&!IT[k].big);if(!ks.length)return;const k=pick(ks);invUse(k);const a=rnd(0,6.28),r=rnd(.9,1.6);
+ const fx_=from?Math.atan2(p.x-from.x,p.z-from.z)+rnd(-.8,.8):a;const x=p.x+Math.sin(fx_)*r,z=p.z+Math.cos(fx_)*r;const y=G.inside?0:supportAt(x,z,p.y+.3);
+ if(!blockedAt(x,z,y,.1))dropItem(k,x,z,y);else dropItem(k,p.x,p.z,p.y);sfx('drop',p.x,p.z);toast(`被打中好几下，背包里掉出了 <b>${IT[k].ic} ${IT[k].n}</b>`,'bad');renderThrow()}
+function hurtPlayer(dm,inf,src){const p=G.p;if(G.over)return;if(src&&src.kind){p.hitN=(p.hitN||0)+1;if(G.t-(p.hitNT||0)>12)p.hitN=1;p.hitNT=G.t;if(p.hitN>=3){p.hitN=0;setTimeout(()=>{if(G&&!G.over)bagSpill(p,src)},0)}}const k=[.7,1,1.3][G.diff];p.hp-=dm*k;p.inf=Math.min(100,p.inf+inf*k*(G.night?1.25:1));p.hurtT=.4;G.stats.dmgTaken+=dm*k;if(inf&&!G.biteTip){G.biteTip=1;toast('被咬了！<b style="color:#8bd14a">感染值</b>满 100 就会变成丧尸 · 抗生素可以降低（医院 2 楼有）','bad')}sfx('hurt');buzz(40);
  if(p.busy){p.busy=null;$('prog').hidden=true}
  if(p.hp<=0)endGame(false,'dead');else if(p.inf>=100)endGame(false,'turned')}
 function hitZombie(z,dm,src){if(z.dead)return;z.hp-=dm;z.hitT=.15;if(src==='melee'||src==='throw'){z.state='chase'}fx3('blood',z.x,z.y+1,z.z);
@@ -1077,7 +1087,7 @@ function startHeli(){const b=BID.office;G.heli={x:b.pad.x,z:b.pad.z,y:b.h,t:100,
 // ================= combat 2.0: stamina · shove · block · dodge · crouch · jump · grabs · gear =================
 const GEAR={helmet:'head',hardhat:'head',jacket:'body',vest:'body',shield:'off'};
 function pInit(p){Object.assign(p,{st:100,stT:0,crouch:false,roll:null,block:false,grab:null,strug:0,gear:{},shoveCd:0,rollCd:0,exhaust:false,stag:0})}
-function maxSt(){return G.p.inf>=60?80:100}
+function maxSt(){const p=G.p;return (p.inf>=60?80:100)*(p.food!=null&&p.food<25?.65:1)}
 function useSt(n){const p=G.p;if(p.st<n*.6)return false;p.st=Math.max(0,p.st-n);p.stT=.9;if(p.st<=0)p.exhaust=true;return true}
 function facingTo(p,x,z){let a=Math.atan2(x-p.x,z-p.z)-p.ang;a=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(a)}
 function shake(a){cam.shk=Math.max(cam.shk||0,a)}
@@ -1236,6 +1246,53 @@ function carCtx(o){const p=G.p;if(p.hide)return false;
  return false}
 
 
+// ================= survival pressure: hunger · scent build-up · worsening infection · daily airdrop =================
+// Goal: hiding in one spot for three days must not be a winning strategy.
+const FOOD={can:40,biscuit:25,water:18};
+function survInit(p){Object.assign(p,{food:85,scent:0,anchor:{x:p.x,z:p.z,sc:'out'},scentCd:0,infPause:0,foodTip:0})}
+function eat(k){const p=G.p;$('bag').hidden=true;if(p.food>=98){toast('不饿');return}
+ setBusy(k==='water'?'喝水中…':'吃东西中…',k==='can'?2:1.3,()=>{invUse(k);p.food=Math.min(100,p.food+FOOD[k]);if(k==='water'){p.st=Math.min(maxSt(),p.st+25)}
+  if(k==='can'){noise(p.x,p.z,3.5);p.scent=Math.min(100,p.scent+6)}toast(`${IT[k].ic} 饱食 +${FOOD[k]}${k==='can'?' · 开罐头的声音和气味会传出去':''}`,'good');sfx('pick',p.x,p.z);renderThrow()})}
+function scentAt(){return G.inside||'out'}
+function tickSurvival(dt){const p=G.p;if(p.food==null)survInit(p);if(G.over)return;
+ // ---- hunger ----
+ const burn=(p.mv>1?.5:p.mv?.36:.28)*(G.night?1.15:1);p.food=Math.max(0,p.food-burn*dt);
+ if(p.food<=0){p.starveT=(p.starveT||0)-dt;if(p.starveT<=0){p.starveT=2;hurtPlayer(1.5,0,null);if(!(p.foodTip>G.t)){p.foodTip=G.t+20;toast('<b>饿得受不了了</b> · 一直在掉血，快去找吃的（便利店、超市、民宅）','bad')}}}
+ else if(p.food<25&&!(p.foodTip>G.t)){p.foodTip=G.t+40;toast('肚子很饿 · 体力上限降低了 · 找<b>罐头/饼干/水</b>','bad')}
+ // ---- scent: staying near the same spot lets your smell soak in ----
+ const sc=scentAt();const A=p.anchor;
+ if(A.sc!==sc||dd(A.x,A.z,p.x,p.z)>(sc==='out'?14:99)){if(A.sc!==sc&&sc!=='out'&&A.sc!=='out'&&G.interiors[A.sc]&&G.interiors[sc]&&G.interiors[A.sc].b===G.interiors[sc].b){/* same building, other floor: keep */}else{p.anchor={x:p.x,z:p.z,sc};p.scent=Math.max(0,p.scent-12)}}
+ const still=p.inCar&&!p.inCar.driving||p.hide||sc!=='out'||dd(p.anchor.x,p.anchor.z,p.x,p.z)<14;
+ if(still){let r=(sc==="out"?.35:.6)*(G.night?1.5:1)*(1+(G.day-1)*.25)*(p.hp<100?1+(100-p.hp)/80:1);p.scent=Math.min(100,p.scent+r*dt)}else p.scent=Math.max(0,p.scent-dt*2.5);
+ if(p.mv&&!still)p.scent=Math.max(0,p.scent-dt*2.5);
+ p.scentCd-=dt;
+ if(p.scent>=60&&!p.scentWarn){p.scentWarn=1;toast('<b>你在这里待太久了</b> · 气味越来越重，丧尸快闻到了 · 换个地方躲','bad')}
+ if(p.scent<45)p.scentWarn=0;
+ if(p.scent>=100&&p.scentCd<=0){p.scentCd=45;p.scent=70;scentSwarm()}
+ // ---- infection keeps creeping once you've been bitten ----
+ p.infPause-=dt;if(p.inf>0&&p.infPause<=0&&p.inf<100){p.inf=Math.min(100,p.inf+dt*(.05+(G.night?.02:0)));if(!G.infTip&&p.inf>5){G.infTip=1;toast('感染会<b>慢慢恶化</b> · 吃抗生素能压下去一阵子（医院、药店、空投）','bad')}if(p.inf>=100)endGame(false,'turned')}
+ tickAirdrop(dt)}
+function scentSwarm(){const p=G.p;sfx('roar');shake(.2);toast('<b>尸群闻到你了！</b> 周围的丧尸正在围过来 · 赶紧转移','bad');
+ let b=null;if(G.inside)b=G.interiors[G.inside].b;
+ const tx=b?b.door.x:p.x,tz=b?b.door.z:p.z;let n=0;
+ for(const z of G.zs){if(z.dead)continue;if(dd(z.x,z.z,tx,tz)<34){z.state='investigate';z.tx=tx+rnd(-2,2);z.tz=tz+rnd(-2,2);z.giveT=0;if(b){z.door=b;z.stimT=G.t+60}n++}}
+ const k=2+G.day+(G.night?2:0);for(let i=0;i<k;i++){let ex=0,ez=0;for(let t=0;t<30;t++){const a=rnd(0,6.28),r=rnd(16,24);ex=clamp(tx+Math.cos(a)*r,-HALF+2,HALF-2);ez=clamp(tz+Math.sin(a)*r,-HALF+2,HALF-2);if(!G.solids.some(s=>inRect(s,ex,ez,.6))&&dd(ex,ez,p.x,p.z)>12)break}const z=mkZombie(i<1+Math.floor(G.day/2)?'stalker':pick(nightTypes(Math.max(1,G.day))),ex,ez);z.state='investigate';z.tx=tx;z.tz=tz;if(b){z.door=b;z.stimT=G.t+90}G.zs.push(z)}
+ if(G.inside){const I=G.interiors[G.inside];for(const z of I.zs)if(!z.dead){z.state='investigate';z.tx=p.x;z.tz=p.z}}}
+// ---- daily airdrop: valuable, but the red flare calls every zombie nearby ----
+function tickAirdrop(dt){const len=G.dayLen;
+ if(!G.night&&!G.drop&&G.dropDay!==G.day&&G.phaseT>len*.3&&!G.heli){G.dropDay=G.day;spawnAirdrop()}
+ const D=G.drop;if(!D)return;D.t-=dt;
+ if(D.t>0&&!D.open){D.nT=(D.nT||0)-dt;if(D.nT<=0){D.nT=3;G.noises.push({x:D.x,z:D.z,r:16,t:.6,sc:'out'})}}
+ if(D.t<=0&&!D.open)D.flare=false}
+function spawnAirdrop(){let x=0,z=0;for(let i=0;i<60;i++){x=rnd(-HALF+6,HALF-6);z=rnd(-HALF+6,HALF-6);if(!G.solids.some(s=>inRect(s,x,z,1.5))&&dd(x,z,G.p.x,G.p.z)>15)break}
+ const pool=[['ammo','ammo','pistol'],['shells','shells','shotgun'],['antibio','antibio','can'],['can','can','water','water'],['vest','antibio','biscuit'],['ammo','antibio','can']];
+ G.drop={x,z,t:60,items:pick(pool).slice(),open:false,flare:true};sfx('heli');noise(x,z,22);
+ toast(`<b>📦 空投！</b> 一个补给箱落在了${dirName(x,z)} · 红色信号烟会把附近丧尸都引过去，快去快回`,'good');
+ for(let i=0;i<2+G.day;i++){const a=rnd(0,6.28),r=rnd(9,15);const zz=mkZombie(pick(['walker','walker','runner']),clamp(x+Math.cos(a)*r,-HALF+2,HALF-2),clamp(z+Math.sin(a)*r,-HALF+2,HALF-2));zz.state='investigate';zz.tx=x;zz.tz=z;G.zs.push(zz)}}
+function dirName(x,z){const p=G.p;const a=Math.atan2(x-p.x,-(z-p.z))*180/Math.PI;const d=['北边','东北边','东边','东南边','南边','西南边','西边','西北边'][Math.round(((a+360)%360)/45)%8];return `${d} ${Math.round(dd(x,z,p.x,p.z))} 米外（小地图上的 📦）`}
+function airdropCtx(o){const D=G.drop,p=G.p;if(!D||D.open||G.inside||p.y>.5)return;if(dd(D.x,D.z,p.x,p.z)<1.6)o.unshift({l:'📦 打开空投箱',fn:()=>setBusy('撬开补给箱…',2.2,()=>{D.open=true;D.flare=false;const got=[];for(const k of D.items){if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast('补给：'+got.join('、'),'good');sfx('pick',p.x,p.z);noise(p.x,p.z,6);renderThrow()})})}
+
+
 // ================= input =================
 const joy={id:null,ox:0,oy:0,x:0,y:0};
 const cam={yaw:0,pitch:.95,dist:13,fp:false,fpPitch:-.1,tx:0,ty:0,tz:0,drag:null,pinch:null};
@@ -1256,7 +1313,7 @@ gl_.addEventListener('wheel',e=>{cam.dist=clamp(cam.dist*(e.deltaY>0?1.1:.9),5,3
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(!G||G.over)return;const k=e.key.toLowerCase();if(e.repeat&&k!=='k')return;if(k===' '||k==='j')doAttack();if(k==='e'){const o=ctxOpts[0];if(o)o.fn()}if(k==='q')doThrow();if(k==='f')toggleFlash();if(k==='k')doShove();if(k==='l')setBlock(true);if(k==='shift')doRoll();if(k==='c')doCrouch();if(k==='v')doJump()});addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=0;if(k==='l'&&G)setBlock(false)});
 
 // ================= player tick =================
-function tickPlayer(dt){const p=G.p;p.atkCd-=dt;p.hurtT-=dt;p.swing=Math.max(0,p.swing-dt*3);tickCombatP(dt);if(p.inCar){tickCar(dt);return}
+function tickPlayer(dt){const p=G.p;p.atkCd-=dt;p.hurtT-=dt;p.swing=Math.max(0,p.swing-dt*3);tickCombatP(dt);tickSurvival(dt);if(p.inCar){tickCar(dt);return}
  if(p.climb){const C=p.climb;C.t+=dt/C.dur;if(C.t>=1){p.x=C.x1;p.z=C.z1;p.y=C.y1;p.climb=null;p.fallFrom=p.y}else{const k=C.t;p.x=lerp(C.x0,C.x1,k<.8?0:(k-.8)/.2);p.z=lerp(C.z0,C.z1,k<.8?0:(k-.8)/.2);if(C.kind==='down'){p.x=lerp(C.x0,C.x1,Math.min(1,k/.2));p.z=lerp(C.z0,C.z1,Math.min(1,k/.2))}p.y=lerp(C.y0,C.y1,C.kind==='down'?Math.max(0,(k-.2)/.8):Math.min(1,k/.8))}p.anim+=dt*4;return}
  if(p.busy){p.busy.t+=dt;$('progB').style.width=Math.min(100,p.busy.t/p.busy.dur*100)+'%';if(p.busy.t>=p.busy.dur){const b=p.busy;p.busy=null;$('prog').hidden=true;b.done()}}
  let mx=joy.x,mz=joy.y;if(keys.w)mz=-1;if(keys.s)mz=1;if(keys.a)mx=-1;if(keys.d)mx=1;
@@ -1306,6 +1363,7 @@ function climbLadder(L,dir){const p=G.p;const [bx,bz]=ladderBottom(L),[tx,tz]=la
 function computeCtx(){const p=G.p,o=[];if(!G||G.over||p.climb){ctxOpts=[];return}
  if(p.busy){ctxOpts=[];return}
  if(!G.inside&&carCtx(o)){ctxOpts=o.slice(0,3);return}
+ if(!G.inside)airdropCtx(o);
  // items on ground
  const its=nearItems(1.3).sort((a,b)=>dd(a.x,a.z,p.x,p.z)-dd(b.x,b.z,p.x,p.z));
  for(const it of its.slice(0,2)){if(it.k==='gascan'&&!p.carry){if(p.inv.lighter)o.push({l:'🔥 点燃汽油桶',fn:()=>igniteGas(it)});if(p.inv.bottle)o.push({l:`🍾 灌燃烧瓶（剩 ${it.uses} 次）`,fn:()=>fillMolotov(it),alt:1})}
@@ -1368,7 +1426,8 @@ function renderBag(){const p=G.p;const ks=Object.keys(p.inv);
  $('rcps').innerHTML=RECIPES.map((r,i)=>{const ok=Object.keys(r.use).every(k=>(p.inv[k]||0)>=r.use[k]);return`<div class="rcp"><span>${IT[r.out].ic} ${r.n} = ${Object.keys(r.use).map(k=>IT[k].n+(r.use[k]>1?'×'+r.use[k]:'')).join(' + ')}</span><button data-r="${i}" ${ok?'':'disabled'}>合成</button></div>`}).join('');
  $('rcps').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const r=RECIPES[+b.dataset.r];for(const k in r.use)invUse(k,r.use[k]);invAdd(r.out);toast(`合成了 ${IT[r.out].ic} ${IT[r.out].n}`,'good');sfx('craft');renderBag();renderThrow()})}
 function useItem(k){const p=G.p;if(k==='bandage'){if(p.hp>=100){toast('血是满的');return}$('bag').hidden=true;setBusy('包扎中…',2,()=>{invUse('bandage');p.hp=Math.min(100,p.hp+35);toast('包扎好了 +35 血','good')})}
- else if(k==='antibio'){if(p.inf<=0){toast('没有感染');return}$('bag').hidden=true;setBusy('吃药中…',1.5,()=>{invUse('antibio');p.inf=Math.max(0,p.inf-45);toast('感染值 -45','good')})}
+ else if(FOOD[k])eat(k);
+ else if(k==='antibio'){if(p.inf<=0){toast('没有感染');return}$('bag').hidden=true;setBusy('吃药中…',1.5,()=>{invUse('antibio');p.inf=Math.max(0,p.inf-45);p.infPause=100;toast('感染值 -45 · 接下来一阵子不会恶化','good')})}
  else if(k==='alarm'){invUse('alarm');$('bag').hidden=true;const sc=G.inside||'out';const x=p.x+Math.sin(p.ang)*.6,z=p.z+Math.cos(p.ang)*.6;G.alarms.push({x,z,y:p.y,t:17,ring:14,r:16,sc});G.fx.push({k:'clock',x,y:p.y,z,t:17,m:17,sc});toast('闹钟放好了，3 秒后会响 · 快离开这里');sfx('click')}
  renderThrow()}
 function renderThrow(){const p=G.p;const k=p.throwSel;$('thrT').textContent=k&&p.inv[k]?IT[k].n+'×'+p.inv[k]:'—';$('bagT').textContent=Object.values(p.inv).reduce((a,b)=>a+b,0);renderHand()}
@@ -1544,6 +1603,12 @@ function syncScene(dt){
   if(z.dead||z.down>0){const k=z.dead?Math.min(1,(40-z.deadT)*3):1;u.body.rotation.x=-1.45*k;u.body.position.y=.15*k;m.position.y=z.y;continue}else if(u.body.rotation.x<-1)u.body.rotation.x=0
   pose(u,z.anim,z.climb?0:(z.mv?1:.06),{zombie:1,t:G.t+z.id,lunge:z.lunge>0,climb:!!z.climb,limp:u.look.limp});
   u.body.position.y=z.hitT>0?-.06:0;if(z.stun>0)u.head.rotation.z=Math.sin(T*10)*.35}
+ // airdrop crate + flare
+ if(G.drop&&!G.inside){const D=G.drop;const e=ent('drop',()=>{const g=new T3.Group();BX(std(0x4a5a3a,{r:.8}),1.1,.8,1.1,0,0,0,g);BX(std(0x2a2a22),1.15,.08,.2,0,.8,0,g);BX(std(0x2a2a22),.2,.08,1.15,0,.8,0,g);
+   const cl=new T3.Mesh(new T3.SphereGeometry(1.4,12,6,0,Math.PI*2,0,Math.PI/2),new T3.MeshStandardMaterial({color:0xd8d0c0,side:T3.DoubleSide,roughness:.9}));cl.scale.y=.25;cl.position.set(.9,.12,.4);cl.rotation.z=1.2;g.add(cl);
+   const f=glowSprite(0xff3020,2.2,.9);f.position.set(.6,.9,.6);g.add(f);g.userData.f=f;const L=new T3.PointLight(0xff3a20,2,10,2);L.position.set(.6,1.2,.6);g.add(L);g.userData.L=L;return g});
+  e.m.position.set(D.x,0,D.z);const on=D.flare&&!D.open;e.m.userData.f.visible=on;e.m.userData.L.intensity=on?1.6+Math.sin(G.t*23)*.6:0;e.m.userData.f.scale.setScalar(1.8+Math.sin(G.t*17)*.4);
+  if(on&&Math.random()<dt*7)G.fx.push({k:'smokeR',x:D.x+.6,y:1,z:D.z+.6,t:4,m:4,sc:'out',dx:rnd(-.3,.3)})}
  // fx
  syncFx(dt);
  for(const [k,e] of ENT)if(!e.live&&!k.startsWith('fx')){e.parent.remove(e.m);ENT.delete(k)}
@@ -1562,6 +1627,7 @@ function syncFx(dt){for(const k in FXP)for(const o of FXP[k].list)o.visible=fals
   else if(f.k==='muzzle'){const o=fxObj('muzzle',()=>glowSprite(0xffd070,1.4,1));o.position.set(f.x,f.y,f.z);o.scale.setScalar(1.2+Math.random()*.6);o.material.opacity=1-k}
   else if(f.k==='tracer'){const o=fxObj('tracer',()=>new T3.Mesh(new T3.CylinderGeometry(.018,.018,1,6),new T3.MeshBasicMaterial({color:0xfff0b0,transparent:true,opacity:.95,blending:T3.AdditiveBlending,depthWrite:false})));
    const a=new T3.Vector3(f.x,f.y,f.z),b=new T3.Vector3(f.x1,f.y1??f.y,f.z1);const d=b.clone().sub(a);const L=d.length();const s=Math.min(1,k*1.6);const head=a.clone().addScaledVector(d,s),tail=a.clone().addScaledVector(d,Math.max(0,s-.35));o.position.copy(head).add(tail).multiplyScalar(.5);o.scale.set(1,head.distanceTo(tail)||.01,1);o.quaternion.setFromUnitVectors(new T3.Vector3(0,1,0),d.normalize());o.material.opacity=.95*(1-k*.6)}
+  else if(f.k==='smokeR'){const o=fxObj('smokeR',()=>{const s=glowSprite(0xc03028,2,.6);s.material.blending=T3.NormalBlending;return s});o.position.set(f.x+f.dx*k*6,f.y+k*9,f.z+k*2);o.scale.setScalar(1+k*5);o.material.opacity=.55*(1-k)}
   else if(f.k==='spark'){const o=fxObj('spark',()=>glowSprite(0xffd890,.7,1));o.position.set(f.x,f.y,f.z);o.scale.setScalar(.6+k*.8);o.material.opacity=1-k}
   else if(f.k==='shell'){const o=fxObj('shell',()=>{const m=new T3.Mesh(new T3.CylinderGeometry(.012,.012,.04,6),std(0xc8a040,{m:.9,r:.3}));return m});o.position.set(f.x+f.sx*k*.8,f.y+k*.7-k*k*1.9,f.z+f.sz*k*.8);o.rotation.set(k*20,k*13,0)}
   else if(f.k==='ember'){const o=fxObj('ember',()=>glowSprite(0xff8a30,.5,.9));o.position.set(f.x,f.y+k*1.6,f.z);o.material.opacity=1-k;o.scale.setScalar(.6-k*.3)}
@@ -1623,6 +1689,7 @@ function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X
  g.strokeStyle='#c8a070';g.lineWidth=Math.max(2,k*.6);for(const pl of G.planks){g.beginPath();g.moveTo(X(pl.ax),Z(pl.az));g.lineTo(X(pl.bx),Z(pl.bz));g.stroke()}
  for(const it of G.items)if(!it.inside&&IT[it.k].big){g.fillStyle='#f0a040';g.fillRect(X(it.x)-k*.6,Z(it.z)-k*.6,k*1.2,k*1.2)}
  for(const z of G.zs)if(!z.dead&&(dd(z.x,z.z,p.x,p.z)<16||big)){g.fillStyle=z.state==='chase'?'#ff4030':'#b04a3a';g.fillRect(X(z.x)-1.5,Z(z.z)-1.5,3,3)}
+ if(G.drop&&!G.drop.open){g.font=`${Math.round(S/12)}px sans-serif`;g.textAlign='center';g.fillText('📦',X(G.drop.x),Z(G.drop.z)+S/40)}
  const pb=BID.office;g.fillStyle=G.heli?'#ffd060':'#8a7a40';g.font=`${Math.round(S/14)}px sans-serif`;g.textAlign='center';g.fillText('★',X(pb.pad.x),Z(pb.pad.z)+S/40);
  let px=p.x,pz=p.z;if(G.inside){const b=G.interiors[G.inside].b;px=(b.x0+b.x1)/2;pz=(b.z0+b.z1)/2}
  g.save();g.translate(X(px),Z(pz));g.rotate(-p.ang+Math.PI);g.fillStyle='#fff';g.beginPath();g.moveTo(0,-5);g.lineTo(4,4);g.lineTo(-4,4);g.closePath();g.fill();g.restore()}
@@ -1765,7 +1832,7 @@ addEventListener('pointerdown',()=>audInit(),{capture:true});
 // ================= HUD =================
 function toast(h,cls=''){const el=document.createElement('div');el.className='toast '+cls;el.innerHTML=h;$('msg').appendChild(el);setTimeout(()=>el.remove(),3600);while($('msg').children.length>4)$('msg').firstChild.remove()}
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
-function renderHUD(){const p=G.p;$('hpB').style.width=Math.max(0,p.hp)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
+function renderHUD(){const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
  const len=G.night?G.nightLen:G.dayLen;$('dayT').textContent=G.heli?'第 4 天 · 黎明':`第 ${G.day} ${G.night?'晚':'天'}`;
  $('phT').textContent=G.heli?`直升机 ${fmt(G.heli.t)} 后起飞`:G.night?`夜晚 · 离天亮 ${fmt(len-G.phaseT)}`:`白天 · 离天黑 ${fmt(len-G.phaseT)}`;$('clock').classList.toggle('night',G.night);
  $('hurt').style.boxShadow=`inset 0 0 ${p.hurtT>0?140:p.hp<30?90:0}px rgba(196,52,43,${p.hurtT>0?.7:p.hp<30?.35:0})`;
@@ -1792,9 +1859,9 @@ function begin(){if(loadingNow)return;audInit();if(!renderer){gl();initLights()}
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin()},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
  for(const [,e] of ENT)e.parent.remove(e.m);ENT.clear();
- newState(diff,len);pInit(G.p);G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
+ newState(diff,len);pInit(G.p);survInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
  for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);initZombies();
- G.p.inv={};invAdd('brick',1);renderThrow();
+ G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);renderThrow();
  cam.yaw=0;cam.tx=G.p.x;cam.tz=G.p.z;
  $('start').hidden=true;$('end').hidden=true;['hud','mini','side','joy','acts','hand'].forEach(i=>$(i).hidden=false);joyHome();
  toast('<b>第 1 天</b> · 先去搜物资：便利店在北边，梯子在西南工地，木板在仓库南边');
@@ -1818,7 +1885,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={doThrow,doAttack,AUD,MUS,BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
