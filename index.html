@@ -213,6 +213,21 @@ body.fp #nvgO .tube{display:block}
 #nvgO .bat{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 84px);font:700 11px var(--body);color:#b8ff9a;text-shadow:0 0 6px #4f4;display:flex;gap:6px;align-items:center}#nvgO .bat i{width:60px;height:6px;border:1px solid #9f9;border-radius:2px;display:block}#nvgO .bat b{display:block;height:100%;background:#9f9}
 body.nvg #edgeV,body.nvg #vig{opacity:.4}
 @media (orientation:landscape) and (max-height:600px){#bossB{top:44px;width:min(380px,44vw)}#cmp{top:40px}#nvgO .bat{top:68px}#rpgP{width:min(400px,56vw)}#lvC{font-size:10px}#lvC b{font-size:12px}.talbox{transform:scale(.9)}}
+
+/* ===== multiplayer ===== */
+.big.mpb{background:rgba(20,60,74,.9);color:#bff2ff;border:1px solid rgba(110,225,255,.6)}
+.mpbox{width:min(380px,92vw);text-align:left}.mpbox .st{text-align:center}.mpbox p{font-size:12.5px;color:#bfe8f2;line-height:1.55}.mpbox p b{color:#ffd070}
+.mpl{display:block;font-size:12px;color:#9ad8e8;margin:8px 0}.mpl input,.mprow input{display:block;width:100%;margin-top:4px;background:rgba(0,0,0,.4);border:1px solid rgba(110,225,255,.4);border-radius:8px;padding:10px;color:#fff;font-size:16px}
+.mpbox .big{width:100%;margin-top:6px;padding:12px}.mprow{display:flex;gap:8px;margin-top:10px}.mprow input{margin:0;flex:1;letter-spacing:.3em;text-align:center}
+.mprow button,#mpCopy,#mpX{background:rgba(20,50,60,.8);border:1px solid rgba(110,225,255,.5);border-radius:8px;padding:10px 14px;color:#e8fbff;font-size:14px}
+#mpX{display:block;margin:10px auto 0;font-size:12px;padding:6px 16px}#mpCopy{width:100%;margin:6px 0}
+.mpcode{text-align:center;font-size:13px;color:#9ad8e8}.mpcode b{display:block;font:700 40px var(--disp);letter-spacing:.2em;color:#fff}
+#mpList{margin:8px 0;display:flex;flex-direction:column;gap:4px}#mpList .mpp{background:rgba(20,50,60,.5);border-radius:6px;padding:7px 10px;font-size:13.5px}#mpList small{color:#8ab8c4;font-size:11px;text-align:right}
+#mpWait{text-align:center;color:#ffd070}#mpMsg{min-height:18px;font-size:12.5px;color:#ffd070;text-align:center;margin-top:6px}
+.givel{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.givel button{background:rgba(20,50,60,.6);border:1px solid rgba(110,225,255,.3);border-radius:8px;padding:6px 2px;font-size:20px;color:#fff;display:flex;flex-direction:column;align-items:center}.givel small{font-size:10px;color:#bfe8f2}
+body.zp #bThrow,body.zp #bBlock,body.zp #bBag,body.zp #bCrouch,body.zp #hot,body.zp #hand,body.zp #bStat{display:none!important}
+body.zp #vig{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 35%,rgba(90,10,6,.6) 100%)!important}
+body.zp #bAtk::after{content:'（咬）';font-size:10px}
 </style>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -295,8 +310,9 @@ body.nvg #edgeV,body.nvg #vig{opacity:.4}
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10 兆）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="cont" hidden></button>
     <button class="big" id="go">开始求生</button>
+    <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 2.5 · 建议横屏 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 2.6 · 建议横屏 · 单人 / 多人联机 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -312,6 +328,7 @@ body.nvg #edgeV,body.nvg #vig{opacity:.4}
 <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/utils/SkeletonUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (()=>{
 'use strict';
@@ -891,7 +908,7 @@ function genInterior(b,f){const bw=b.x1-b.x0,bd=b.z1-b.z0;const w=clamp(bw-.6,6,
  for(let i=0;i<nl;i++){const items=[pool[Math.floor(R()*pool.length)]];if(R()<.45)items.push(pool[Math.floor(R()*pool.length)]);if(R()<.15)items.length=0;
   for(let t=0;t<60;t++){const s=I.solids[Math.floor(R()*I.solids.length)];if(!s)break;const side=R()<.5;const x=side?(R()<.5?s.x0-.45:s.x1+.45):rr(s.x0,s.x1),z=side?rr(s.z0,s.z1):(R()<.5?s.z0-.45:s.z1+.45);
    if(Math.abs(x)>w/2-.5||Math.abs(z)>d/2-.5||I.solids.some(o=>inRect(o,x,z,.25))||I.loot.some(l=>dd(l.x,l.z,x,z)<1))continue;I.loot.push({x,z,items,done:false,s});break}}
- if(BIGLOOT[b.type]&&f===0){for(const k of BIGLOOT[b.type]){for(let t=0;t<30;t++){const x=rr(-w/2+1,w/2-1),z=rr(-d/2+1,d/2-1);if(I.solids.some(o=>inRect(o,x,z,.6)))continue;G.items.push({id:G.uid++,k,x,z,y:0,inside:I.key,uses:k==='gascan'?3:undefined});break}}}
+ if(BIGLOOT[b.type]&&f===0){for(const k of BIGLOOT[b.type]){for(let t=0;t<30;t++){const x=rr(-w/2+1,w/2-1),z=rr(-d/2+1,d/2-1);if(I.solids.some(o=>inRect(o,x,z,.6)))continue;const nid='b'+I.key+k;if(NET.on&&(NET.gone.has(nid)||G.items.some(it=>it.nid===nid)))break;G.items.push({id:G.uid++,nid,k,x,z,y:0,inside:I.key,uses:k==='gascan'?3:undefined});break}}}
  // a few zombies already inside
  const nz=Math.floor(R()*({hosp:3,police:2,school:3,mall:3,office:2,church:2}[b.type]||2));
  for(let i=0;i<nz;i++){for(let t=0;t<40;t++){const x=rr(-w/2+1,w/2-1),z=rr(-d/2+1,d/2-1);if(I.solids.some(o=>inRect(o,x,z,.4))||(I.door&&dd(x,z,I.door.x,I.door.z)<3))continue;I.zs.push(mkZombie(R()<.15?'crawler':'walker',x,z,0));break}}
@@ -1062,7 +1079,7 @@ function mkZombie(kind,x,z,y=0){const K=ZK[kind];const day=G?G.day:1;const hpK=(
  return{id:(G?G.uid++:Math.random()*1e9|0),kind,x,z,y,hp:K.hp*hpK,mhp:K.hp*hpK,ang:rnd(0,6.28),state:'idle',tx:x,tz:z,cd:rnd(0,1),stun:0,burn:0,mv:0,stuck:0,lx:x,lz:z,detour:0,dang:0,anim:rnd(0,6),dead:false,deadT:0,seenT:0,vy:0,climb:null,hitT:0,groan:rnd(2,8),kv:null,down:0,grabbing:false,flashT:0,v:{s:rnd(.92,1.1),t:rnd(.85,1.12)}}}
 function zSpeed(z){const K=ZK[z.kind];return K.sp*(G.night?1.3:1)*(1+.05*(G.day-1))*(z.stun>0?0:1)*(z.burn>0?1.2:1)}
 function zList(){return G.inside?G.interiors[G.inside].zs:G.zs}
-function noise(x,z,r,label){const sc=G.inside||'out';G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
+function noise(x,z,r,label){if(G.p&&G.p.remote){G.noises.push({x,z,r,t:.5,sc:'out'});return}const sc=G.inside||'out';netNoise(x,z,r,sc);G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
  if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;
  if(G.inside&&r>=9){const I=G.interiors[G.inside];if(I.b.door)G.noises.push({x:I.b.door.x,z:I.b.door.z,r:r*.6,t:.5,sc:'out'})}}
 function sightR(z,p){const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1)*sightK();if(Math.abs(p.y-z.y)>2.5)s*=1.15;return s}
@@ -1078,12 +1095,12 @@ function losClear(z,p,sc){const list=sc==='out'?G.solids:(G.interiors[sc]?G.inte
 function bagSpill(p,from){const ks=Object.keys(p.inv).filter(k=>k!==p.weapon&&!IT[k].big);if(!ks.length)return;const k=pick(ks);invUse(k);const a=rnd(0,6.28),r=rnd(.9,1.6);
  const fx_=from?Math.atan2(p.x-from.x,p.z-from.z)+rnd(-.8,.8):a;const x=p.x+Math.sin(fx_)*r,z=p.z+Math.cos(fx_)*r;const y=G.inside?0:supportAt(x,z,p.y+.3);
  if(!blockedAt(x,z,y,.1))dropItem(k,x,z,y);else dropItem(k,p.x,p.z,p.y);sfx('drop',p.x,p.z);toast(`被打中好几下，背包里掉出了 <b>${IT[k].ic} ${IT[k].n}</b>`,'bad');renderThrow()}
-function hurtPlayer(dm,inf,src){const p=G.p;if(G.over)return;if(src&&src.kind){p.hitN=(p.hitN||0)+1;if(G.t-(p.hitNT||0)>12)p.hitN=1;p.hitNT=G.t;if(p.hitN>=3){p.hitN=0;setTimeout(()=>{if(G&&!G.over)bagSpill(p,src)},0)}}const k=[.7,1,1.3][G.diff];const dmk=dm*k*defK();p.hp-=dmk;p.lastHurt=G.t;if(G.night)p.nightDmg=(p.nightDmg||0)+dmk;p.inf=Math.min(100,p.inf+inf*k*infK()*(G.night?1.25:1));p.hurtT=.4;G.stats.dmgTaken+=dm*k;if(inf&&!G.biteTip){G.biteTip=1;toast('被咬了！<b style="color:#8bd14a">感染值</b>满 100 就会变成丧尸 · 抗生素可以降低（医院 2 楼有）','bad')}sfx('hurt');buzz(40);
+function hurtPlayer(dm,inf,src){const p=G.p;if(G.over)return;if(src&&src.kind){p.hitN=(p.hitN||0)+1;if(G.t-(p.hitNT||0)>12)p.hitN=1;p.hitNT=G.t;if(p.hitN>=3){p.hitN=0;setTimeout(()=>{if(G&&!G.over)bagSpill(p,src)},0)}}const k=[.7,1,1.3][G.diff];const dmk=dm*k*defK();p.hp-=dmk;p.lastHurt=G.t;if(G.night)p.nightDmg=(p.nightDmg||0)+dmk;if(!NET.zp)p.inf=Math.min(100,p.inf+inf*k*infK()*(G.night?1.25:1));p.hurtT=.4;G.stats.dmgTaken+=dm*k;if(inf&&!G.biteTip){G.biteTip=1;toast('被咬了！<b style="color:#8bd14a">感染值</b>满 100 就会变成丧尸 · 抗生素可以降低（医院 2 楼有）','bad')}sfx('hurt');buzz(40);
  if(p.busy){p.busy=null;$('prog').hidden=true}
  if(p.hp<=0)endGame(false,'dead');else if(p.inf>=100)endGame(false,'turned')}
-function hitZombie(z,dm,src){if(z.dead)return;dm=zDmgMod(z,dm,src);z.hp-=dm;dmgNum(z,dm,src);z.hitT=.15;if(src==='melee'||src==='throw'){z.state='chase'}fx3('blood',z.x,z.y+1,z.z);
- if(z.hp<=0){z.dead=true;z.deadT=40;G.stats.kills++;if(src!=='fall'){sysEv('kill');onKill(z,src)}bloodPool(z);sfx('zdie',z.x,z.z)}else if(Math.random()<.4)sfx('zhit',z.x,z.z)}
-function fx3(k,x,y,z,o={}){G.fx.push({k,x,y,z,t:o.t||.5,m:o.t||.5,sc:G.inside||'out',...o})}
+function hitZombie(z,dm,src){if(z.dead)return;if(z.net){netHitZ(z,dm,src);return}dm=G._raw?dm:zDmgMod(z,dm,src);z.hp-=dm;dmgNum(z,dm,src);z.hitT=.15;if(src==='melee'||src==='throw'){z.state='chase'}fx3('blood',z.x,z.y+1,z.z);
+ if(z.hp<=0){z.dead=true;z.deadT=40;G.stats.kills++;if(src!=='fall'){if(G._by&&G._by!==NET.me){netSend({k:'kill',to:G._by,kind:z.kind,src,x:z.x,z:z.z,y:z.y})}else{sysEv('kill');onKill(z,src)}}bloodPool(z);sfx('zdie',z.x,z.z)}else if(Math.random()<.4)sfx('zhit',z.x,z.z)}
+function fx3(k,x,y,z,o={}){G.fx.push({k,x,y,z,t:o.t||.5,m:o.t||.5,sc:G.p&&G.p.remote?'out':(G.inside||'out'),...o})}
 
 function tickZombie(z,dt,sc){
  if(z.dead){z.deadT-=dt;if(z.kv){const o=G.inside;G.inside=sc==='out'?null:sc;moveEnt(z,z.kv.x*dt,z.kv.z*dt,.3);G.inside=o;const f_=Math.exp(-7*dt);z.kv.x*=f_;z.kv.z*=f_;if(Math.abs(z.kv.x)+Math.abs(z.kv.z)<.1)z.kv=null}return}
@@ -1101,7 +1118,7 @@ function tickZombie(z,dt,sc){
  if(z.stun>0)return;
  const same=(sc===(G.inside||'out'));
  // senses
- if(same&&!G.over&&canSee(z,p)){if(z.state!=='chase'&&K.scream&&!(z.scrT>G.t)){z.scrT=G.t+15;noise(z.x,z.z,22);sfx('scream',z.x,z.z);shake(.12);if(!G.scrTip){G.scrTip=1;toast('<b>尖叫尸</b>在尖叫！附近的丧尸都会被引过来','bad')}}z.state='chase';z.seenT=4}
+ if(same&&(!G.over||p.remote)&&canSee(z,p)){if(z.state!=='chase'&&K.scream&&!(z.scrT>G.t)){z.scrT=G.t+15;noise(z.x,z.z,22);sfx('scream',z.x,z.z);shake(.12);if(!G.scrTip){G.scrTip=1;toast('<b>尖叫尸</b>在尖叫！附近的丧尸都会被引过来','bad')}}z.state='chase';z.seenT=4}
  else if(z.state==='chase'){z.seenT-=dt;if(z.seenT<=0){z.state='investigate';z.tx=p.x;z.tz=p.z}}
  if(z.state!=='chase')for(const n of G.noises)if(n.sc===sc&&dd(n.x,n.z,z.x,z.z)<n.r){z.state='investigate';z.tx=n.x+rnd(-1,1);z.tz=n.z+rnd(-1,1)}
  if(same&&z.state==='idle'&&p.hp<100&&!p.hide){const R=(100-p.hp)/100*20;if(dd(z.x,z.z,p.x,p.z)<R&&Math.random()<dt*.6){z.state='investigate';z.tx=p.x+rnd(-3,3);z.tz=p.z+rnd(-3,3);z.smell=1}}
@@ -1136,7 +1153,7 @@ function pileMax(){const d=G.day,n=G.night;if(d>=4)return 7;if(d===3)return n?5.
 function pileNeed(){const d=G.day,n=G.night;if(d>=4)return 2;if(d===3)return n?3:4;return 5}
 function solidUnder(p){let best=null;for(const s of G.solids)if(inRect(s,p.x,p.z)&&Math.abs(s.top-p.y)<.15)best=s;return best}
 function playerIn(b){return G.inside&&G.interiors[G.inside].b===b}
-function zEnter(z,b,f,x,zz){const i=G.zs.indexOf(z);if(i>=0)G.zs.splice(i,1);const I=interior(b.id,f);z.x=x;z.z=zz;z.y=0;z.door=null;z.entry=null;z.climb=null;z.kv=null;
+function zEnter(z,b,f,x,zz){const i=G.zs.indexOf(z);if(i>=0)G.zs.splice(i,1);if(G.p.remote){if(G.p.id!=='_')netSend({k:'zEnter',to:G.p.id,kind:z.kind,hp:z.hp,mhp:z.mhp,bid:b.id,f,x,z:zz});return}const I=interior(b.id,f);z.x=x;z.z=zz;z.y=0;z.door=null;z.entry=null;z.climb=null;z.kv=null;
  z.state=G.inside===I.key?'chase':'investigate';z.tx=0;z.tz=0;I.zs.push(z)}
 function doorFront(b){const D=b.door;return[D.x+D.nx*.8,D.z+D.nz*.8]}
 function hitDoor(b,dm,z){const ds=b.ds;sfx('bang',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:6,t:.5,sc:'out'});const inB=playerIn(b);
@@ -1158,7 +1175,7 @@ function zBreakIn(z,dt,K){const p=G.p;
  const stim=Math.max(z.stimT||0,b.lastNoise||0);
  if(!playerIn(b)&&G.t-stim>6||G.t-stim>15){// nothing heard or seen for a while: give up and drift away
   z.door=null;z.state='wander';const a=rnd(0,6.28),r=rnd(8,15);z.tx=clamp(z.x+Math.cos(a)*r,-HALF+2,HALF-2);z.tz=clamp(z.z+Math.sin(a)*r,-HALF+2,HALF-2);z.giveT=G.t+10;
-  if(playerIn(b)&&!(b.quietT>G.t)){b.quietT=G.t+20;setTimeout(()=>{if(G&&!G.zs.some(q=>q.door===b)){toast('撞门声停了……它们好像散开了','good');hid('doorgod')}},1500)}return}
+  if(playerIn(b)&&!G.p.remote&&!(b.quietT>G.t)){b.quietT=G.t+20;setTimeout(()=>{if(G&&!G.zs.some(q=>q.door===b)){toast('撞门声停了……它们好像散开了','good');hid('doorgod')}},1500)}return}
  if(dd(z.x,z.z,fx,fz)>.9){stepTo(z,fx,fz,dt,'out');return}
  z.ang=Math.atan2(b.door.x-z.x,b.door.z-z.z);
  if(ds.broken||ds.open){zEnter(z,b,0,interior(b.id,0).door.x-b.door.nx*.8,interior(b.id,0).door.z-b.door.nz*.8);return}
@@ -1177,27 +1194,28 @@ function zRoom(n,extra=0){return Math.min(n,Math.max(0,60+G.day*4+extra-G.zs.fil
 function spawnWave(n,types){n=zRoom(n,types.includes('brute')?6:0);for(let i=0;i<n;i++){const [x,z]=edgePoint();const zz=mkZombie(pick(types),x+rnd(-1,1),z+rnd(-1,1));zz.state='investigate';zz.tx=G.p.x+rnd(-8,8);zz.tz=G.p.z+rnd(-8,8);G.zs.push(zz)}}
 function nightTypes(n){return n===1?['walker','walker','crawler']:n===2?['walker','walker','runner','screamer','stalker','crawler']:n===3?['walker','runner','climber','climber','stalker','screamer']:['walker','runner','runner','climber','stalker','stalker','screamer','crawler']}
 function initZombies(){const k=[8,11,14][G.diff];for(let i=0;i<k;i++){for(let t=0;t<40;t++){const x=rnd(-HALF+2,HALF-2),z=rnd(-HALF+2,HALF-2);if(G.solids.some(o=>inRect(o,x,z,.6))||dd(x,z,SPAWN.x,SPAWN.z)<12)continue;G.zs.push(mkZombie(Math.random()<.18?'crawler':Math.random()<.12?'screamer':'walker',x,z));break}}}
-function tickWorld(dt){
+function tickWorld(dt){const CL=NET.on&&NET.started&&!NET.host;
  G.t+=dt;G.phaseT+=dt;
  const len=G.night?G.nightLen:G.dayLen;
- if(G.phaseT>=len){G.phaseT=0;
+ if(G.phaseT>=len&&!CL){G.phaseT=0;
   if(!G.night){G.night=true;const n=G.day;const cnt=Math.round((6+n*5+(G.p.lv||1))*[.7,1,1.35][G.diff]);spawnWave(cnt,nightTypes(n));if(n>=3)for(let i=0;i<[0,1,2][G.diff]+1+(n>=5?1:0);i++)spawnWave(1,['brute']);onNight();
    toast(`<b style="color:#7fc8e8">第 ${n} 晚</b> · 尸潮来了${n===2?' · 出现<b>疾行尸</b>、会尖叫引尸的<b>尖叫尸</b>、会开门爬窗的<b>潜伏尸</b> · 它们开始会叠罗汉往上爬':n===3?' · 出现会<b>爬梯子</b>的攀爬尸和巨尸！它们叠得更高了':n>=4?' · 尸潮更大、更凶了 · 再撑 '+(5-n+1)+' 晚':''}`,'bad');sfx('horn')}
   else{G.night=false;G.day++;onDawn();if(G.day>=6){startHeli()}else toast(`<b style="color:#f0b24a">第 ${G.day} 天</b> · 天亮了，丧尸变慢了。抓紧搜物资`,'good')}}
  // night hunting: zombies drift toward player region
- if(G.night){G.huntT=(G.huntT||0)-dt;if(G.huntT<=0){G.huntT=9;G.hunt={x:G.p.x,z:G.p.z};if(G.inside){const I=G.interiors[G.inside];G.hunt={x:I.b.door?I.b.door.x:(I.b.x0+I.b.x1)/2,z:I.b.door?I.b.door.z:(I.b.z0+I.b.z1)/2}}}
+ if(CL){}else if(G.night){G.huntT=(G.huntT||0)-dt;if(G.huntT<=0){G.huntT=9;G.hunt={x:G.p.x,z:G.p.z};if(G.inside){const I=G.interiors[G.inside];G.hunt={x:I.b.door?I.b.door.x:(I.b.x0+I.b.x1)/2,z:I.b.door?I.b.door.z:(I.b.z0+I.b.z1)/2}}}
   G.trickle=(G.trickle||0)-dt;if(G.trickle<=0){G.trickle=[14,10,7][G.diff];if(G.zs.filter(z=>!z.dead).length<70)spawnWave(1+Math.floor(G.day/2),nightTypes(G.day))}}
  else{G.trickle=(G.trickle||0)-dt;if(G.trickle<=0){G.trickle=14;if(G.zs.filter(z=>!z.dead).length<8+G.day*4)spawnWave(1,G.day>=3?['walker','runner']:['walker'])}}
  // zombies
- for(const z of G.zs)tickZombie(z,dt,'out');G.zs=G.zs.filter(z=>!(z.dead&&z.deadT<=0));
+ if(!CL){const H=NET.on?netHumans():null;for(const z of G.zs){if(NET.on)netTickZ(z,dt,H);else tickZombie(z,dt,'out')}G.zs=G.zs.filter(z=>!(z.dead&&z.deadT<=0))}
  for(const k in G.interiors){const I=G.interiors[k];if(k===G.inside||I.zs.some(z=>z.state!=='idle')){for(const z of I.zs)tickZombie(z,dt,k)}I.zs=I.zs.filter(z=>!(z.dead&&z.deadT<=0))}
  // pending zombies following through doors
  for(const z of G.pendZ){z.pend-=dt;if(z.pend>0)continue;
-  if(z.pendTo==='out'){const a=z.pendAt;z.x=a.x+rnd(-.4,.4);z.z=a.z+rnd(-.4,.4);z.y=0;G.zs.push(z);z.done=1}
+  if(z.pendTo==='out'){const a=z.pendAt;z.x=a.x+rnd(-.4,.4);z.z=a.z+rnd(-.4,.4);z.y=0;if(CL)netSend({k:'zExit',kind:z.kind,hp:z.hp,mhp:z.mhp,x:z.x,z:z.z});else G.zs.push(z);z.done=1}
   else{const I=G.interiors[z.pendTo];const a=z.pendAt||I.door||{x:0,z:0};z.x=a.x+rnd(-.4,.4);z.z=a.z+rnd(-.4,.4);z.y=0;z.state='chase';I.zs.push(z);z.done=1}}
  G.pendZ=G.pendZ.filter(z=>!z.done);
  // zombies investigating near the building the player is hiding in start working on the door
- if(G.inside){const b=G.interiors[G.inside].b;const [fx,fz]=doorFront(b);for(const z of G.zs)if(!z.dead&&!z.door&&!z.entry&&!(z.giveT>G.t)&&(z.state==='investigate'||z.state==='chase')&&dd(z.x,z.z,fx,fz)<4){z.door=b;z.stimT=G.t}
+ if(NET.on&&!CL)netDoorAggro();
+ if(G.inside&&!CL){const b=G.interiors[G.inside].b;const [fx,fz]=doorFront(b);for(const z of G.zs)if(!z.dead&&!z.door&&!z.entry&&!(z.giveT>G.t)&&(z.state==='investigate'||z.state==='chase')&&dd(z.x,z.z,fx,fz)<4){z.door=b;z.stimT=G.t}
   for(const z of G.zs)if(z.door===b&&(G.t-(b.lastNoise||0))<1)z.stimT=G.t}
  tickFloors(dt);
  // noises decay
@@ -1223,8 +1241,8 @@ function pInit(p){Object.assign(p,{st:100,stT:0,crouch:false,roll:null,block:fal
 function maxSt(){const p=G.p;return (p.inf>=60?80:100)*(p.food!=null&&p.food<25?.65:1)*stMaxK()}
 function useSt(n){const p=G.p;if(p.st<n*.6)return false;p.st=Math.max(0,p.st-n);p.stT=.9;if(p.st<=0)p.exhaust=true;return true}
 function facingTo(p,x,z){let a=Math.atan2(x-p.x,z-p.z)-p.ang;a=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(a)}
-function shake(a){cam.shk=Math.max(cam.shk||0,a)}
-function hitStop(t){G.hs=Math.max(G.hs||0,t)}
+function shake(a){if(G&&G.p&&G.p.remote)return;cam.shk=Math.max(cam.shk||0,a)}
+function hitStop(t){if(G&&G.p&&G.p.remote)return;G.hs=Math.max(G.hs||0,t)}
 function gearK(kind){const g=G.p.gear;let k=1;
  if(kind==='swipe'){if(g.body==='jacket')k*=.75;if(g.body==='vest')k*=.6;if(g.head)k*=.9}
  else if(kind==='biteDm'){if(g.body==='vest')k*=.8;if(g.head==='helmet')k*=.8}
@@ -1233,7 +1251,7 @@ function gearK(kind){const g=G.p.gear;let k=1;
  return k}
 function biteTime(){return 1.5+(G.p.gear.body==='jacket'?.5:0)+(G.p.gear.head==='helmet'?.3:0)}
 // ---- zombie knockback / knockdown ----
-function knock(z,fx,fz,dist,stun,downCh=0){if(z.dead)return;const K=ZK[z.kind];const big=K.big?.35:1;const d=dd(z.x,z.z,fx,fz)||1;
+function knock(z,fx,fz,dist,stun,downCh=0){if(z.dead)return;if(z.net){netKnockZ(z,fx,fz,dist,stun,downCh);if(z.grabbing)releaseGrab(z);return}const K=ZK[z.kind];const big=K.big?.35:1;const d=dd(z.x,z.z,fx,fz)||1;
  z.kv={x:(z.x-fx)/d*dist*big*5.5,z:(z.z-fz)/d*dist*big*5.5};z.stun=Math.max(z.stun,stun*(K.big?.5:1));
  if(z.grabbing)releaseGrab(z);
  if(Math.random()<downCh*(K.big?.2:1)){z.down=rnd(1.5,2.6);z.stun=Math.max(z.stun,z.down);sfx('thud',z.x,z.z)}}
@@ -1245,7 +1263,7 @@ function releaseGrab(z){z.grabbing=false;const p=G.p;if(p.grab){p.grab.zs=p.grab
 function breakFree(){const p=G.p;if(!p.grab)return;for(const z of p.grab.zs.slice()){z.grabbing=false;knock(z,p.x,p.z,1,1.1,.25)}p.grab=null;p.strug=0;sfx('shove',p.x,p.z);shake(.2);toast('挣脱了！','good');hid('loach')}
 function struggle(){const p=G.p;if(!p.grab)return;const n=p.grab.zs.length;p.strug+=.17*strugK()*(p.st>15?1:.55)/Math.sqrt(n);useSt(3);shake(.08);sfx('struggle');if(p.strug>=1)breakFree()}
 // ---- zombie attack on player ----
-function zAttack(z){const p=G.p,K=ZK[z.kind];
+function zAttack(z){const p=G.p,K=ZK[z.kind];if(p.remote){if(p.id!=='_')netSend({k:'zAtk',to:p.id,zid:z.id});return}if(NET.zp)return;
  if(p.roll&&p.roll.t<.36){return}// dodged through it
  const front=facingTo(p,z.x,z.z)<1.15;const shield=p.gear.off==='shield';
  const grabCh=K.big?0:(K.grab??.35)*(G.night?1.25:1)*(p.grab?.7:1)*(p.crouch?1.2:1);
@@ -1258,7 +1276,7 @@ function zAttack(z){const p=G.p,K=ZK[z.kind];
  const d=dd(p.x,p.z,z.x,z.z)||1;const push=K.big?1.4:.25;moveEnt(p,(p.x-z.x)/d*push,(p.z-z.z)/d*push,.3);if(K.big){p.stag=.5;shake(.45);hitStop(.06)}else shake(.12)}
 // ---- player actions ----
 function weaponOf(){const p=G.p;return p.weapon?IT[p.weapon]:IT._fist}
-function doAttack(){const p=G.p;if(p.inCar){if(p.atkCd>0)return;p.atkCd=1.2;sfx('horn',p.x,p.z);noise(p.x,p.z,20);if(!G.hornTip){G.hornTip=1;toast('按喇叭 · 很响，会把丧尸都引过来')}return}if(!G||G.over||p.climb||p.atkCd>0||p.roll||p.hide)return;if(p.carry){toast('手上搬着'+IT[p.carry.k].n+'，先放下才能打');return}
+function doAttack(){const p=G.p;if(NET.zp&&!p.inCar){if(p.atkCd>0||G.over||p.zpDown)return;p.atkCd=.7;p.swing=1;if(!netMelee({wpn:14,rg:1.3,kb:.5,snd:'bite'},null)){sfx('swish',p.x,p.z)}return}if(p.inCar){if(p.atkCd>0)return;p.atkCd=1.2;sfx('horn',p.x,p.z);noise(p.x,p.z,20);if(!G.hornTip){G.hornTip=1;toast('按喇叭 · 很响，会把丧尸都引过来')}return}if(!G||G.over||p.climb||p.atkCd>0||p.roll||p.hide)return;if(p.carry){toast('手上搬着'+IT[p.carry.k].n+'，先放下才能打');return}
  const W=weaponOf();const tired=p.st<12;
  // grabbed: stab out with a blade, shoot point blank, or weak hits
  if(p.grab){const z=p.grab.zs[0];p.atkCd=W.cd||.5;p.swing=1;
@@ -1269,6 +1287,7 @@ function doAttack(){const p=G.p;if(p.inCar){if(p.atkCd>0)return;p.atkCd=1.2;sfx(
  if(!useSt(W.st||6)&&!tired){}
  p.atkCd=(W.cd||.5)*(tired?1.5:1)*cdK();p.swing=1;
  let best=null,bd=W.rg+.3;for(const z of zList())if(!z.dead&&Math.abs(z.y-p.y)<1.6){const d=dd(z.x,z.z,p.x,p.z);if(d<bd){bd=d;best=z}}
+ if(netMelee(W,best?bd:null)){RPG.miss=0;return}
  if(best){RPG.miss=0;p.ang=Math.atan2(best.x-p.x,best.z-p.z);const hit=[best];for(const z of zList())if(!z.dead&&z!==best&&dd(z.x,z.z,p.x,p.z)<W.rg&&facingTo(p,z.x,z.z)<.75&&Math.abs(z.y-p.y)<1.6)hit.push(z);
   for(const z of hit.slice(0,W.multi||2)){const crit=Math.random()<critCh();const dm=W.wpn*meleeK(W)*(tired?.55:1)*(z.down>0?1.5:1)*(crit?critMul():1);G._crit=crit;hitZombie(z,dm,'melee');G._crit=false;flashZ(z);
    if(!z.dead)knock(z,p.x,p.z,(W.kb||.35)*(tired?.5:1),.3+(W.kb||.3)*.5,(W.down||0)+(crit?.15:0));else{const d=dd(z.x,z.z,p.x,p.z)||1;z.kv={x:(z.x-p.x)/d*4,z:(z.z-p.z)/d*4}}
@@ -1292,12 +1311,12 @@ function fireGun(W){const p=G.p;p.atkCd=W.cd*cdK();if(!p.inv[W.ammo]){sfx('click
  else{const head=Math.random()<headCh();const tx=t?t.x:p.x+Math.sin(p.ang)*W.rg,tz=t?t.z:p.z+Math.cos(p.ang)*W.rg;gunFx(tx,tz,W,t?t.y+(head?1.6:1.15):undefined);
   if(t){G._crit=head?'爆头':false;hitZombie(t,W.wpn*gunK()*(head?2.2:1),'melee');G._crit=false;if(head)hid('gunner');flashZ(t);if(!t.dead)knock(t,p.x,p.z,.5,.5,.1);const d=dd(t.x,t.z,p.x,p.z)||1;fx3('spray',t.x,t.y+(head?1.6:1.2),t.z,{t:.4,dx:(t.x-p.x)/d,dz:(t.z-p.z)/d})}}}
 let mzl=null;function muzzleLight(){if(!mzl){mzl=new T3.PointLight(0xffc070,0,9,2);scene.add(mzl)}const p=G.p;mzl.position.set(p.x+Math.sin(p.ang)*.8,p.y+1.3,p.z+Math.cos(p.ang)*.8);mzl.intensity=3.5;setTimeout(()=>{if(mzl)mzl.intensity=0},60)}
-function doShove(){const p=G.p;if(!G||G.over||p.climb||p.hide||p.inCar)return;if(p.grab){struggle();return}
+function doShove(){const p=G.p;if(!G||G.over||p.climb||p.hide||p.inCar)return;if(p.grab){struggle();return}if(NET.zp){if(p.shoveCd>0)return;p.shoveCd=.8;p.swing=1;p.shoveT=.3;netShove();sfx('shove',p.x,p.z);return}
  if(p.shoveCd>0||p.roll)return;if(p.carry){toast('先放下手上的东西');return}if(!useSt(14)){toast('没力气了 · 先缓一缓');return}
  p.shoveCd=.55;p.swing=1;p.shoveT=.3;let n=0;
  for(const z of zList()){if(z.dead||Math.abs(z.y-p.y)>1.4)continue;const d=dd(z.x,z.z,p.x,p.z);if(d>1.75||facingTo(p,z.x,z.z)>1.0)continue;n++;
   const sh=p.gear.off==='shield'?1.4:1;knock(z,p.x,p.z,1.25*sh*shoveK(),.9,.14*sh);if(n===1)p.ang=Math.atan2(z.x-p.x,z.z-p.z)}
- sfx('shove',p.x,p.z);if(n){shake(.14);hitStop(.035)}}
+ n+=netShove();sfx('shove',p.x,p.z);if(n){shake(.14);hitStop(.035)}}
 function setBlock(on){const p=G.p;if(!G||G.over)return;if(on&&(p.grab||p.roll||p.carry||p.climb||p.st<4))return;p.block=on;$('bBlock')&&$('bBlock').classList.toggle('on',on)}
 function doRoll(){const p=G.p;if(!G||G.over||p.climb||p.grab||p.roll||p.rollCd>0||p.busy||p.hide||p.inCar)return;if(p.carry){toast('搬着东西翻不了');return}if(!useSt(18)){toast('没力气翻滚了');return}
  let mx=joy.x,mz=joy.y;if(keys.w)mz=-1;if(keys.s)mz=1;if(keys.a)mx=-1;if(keys.d)mx=1;let dx,dz;
@@ -1351,7 +1370,7 @@ function exitCar(){const p=G.p,c=p.inCar;if(!c)return;if(c.driving){c.driving=fa
 function startCar(){const p=G.p,c=p.inCar;if(!c||!c.drive)return;if(!p.inv.carkey){toast('没有车钥匙');return}if(c.fuel<=0){toast('没油了');return}
  c.driving=true;sfx('engine',c.x,c.z);noise(c.x,c.z,14);toast('发动了！摇杆往哪推车就往哪开 · 撞丧尸会把它们撞飞 · 很吵','good');$('acts').classList.add('driving')}
 function refuel(c){const p=G.p;if(!p.carry||p.carry.k!=='gascan')return;setBusy('加油中…',2,()=>{c.fuel=100;p.carry=null;sfx('pick',p.x,p.z);toast('加满油了 · 找到<b>车钥匙</b>就能开','good')})}
-function carBash(z,c){const K=ZK[z.kind];z.cd=K.cd;z.lunge=.3;c.glass-=K.big?30:10;sfx('bang',c.x,c.z);shake(.1);G.noises.push({x:c.x,z:c.z,r:5,t:.5,sc:'out'});
+function carBash(z,c){const K=ZK[z.kind];if(G.p.remote){z.cd=K.cd;if(G.p.id!=='_')netSend({k:'zAtk',to:G.p.id,zid:z.id,car:1});return}z.cd=K.cd;z.lunge=.3;c.glass-=K.big?30:10;sfx('bang',c.x,c.z);shake(.1);G.noises.push({x:c.x,z:c.z,r:5,t:.5,sc:'out'});
  if(!G.carTip){G.carTip=1;toast('丧尸在砸车窗！窗碎了会把你拖出去','bad')}
  if(c.glass<=0&&G.p.inCar===c){sfx('glass',c.x,c.z);exitCar();startGrab(z);toast('车窗被砸碎，你被拖出来了！','bad')}}
 // driving physics (arcade): steer toward the joystick direction, collide with solids, ram zombies
@@ -1389,7 +1408,7 @@ function eat(k){const p=G.p;$('bag').hidden=true;if(p.food>=98){toast('不饿');
  setBusy(k==='water'?'喝水中…':'吃东西中…',k==='can'?2:1.3,()=>{invUse(k);p.food=Math.min(100,p.food+Math.round(FOOD[k]*foodK()));hid('glutton');if(k==='water'){p.st=Math.min(maxSt(),p.st+25)}
   if(k==='can'){noise(p.x,p.z,3.5);p.scent=Math.min(100,p.scent+6)}sysEv('eat');toast(`${IT[k].ic} 饱食 +${FOOD[k]}${k==='can'?' · 开罐头的声音和气味会传出去':''}`,'good');sfx('pick',p.x,p.z);renderThrow()})}
 function scentAt(){return G.inside||'out'}
-function tickSurvival(dt){const p=G.p;if(p.food==null)survInit(p);if(G.over)return;
+function tickSurvival(dt){const p=G.p;if(p.food==null)survInit(p);if(G.over||NET.zp)return;
  // ---- hunger ----
  const burn=(p.mv>1?.5:p.mv?.36:.28)*(G.night?1.15:1)*hungerK()*.8;p.food=Math.max(0,p.food-burn*dt);
  if(p.food<=0){p.starveT=(p.starveT||0)-dt;if(p.starveT<=0){p.starveT=2;hurtPlayer(1.5,0,null);if(!(p.foodTip>G.t)){p.foodTip=G.t+20;toast('<b>饿得受不了了</b> · 一直在掉血，快去找吃的（便利店、超市、民宅）','bad')}}}
@@ -1407,14 +1426,14 @@ function tickSurvival(dt){const p=G.p;if(p.food==null)survInit(p);if(G.over)retu
  // ---- infection keeps creeping once you've been bitten ----
  p.infPause-=dt;if(p.inf>0&&p.infPause<=0&&p.inf<100){p.inf=Math.min(100,p.inf+dt*(.05+(G.night?.02:0)));if(!G.infTip&&p.inf>5){G.infTip=1;toast('感染会<b>慢慢恶化</b> · 吃抗生素能压下去一阵子（医院、药店、空投）','bad')}if(p.inf>=100)endGame(false,'turned')}
  tickAirdrop(dt)}
-function scentSwarm(){const p=G.p;sfx('roar');shake(.2);toast('<b>尸群闻到你了！</b> 周围的丧尸正在围过来 · 赶紧转移','bad');
+function scentSwarm(){const p=G.p;sfx('roar');shake(.2);toast('<b>尸群闻到你了！</b> 周围的丧尸正在围过来 · 赶紧转移','bad');if(NET.on&&NET.started&&!NET.host&&!p.remote){netSend({k:'swarm',from:NET.me});return}
  let b=null;if(G.inside)b=G.interiors[G.inside].b;
  const tx=b?b.door.x:p.x,tz=b?b.door.z:p.z;let n=0;
  for(const z of G.zs){if(z.dead)continue;if(dd(z.x,z.z,tx,tz)<34){z.state='investigate';z.tx=tx+rnd(-2,2);z.tz=tz+rnd(-2,2);z.giveT=0;if(b){z.door=b;z.stimT=G.t+60}n++}}
  const k=zRoom(2+G.day+(G.night?2:0),12);for(let i=0;i<k;i++){let ex=0,ez=0;for(let t=0;t<30;t++){const a=rnd(0,6.28),r=rnd(16,24);ex=clamp(tx+Math.cos(a)*r,-HALF+2,HALF-2);ez=clamp(tz+Math.sin(a)*r,-HALF+2,HALF-2);if(!G.solids.some(s=>inRect(s,ex,ez,.6))&&dd(ex,ez,p.x,p.z)>12)break}const z=mkZombie(i<1+Math.floor(G.day/2)?'stalker':pick(nightTypes(Math.max(1,G.day))),ex,ez);z.state='investigate';z.tx=tx;z.tz=tz;if(b){z.door=b;z.stimT=G.t+90}G.zs.push(z)}
  if(G.inside){const I=G.interiors[G.inside];for(const z of I.zs)if(!z.dead){z.state='investigate';z.tx=p.x;z.tz=p.z}}}
 // ---- daily airdrop: valuable, but the red flare calls every zombie nearby ----
-function tickAirdrop(dt){const len=G.dayLen;
+function tickAirdrop(dt){if(NET.on&&NET.started&&!NET.host)return;const len=G.dayLen;
  if(!G.night&&!G.drop&&G.dropDay!==G.day&&G.phaseT>len*.3&&!G.heli){G.dropDay=G.day;spawnAirdrop()}
  const D=G.drop;if(!D)return;D.t-=dt;
  if(D.t>0&&!D.open){D.nT=(D.nT||0)-dt;if(D.nT<=0){D.nT=3;G.noises.push({x:D.x,z:D.z,r:16,t:.6,sc:'out'})}}
@@ -1425,7 +1444,7 @@ function spawnAirdrop(){let x=0,z=0;for(let i=0;i<60;i++){x=rnd(-HALF+6,HALF-6);
  toast(`<b>📦 空投！</b> 一个补给箱落在了${dirName(x,z)} · 红色信号烟会把附近丧尸都引过去，快去快回`,'good');
  for(let i=0;i<zRoom(2+G.day,8);i++){const a=rnd(0,6.28),r=rnd(9,15);const zz=mkZombie(pick(['walker','walker','runner']),clamp(x+Math.cos(a)*r,-HALF+2,HALF-2),clamp(z+Math.sin(a)*r,-HALF+2,HALF-2));zz.state='investigate';zz.tx=x;zz.tz=z;G.zs.push(zz)}}
 function dirName(x,z){const p=G.p;const a=Math.atan2(x-p.x,-(z-p.z))*180/Math.PI;const d=['北边','东北边','东边','东南边','南边','西南边','西边','西北边'][Math.round(((a+360)%360)/45)%8];return `${d} ${Math.round(dd(x,z,p.x,p.z))} 米外（小地图上的 📦）`}
-function airdropCtx(o){const D=G.drop,p=G.p;if(!D||D.open||G.inside||p.y>.5)return;if(dd(D.x,D.z,p.x,p.z)<1.6)o.unshift({l:'📦 打开空投箱',fn:()=>setBusy('撬开补给箱…',2.2,()=>{D.open=true;D.flare=false;sysEv('drop');const got=[];for(const k of D.items){if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast('补给：'+got.join('、'),'good');sfx('pick',p.x,p.z);noise(p.x,p.z,6);renderThrow()})})}
+function airdropCtx(o){const D=G.drop,p=G.p;if(!D||D.open||G.inside||p.y>.5)return;if(dd(D.x,D.z,p.x,p.z)<1.6)o.unshift({l:'📦 打开空投箱',fn:()=>setBusy('撬开补给箱…',2.2,()=>{if(D.open){toast('箱子已经被别人打开了');return}D.open=true;D.flare=false;if(NET.on)netSend({k:'dropOpen'});sysEv('drop');const got=[];for(const k of D.items){if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast('补给：'+got.join('、'),'good');sfx('pick',p.x,p.z);noise(p.x,p.z,6);renderThrow()})})}
 
 
 // ================= input =================
@@ -1477,7 +1496,7 @@ function doThrow(){const p=G.p;if(!G||G.over||p.climb||p.busy)return;const k=p.t
  setTimeout(()=>{if(!G||G.over)return;const t2=tg&&!tg.dead?[tg.x,tg.z]:[tx,tz];let ty=supportAt(t2[0],t2[1],p.y+.5);if(Math.abs(ty-p.y)>3)ty=supportAt(t2[0],t2[1],30);const h=handPos();const d=dd(h.x,h.z,t2[0],t2[1]);const dur=clamp(.25+d*.045,.3,.75);
   const fl={k:'proj',x:h.x,y:h.y,z:h.z,x1:t2[0],y1:ty,z1:t2[1],item:k,t:dur,m:dur,sc:G.inside||'out',tg,arc:Math.min(2.2,.4+d*.12)};G.fx.push(fl);sfx('throw');setTimeout(()=>projLand(fl),dur*1000)},180)}
 function projLand(f){if(!G||G.over)return;const old=G.inside;const cur=G.inside||'out';if(cur!==f.sc)return;const T=IT[f.item].thr;
- if(f.item==='molotov'){G.fires.push({x:f.x1,z:f.z1,y:f.y1,r:2.6,t:9,sc:f.sc});noise(f.x1,f.z1,T.noise);sfx('fire',f.x1,f.z1);fx3('boom',f.x1,f.y1+.3,f.z1,{t:.6})}
+ if(f.item==='molotov'){G.fires.push({x:f.x1,z:f.z1,y:f.y1,r:2.6,t:9,sc:f.sc});netFire(G.fires[G.fires.length-1]);noise(f.x1,f.z1,T.noise);sfx('fire',f.x1,f.z1);fx3('boom',f.x1,f.y1+.3,f.z1,{t:.6})}
  else{for(const z of zList())if(!z.dead&&dd(z.x,z.z,f.x1,f.z1)<.95){hitZombie(z,T.dm*thrK(),'throw');flashZ(z);if(T.stun)z.stun=T.stun;if(!z.dead&&T.kb)knock(z,f.x,f.z,T.kb,T.stun||.4,T.down||0);if(T.kb>.5){shake(.1);hitStop(.04)}}
   noise(f.x1,f.z1,T.noise);sfx(f.item==='bottle'?'glass':'thud',f.x1,f.z1);fx3('dust',f.x1,f.y1+.1,f.z1,{t:.5});if((f.item==='brick'||f.item==='cinder')&&Math.random()<.6)dropItem(f.item,f.x1,f.z1,f.y1)}}
 function toggleFlash(){const p=G.p;if(p.gear&&p.gear.head==='nvg'){toggleNVG();return}p.flash=!p.flash;$('bLight').classList.toggle('on',p.flash);sfx('click');if(p.flash&&G.night)toast('手电筒照得远，但丧尸也更容易看见你')}
@@ -1495,7 +1514,7 @@ function climbLadder(L,dir){const p=G.p;const [bx,bz]=ladderBottom(L),[tx,tz]=la
  if(dir==='up')p.climb={kind:'up',x0:L.x+L.nx*.35,z0:L.z+L.nz*.35,y0:L.base,x1:tx,z1:tz,y1:L.top,t:0,dur:.35*(L.top-L.base)+.6};
  else p.climb={kind:'down',x0:L.x+L.nx*.35,z0:L.z+L.nz*.35,y0:L.top,x1:bx,z1:bz,y1:L.base,t:0,dur:.3*(L.top-L.base)+.5};
  p.x=dir==='up'?bx:tx;p.z=dir==='up'?bz:tz;G.stats.climbs++;sfx('ladder',p.x,p.z)}
-function computeCtx(){const p=G.p,o=[];if(!G||G.over||p.climb){ctxOpts=[];return}
+function computeCtx(){const p=G.p,o=[];if(!G||G.over||p.climb||NET.zp){ctxOpts=[];return}netGiveCtx(o);
  if(p.busy){ctxOpts=[];return}
  if(!G.inside&&carCtx(o)){ctxOpts=o.slice(0,3);return}
  if(!G.inside)airdropCtx(o);
@@ -1504,7 +1523,7 @@ function computeCtx(){const p=G.p,o=[];if(!G||G.over||p.climb){ctxOpts=[];return
  for(const it of its.slice(0,2)){if(it.k==='gascan'&&!p.carry){if(p.inv.lighter)o.push({l:'🔥 点燃汽油桶',fn:()=>igniteGas(it)});if(p.inv.bottle)o.push({l:`🍾 灌燃烧瓶（剩 ${it.uses} 次）`,fn:()=>fillMolotov(it),alt:1})}
   if(!(IT[it.k].big&&p.carry))o.push({l:`${IT[it.k].big?'搬起':'捡起'} ${IT[it.k].n}`,fn:()=>pickUp(it),alt:o.length>0})}
  if(G.inside){const I=G.interiors[G.inside];
-  for(const l of I.loot)if(!l.done&&dd(l.x,l.z,p.x,p.z)<1.2){o.unshift({l:'🔍 搜索',fn:()=>setBusy('搜索中…',1.4,()=>{l.done=true;G.stats.looted++;if(!l.items.length){toast('什么都没有');return}const got=[];const its=l.items.slice();if(hasT('scav')&&its.length&&Math.random()<.5)its.push(pick(its.filter(k=>!IT[k].big).length?its.filter(k=>!IT[k].big):its));gainXP(3);for(const k of its){if(IT[k].big)dropItem(k,p.x,p.z,0);else if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast(got.length?'找到：'+got.join('、')+'（在左边快捷栏）':'找到的东西放不下，掉在地上了','good');sysEv('loot',I.b.id);sfx('pick');renderThrow();noise(p.x,p.z,2.5)})});break}
+  for(const l of I.loot)if(!l.done&&dd(l.x,l.z,p.x,p.z)<1.2){o.unshift({l:'🔍 搜索',fn:()=>setBusy('搜索中…',1.4,()=>{if(l.done){toast('已经被别人搜过了');return}l.done=true;netLoot(I,l);G.stats.looted++;if(!l.items.length){toast('什么都没有');return}const got=[];const its=l.items.slice();if(hasT('scav')&&its.length&&Math.random()<.5)its.push(pick(its.filter(k=>!IT[k].big).length?its.filter(k=>!IT[k].big):its));gainXP(3);for(const k of its){if(IT[k].big)dropItem(k,p.x,p.z,0);else if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast(got.length?'找到：'+got.join('、')+'（在左边快捷栏）':'找到的东西放不下，掉在地上了','good');sysEv('loot',I.b.id);sfx('pick');renderThrow();noise(p.x,p.z,2.5)})});break}
   const ds=I.b.ds;
   if(I.door&&dd(I.door.x,I.door.z,p.x,p.z)<1.5){if(ds.barr>0&&!ds.broken)o.push({l:'门被堵住了（先搬开家具/拆木板）',fn:()=>toast('要出去得先把堵门的东西搬开，或者走窗户/通风管'),alt:1});else o.push({l:'🚪 出门',fn:()=>{const b=I.b;exitTo(b.door.x+b.door.nx*1,b.door.z+b.door.nz*1,0,'door')}});
    if(ds.open&&!ds.broken)o.unshift({l:'🚪 关上门',fn:()=>{ds.open=false;updDoor(I.b);sfx('door',p.x,p.z);toast('门关上了','good')}});
@@ -1545,7 +1564,7 @@ function renderCtx(){const el=$('ctx');const sig=ctxOpts.map(o=>o.l+(o.alt?'1':'
 function igniteGas(it){const p=G.p;G.items.splice(G.items.indexOf(it),1);toast('汽油桶点着了！快跑！','bad');const sc=G.inside||'out';const x=it.x,z=it.z,y=it.y;
  G.fx.push({k:'fuse',x,y:y+.6,z,t:1.6,m:1.6,sc});setTimeout(()=>{if(!G||G.over)return;const old=G.inside;G.inside=sc==='out'?null:sc;
   for(const q of zList())if(!q.dead&&dd(q.x,q.z,x,z)<3.6)hitZombie(q,85,'fire');if((old||'out')===sc&&dd(G.p.x,G.p.z,x,z)<3.2&&Math.abs(G.p.y-y)<2)hurtPlayer(35,0);
-  G.fires.push({x,z,y,r:3.2,t:11,sc});noise(x,z,22);fx3('boom',x,y+.5,z,{t:.9,big:1});sfx('explode',x,z);buzz(120);G.inside=old},1600)}
+  G.fires.push({x,z,y,r:3.2,t:11,sc});netFire(G.fires[G.fires.length-1]);noise(x,z,22);fx3('boom',x,y+.5,z,{t:.9,big:1});sfx('explode',x,z);buzz(120);G.inside=old},1600)}
 function fillMolotov(it){const p=G.p;if(!p.inv.bottle)return;invUse('bottle');it.uses--;invAdd('molotov');toast('做好了一个 <b>🔥 燃烧瓶</b>','good');if(it.uses<=0){G.items.splice(G.items.indexOf(it),1);toast('汽油用完了')}if(!p.throwSel||p.throwSel==='bottle')p.throwSel='molotov';renderThrow()}
 
 // ================= bag UI =================
@@ -1718,12 +1737,12 @@ function plankMesh(pl){const g=new T3.Group();const L=Math.hypot(pl.bx-pl.ax,pl.
  g.position.set((pl.ax+pl.bx)/2,(pl.ya+pl.yb)/2,(pl.az+pl.bz)/2);g.rotation.y=Math.atan2(pl.bx-pl.ax,pl.bz-pl.az);m.rotation.x=-Math.atan2(dy,L);return g}
 
 // ================= sync scene =================
-function ent(key,make){let e=ENT.get(key);if(!e){const m=make();const parent=key.startsWith('I')||key.startsWith('zi')?inGroup:key==='player'?scene:outGroup;parent.add(m);e={m,parent};ENT.set(key,e)}e.live=1;return e}
+function ent(key,make){let e=ENT.get(key);if(!e){const m=make();const parent=key.startsWith('player')?scene:key.startsWith('I')||key.startsWith('zi')?inGroup:outGroup;parent.add(m);e={m,parent};ENT.set(key,e)}e.live=1;return e}
 function syncScene(dt){
  for(const e of ENT.values())e.live=0;const p=G.p,T=G.t;
  // player
- const RM=MODELS.state==='ready';const pe=ent(RM?'playerR':'player',()=>RM?realModel('player'):playerModel());const pm=pe.m;const pvx=(p.x-(pm.userData.lx??p.x)),pvz=(p.z-(pm.userData.lz??p.z));const psp=dt>0?Math.hypot(pvx,pvz)/dt:0;pm.userData.lx=p.x;pm.userData.lz=p.z;pm.position.set(p.x,p.y,p.z);pm.rotation.y=p.ang;const ud=pm.userData;
- const isGun=!!(p.weapon&&IT[p.weapon].kind==='gun');if(ud.real)animReal(ud,dt,p.climb?1:(p.roll?0:psp),{climb:!!p.climb,t:G.t,gun:isGun,aim:isGun&&!p.climb&&!p.roll&&!p.grab&&(p.aimT>0||!!gunTarget(IT[p.weapon])),recoil:p.recoil||0,block:p.block,crouch:p.crouch,roll:p.roll?Math.min(1,p.roll.t/.48):null,grabbed:!!p.grab,shove:p.shoveT>0,thr:p.throwT>0?1-p.throwT/.45:null,attack:p.swing>.85&&!(p.shoveT>0)&&!isGun&&!(p.throwT>0),atk:!p.weapon?'punch':p.weapon==='knife'?'stab':'slash',hit:p.hurtT>.3&&!p.grab,dead:p.hp<=0});else{pose(ud,p.anim,p.climb?0:(p.mv?(p.mv>1?1:.7):0),{climb:!!p.climb,t:G.t,carry:!!p.carry,swing:p.swing,aim:p.aimT>0});pm.scale.y=p.crouch?.72:1;if(p.roll){const th=Math.min(1,p.roll.t/.48)*Math.PI*2;pm.rotation.x=0;ud.body&&(ud.body.rotation.x=th)}else if(ud.body&&!p.climb)ud.body.rotation.x=0}if(p.hide){pm.visible=false}
+ const RM=MODELS.state==='ready';const ZP=NET.zp;const pe=ent(RM?(ZP?'playerZR':'playerR'):(ZP?'playerZ':'player'),()=>RM?realModel(ZP?'walker':'player'):ZP?zombieModel({kind:'walker',id:7}):playerModel());const pm=pe.m;const pvx=(p.x-(pm.userData.lx??p.x)),pvz=(p.z-(pm.userData.lz??p.z));const psp=dt>0?Math.hypot(pvx,pvz)/dt:0;pm.userData.lx=p.x;pm.userData.lz=p.z;pm.position.set(p.x,p.y,p.z);pm.rotation.y=p.ang;const ud=pm.userData;
+ const isGun=!!(p.weapon&&IT[p.weapon].kind==='gun');if(ud.real)animReal(ud,dt,p.climb?1:(p.roll?0:psp),{zombie:ZP?1:0,climb:!!p.climb,t:G.t,gun:isGun,aim:isGun&&!p.climb&&!p.roll&&!p.grab&&(p.aimT>0||!!gunTarget(IT[p.weapon])),recoil:p.recoil||0,block:p.block,crouch:p.crouch,roll:p.roll?Math.min(1,p.roll.t/.48):null,grabbed:!!p.grab,shove:p.shoveT>0,thr:p.throwT>0?1-p.throwT/.45:null,attack:p.swing>.85&&!(p.shoveT>0)&&!isGun&&!(p.throwT>0),atk:!p.weapon?'punch':p.weapon==='knife'?'stab':'slash',hit:p.hurtT>.3&&!p.grab,dead:p.hp<=0});else{pose(ud,p.anim,p.climb?0:(p.mv?(p.mv>1?1:.7):0),{climb:!!p.climb,t:G.t,carry:!!p.carry,swing:p.swing,aim:p.aimT>0});pm.scale.y=p.crouch?.72:1;if(p.roll){const th=Math.min(1,p.roll.t/.48)*Math.PI*2;pm.rotation.x=0;ud.body&&(ud.body.rotation.x=th)}else if(ud.body&&!p.climb)ud.body.rotation.x=0}if(p.hide){pm.visible=false}
  if(ud.wk!==p.weapon&&ud.hand){ud.wk=p.weapon;ud.hand.clear();if(!(ud.real&&setWeapon(ud,p.weapon))){const wm=weaponMesh(p.weapon);if(ud.real){wm.rotation.set(Math.PI/2,0,0)}ud.hand.add(wm)}}
  PLAYER_UD=ud;
  if(p.carry){if(!ud.carry||ud.carryK!==p.carry.k){if(ud.carry)pm.remove(ud.carry);ud.carry=itemModel(p.carry.k);ud.carry.userData.ring.visible=false;ud.carryK=p.carry.k;pm.add(ud.carry);if(p.carry.k==='gascan')ud.carry.position.set(0,.6,.35);else{ud.carry.position.set(0,1.25,.1);ud.carry.rotation.z=.12}}}else if(ud.carry){pm.remove(ud.carry);ud.carry=null}
@@ -1745,6 +1764,7 @@ function syncScene(dt){
    const f=glowSprite(0xff3020,2.2,.9);f.position.set(.6,.9,.6);g.add(f);g.userData.f=f;const L=new T3.PointLight(0xff3a20,2,10,2);L.position.set(.6,1.2,.6);g.add(L);g.userData.L=L;return g});
   e.m.position.set(D.x,0,D.z);const on=D.flare&&!D.open;e.m.userData.f.visible=on;e.m.userData.L.intensity=on?1.6+Math.sin(G.t*23)*.6:0;e.m.userData.f.scale.setScalar(1.8+Math.sin(G.t*17)*.4);
   if(on&&Math.random()<dt*7)G.fx.push({k:'smokeR',x:D.x+.6,y:1,z:D.z+.6,t:4,m:4,sc:'out',dx:rnd(-.3,.3)})}
+ netRender(dt);
  // fx
  syncFx(dt);
  for(const [k,e] of ENT)if(!e.live&&!k.startsWith('fx')){e.parent.remove(e.m);ENT.delete(k)}
@@ -1829,6 +1849,7 @@ function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X
  for(const z of G.zs)if(!z.dead&&(dd(z.x,z.z,p.x,p.z)<(16+3*A_('per'))*(hasT('eagle')?2:1)||big)){g.fillStyle=z.state==='chase'?'#ff4030':'#b04a3a';g.fillRect(X(z.x)-1.5,Z(z.z)-1.5,3,3)}
  if(G.drop&&!G.drop.open){g.font=`${Math.round(S/12)}px sans-serif`;g.textAlign='center';g.fillText('📦',X(G.drop.x),Z(G.drop.z)+S/40)}
  const pb=BID.office;g.fillStyle=G.heli?'#ffd060':'#8a7a40';g.font=`${Math.round(S/14)}px sans-serif`;g.textAlign='center';g.fillText('★',X(pb.pad.x),Z(pb.pad.z)+S/40);
+ netMini(g,X,Z,k);
  let px=p.x,pz=p.z;if(G.inside){const b=G.interiors[G.inside].b;px=(b.x0+b.x1)/2;pz=(b.z0+b.z1)/2}
  g.save();g.translate(X(px),Z(pz));g.rotate(-p.ang+Math.PI);g.fillStyle='#fff';g.beginPath();g.moveTo(0,-5);g.lineTo(4,4);g.lineTo(-4,4);g.closePath();g.fill();g.restore()}
 
@@ -2095,7 +2116,7 @@ function critCh(){return .15+.03*A_('per')+(hasT('crit')?.15:0)}
 function critMul(){return hasT('crit')?2.2:1.6}
 function headCh(){return Math.min(.9,.3+.03*A_('per')+(hasT('sniper')?.25:0)+(hasTi('gunner')?.1:0))}
 function cdK(){return Math.max(.5,(1-.03*A_('agi'))*(hasT('quick')?.8:1))}
-function spdK(){return (1+.04*A_('agi'))*(hasTi('dancer')?1.05:1)}
+function spdK(){return (1+.04*A_('agi'))*(hasTi('dancer')?1.05:1)*(NET.zp?1.2:1)}
 function stMaxK(){return 1+.06*A_('vit')}
 function stRegK(){return 1+.08*A_('agi')}
 function defK(){return hasT('bone')?.85:1}
@@ -2198,9 +2219,10 @@ function tickKing(dt){const z=G.king;if(!z)return;if(z.dead){G.king=null;return}
  // roar: summon a horde at 2/3 and 1/3 health
  const f=z.hp/z.mhp;for(const [th,key] of [[.66,'r1'],[.33,'r2']])if(f<th&&!z[key]){z[key]=1;sfx('roar');shake(.35);for(let i=0;i<5;i++){const a=rnd(0,6.28),r=rnd(3,6);const q=mkZombie(pick(['walker','runner','runner']),clamp(z.x+Math.cos(a)*r,-HALF+2,HALF-2),clamp(z.z+Math.sin(a)*r,-HALF+2,HALF-2));q.state='investigate';q.tx=p.x;q.tz=p.z;G.zs.push(q)}sysMsg('尸王怒吼','它召唤了尸群！小心身后',{kind:'bad'})}
  // ground slam
- if(!out)return;z.slamCd-=dt;const d=dd(z.x,z.z,p.x,p.z);
+ if(!G.zs.includes(z))return;z.slamCd-=dt;let d=out?dd(z.x,z.z,p.x,p.z):99;if(NET.on)for(const h of netHumans())if(h.remote&&h.sc==='out')d=Math.min(d,dd(z.x,z.z,h.x,h.z));
  if(z.slam){z.slam.t-=dt;z.stun=Math.max(z.stun,.05);if(z.slam.t<=0){const S=z.slam;z.slam=null;sfx('explode',z.x,z.z);shake(.55);hitStop(.08);for(let i=0;i<10;i++)fx3('dust',S.x+rnd(-3,3),.2,S.z+rnd(-3,3),{t:.9});
-   if(dd(S.x,S.z,p.x,p.z)<3.4&&Math.abs(p.y-z.y)<1.6&&!(p.roll&&p.roll.t<.4)&&!p.inCar&&!p.hide){hurtPlayer(24*zDmK(),3,z);const dl=dd(p.x,p.z,S.x,S.z)||1;moveEnt(p,(p.x-S.x)/dl*2.4,(p.z-S.z)/dl*2.4,.3);p.stag=.9;toast('被尸王震飞了！看到红圈要翻滚','bad')}
+   if(out&&!NET.zp&&dd(S.x,S.z,p.x,p.z)<3.4&&Math.abs(p.y-z.y)<1.6&&!(p.roll&&p.roll.t<.4)&&!p.inCar&&!p.hide){hurtPlayer(24*zDmK(),3,z);const dl=dd(p.x,p.z,S.x,S.z)||1;moveEnt(p,(p.x-S.x)/dl*2.4,(p.z-S.z)/dl*2.4,.3);p.stag=.9;toast('被尸王震飞了！看到红圈要翻滚','bad')}
+   if(NET.on)for(const h of netHumans())if(h.remote&&h.sc==='out'&&dd(h.x,h.z,S.x,S.z)<3.4)netSend({k:'slam',to:h.id,x:S.x,z:S.z,dm:Math.round(24*zDmK())});
    for(const o of G.zs)if(o!==z&&!o.dead&&dd(o.x,o.z,S.x,S.z)<3.4)knock(o,S.x,S.z,1,1,.5);z.slamCd=rnd(5.5,7.5)}}
  else if(d<3.8&&z.slamCd<=0&&z.stun<=0){z.slam={t:1,x:z.x,z:z.z};sfx('roar',z.x,z.z);G.fx.push({k:'kring',x:z.x,y:z.y,z:z.z,r:3.4,t:1,m:1,sc:'out'})}}
 
@@ -2218,8 +2240,7 @@ function rpgTick(dt){if(!G||G.over)return;const p=G.p;if(!p.lv)return;RPG.scanCd
  if(RPG.pendTal>0){RPG.talW=(RPG.talW||0)+dt;const calm=!zList().some(q=>!q.dead&&q.state==='chase'&&dd(q.x,q.z,p.x,p.z)<10);if((calm||RPG.talW>20)&&!p.grab&&!p.busy&&$('wheel').hidden&&$('tut').hidden&&$('talOv').hidden){RPG.talW=0;showTalent()}}
  if(hasT('regen')&&G.t-p.lastHurt>6&&p.hp<maxHp()&&p.hp>0)p.hp=Math.min(maxHp(),p.hp+.8*dt);
  // night king
- if(G.night&&(G.day===3||G.day===5)&&!RPG.kingN[G.day]&&G.phaseT>G.nightLen*.3)spawnKing();
- tickKing(dt);
+ if(!NET.on||!NET.started||NET.host){if(G.night&&(G.day===3||G.day===5)&&!RPG.kingN[G.day]&&G.phaseT>G.nightLen*.3)spawnKing();tickKing(dt)}
  // boss bar
  const z=G.king,bb=$('bossB');if(z&&!z.dead&&(G.inside?G.interiors[G.inside].zs.includes(z):G.zs.includes(z))&&dd(z.x,z.z,p.x,p.z)<35){bb.hidden=false;$('bossN').textContent=`尸王 · ${zLevel(z)} 级`;$('bossH').textContent=Math.ceil(z.hp)+' / '+Math.ceil(z.mhp);$('bossI').style.width=(z.hp/z.mhp*100)+'%'}else bb.hidden=true;
  // hidden: horde dancer
@@ -2232,7 +2253,7 @@ function rpgTick(dt){if(!G||G.over)return;const p=G.p;if(!p.lv)return;RPG.scanCd
 function onNight(){G.p.nightDmg=0;G.nightTrack=true}
 function onDawn(){const p=G.p;if(G.nightTrack&&p.nightDmg<1)hid('phoenix');G.nightTrack=false;RPG.disc=Math.floor(Math.random()*SHOP.length);
  setTimeout(()=>snark('dawn',pick(['又活过一晚。本系统对宿主的评价从“废物”上调为“勉强能用”。','天亮了。宿主居然还活着，本系统有点意外。']),400),6000);
- if(saveGame())setTimeout(()=>sysMsg('自动存档',`第 ${G.day} 天的进度已保存 · 关掉网页后可以在开始画面【继续游戏】`,{kind:'ok',mute:true,t:4200}),2500)}
+ if(!NET.on&&saveGame())setTimeout(()=>sysMsg('自动存档',`第 ${G.day} 天的进度已保存 · 关掉网页后可以在开始画面【继续游戏】`,{kind:'ok',mute:true,t:4200}),2500)}
 // ---- eagle eye: colour by state + each zombie's sight ring on the ground ----
 function zCol(z){return z.state==='chase'?[255,74,58]:z.state==='investigate'||z.door||z.entry?[240,192,80]:[170,176,170]}
 function eagleDraw(p){const zs=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=20);
@@ -2243,6 +2264,7 @@ function eagleDraw(p){const zs=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=2
 function rpgOverlay(){const p=G.p;const sc=G.inside||'out';
  if(hasT('eagle'))eagleDraw(p);
  for(const f of RPG.ftx){if(f.sc!==sc)continue;const k=1-f.t/.9;const s=proj(f.x,f.y+k*.9,f.z);if(!s)continue;oc.globalAlpha=Math.min(1,f.t*2.2);oc.font=`900 ${f.big?20:14}px "Noto Sans SC",sans-serif`;oc.textAlign='center';oc.lineWidth=3;oc.strokeStyle='rgba(0,0,0,.7)';oc.strokeText(f.s,s[0],s[1]);oc.fillStyle=f.c;oc.fillText(f.s,s[0],s[1])}oc.globalAlpha=1;
+ netOverlay();
  const S=RPG.scan;if(S&&zList().includes(S.z)){const z=S.z,K=ZK[z.kind];const s=proj(z.x,z.y+(K.big?2.9:2.2),z.z);if(s){const W=210,H=104;let x=clamp(s[0]+18,8,innerWidth-W-8),y=clamp(s[1]-H,60,innerHeight-H-8);const a=Math.min(1,S.t*2);oc.globalAlpha=a;
    oc.fillStyle='rgba(6,26,34,.84)';oc.strokeStyle='rgba(120,230,255,.85)';oc.lineWidth=1;oc.beginPath();oc.roundRect?oc.roundRect(x,y,W,H,6):oc.rect(x,y,W,H);oc.fill();oc.stroke();
    oc.beginPath();oc.moveTo(s[0],s[1]);oc.lineTo(x,y+H/2);oc.stroke();
@@ -2330,6 +2352,208 @@ function applySaveSys(S){if(!S.sys)return;SYS.story=S.sys.story||0;(S.sys.q||[])
 function contLabel(){const S=readSave();const b=$('cont');if(!b)return;b.hidden=!S;if(S){const d=new Date(S.at);b.innerHTML=`继续游戏 · 第 ${S.day} 天黎明<small>${S.p.lv||1} 级 · ${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} 存档</small>`;$('go').textContent='新游戏（会覆盖存档）'}else $('go').textContent='开始游戏'}
 
 
+// ================= 多人联机：Supabase Realtime 房间 · 房主模拟世界 · 合作求生 + 内讧 · 死后尸化 =================
+const SB_URL='https://taraaujjrhjugfmnuwcw.supabase.co',SB_KEY='sb_publishable_zWqHjE7bT-Bfgg6yooXFYw_OKfKcSpy';
+const NET={on:false,host:false,me:null,name:'',room:null,tr:null,peers:{},list:[],started:false,ended:false,n:0,known:new Set(),gone:new Set(),
+ sendT:0,snapT:0,nz:null,nzT:0,syncT:0,lpSig:'',doorSig:'',seed:0,zp:false,esc:false,lastPres:{},nobody:null,endT:0,hostSeen:0};
+const ZKI=['walker','runner','climber','crawler','screamer','stalker','brute','king'];
+function netId(){return Math.random().toString(36).slice(2,8)}
+function netSend(o){if(NET.tr)try{NET.tr.send('e',o)}catch(e){}}
+function hashf(s){let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return ((h>>>0)%1000)/1000}
+// ---------- transport (real: Supabase broadcast + presence · tests: window.__fakeNet) ----------
+function netTransport(room){if(window.__fakeNet)return window.__fakeNet(room,NET.me);
+ if(!window.supabase||!window.supabase.createClient)throw new Error('联机组件没有加载（检查网络）');
+ const sb=window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:40}}});
+ const ch=sb.channel('scwr-'+room,{config:{broadcast:{self:false,ack:false},presence:{key:NET.me}}});
+ return{send(ev,p){ch.send({type:'broadcast',event:ev,payload:p})},on(ev,fn){ch.on('broadcast',{event:ev},m=>fn(m.payload))},presence(fn){ch.on('presence',{event:'sync'},()=>fn(ch.presenceState()))},
+  track(o){return ch.track(o)},subscribe(cb){ch.subscribe(st=>cb(st))},close(){try{ch.untrack();sb.removeChannel(ch)}catch(e){}}}}
+// ---------- lobby ----------
+function mpDom(){if($('mpP'))return;const P=document.createElement('div');P.id='mpP';P.className='ov2';P.hidden=true;
+ P.innerHTML=`<div class="wbox mpbox"><div class="st">【末日系统】多人联机</div>
+ <div id="mpA"><p>合作求生：一起撑 5 晚。可以打队友、推队友、抢东西；死了会变成<b>尸化体</b>，继续去抓活人。最多 6 人。</p>
+  <label class="mpl">你的名字<input id="mpName" maxlength="8" autocomplete="off"></label>
+  <button id="mpCreate" class="big">创建房间</button>
+  <div class="mprow"><input id="mpCode" maxlength="4" inputmode="numeric" placeholder="4 位房号" autocomplete="off"><button id="mpJoin">加入房间</button></div></div>
+ <div id="mpB" hidden><div class="mpcode">房号 <b id="mpRoom">----</b></div><button id="mpCopy">复制邀请链接</button><div id="mpList"></div>
+  <button id="mpGo" class="big">开始游戏</button><p id="mpWait">等待房主开始……</p></div>
+ <div id="mpMsg"></div><button id="mpX">离开</button></div>`;document.body.appendChild(P);
+ let nm='';try{nm=localStorage.getItem('scwr-name')||''}catch(e){}$('mpName').value=nm||('幸存者'+Math.floor(10+Math.random()*90));
+ $('mpCreate').onclick=()=>mpEnter(String(Math.floor(1000+Math.random()*9000)),true);
+ $('mpJoin').onclick=()=>{const c=$('mpCode').value.trim();if(!/^\d{4}$/.test(c)){mpMsg('房号是 4 位数字');return}mpEnter(c,false)};
+ $('mpCopy').onclick=()=>{const u=location.origin+location.pathname+'?room='+NET.room;try{navigator.clipboard.writeText(u);mpMsg('邀请链接已复制，发给朋友就行')}catch(e){mpMsg(u)}};
+ $('mpGo').onclick=()=>mpStart();$('mpX').onclick=()=>{mpLeave();P.hidden=true};
+ P.addEventListener('pointerdown',e=>e.stopPropagation())}
+function mpMsg(t){const el=$('mpMsg');if(el)el.textContent=t||''}
+function openMP(code){mpDom();$('mpP').hidden=false;if(code){$('mpCode').value=code}mpMsg(code?'输入名字后点【加入房间】':'')}
+function mpEnter(code,host){const nm=($('mpName').value||'').trim().slice(0,8)||'幸存者';try{localStorage.setItem('scwr-name',nm)}catch(e){}
+ mpLeave();Object.assign(NET,{on:true,host,me:netId(),name:nm,room:code,peers:{},started:false,ended:false,zp:false,esc:false,known:new Set(),gone:new Set(),hostSeen:0});
+ try{NET.tr=netTransport(code)}catch(e){NET.on=false;mpMsg(e.message);return}
+ const T=NET.tr;T.on('e',netOnEvent);T.on('w',netOnWorld);T.on('p',netOnPlayer);T.on('start',netOnStart);T.presence(netOnPresence);
+ mpMsg('连接中……');T.subscribe(st=>{if(st==='SUBSCRIBED'){T.track({id:NET.me,name:nm,host,t:Date.now()});$('mpA').hidden=true;$('mpB').hidden=false;$('mpRoom').textContent=code;$('mpGo').hidden=!host;$('mpWait').hidden=host;mpMsg(host?'把房号或邀请链接发给朋友':'');
+   if(!host)setTimeout(()=>{if(NET.on&&!NET.started&&!NET.hostSeen){mpMsg('找不到这个房间（房号错了，或者房主还没创建）')}},4000)}
+  else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')mpMsg('连接失败，检查网络后再试')})}
+function mpLeave(){if(NET.tr){try{NET.tr.close()}catch(e){}}NET.tr=null;NET.on=false;NET.started=false;$('mpA')&&($('mpA').hidden=false);$('mpB')&&($('mpB').hidden=true)}
+function netOnPresence(st){const ps=[];for(const k in st){const o=st[k][0];if(o)ps.push(o)}ps.sort((a,b)=>a.t-b.t);NET.lastPres=ps;
+ if(ps.some(o=>o.host))NET.hostSeen=1;
+ const el=$('mpList');if(el)el.innerHTML=ps.map(o=>`<div class="mpp">${o.host?'👑':'🧍'} ${esc(o.name)}${o.id===NET.me?'（你）':''}</div>`).join('')+`<small>${ps.length}/6 人</small>`;
+ if(!NET.started){if(!NET.host&&ps.length>6&&ps[ps.length-1].id===NET.me){mpMsg('房间满了');mpLeave()}return}
+ // in game: someone left
+ const ids=new Set(ps.map(o=>o.id));for(const id in NET.peers){const q=NET.peers[id];if(!ids.has(id)&&!q.gone){q.gone=true;toast(`${esc(q.name)} 离开了`);if(q.host&&!NET.ended){NET.ended=true;sysWorld('房主断开了连接','联机已结束');setTimeout(()=>endGame(false,'net'),2500)}}}}
+function esc(s){return String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}
+function mpStart(){if(!NET.host)return;const list=(NET.lastPres||[]).slice(0,6).map(o=>({id:o.id,name:o.name}));const seed=Math.floor(Math.random()*1e9);
+ const msg={seed,diff,len,list};NET.tr.send('start',msg);netOnStart(msg)}
+function netOnStart(m){if(NET.started)return;if(!m.list.some(o=>o.id===NET.me)){mpMsg('游戏已经开始了，没能加入');return}
+ NET.started=true;NET.seed=m.seed;NET.list=m.list;diff=m.diff;len=m.len;NET.peers={};
+ for(const o of m.list)if(o.id!==NET.me)NET.peers[o.id]={id:o.id,name:o.name,host:o.id===m.list[0].id,st:0,x:0,y:0,z:0,sc:'out',hp:100,car:-1,gb:[]};
+ $('mpP').hidden=true;begin()}
+// ---------- world setup in a multiplayer game (called from begin) ----------
+function netSpawnIdx(){return Math.max(0,NET.list.findIndex(o=>o.id===NET.me))}
+function netSetup(){const p=G.p;G.lp=p;const i=netSpawnIdx();const off=[[0,0],[1.6,0],[-1.6,0],[0,1.6],[0,-1.6],[1.6,1.6]][i]||[0,0];p.x+=off[0];p.z+=off[1];
+ G.items.forEach((it,j)=>{it.nid='s'+j;NET.known.add(it.nid)});if(!NET.host)G.zs.length=0;
+ NET.nobody={remote:true,id:'_',x:9999,z:9999,y:0,hp:100,sc:'out',grab:null};document.body.classList.add('mp');
+ setTimeout(()=>sysMsg('联机',`已进入房间 <b>${NET.room}</b> · 队友 ${Object.keys(NET.peers).length} 人<br>合作求生，也可以内讧：打队友会掉东西。死了会变成尸化体。`,{t:6500}),5200)}
+// ---------- per-frame ----------
+function netTick(dt){if(!NET.on||!NET.started||!G)return;const p=G.p;
+ // Supabase free plan: 100 events/s per project (every delivery counts) -> keep the room around 70/s
+ const n=1+Object.values(NET.peers).filter(q=>!q.gone).length;const wHz=n<=2?4:n<=4?3:2.5;const pHz=clamp((72/n-wHz)/n,1.8,6);
+ NET.nzT-=dt;if(NET.nz&&NET.nzT<=0){netSend(NET.nz);NET.nz=null;NET.nzT=.6}
+ NET.sendT-=dt;if(NET.sendT<=0){NET.sendT=1/pHz;netSendState()}
+ if(NET.host&&!NET.ended){NET.snapT-=dt;if(NET.snapT<=0){NET.snapT=1/wHz;netSendWorld()}
+  NET.endT-=dt;if(NET.endT<=0){NET.endT=1;netCheckEnd()}}
+ NET.syncT-=dt;if(NET.syncT<=0){NET.syncT=.3;netSyncItems();netSyncLP();if(!NET.host)netSyncDoors()}
+ for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st)continue;const k=Math.min(1,dt*10);q.rx=q.rx==null?q.x:lerp(q.rx,q.x,k);q.ry=q.ry==null?q.y:lerp(q.ry,q.y,k);q.rz=q.rz==null?q.z:lerp(q.rz,q.z,k);let da=q.a-(q.ra??q.a);da=Math.atan2(Math.sin(da),Math.cos(da));q.ra=(q.ra??q.a)+da*k;
+  if(q.car>=0&&q.dv&&G.cars[q.car])netCarMove(G.cars[q.car],q.cx,q.cz,q.ca)}
+ if(!NET.host)netInterp(dt)}
+function r1(v){return Math.round(v*10)/10}
+function netSendState(){const p=G.p;const c=p.inCar;const ci=c?G.cars.indexOf(c):-1;
+ NET.tr.send('p',{id:NET.me,x:r1(p.x),y:r1(p.y),z:r1(p.z),a:Math.round(p.ang*100)/100,sc:G.inside||'out',hp:Math.round(p.hp),mh:maxHp(),cr:p.crouch?1:0,fl:p.flash?1:0,wp:p.weapon||'',bl:p.block?1:0,rl:p.roll?1:0,hd:p.hide?1:0,
+  car:ci,cx:c?r1(c.x):0,cz:c?r1(c.z):0,ca:c?Math.round(c.ang*100)/100:0,dv:c&&c.driving?1:0,gb:p.grab?p.grab.zs.filter(z=>z.net).map(z=>z.id):[],at:p.swing>.85?1:0,sh:p.shoveT>0?1:0,th:p.throwT>0?1:0,ht:p.hurtT>.3?1:0,
+  zp:NET.zp?1:0,es:NET.esc?1:0,lv:p.lv||1,nm:NET.name,ov:G.over&&!NET.zp?1:0})}
+function netOnPlayer(m){const q=NET.peers[m.id];if(!q||!G)return;Object.assign(q,m);q.st=1;q.t=performance.now();
+ if(NET.host){const P=q.proxy||(q.proxy={remote:true,id:m.id});Object.assign(P,{x:m.x,y:m.y,z:m.z,ang:m.a,hp:m.hp,crouch:!!m.cr,flash:!!m.fl,hide:m.hd?{}:null,inCar:m.car>=0?G.cars[m.car]:null,roll:null,block:!!m.bl,mv:1,climb:null,sc:m.sc,zp:!!m.zp,esc:!!m.es||!!m.ov,inf:0});
+  const prev=P.gbIds||[];for(const id of prev)if(!m.gb.includes(id)){const z=G.zs.find(q=>q.id===id);if(z)z.grabbing=false}
+  const zs=[];for(const id of m.gb){const z=G.zs.find(q=>q.id===id);if(z&&!z.dead){z.grabbing=true;z.state='chase';zs.push(z)}}P.gbIds=m.gb.slice();P.grab=zs.length?{zs}:null}}
+// ---------- host: zombies pick the nearest living human; G.p is swapped to that player while the zombie thinks ----------
+function netHumans(){const out=[];if(!NET.zp&&!G.over)out.push(G.lp||G.p);for(const id in NET.peers){const q=NET.peers[id];const P=q.proxy;if(!q.gone&&P&&!P.zp&&!P.esc&&P.hp>0)out.push(P)}return out}
+function netTargetPos(T){if(T.sc==='out'||!T.sc)return[T.x,T.z];const b=BID[String(T.sc).split('#')[0]];return b&&b.door?[b.door.x,b.door.z]:[T.x,T.z]}
+function netTickZ(z,dt,H){if(!NET.on){tickZombie(z,dt,'out');return}
+ let T=null,bd=1e9;for(const h of H){const [x,zz]=netTargetPos(h);let d=dd(z.x,z.z,x,zz)+(h.sc&&h.sc!=='out'?2:0);if(z.tgt===(h.id||'me'))d-=3;if(d<bd){bd=d;T=h}}
+ if(!T)T=NET.nobody;z.tgt=T.id||'me';const L=G.lp||G.p;if(T===L){tickZombie(z,dt,'out');return}
+ const P0=G.p,I0=G.inside;G.p=T;G.inside=T.sc&&T.sc!=='out'?T.sc:null;try{tickZombie(z,dt,'out')}finally{G.p=P0;G.inside=I0}}
+// zombies that wander up to a door where any human is hiding start bashing it
+function netDoorAggro(){for(const h of netHumans()){if(!h.sc||h.sc==='out'||h===(G.lp||G.p))continue;const b=BID[String(h.sc).split('#')[0]];if(!b||!b.door)continue;const [fx,fz]=doorFront(b);
+  for(const z of G.zs)if(!z.dead&&!z.door&&!z.entry&&!(z.giveT>G.t)&&(z.state==='investigate'||z.state==='chase')&&dd(z.x,z.z,fx,fz)<4){z.door=b;z.stimT=G.t}}}
+// ---------- host → everyone: world snapshot ----------
+function netSendWorld(){const zs=[];for(const z of G.zs){if(z.dead&&z.deadT<38)continue;let f=0;if(z.state==='chase')f|=1;else if(z.state==='investigate'||z.door||z.entry)f|=2;if(z.dead)f|=4;if(z.down>0)f|=8;if(z.stun>0)f|=16;if(z.grabbing)f|=32;if(z.climb)f|=64;if(z.lunge>0)f|=128;if(z.hitT>0)f|=256;if(z.burn>0)f|=512;
+  zs.push([z.id,ZKI.indexOf(z.kind),Math.round(z.x*10),Math.round(z.z*10),Math.round(z.y*10),Math.round(z.ang*100),Math.round(z.hp),Math.round(z.mhp),f])}
+ const ds=BLD.map(b=>[Math.round(b.ds.hp),Math.round(b.ds.barr),(b.ds.broken?1:0)|(b.ds.open?2:0)|((b.ds.planks||0)<<2),(b.wins||[]).reduce((a,W,i)=>a|((W.broken?1:0)<<(i*2))|((W.boarded?1:0)<<(i*2+1)),0)]);
+ const D=G.drop;NET.tr.send('w',{t:Math.round(G.t*10)/10,ph:Math.round(G.phaseT*10)/10,d:G.day,n:G.night?1:0,h:G.heli?Math.round(G.heli.t*10)/10:null,dr:D?[r1(D.x),r1(D.z),Math.round(D.t),D.open?1:0,D.flare?1:0,D.items]:null,k:G.king&&!G.king.dead?G.king.id:0,zs,ds})}
+function netOnWorld(s){if(!G||!NET.started||NET.host)return;const pn=G.night;G.t=s.t;G.phaseT=s.ph;G.day=s.d;G.night=!!s.n;
+ if(G.night&&!pn)onNight();if(!G.night&&pn&&G.day>1)onDawn();
+ const H=BID.office;if(s.h!=null){if(!G.heli){G.heli={x:H.pad.x,z:H.pad.z,y:H.h,t:s.h,on:0};sfx('heli')}else G.heli.t=s.h}
+ if(s.dr){const [x,z,t,o,f,items]=s.dr;if(!G.drop||G.drop.x!==x||G.drop.z!==z){G.drop={x,z,t,items,open:!!o,flare:!!f};sfx('heli')}else{G.drop.t=t;if(o)G.drop.open=true;G.drop.flare=!!f}}else G.drop=null;
+ // doors & windows
+ s.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;const br=!!(a[2]&1),op=!!(a[2]&2),pl=a[2]>>2;const chg=br!==!!ds.broken||op!==!!ds.open||pl!==(ds.planks||0)||Math.abs(ds.barr-a[1])>1;ds.hp=a[0];ds.barr=a[1];ds.broken=br;ds.open=op;ds.planks=pl;if(chg){updDoor(b);const I=G.interiors[interiorKey(b.id,0)];if(I&&I.built!==false)try{renderBar(I)}catch(e){}}
+  (b.wins||[]).forEach((W,j)=>{const wb=!!(a[3]>>(j*2)&1),wo=!!(a[3]>>(j*2+1)&1);if(wb!==!!W.broken||wo!==!!W.boarded){W.broken=wb;W.boarded=wo;updWindow(W)}})});
+ NET.doorSig=doorSig();
+ // zombies (mirrors)
+ const seen=new Set();for(const a of s.zs){const [id,ki,x,z,y,an,hp,mh,f]=a;seen.add(id);let m=NET.zm&&NET.zm.get(id);
+  if(!m){m={id,kind:ZKI[ki]||'walker',x:x/10,z:z/10,y:y/10,ang:an/100,hp,mhp:mh,net:true,state:'idle',dead:false,deadT:40,down:0,stun:0,grabbing:false,climb:null,lunge:0,hitT:0,flashT:0,kv:null,mv:0,anim:hashf(id)*6,cd:0,v:{s:ZKI[ki]==='king'?1.5:.92+hashf(id+'s')*.18,t:.85+hashf(id+'t')*.27}};(NET.zm||(NET.zm=new Map())).set(id,m);G.zs.push(m)}
+  m.tx=x/10;m.tz=z/10;m.ty=y/10;m.ta=an/100;m.hp=hp;m.mhp=mh;m.state=f&1?'chase':f&2?'investigate':'idle';if(f&4&&!m.dead){m.dead=true;m.deadT=40}m.down=f&8?1:0;m.stun=f&16?1:0;m.grabbing=(G.p.grab&&G.p.grab.zs.includes(m))?true:!!(f&32);m.climb=f&64?{}:null;if(f&128)m.lunge=.3;if(f&256)m.hitT=.15;m.burn=f&512?1:0}
+ for(const z of G.zs)if(z.net&&!seen.has(z.id)&&!z.dead){z.dead=true;z.deadT=2}
+ G.king=s.k?NET.zm.get(s.k)||null:null}
+function netInterp(dt){const k=Math.min(1,dt*8);for(const z of G.zs){if(!z.net)continue;if(z.tx==null)continue;const ox=z.x,oz=z.z;z.x=lerp(z.x,z.tx,k);z.z=lerp(z.z,z.tz,k);z.y=lerp(z.y,z.ty,k);let da=z.ta-z.ang;da=Math.atan2(Math.sin(da),Math.cos(da));z.ang+=da*k;z.mv=dd(ox,oz,z.x,z.z)>.002?1:0;z.anim+=dt*(z.mv?2.4:1);z.hitT-=dt;z.flashT-=dt;z.lunge-=dt;if(z.dead)z.deadT-=dt}
+ G.zs=G.zs.filter(z=>!(z.dead&&z.deadT<=0&&(z.net?(NET.zm.delete(z.id),true):true)))}
+// ---------- events ----------
+function netOnEvent(m){if(!G||!NET.started)return;if(m.to&&m.to!==NET.me)return;const p=G.p;const q=NET.peers[m.from];
+ switch(m.k){
+  case 'hitZ':if(!NET.host)return;{const z=G.zs.find(o=>o.id===m.zid);if(!z||z.dead)return;G._by=m.from;G._raw=true;hitZombie(z,m.dm,m.src);G._raw=false;G._by=null;break}
+  case 'knockZ':if(!NET.host)return;{const z=G.zs.find(o=>o.id===m.zid);if(!z||z.dead)return;knock(z,m.fx,m.fz,m.d,m.s,m.dn);if(m.st)z.stun=Math.max(z.stun,m.st);break}
+  case 'noise':if(!NET.host)return;G.noises.push({x:m.x,z:m.z,r:m.r,t:.5,sc:'out'});if(m.b&&BID[m.b])BID[m.b].lastNoise=G.t;break;
+  case 'fire':G.fires.push({x:m.x,z:m.z,y:m.y,r:m.r,t:m.t,sc:m.sc});break;
+  case 'zAtk':{const z=G.zs.find(o=>o.id===m.zid);if(!z||G.over)return;if(m.car&&p.inCar)carBash(z,p.inCar);else zAttack(z);break}
+  case 'slam':if(G.over||NET.zp)return;if(dd(m.x,m.z,p.x,p.z)<3.4&&!(p.roll&&p.roll.t<.4)&&!p.inCar&&!p.hide){hurtPlayer(m.dm,3,{x:m.x,z:m.z});const dl=dd(p.x,p.z,m.x,m.z)||1;moveEnt(p,(p.x-m.x)/dl*2.4,(p.z-m.z)/dl*2.4,.3);p.stag=.9;shake(.5);toast('被尸王震飞了！看到红圈要翻滚','bad')}break;
+  case 'kill':{G.stats.kills++;sysEv('kill');onKill({kind:m.kind,x:m.x,z:m.z,y:m.y||0},m.src);break}
+  case 'zEnter':{const I=interior(m.bid,m.f);const z=mkZombie(m.kind,m.x,m.z);z.hp=m.hp;z.mhp=m.mhp;z.state=G.inside===I.key?'chase':'investigate';z.tx=0;z.tz=0;I.zs.push(z);if(G.inside===I.key||(G.inside&&G.interiors[G.inside].b.id===m.bid))toast(`${ZK[m.kind].n}闯进来了！`,'bad');break}
+  case 'zExit':if(!NET.host)return;{const z=mkZombie(m.kind,m.x,m.z);z.hp=m.hp;z.mhp=m.mhp;z.state='investigate';z.tx=m.x;z.tz=m.z;G.zs.push(z);break}
+  case 'swarm':if(!NET.host)return;{const P=q&&q.proxy;if(!P)return;const P0=G.p,I0=G.inside;G.p=P;G.inside=P.sc!=='out'?P.sc:null;try{scentSwarm()}finally{G.p=P0;G.inside=I0}break}
+  case 'doors':if(!NET.host)return;m.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;ds.hp=a[0];ds.barr=a[1];ds.broken=!!(a[2]&1);ds.open=!!(a[2]&2);ds.planks=a[2]>>2;updDoor(b);(b.wins||[]).forEach((W,j)=>{W.broken=!!(a[3]>>(j*2)&1);W.boarded=!!(a[3]>>(j*2+1)&1);updWindow(W)})});break;
+  case 'iadd':if(NET.known.has(m.nid)||NET.gone.has(m.nid))return;NET.known.add(m.nid);G.items.push({id:G.uid++,nid:m.nid,k:m.kk,x:m.x,z:m.z,y:m.y,inside:m.in||null,uses:m.u});break;
+  case 'idel':{NET.known.delete(m.nid);NET.gone.add(m.nid);const i=G.items.findIndex(it=>it.nid===m.nid);if(i>=0)G.items.splice(i,1);break}
+  case 'lp':netApplyLP(m);break;
+  case 'loot':{const [bid,f]=m.key.split('#');if(!BID[bid])return;const I=interior(bid,+f);if(I.loot[m.i])I.loot[m.i].done=true;break}
+  case 'dropOpen':if(G.drop){G.drop.open=true;G.drop.flare=false}break;
+  case 'pHit':{if(G.over)return;if(NET.zp&&!m.hum)return;const dl=dd(p.x,p.z,m.fx,m.fz)||1;
+   if(!NET.zp&&(p.roll&&p.roll.t<.36))return;
+   if(p.block&&!NET.zp&&facingTo(p,m.fx,m.fz)<1.15&&useSt(10)){sfx('block',p.x,p.z);shake(.1);return}
+   hurtPlayer(m.dm,m.inf||0,{kind:'player',x:m.fx,z:m.fz});moveEnt(p,(p.x-m.fx)/dl*(m.kb||.4),(p.z-m.fz)/dl*(m.kb||.4),.3);shake(.15);fx3('spray',p.x,p.y+1.3,p.z,{t:.4,dx:(p.x-m.fx)/dl,dz:(p.z-m.fz)/dl});
+   if(!G.pvpTip){G.pvpTip=1;toast(`<b>${esc(q?q.name:'有人')}</b> 在打你！被打几下会掉东西`,'bad')}break}
+  case 'pShove':{if(G.over)return;const dl=dd(p.x,p.z,m.fx,m.fz)||1;moveEnt(p,(p.x-m.fx)/dl*m.pw,(p.z-m.fz)/dl*m.pw,.3);p.stag=.45;sfx('shove',p.x,p.z);shake(.12);if(p.busy){p.busy=null;$('prog').hidden=true}break}
+  case 'give':{const k=m.kk;if(!IT[k])return;if(!invAdd(k))dropItem(k,p.x,p.z,p.y);sfx('pick');toast(`🤝 ${esc(q?q.name:'队友')} 递给你 ${IT[k].ic} ${IT[k].n}`,'good');renderThrow();break}
+  case 'end':netEnd(m.r);break;
+ }}
+// ---------- client → host helpers ----------
+function netHitZ(z,dm,src){dm=zDmgMod(z,dm,src);z.hitT=.15;fx3('blood',z.x,z.y+1,z.z);dmgNum(z,dm,src);if(Math.random()<.4)sfx('zhit',z.x,z.z);netSend({k:'hitZ',from:NET.me,zid:z.id,dm,src})}
+function netKnockZ(z,fx,fz,d,s,dn){netSend({k:'knockZ',from:NET.me,zid:z.id,fx,fz,d,s,dn})}
+function netNoise(x,z,r,sc){if(!NET.on||NET.host||!NET.started)return;let m=null;if(sc==='out')m={k:'noise',x:r1(x),z:r1(z),r};else if(r>=3){const b=G.interiors[sc]&&G.interiors[sc].b;if(b&&b.door)m={k:'noise',x:r1(b.door.x),z:r1(b.door.z),r:r>=9?r*.6:.1,b:b.id}}
+ if(!m)return;if(r>=9){netSend(m);return}if(!NET.nz||m.r>NET.nz.r)NET.nz=m}// small noises (footsteps) are batched
+function netFire(f){if(NET.on&&NET.started)netSend({k:'fire',x:f.x,z:f.z,y:f.y,r:f.r,t:f.t,sc:f.sc})}
+function netLoot(I,l){if(NET.on&&NET.started)netSend({k:'loot',key:I.key,i:I.loot.indexOf(l)})}
+// ---------- syncing items, ladders/planks, doors by diffing ----------
+function netSyncItems(){for(const it of G.items){if(!it.nid)it.nid=NET.me+'_'+(++NET.n);if(!NET.known.has(it.nid)){NET.known.add(it.nid);netSend({k:'iadd',nid:it.nid,kk:it.k,x:r1(it.x),z:r1(it.z),y:r1(it.y),in:it.inside||null,u:it.uses})}}
+ if(NET.known.size>G.items.length){const have=new Set(G.items.map(it=>it.nid));for(const n of [...NET.known])if(!have.has(n)){NET.known.delete(n);NET.gone.add(n);netSend({k:'idel',nid:n})}}}
+function lpSig(){return G.ladders.filter(L=>!L.fixed).map(L=>[r1(L.x),r1(L.z),L.nx,L.nz,r1(L.base),r1(L.top)].join(',')).join('|')+'#'+G.planks.map(P=>[r1(P.ax),r1(P.az),r1(P.bx),r1(P.bz)].join(',')).join('|')}
+function netSyncLP(){const s=lpSig();if(s===NET.lpSig)return;NET.lpSig=s;netSend({k:'lp',L:G.ladders.filter(L=>!L.fixed).map(L=>({x:L.x,z:L.z,nx:L.nx,nz:L.nz,base:L.base,top:L.top})),P:G.planks.map(P=>{const o={...P};delete o.id;return o})})}
+function netApplyLP(m){G.ladders=G.ladders.filter(L=>L.fixed);for(const L of m.L)addLadder(L.x,L.z,L.nx,L.nz,L.base,L.top);G.planks=m.P.map(P=>({...P,id:G.uid++}));NET.lpSig=lpSig()}
+function doorSig(){return BLD.map(b=>[Math.round(b.ds.barr),b.ds.broken?1:0,b.ds.open?1:0,b.ds.planks||0,(b.wins||[]).map(W=>(W.broken?1:0)+(W.boarded?2:0)).join('')].join(',')).join('|')}
+function netSyncDoors(){const s=doorSig();if(s===NET.doorSig)return;NET.doorSig=s;netSend({k:'doors',ds:BLD.map(b=>[Math.round(b.ds.hp),Math.round(b.ds.barr),(b.ds.broken?1:0)|(b.ds.open?2:0)|((b.ds.planks||0)<<2),(b.wins||[]).reduce((a,W,i)=>a|((W.broken?1:0)<<(i*2))|((W.boarded?1:0)<<(i*2+1)),0)])})}
+function netCarMove(c,x,z,a){if(!c||!c.mesh)return;c.x=x;c.z=z;c.ang=a;c.mesh.position.set(x,0,z);c.mesh.rotation.y=a-Math.PI/2;const al=Math.abs(Math.cos(a-Math.PI/2))>.7;const hw=al?2.1:.95,hd=al?.95:2.1;const s=c.s;s.x0=x-hw;s.x1=x+hw;s.z0=z-hd;s.z1=z+hd}
+// ---------- PvP ----------
+function netPeersNear(r,fr){const p=G.p,sc=G.inside||'out',out=[];for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.sc!==sc||q.ov||q.es||q.hp<=0||q.hd||q.car>=0)continue;const d=dd(q.x,q.z,p.x,p.z);if(d<r&&Math.abs(q.y-p.y)<1.6&&(fr==null||facingTo(p,q.x,q.z)<fr))out.push([q,d])}return out.sort((a,b)=>a[1]-b[1])}
+// returns true if the swing went into another player instead of a zombie
+function netMelee(W,zd){if(!NET.on||!NET.started)return false;const near=netPeersNear(W.rg+.3);if(!near.length)return false;const [q,d]=near[0];if(zd!=null&&zd<d)return false;const p=G.p;
+ if(NET.zp&&q.zp)return false;if(!NET.zp&&q.zp&&false)return false;
+ p.ang=Math.atan2(q.x-p.x,q.z-p.z);const crit=Math.random()<critCh();const dm=NET.zp?14:W.wpn*meleeK(W)*(crit?critMul():1)*.6;
+ netSend({k:'pHit',to:q.id,from:NET.me,dm:Math.round(dm),inf:NET.zp?12:0,hum:NET.zp?0:1,fx:p.x,fz:p.z,kb:(W.kb||.35)+.2});
+ sfx(NET.zp?'bite':(W.snd||'punch'),p.x,p.z);fx3('spray',q.x,q.y+1.3,q.z,{t:.4,dx:(q.x-p.x)/(d||1),dz:(q.z-p.z)/(d||1)});RPG.ftx.push({x:q.x,y:q.y+2,z:q.z,s:(crit?'暴击 ':'')+Math.round(dm),c:'#ffb070',t:.9,big:crit,sc:G.inside||'out'});hitStop(.04);shake(.1);noise(p.x,p.z,4);return true}
+function netShove(){if(!NET.on||!NET.started)return 0;let n=0;const p=G.p;for(const [q] of netPeersNear(1.75,1.0)){n++;netSend({k:'pShove',to:q.id,from:NET.me,fx:p.x,fz:p.z,pw:1.6*shoveK()});if(n===1)p.ang=Math.atan2(q.x-p.x,q.z-p.z)}return n}
+// ---------- give items ----------
+function netGiveCtx(o){if(!NET.on||!NET.started||NET.zp||G.p.carry)return;const near=netPeersNear(1.8);for(const [q] of near){if(q.zp)continue;o.push({l:`🤝 递东西给 ${esc(q.name)}`,fn:()=>openGive(q),alt:o.length>0});break}}
+function openGive(q){let el=$('giveP');if(!el){el=document.createElement('div');el.id='giveP';el.className='ov2';document.body.appendChild(el);el.addEventListener('pointerdown',e=>e.stopPropagation())}
+ const ks=Object.keys(G.p.inv).filter(k=>!IT[k].big);el.innerHTML=`<div class="wbox"><div class="st">递给 ${esc(q.name)}</div><p>点一下就递过去（一次一件）</p><div class="givel">${ks.map(k=>`<button data-k="${k}">${IT[k].ic}<small>${IT[k].n}×${G.p.inv[k]}</small></button>`).join('')||'<small>背包是空的</small>'}</div><button id="giveX" class="big">好了</button></div>`;el.hidden=false;
+ el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(!G.p.inv[k])return;if(dd(q.x,q.z,G.p.x,G.p.z)>3){toast('离太远了');return}invUse(k);netSend({k:'give',to:q.id,from:NET.me,kk:k});sfx('pick');toast(`递给 ${esc(q.name)}：${IT[k].ic} ${IT[k].n}`);renderThrow();openGive(q)});
+ $('giveX').onclick=()=>{el.hidden=true}}
+// ---------- death → 尸化体 ----------
+function netBecomeZombie(){const p=G.p;NET.zp=true;p.hp=150;p.inf=0;p.grab=null;p.busy=null;p.carry=null;p.weapon=null;p.hide=null;if(p.inCar)try{exitCar()}catch(e){}p.nvg=false;
+ for(const k of Object.keys(p.inv)){for(let i=0;i<p.inv[k];i++){const a=rnd(0,6.28),r=rnd(.4,1.4);dropItem(k,p.x+Math.cos(a)*r,p.z+Math.sin(a)*r,p.y)}}p.inv={};p.gear={};p.throwSel=null;
+ document.body.classList.add('zp');$('hot').hidden=true;renderThrow();sfx('roar');shake(.4);
+ sysWorld('宿主生命体征消失……','检测到尸化反应 · 你现在是尸化体：去抓还活着的人（攻击会让他们感染）');for(const z of G.zs)if(z.grabbing&&!z.net)z.grabbing=false}
+function netZpDown(){const p=G.p;if(p.zpDown)return;p.zpDown=true;toast('尸化体被打倒了 · 8 秒后从城市边缘爬起来','bad');p.hp=1;
+ setTimeout(()=>{if(!G||!NET.zp)return;const [x,z]=edgePoint();p.x=x;p.z=z;p.y=0;p.hp=150;p.zpDown=false;toast('尸化体重新站起来了','good')},8000)}
+function netCheckEnd(){if(NET.ended)return;const H=netHumans().length;const anyEsc=NET.esc||Object.values(NET.peers).some(q=>q.es&&!q.gone);
+ if(H===0){netSend({k:'end',r:anyEsc?'esc':'all'});netEnd(anyEsc?'esc':'all')}}
+function netEnd(r){if(NET.ended)return;NET.ended=true;if(G.over&&!NET.zp)return;
+ if(NET.zp)endGame(false,r==='heli'||r==='esc'?'zplose':'zpwin');else endGame(false,r==='all'?'dead':'heli')}
+// ---------- rendering other players ----------
+function netRender(dt){if(!NET.on||!NET.started)return;const RM=MODELS.state==='ready';const sc=G.inside||'out';
+ for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.sc!==sc||q.ov&&!q.zp||q.es)continue;
+  const key=(sc==='out'?'np':'Inp')+(q.zp?'z':'')+(RM?'r':'')+id;
+  const e=ent(key,()=>RM?realModel(q.zp?'walker':'player',{s:1,t:.82+hashf(id)*.36}):(q.zp?zombieModel({kind:'walker',id:hashf(id)*1e3|0}):playerModel()));const m=e.m,ud=m.userData;
+  const sp=dt>0?dd(q.rx,q.rz,ud.lx??q.rx,ud.lz??q.rz)/dt:0;ud.lx=q.rx;ud.lz=q.rz;m.position.set(q.rx,q.ry,q.rz);m.rotation.y=q.ra;m.visible=!q.hd&&!(q.car>=0);
+  const wp=q.zp?null:(q.wp||null);if(ud.wk!==wp&&ud.hand){ud.wk=wp;ud.hand.clear();if(!(ud.real&&setWeapon(ud,wp))){const wm=weaponMesh(wp);if(ud.real)wm.rotation.set(Math.PI/2,0,0);ud.hand.add(wm)}}
+  const gun=!!(wp&&IT[wp]&&IT[wp].kind==='gun');
+  if(ud.real)animReal(ud,dt,Math.min(sp,5),{zombie:q.zp?1:0,t:G.t,gun,aim:gun&&q.at,recoil:0,block:!!q.bl,crouch:!!q.cr,roll:q.rl?.5:null,grabbed:(q.gb||[]).length>0,shove:!!q.sh,thr:q.th?.5:null,attack:!!q.at,atk:!wp?'punch':wp==='knife'?'stab':'slash',hit:!!q.ht,dead:q.hp<=0});
+  else{q.an=(q.an||0)+dt*sp*2.2;pose(ud,q.an,sp>.2?(sp>3?1:.7):0,{zombie:q.zp?1:0,t:G.t,swing:q.at?1:0});m.scale.y=q.cr?.72:1}}}
+function netOverlay(){if(!NET.on||!NET.started)return;const p=G.p,sc=G.inside||'out';
+ for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.sc!==sc||q.hd||q.car>=0||q.es||q.ov&&!q.zp)continue;const d=dd(q.rx,q.rz,p.x,p.z);if(d>40)continue;const s=proj(q.rx,q.ry+2.15,q.rz);if(!s)continue;
+  oc.globalAlpha=d<25?1:.6;oc.textAlign='center';oc.font='700 12px "Noto Sans SC",sans-serif';oc.lineWidth=3;oc.strokeStyle='rgba(0,0,0,.75)';const t=(q.zp?'尸化体 · ':'')+q.name+(q.zp?'':' · '+(q.lv||1)+'级');oc.strokeText(t,s[0],s[1]);oc.fillStyle=q.zp?'#ff6a50':'#9af0a0';oc.fillText(t,s[0],s[1]);
+  if(!q.zp){oc.fillStyle='rgba(0,0,0,.6)';oc.fillRect(s[0]-16,s[1]+4,32,4);oc.fillStyle='#7ad070';oc.fillRect(s[0]-15,s[1]+5,30*Math.max(0,q.hp)/(q.mh||100),2)}}oc.globalAlpha=1}
+function netMini(g,X,Z,k){if(!NET.on||!NET.started)return;for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.es)continue;let x=q.x,z=q.z;if(q.sc&&q.sc!=='out'){const b=BID[String(q.sc).split('#')[0]];if(b){x=(b.x0+b.x1)/2;z=(b.z0+b.z1)/2}}
+  g.fillStyle=q.zp?'#ff5a40':'#7af07a';g.beginPath();g.arc(X(x),Z(z),Math.max(3,k*.9),0,7);g.fill();g.strokeStyle='#000';g.lineWidth=1;g.stroke()}}
+// open the lobby straight from an invite link
+addEventListener('load',()=>{const m=/[?&]room=(\d{4})/.exec(location.search);if(m)setTimeout(()=>openMP(m[1]),300)});
+
+
 // ================= audio (synthesized) =================
 const AUD={ctx:null,mute:false,last:{}};try{AUD.mute=localStorage.getItem('scwr-mute')==='1'}catch(e){}
 function audInit(){if(AUD.ctx){if(AUD.ctx.state==='suspended')AUD.ctx.resume().catch(()=>{});return}const C=window.AudioContext||window.webkitAudioContext;if(!C)return;try{AUD.ctx=new C()}catch(e){return}
@@ -2345,7 +2569,7 @@ function nz(t,dur,type,f,q,v,d){const c=AUD.ctx,s=c.createBufferSource();s.buffe
 function osc(t,type,f1,f2,dur,v,a=.005){const c=AUD.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);env(g,t,a,v,dur);o.connect(g);g.connect(AUD.in);o.start(t);o.stop(t+a+dur+.05)}
 const GAP={step:.2,stepR:.15,struggle:.06,roll:.15,groan:.35,zhit:.08,bang:.25,alarm:.5,caralarm:.5,ladder:.2};
 function sfx(n,x,z){if(!AUD.ctx||AUD.mute)return;const c=AUD.ctx,t=c.currentTime;if((AUD.last[n]||0)>t-(GAP[n]||.04))return;AUD.last[n]=t;let v=1;
- if(x!=null&&G){const d=dd(x,z,G.p.x,G.p.z);v=Math.max(0,1-d/26);if(v<.04)return}
+ if(x!=null&&G){const LP=G.lp||G.p;const d=dd(x,z,LP.x,LP.z);v=Math.max(0,1-d/26);if(v<.04)return}
  switch(n){
   case 'groan':{const o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(),l=c.createOscillator(),lg=c.createGain();o.type='sawtooth';o.frequency.value=rnd(70,110);l.frequency.value=rnd(4,9);lg.gain.value=rnd(10,25);l.connect(lg);lg.connect(o.frequency);f.type='bandpass';f.frequency.value=rnd(350,600);f.Q.value=2;env(g,t,.15,.14*v,rnd(.6,1.2));o.connect(f);f.connect(g);g.connect(AUD.in);o.start(t);l.start(t);o.stop(t+1.6);l.stop(t+1.6);break}
   case 'zhit':nz(t,.12,'lowpass',900,1,.3*v,.1);break;
@@ -2398,7 +2622,7 @@ function buzz(ms){try{if(!AUD.mute&&navigator.vibrate)navigator.vibrate(ms)}catc
 addEventListener('pointerdown',()=>audInit(),{capture:true});
 
 // ================= HUD =================
-function toast(h,cls=''){const el=document.createElement('div');el.className='toast '+cls;el.innerHTML=h;$('msg').appendChild(el);setTimeout(()=>el.remove(),3600);while($('msg').children.length>4)$('msg').firstChild.remove()}
+function toast(h,cls=''){if(G&&G.p&&G.p.remote)return;const el=document.createElement('div');el.className='toast '+cls;el.innerHTML=h;$('msg').appendChild(el);setTimeout(()=>el.remove(),3600);while($('msg').children.length>4)$('msg').firstChild.remove()}
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function renderHUD(){const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp/maxHp()*100)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
  const len=G.night?G.nightLen:G.dayLen;$('dayT').textContent=G.heli?`第 ${G.day} 天 · 黎明`:`第 ${G.day} ${G.night?'晚':'天'}`;
@@ -2410,7 +2634,7 @@ function renderHUD(){const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'
 // ================= main =================
 let last=performance.now(),ctxT=0,hudT=0,miniT=0;
 function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;if(G&&G.hs>0){G.hs-=dt;dt*=.06}
- try{if(G&&renderer){if(!G.over&&!G.pause){tickWorld(dt);tickPlayer(dt)}fxTick(dt);smokeTick(dt);musicTick(dt);sysTick(dt);rpgTick(dt);visorTick(dt);if(!G.over)footstep(dt);
+ try{if(G&&renderer){if(NET.on&&NET.started?!NET.ended&&(!G.over||NET.host):!G.over&&!G.pause)tickWorld(dt);if(!G.over&&!G.pause)tickPlayer(dt);netTick(dt);fxTick(dt);smokeTick(dt);musicTick(dt);sysTick(dt);rpgTick(dt);visorTick(dt);if(!G.over)footstep(dt);
   ctxT-=dt;if(ctxT<=0){ctxT=.15;computeCtx();renderCtx();renderHand()}
   hudT-=dt;if(hudT<=0){hudT=.2;renderHUD()}
   miniT-=dt;if(miniT<=0){miniT=.3;drawMini($('mc'),208,false)}
@@ -2422,26 +2646,26 @@ document.querySelectorAll('#mdlSeg button').forEach(b=>{b.classList.toggle('sel'
 document.querySelectorAll('#diffSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#diffSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');diff=+b.dataset.v});
 document.querySelectorAll('#lenSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#lenSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');len=+b.dataset.v});
 let loadingNow=false;
-function begin(load){if(loadingNow)return;if(load===true)load=readSave();else if(load&&!load.v)load=null;if(load){diff=load.diff;len=load.len}audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
+function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)load=null;else if(load===true)load=readSave();else if(load&&!load.v)load=null;if(load){diff=load.diff;len=load.len}audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
  if(MODELS.want&&MODELS.state!=='ready'&&MODELS.state!=='fail'){loadingNow=true;const btn=$('go');const t0=btn.textContent;btn.textContent='载入素材 0%';btn.disabled=true;
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin(load)},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
  for(const [,e] of ENT)e.parent.remove(e.m);ENT.clear();
- if(!load)clearSave();newState(diff,len);pInit(G.p);survInit(G.p);rpgInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
- for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);initZombies();
- G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);G.king=null;if(load)applySave(load);renderThrow();
+ if(!load&&!mp)clearSave();const R0=Math.random;if(mp)Math.random=mulberry('scwr'+NET.seed);newState(diff,len);pInit(G.p);survInit(G.p);rpgInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
+ for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);initZombies();Math.random=R0;if(mp)netSetup();else{G.lp=G.p;document.body.classList.remove('mp')}
+ if(!G.p.inv)G.p.inv={};G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);G.king=null;if(load)applySave(load);renderThrow();
  cam.yaw=0;if(!load){cam.tx=G.p.x;cam.tz=G.p.z}
  $('start').hidden=true;$('end').hidden=true;['hud','mini','side','joy','acts','hand'].forEach(i=>$(i).hidden=false);joyHome();
  hotSig='';renderHot();$('qTrack').hidden=false;sysStart(load||null);
  const portrait=innerHeight>innerWidth&&matchMedia('(pointer:coarse)').matches;$('rotHint').hidden=!portrait;if(portrait)setTimeout(()=>{$('rotHint').hidden=true},12000);
  try{history.pushState({sc:1},'')}catch(e){}}
-function endGame(win,how){if(G.over)return;G.over=true;say(win?'叮！恭喜宿主成功撤离。末日系统任务完成。':how==='turned'?'警告！宿主感染值已满。系统……解除绑定。':'警告！宿主生命体征消失。系统解除绑定。',true);const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
- setTimeout(()=>{$('endT').innerHTML=win?'成功<em style="color:var(--inf)">获救</em>':how==='turned'?'你<em>变成了丧尸</em>':how==='heli'?'直升机<em>飞走了</em>':'你<em>死了</em>';
-  $('endD').textContent=win?`你撑过了 5 个夜晚，在第 ${G.day} 天黎明登上了直升机。${G.p.lv} 级 · 称号 ${G.p.titles.length} 个。`:how==='turned'?`感染值满了。你在第 ${G.day} ${G.night?'晚':'天'}变成了它们的一员。（多人版里你会加入丧尸方继续玩）`:how==='heli'?'你没能及时赶到办公楼楼顶。':`你在第 ${G.day} ${G.night?'晚':'天'}倒下了。`;
-  if(win)clearSave();const SV=readSave();$('retry').hidden=win||!SV;if(SV)$('retry').textContent=`从第 ${SV.day} 天黎明的存档重来`;
+function endGame(win,how){if(G.over)return;if(NET.on&&NET.started){if(NET.zp&&how==='heli')how=(NET.esc||Object.values(NET.peers).some(q=>q.es))?'zplose':'zpwin';if(how==='heli'||how==='zpwin'||how==='zplose'||how==='net')NET.ended=true}if(NET.on&&NET.started&&!win&&(how==='dead'||how==='turned')&&!NET.ended){if(NET.zp){netZpDown();return}netBecomeZombie();return}if(NET.on&&NET.started&&win)NET.esc=true;G.over=true;say(win?'叮！恭喜宿主成功撤离。末日系统任务完成。':how==='turned'?'警告！宿主感染值已满。系统……解除绑定。':'警告！宿主生命体征消失。系统解除绑定。',true);const s=G.stats;sfx(win?'win':'lose');buzz(win?100:200);
+ setTimeout(()=>{$('endT').innerHTML=how==='zpwin'?'尸潮<em>获胜</em>':how==='zplose'?'幸存者<em>逃走了</em>':how==='net'?'联机<em>中断</em>':win?'成功<em style="color:var(--inf)">获救</em>':how==='turned'?'你<em>变成了丧尸</em>':how==='heli'?'直升机<em>飞走了</em>':'你<em>死了</em>';
+  $('endD').textContent=how==='zpwin'?'没有一个幸存者活着离开这座城。':how==='zplose'?'有人登上了直升机。尸化体没能抓住他们。':how==='net'?'和房主的连接断开了。':win?`你撑过了 5 个夜晚，在第 ${G.day} 天黎明登上了直升机。${G.p.lv} 级 · 称号 ${G.p.titles.length} 个。`:how==='turned'?`感染值满了。你在第 ${G.day} ${G.night?'晚':'天'}变成了它们的一员。（多人版里你会加入丧尸方继续玩）`:how==='heli'?'你没能及时赶到办公楼楼顶。':`你在第 ${G.day} ${G.night?'晚':'天'}倒下了。`;
+  if(win&&!NET.on)clearSave();const SV=NET.on?null:readSave();$('retry').hidden=win||!SV;if(SV)$('retry').textContent=`从第 ${SV.day} 天黎明的存档重来`;
   $('endS').innerHTML=[[s.kills,'击杀'],[G.p.lv,'等级'],[fmt(G.t),'存活时间'],[s.looted,'搜刮'],[s.climbs,'爬梯子'],[s.planks,'搭木板'],[Math.round(s.dmgTaken),'受到伤害']].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join('');
   $('end').hidden=false;['hud','mini','side','joy','acts','hand','ctx','prog','bag','hot','qTrack','qLog','rotHint'].forEach(i=>$(i).hidden=true)},1300)}
-$('go').onclick=()=>begin();$('cont').onclick=()=>begin(true);$('retry').onclick=()=>{$('end').hidden=true;begin(true)};$('again').onclick=()=>{$('end').hidden=true;$('start').hidden=false;contLabel()};contLabel();
+$('go').onclick=()=>begin();$('cont').onclick=()=>begin(true);$('retry').onclick=()=>{$('end').hidden=true;begin(true)};$('again').onclick=()=>{if(NET.on){mpLeave();document.body.classList.remove('mp','zp');NET.zp=false;NET.esc=false}$('end').hidden=true;$('start').hidden=false;contLabel()};$('mpBtn').onclick=()=>openMP();contLabel();
 const tap=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();fn()});
 tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('bVoice').onclick=toggleVoice;$('bVoice').classList.toggle('on',VOICE.on);$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
 $('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
@@ -2454,7 +2678,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,BLD,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,BID,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
