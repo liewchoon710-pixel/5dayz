@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e0f10">
 <title>尸城五日</title>
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;800&family=Oswald:wght@500;700&display=swap">
 <style>
@@ -232,6 +233,15 @@ body.nvg #edgeV,body.nvg #vig{opacity:.4}
 body.zp #bThrow,body.zp #bBlock,body.zp #bBag,body.zp #bCrouch,body.zp #hot,body.zp #hand,body.zp #bStat{display:none!important}
 body.zp #vig{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 35%,rgba(90,10,6,.6) 100%)!important}
 body.zp #bAtk::after{content:'（咬）';font-size:10px}
+
+/* day/night countdown */
+#clock .p{font:800 15px var(--body);color:var(--amber);letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.8)}#clock.night .p{color:var(--cold)}
+#clock .pb{height:4px;background:rgba(0,0,0,.5);border-radius:2px;overflow:hidden;margin-top:3px;width:150px;margin-left:auto}#clock .pb i{display:block;height:100%;background:var(--amber);transition:width .2s linear}#clock.night .pb i{background:var(--cold)}
+#clock.soon .p{color:#ff6a50;animation:pulse .6s ease-in-out infinite alternate}#clock.soon .pb i{background:#ff4a3a}
+@media (orientation:landscape) and (max-height:600px){#clock{left:auto;right:calc(env(safe-area-inset-right,0px) + 438px);transform:none;text-align:right}#clock .p{font-size:14px}#clock .pb{width:130px}}
+
+#clock{pointer-events:auto;cursor:pointer}
+#clock.nofs .d::after{content:' ⛶';font-size:.7em;opacity:.7}
 </style>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -244,7 +254,7 @@ body.zp #bAtk::after{content:'（咬）';font-size:10px}
     <div class="blab"><span>体力</span></div><div class="bar sta"><i id="stB" style="width:100%"></i></div>
     <div class="minibars"><div><div class="blab"><span>饱食</span></div><div class="bar food"><i id="fdB" style="width:85%"></i></div></div><div><div class="blab"><span>气味</span></div><div class="bar scent"><i id="scB" style="width:0%"></i></div></div></div>
   </div>
-  <div id="clock"><div class="d" id="dayT">第 1 天</div><div class="p" id="phT">白天 · 离天黑 2:30</div></div>
+  <div id="clock"><div class="d" id="dayT">第 1 天</div><div class="p" id="phT">☀ 离天黑 5:00</div><div class="pb"><i id="phB"></i></div></div>
 </div>
 <button id="mini" hidden aria-label="打开地图"><canvas id="mc" width="208" height="208"></canvas></button>
 <div id="side" hidden>
@@ -309,7 +319,7 @@ body.zp #bAtk::after{content:'（咬）';font-size:10px}
       <li><b>目标：</b>撑过 5 晚，第 6 天黎明登上东南边办公楼楼顶的直升机。每天天亮自动存档。</li>
     </ul>
     <div><div class="lab">难度</div><div class="seg" id="diffSeg"><button data-v="0">简单</button><button data-v="1" class="sel">普通</button><button data-v="2">困难</button></div></div>
-    <div><div class="lab">一天的长度</div><div class="seg" id="lenSeg"><button data-v="0.55">短 · 约 20 分钟</button><button data-v="1" class="sel">标准 · 约 38 分钟</button></div></div>
+    <div><div class="lab">一天的长度</div><div class="seg" id="lenSeg"><button data-v="0.55">短 · 约 22 分钟</button><button data-v="1" class="sel">标准 · 约 40 分钟</button></div></div>
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10 兆）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="cont" hidden></button>
@@ -679,7 +689,7 @@ let renderer,scene,camera,sun,hemi,flash,flashTarget,outGroup,inGroup;
 const ENT=new Map();
 
 function newState(diff,len){
- G={t:0,day:1,night:false,phaseT:270*len*.1,dayLen:270*len,nightLen:180*len,len,diff,over:false,heli:null,
+ G={t:0,day:1,night:false,phaseT:300*len*.1,dayLen:300*len,nightLen:180*len,len,diff,over:false,heli:null,
   solids:[],ladders:[],planks:[],items:[],zs:[],noises:[],fires:[],fx:[],alarms:[],interiors:{},inside:null,uid:1,
   p:{x:SPAWN.x,y:0,z:SPAWN.z,vy:0,ang:Math.PI,hp:100,inf:0,carry:null,inv:{},weapon:null,throwSel:null,flash:false,atkCd:0,busy:null,fallFrom:null,climb:null,mv:0,hurtT:0,anim:0,swing:0},
   stats:{kills:0,noise:0,dmgTaken:0,looted:0,climbs:0,planks:0},cars:[]};
@@ -2389,7 +2399,7 @@ function mpDom(){if($('mpP'))return;const P=document.createElement('div');P.id='
  P.addEventListener('pointerdown',e=>e.stopPropagation())}
 function mpMsg(t){const el=$('mpMsg');if(el)el.textContent=t||''}
 function openMP(code){mpDom();$('mpP').hidden=false;if(code){$('mpCode').value=code}mpMsg(code?'输入名字后点【加入房间】':'')}
-function mpEnter(code,host){const nm=($('mpName').value||'').trim().slice(0,8)||'幸存者';try{localStorage.setItem('scwr-name',nm)}catch(e){}
+function mpEnter(code,host){goFull();const nm=($('mpName').value||'').trim().slice(0,8)||'幸存者';try{localStorage.setItem('scwr-name',nm)}catch(e){}
  mpLeave();Object.assign(NET,{on:true,host,me:netId(),name:nm,room:code,peers:{},started:false,ended:false,zp:false,esc:false,known:new Set(),gone:new Set(),hostSeen:0});
  try{NET.tr=netTransport(code)}catch(e){NET.on=false;mpMsg(e.message);return}
  const T=NET.tr;T.on('e',netOnEvent);T.on('w',netOnWorld);T.on('p',netOnPlayer);T.on('start',netOnStart);T.presence(netOnPresence);
@@ -2630,7 +2640,7 @@ function toast(h,cls=''){if(G&&G.p&&G.p.remote)return;const el=document.createEl
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function renderHUD(){const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp/maxHp()*100)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
  const len=G.night?G.nightLen:G.dayLen;$('dayT').textContent=G.heli?`第 ${G.day} 天 · 黎明`:`第 ${G.day} ${G.night?'晚':'天'}`;
- $('phT').textContent=G.heli?`直升机 ${fmt(G.heli.t)} 后起飞`:G.night?`夜晚 · 离天亮 ${fmt(len-G.phaseT)}`:`白天 · 离天黑 ${fmt(len-G.phaseT)}`;$('clock').classList.toggle('night',G.night);
+ const left=G.heli?G.heli.t:len-G.phaseT;$('phT').textContent=G.heli?`🚁 直升机 ${fmt(left)} 后起飞`:G.night?`🌙 离天亮 ${fmt(left)}`:`☀ 离天黑 ${fmt(left)}`;$('phB').style.width=(G.heli?left/100:1-G.phaseT/len)*100+'%';$('clock').classList.toggle('night',G.night);$('clock').classList.toggle('soon',left<30);$('clock').classList.toggle('nofs',!isFull()&&matchMedia('(pointer:coarse)').matches);
  $('hurt').style.boxShadow=`inset 0 0 ${p.hurtT>0?140:p.hp<maxHp()*.3?90:0}px rgba(196,52,43,${p.hurtT>0?.7:p.hp<maxHp()*.3?.35:0})`;
  $('vig').style.background=p.inf>=60?'radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(40,70,10,.55) 100%)':'radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 100%)';
  if(AUD.drone){AUD.drone.gain.value=G.night?.05:0;AUD.wind.gain.value=G.inside?.006:.018}}
@@ -2650,6 +2660,12 @@ document.querySelectorAll('#mdlSeg button').forEach(b=>{b.classList.toggle('sel'
 document.querySelectorAll('#diffSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#diffSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');diff=+b.dataset.v});
 document.querySelectorAll('#lenSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#lenSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');len=+b.dataset.v});
 let loadingNow=false;
+// fullscreen + landscape lock (Android Chrome etc.; iPhone needs "add to home screen")
+function isFull(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
+function goFull(){if(!matchMedia('(pointer:coarse)').matches)return;const d=document.documentElement;try{if(isFull())return;const r=d.requestFullscreen?d.requestFullscreen({navigationUI:'hide'}):d.webkitRequestFullscreen?d.webkitRequestFullscreen():null;
+ Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
+function toggleFull(){if(isFull()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}}else goFull()}
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>addEventListener(ev,()=>setTimeout(()=>{resize();joyHome();$('clock')&&$('clock').classList.toggle('nofs',!isFull())},250)));
 function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)load=null;else if(load===true)load=readSave();else if(load&&!load.v)load=null;if(load){diff=load.diff;len=load.len}audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
  if(MODELS.want&&MODELS.state!=='ready'&&MODELS.state!=='fail'){loadingNow=true;const btn=$('go');const t0=btn.textContent;btn.textContent='载入素材 0%';btn.disabled=true;
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin(load)},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
@@ -2669,7 +2685,7 @@ function endGame(win,how){if(G.over)return;if(NET.on&&NET.started){if(NET.zp&&ho
   if(win&&!NET.on)clearSave();const SV=NET.on?null:readSave();$('retry').hidden=win||!SV;if(SV)$('retry').textContent=`从第 ${SV.day} 天黎明的存档重来`;
   $('endS').innerHTML=[[s.kills,'击杀'],[G.p.lv,'等级'],[fmt(G.t),'存活时间'],[s.looted,'搜刮'],[s.climbs,'爬梯子'],[s.planks,'搭木板'],[Math.round(s.dmgTaken),'受到伤害']].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join('');
   $('end').hidden=false;['hud','mini','side','joy','acts','hand','ctx','prog','bag','hot','qTrack','qLog','rotHint'].forEach(i=>$(i).hidden=true)},1300)}
-$('go').onclick=()=>begin();$('cont').onclick=()=>begin(true);$('retry').onclick=()=>{$('end').hidden=true;begin(true)};$('again').onclick=()=>{if(NET.on){mpLeave();document.body.classList.remove('mp','zp');NET.zp=false;NET.esc=false}$('end').hidden=true;$('start').hidden=false;contLabel()};$('mpBtn').onclick=()=>openMP();contLabel();
+$('go').onclick=()=>{goFull();begin()};$('cont').onclick=()=>{goFull();begin(true)};$('retry').onclick=()=>{goFull();$('end').hidden=true;begin(true)};$('clock').addEventListener('pointerdown',e=>{e.stopPropagation();toggleFull()});$('again').onclick=()=>{if(NET.on){mpLeave();document.body.classList.remove('mp','zp');NET.zp=false;NET.esc=false}$('end').hidden=true;$('start').hidden=false;contLabel()};$('mpBtn').onclick=()=>openMP();contLabel();
 const tap=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();fn()});
 tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('bVoice').onclick=toggleVoice;$('bVoice').classList.toggle('on',VOICE.on);$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
 $('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
