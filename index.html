@@ -170,7 +170,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
     <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10MB）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="go">开始求生</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.8 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 v1.9 · 单人 · 16 个街区 · 27 栋建筑全部可进入 · 人物模型 Quaternius (CC0)</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1635,6 +1635,8 @@ try{MUS.on=localStorage.getItem('scwr-music')!=='0'}catch(e){}
 const NOTE=n=>440*Math.pow(2,(n-69)/12);
 // D phrygian-ish minor: chords as midi roots + intervals
 const PROG=[[50,[0,3,7]],[46,[0,4,7]],[43,[0,3,7]],[45,[0,3,7,10]]];// Dm Bb Gm Am7
+const PROG_B=[[50,[0,3,7]],[51,[0,4,7]],[50,[0,3,7]],[48,[0,4,7]]];// Dm Eb Dm C (phrygian, uneasy)
+const PROG_N=[[50,[0,3,7]],[50,[0,3,6]],[46,[0,4,7]],[45,[0,4,7,10]]];// Dm Ddim Bb A7 (night)
 const PROG_HOPE=[[50,[0,4,7]],[55,[0,4,7]],[47,[0,3,7]],[45,[0,4,7]]];// D G Bm A (helicopter)
 function musInit(){const c=AUD.ctx;if(!c||MUS.out)return;
  MUS.out=c.createGain();MUS.out.gain.value=MUS.on?2.4:0;MUS.out.connect(AUD.in);
@@ -1654,8 +1656,8 @@ function mv(n,t,dur,type,v,dest,a=.01,cut){const c=AUD.ctx,o=c.createOscillator(
 function mnz(t,dur,type,f,q,v,dest){const c=AUD.ctx,s=c.createBufferSource();s.buffer=AUD.noise;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(fl);fl.connect(g);g.connect(dest||MUS.out);s.start(t,Math.random()*.4,dur+.05)}
 function kick(t,v){const c=AUD.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(42,t+.18);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.32);o.connect(g);g.connect(MUS.out);o.start(t);o.stop(t+.35)}
 function musSched(){const c=AUD.ctx;if(!c||!G||!MUS.out)return;if(MUS.next<c.currentTime-1)MUS.next=c.currentTime+.05;
- while(MUS.next<c.currentTime+.35){const t=MUS.next,I=MUS.I,s=MUS.step%16;const bpm=58+I*78;const st=60/bpm/4;
-  const hope=!!G.heli,prog=hope?PROG_HOPE:PROG;const ch=prog[Math.floor(MUS.step/32)%prog.length];const root=ch[0],iv=ch[1];
+ while(MUS.next<c.currentTime+.35){const t=MUS.next,I=MUS.I,s=MUS.step%16;const bpm=(G.night?66:60)+I*72;const st=60/bpm/4;
+  const hope=!!G.heli;const sec=Math.floor(MUS.step/128)%3;const prog=hope?PROG_HOPE:G.night?(sec===1?PROG_B:PROG_N):(sec===2?PROG_B:PROG);const ch=prog[Math.floor(MUS.step/32)%prog.length];const root=ch[0],iv=ch[1];
   if(!G.over&&MUS.on){
    // pad: every 2 bars
    if(MUS.step%32===0){for(const k of iv){for(const dt_ of [-6,6]){const g=mv(root+12+k,t,st*30,'sawtooth',.03+I*.02,MUS.rev,.9,700+I*1500);g&&0}}mv(root,t,st*30,'triangle',.07,MUS.out,.6)}
@@ -1663,6 +1665,12 @@ function musSched(){const c=AUD.ctx;if(!c||!G||!MUS.out)return;if(MUS.next<c.cur
    if(I<.62){const cv=1-I/.62;if(s%2===0){const pat=[0,1,2,1,0,2,1,2];const k=iv[pat[(s/2)%8]%iv.length];const n=root+24+k+((MUS.step>>4)%4===3&&s>=8?12:0);mv(n,t,1.8,'triangle',.11*cv,MUS.rev,.004);mv(n,t,.9,'sine',.07*cv,MUS.out,.004)}
     if(s===0)mv(root-12,t,st*15,'sine',.13*cv,MUS.out,.05);
     if(s===0&&(MUS.step>>4)%2===1){const mel=[7,5,3,2,0,3,5,7];const n=root+36+mel[(MUS.step>>5)%8];mv(n,t+st*4,st*10,'sine',.06*cv,MUS.rev,.08)}}
+   // suspense bed, always under everything: muted pulse bass, clock tick, uneasy shimmer, rare low boom
+   {const bed=I<.65?1-I*.6:.35;
+    if(s%2===0){const n=root+(s===14?1:0);mv(n,t,st*1.5,'sawtooth',.06*bed,MUS.out,.004,520+(G.night?0:120));mv(n+12,t,st*.9,'square',.018*bed,MUS.out,.004,1100)}
+    if(s%4===0)mnz(t,.035,'bandpass',G.night?3200:4200,6,.05*bed);
+    if(MUS.step%64===32){for(const n of [root+26,root+27])mv(n,t,st*16,'sine',.035*bed,MUS.rev,1.6)}
+    if(MUS.step%256===0&&MUS.step>0){kick(t,.5);mv(root-24,t,3,'sine',.18,MUS.out,.01);mnz(t,2.5,'lowpass',180,.5,.12,MUS.rev)}}
    // heartbeat (lub-dub) in the middle band
    if(I>.25&&I<.8&&(s===0||s===8)){kick(t,.35*(I-.1));kick(t+st*1.1,.24*(I-.1))}
    // bass ostinato
