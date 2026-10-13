@@ -357,7 +357,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.4 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.5 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1197,10 +1197,10 @@ function mkZombie(kind,x,z,y=0){const K=ZK[kind];const day=G?G.day:1;const hpK=(
  return{id:(G?G.uid++:Math.random()*1e9|0),kind,x,z,y,hp:K.hp*hpK,mhp:K.hp*hpK,ang:rnd(0,6.28),state:'idle',tx:x,tz:z,cd:rnd(0,1),stun:0,burn:0,mv:0,stuck:0,lx:x,lz:z,detour:0,dang:0,anim:rnd(0,6),dead:false,deadT:0,seenT:0,vy:0,climb:null,hitT:0,groan:rnd(2,8),kv:null,down:0,grabbing:false,flashT:0,v:{s:rnd(.92,1.1),t:rnd(.85,1.12)}}}
 function zSpeed(z){const K=ZK[z.kind];return (baseLit(z)?.72:1)*K.sp*(G.night?1.3:1)*(1+.05*(G.day-1))*(z.stun>0?0:1)*(z.burn>0?1.2:1)}
 function zList(){return G.inside?G.interiors[G.inside].zs:G.zs}
-function noise(x,z,r,label){if(G.p&&G.p.remote){G.noises.push({x,z,r,t:.5,sc:G._zsc||'out'});return}const sc=G.inside||'out';netNoise(x,z,r,sc);G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
+function noise(x,z,r,label){if(G&&G.weather&&G.weather!=='clear'&&!(G.p&&G.p.remote?G._zsc&&G._zsc!=='out':G.inside))r*=wx().noise;if(G.p&&G.p.remote){G.noises.push({x,z,r,t:.5,sc:G._zsc||'out'});return}const sc=G.inside||'out';netNoise(x,z,r,sc);G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
  if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;
  if(G.inside&&r>=9){const I=G.interiors[G.inside];if(I.b.door)G.noises.push({x:I.b.door.x,z:I.b.door.z,r:r*.6,t:.5,sc:'out'})}}
-function sightR(z,p){const K=ZK[z.kind];let s=K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1)*sightK();if(Math.abs(p.y-z.y)>2.5)s*=1.15;return s}
+function sightR(z,p){const K=ZK[z.kind];let s=(G.weather&&G.weather!=='clear'&&(p.remote?p.sc==='out':!G.inside)?wx().sight:1)*K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1)*sightK();if(Math.abs(p.y-z.y)>2.5)s*=1.15;return s}
 function canSee(z,p){if(p.hide){// under a car: a strong smell, or bumping right into it at night, gives you away
   if(!z.sawHide&&!p.remote){const S=p.hide.car&&p.hide.car.s;const d=S?dd(clamp(z.x,S.x0,S.x1),clamp(z.z,S.z0,S.z1),z.x,z.z):dd(z.x,z.z,p.x,p.z);if(d<1.2&&((p.scent||0)>=55||G.night&&z.state!=='idle')){z.sawHide=1;if(!G.hideFoundTip){G.hideFoundTip=1;toast('丧尸闻到你了，在车底下抓你！','bad')}}}return false}if(p.inCar&&!p.inCar.driving){const c=p.inCar,d=dd(z.x,z.z,p.x,p.z);if(z.sawCar===c)return d<12;
   // hiding in a car is not invincible: bumping into it, a strong smell, or a close look at night gives you away
@@ -1351,9 +1351,9 @@ function tickWorld(dt){const CL=NET.on&&NET.started&&!NET.host;G._zsc=null;
  G.t+=dt;G.phaseT+=dt;
  const len=G.night?G.nightLen:G.dayLen;
  if(G.phaseT>=len&&!CL){G.phaseT=0;
-  if(!G.night){G.night=true;const n=G.day;const cnt=Math.round((6+n*5+(G.p.lv||1))*[.7,1,1.35][G.diff]*Math.sqrt(CITY.AF));spawnWave(cnt,nightTypes(n));if(n>=3)for(let i=0;i<[0,1,2][G.diff]+1+(n>=5?1:0);i++)spawnWave(1,['brute']);onNight();
+  if(!G.night){G.night=true;const n=G.day;const cnt=Math.round((6+n*5+(G.p.lv||1))*[.7,1,1.35][G.diff]*Math.sqrt(CITY.AF));setWeather(pickWeather(G.day,true));spawnWave(cnt,nightTypes(n));if(n>=3)for(let i=0;i<[0,1,2][G.diff]+1+(n>=5?1:0);i++)spawnWave(1,['brute']);onNight();
    toast(`<b style="color:#7fc8e8">第 ${n} 晚</b> · 尸潮来了${n===2?' · 出现<b>疾行尸</b>、会尖叫引尸的<b>尖叫尸</b>、会开门爬窗的<b>潜伏尸</b> · 它们开始会叠罗汉往上爬':n===3?' · 出现会<b>爬梯子</b>的攀爬尸和巨尸！它们叠得更高了':n>=4?' · 尸潮更大、更凶了 · 再撑 '+(5-n+1)+' 晚':''}`,'bad');sfx('horn')}
-  else{G.night=false;G.day++;onDawn();if(G.day>=6){startHeli()}else toast(`<b style="color:#f0b24a">第 ${G.day} 天</b> · 天亮了，丧尸变慢了。抓紧搜物资`,'good')}}
+  else{G.night=false;G.day++;setWeather(pickWeather(G.day,false));onDawn();if(G.day>=6){startHeli()}else toast(`<b style="color:#f0b24a">第 ${G.day} 天</b> · 天亮了，丧尸变慢了。抓紧搜物资`,'good')}}
  // night hunting: zombies drift toward player region
  if(CL){}else if(G.night){G.huntT=(G.huntT||0)-dt;if(G.huntT<=0){G.huntT=9;G.hunt={x:G.p.x,z:G.p.z};if(G.inside){const I=G.interiors[G.inside];G.hunt={x:I.b.door?I.b.door.x:(I.b.x0+I.b.x1)/2,z:I.b.door?I.b.door.z:(I.b.z0+I.b.z1)/2}}}
   G.trickle=(G.trickle||0)-dt;if(G.trickle<=0){G.trickle=[14,10,7][G.diff];if(G.zs.filter(z=>!z.dead).length<70)spawnWave(1+Math.floor(G.day/2),nightTypes(G.day))}}
@@ -1768,24 +1768,38 @@ function initRain(){if(rainObj)return;const n=RAIN_N[2];rainPos=new Float32Array
  rainObj=new T3.LineSegments(geo,new T3.LineBasicMaterial({color:0xc0ccd6,transparent:true,opacity:.55,depthWrite:false}));rainObj.frustumCulled=false;scene.add(rainObj);
  for(let i=0;i<n;i++)resetDrop(i,true)}
 function resetDrop(i,anyY){const cx=cam.tx,cz=cam.tz;const x=cx+rnd(-16,16),z=cz+rnd(-16,16),y=anyY?rnd(0,18):rnd(14,20);const o=i*6;rainPos[o]=x;rainPos[o+1]=y;rainPos[o+2]=z;rainPos[o+3]=x+.06;rainPos[o+4]=y-.85;rainPos[o+5]=z+.03}
-function pickWeather(day){return day===1?'clear':day===2?(Math.random()<.65?'rain':'fog'):day===3?(Math.random()<.5?'rain':'fog'):'clear'}
+// weather: changes at every dusk and dawn (the host decides in multiplayer) and changes how the city plays
+const WX={clear:{n:'晴天',ic:'☀',noise:1,sight:1,d:''},
+ rain:{n:'下雨',ic:'🌧',noise:.65,sight:.8,d:'雨声盖住声响（丧尸听到的范围 -35%）· 视线变差（-20%）· 雨水冲淡你身上的气味'},
+ fog:{n:'大雾',ic:'🌫',noise:.9,sight:.5,d:'丧尸看不清你（视线 -50%）· 但你也看不远，小地图上的丧尸只显示一半距离'},
+ storm:{n:'雷雨',ic:'⛈',noise:.55,sight:.75,d:'雷声和大雨盖住声响（-45%）· <b>打闪电的一瞬间，附近的丧尸都会看见你</b>'}};
+function wx(){return WX[G&&G.weather]||WX.clear}
+function pickWeather(day,night){const r=Math.random();if(day===1&&!night)return 'clear';
+ if(night)return r<.3?'clear':r<.55?'rain':r<.75?'fog':'storm';return r<.5?'clear':r<.75?'rain':'fog'}
+function setWeather(w){if(!WX[w]||G.weather===w)return;G.weather=w}
 const WET=[];// materials that get glossy in rain
 function setWet(on){for(const m of WET){m.roughness=on?m.userData.wetR:m.userData.dryR;m.envMapIntensity=on?1.1:m.userData.dryE}}
 function fxTick(dt){if(!G)return;const q=QUAL.lv;
- if(G.wDay!==G.day){G.wDay=G.day;G.weather=pickWeather(G.day);setWet(G.weather==='rain');if(G.weather!=='clear'&&G.t>5)toast(G.weather==='rain'?'下雨了 · 雨声会盖住一部分声响，丧尸听得没那么远':'起雾了 · 看不远，丧尸也看不清你')}
- const raining=G.weather==='rain'&&!G.inside&&q>0;
+ if(!G.weather)G.weather='clear';if(G.wPrev!==G.weather){const was=G.wPrev;G.wPrev=G.weather;setWet(G.weather==='rain'||G.weather==='storm');if(was&&G.t>5){const W=wx();if(G.weather==='clear')toast('☀ 雨停了，雾也散了','good');else sysMsg('天气',`${W.ic} <b>${W.n}</b> · ${W.d}`,{t:6500})}}
+ const wet=G.weather==='rain'||G.weather==='storm';const raining=wet&&!G.inside&&q>0;
  if(raining){initRain();rainObj.visible=true;const n=RAIN_N[q];rainObj.geometry.setDrawRange(0,n*2);for(let i=0;i<n;i++){const o=i*6;rainPos[o+1]-=dt*22;rainPos[o+4]-=dt*22;if(rainPos[o+4]<0||Math.abs(rainPos[o]-cam.tx)>17||Math.abs(rainPos[o+2]-cam.tz)>17){if(rainPos[o+4]<0&&Math.random()<.04)G.fx.push({k:'ripple',x:rainPos[o],z:rainPos[o+2],y:0,t:.5,m:.5,sc:'out'});resetDrop(i,false)}}rainObj.geometry.attributes.position.needsUpdate=true}
  else if(rainObj)rainObj.visible=false;
  if(AUD.rain)AUD.rain.gain.value=raining?.035:0;
  // lightning at rainy nights
- G.flashT=(G.flashT||0)-dt;if(raining&&G.night&&Math.random()<dt*.05){G.flashT=.18;setTimeout(()=>sfx('thunder'),rnd(400,1600))}
+ G.flashT=(G.flashT||0)-dt;if(wet&&Math.random()<dt*(G.weather==='storm'?(G.night?.13:.06):G.night?.03:0)){G.flashT=.18;setTimeout(()=>sfx('thunder'),rnd(400,1600));if(G.weather==='storm')lightningReveal()}
+ if(wet&&!G.inside&&G.p&&G.p.scent>0)G.p.scent=Math.max(0,G.p.scent-dt*1.2);
  // flickering street lamps / windows
  for(const L of SC.lamps||[]){const on=G.night||dayLight().b<.5;const fl=L.flicker&&Math.random()<.08?.2:1;L.light.intensity=on?1.4*fl:0;L.halo.material.opacity=on?.55*fl:0}
  for(const w of SC.lit||[]){const on=G.night||dayLight().b<.6;w.material.opacity=on?(w.userData.fl&&Math.random()<.06?.15:.85):0}
  gradeTick()}
+// a lightning flash: every zombie outside within 25 m that has a clear line to a person sees them
+function lightningReveal(){if(NET.on&&NET.started&&!NET.host)return;const H=NET.on&&NET.started?netHumans():(G.over?[]:[G.p]);let n=0;
+ for(const h of H){if(h.remote?h.sc!=='out':G.inside)continue;if(h.hide||h.inCar&&!h.inCar.driving)continue;
+  for(const z of G.zs){if(z.dead||z.pz||z.state==='chase'||dd(z.x,z.z,h.x,h.z)>25)continue;if(!losClear(z,h,'out'))continue;z.state='investigate';z.tx=h.x;z.tz=h.z;z.giveT=0;n++}}
+ if(n&&!G.inside&&!NET.zp&&!G.ltTip){G.ltTip=1;setTimeout(()=>toast('⚡ 闪电照亮了你 · 附近的丧尸看见你了！','bad'),300)}}
 function rainFog(){// called from updateLights to adjust fog per weather
  if(G.inside)return;const W=G.weather;if(W==='fog'){scene.fog.near=G.night?3:6;scene.fog.far=G.night?26:38;scene.fog.color.lerp(new T3.Color(G.night?0x10161a:0x8e948a),.8);renderer.setClearColor(scene.fog.color)}
- else if(W==='rain'){scene.fog.near*=.7;scene.fog.far*=.7;sun.intensity*=.45;scene.fog.color.lerp(new T3.Color(G.night?0x080c12:0x6e767c),.6);renderer.setClearColor(scene.fog.color)}
+ else if(W==='rain'||W==='storm'){scene.fog.near*=W==='storm'?.55:.7;scene.fog.far*=W==='storm'?.8:1;scene.fog.far*=.7;sun.intensity*=.45;scene.fog.color.lerp(new T3.Color(G.night?0x080c12:0x6e767c),.6);renderer.setClearColor(scene.fog.color)}
  if(G.flashT>0){hemi.intensity+=2.2;hemi.color.setHex(0xc8d8ff)}}
 // ---- contact shadows (cheap AO under characters/cars) ----
 let blobTex=null;function blobMat(){if(!blobTex){const [c,g]=cvs(64,64);const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.6)');gr.addColorStop(.6,'rgba(0,0,0,.25)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);blobTex=new T3.CanvasTexture(c)}
@@ -2009,7 +2023,7 @@ function drawMini(c,S,big){const g=c.getContext('2d');const k=S/(HALF*2);const X
  g.fillStyle='#e8c070';for(const L of G.ladders){g.beginPath();g.moveTo(X(L.x),Z(L.z)-k);g.lineTo(X(L.x)+k,Z(L.z)+k);g.lineTo(X(L.x)-k,Z(L.z)+k);g.fill()}
  g.strokeStyle='#c8a070';g.lineWidth=Math.max(2,k*.6);for(const pl of G.planks){g.beginPath();g.moveTo(X(pl.ax),Z(pl.az));g.lineTo(X(pl.bx),Z(pl.bz));g.stroke()}
  for(const it of G.items)if(!it.inside&&IT[it.k].big){g.fillStyle='#f0a040';g.fillRect(X(it.x)-k*.6,Z(it.z)-k*.6,k*1.2,k*1.2)}
- for(const z of G.zs)if(!z.dead&&(dd(z.x,z.z,p.x,p.z)<(16+3*A_('per'))*(hasT('eagle')?2:1)||big)){g.fillStyle=z.state==='chase'?'#ff4030':'#b04a3a';g.fillRect(X(z.x)-1.5,Z(z.z)-1.5,3,3)}
+ for(const z of G.zs)if(!z.dead&&(dd(z.x,z.z,p.x,p.z)<(16+3*A_('per'))*(hasT('eagle')?2:1)*(G.weather==='fog'?.5:1)||big)){g.fillStyle=z.state==='chase'?'#ff4030':'#b04a3a';g.fillRect(X(z.x)-1.5,Z(z.z)-1.5,3,3)}
  if(G.drop&&!G.drop.open){g.font=`${Math.round(S/12)}px sans-serif`;g.textAlign='center';g.fillText('📦',X(G.drop.x),Z(G.drop.z)+S/40)}
  const pb=BID.office;g.fillStyle=G.heli?'#ffd060':'#8a7a40';g.font=`${Math.round(S/14)}px sans-serif`;g.textAlign='center';g.fillText('★',X(pb.pad.x),Z(pb.pad.z)+S/40);
  netMini(g,X,Z,k);baseMini(g,X,Z,k);
@@ -2372,8 +2386,8 @@ function scanBtn(){if(!G||G.over||RPG.scanCd>0)return;const p=G.p;const fy=cam.f
 function scanAt(x,y){if(!G||G.over)return false;let best=null,bd=70;for(const z of zList()){if(z.dead)continue;const s=proj(z.x,z.y+1,z.z);if(!s)continue;const d=Math.hypot(s[0]-x,s[1]-y);if(d<bd){bd=d;best=z}}if(best){scanZ(best);return true}return false}
 
 // ---- the Zombie King: appears on night 3 and night 5 ----
-function spawnKing(){const [x,z]=edgePoint();const k=mkZombie('king',x,z);k.v.s=1.5;k.v.t=1;k.state='investigate';k.tx=G.p.x;k.tz=G.p.z;k.slamCd=4;G.zs.push(k);G.king=k;RPG.kingN[G.day]=1;sfx('roar');shake(.3);
- sysWorld('尸王出现了！',`悬赏：击杀尸王，奖励 300 积分 + 稀有装备 · 弱点：背后、怕火`);setTimeout(()=>snark('king',pick(['尸王来了。本系统建议：跑。','别慌，宿主。慌也没用。']),200),7000)}
+function spawnKing(){const [x,z]=edgePoint();const k=mkZombie('king',x,z);k.v.s=1.5;k.v.t=1;{const f=bossHpK();k.hp*=f;k.mhp*=f}k.state='investigate';k.tx=G.p.x;k.tz=G.p.z;k.slamCd=4;G.zs.push(k);G.king=k;RPG.kingN[G.day]=1;sfx('roar');shake(.3);
+ {const t='尸王出现了！',s_=`血量 ${Math.round(k.mhp)} · 悬赏 300 积分 + 稀有装备 · 弱点：背后（开枪也算）、怕火`;sysWorld(t,s_);if(NET.on&&NET.started)netSend({k:'bossMsg',t,s:s_})}setTimeout(()=>snark('king',pick(['尸王来了。本系统建议：跑。','别慌，宿主。慌也没用。']),200),7000)}
 function kingDown(z){G.king=null;const n=Object.keys(RPG.kingN).length;const loot=n<=1?['nvg','axe','antibio','battery']:['vest','shotgun','shells','antibio','battery'];
  loot.forEach((k,i)=>dropItem(k,z.x+Math.cos(i*1.6)*1.1,z.z+Math.sin(i*1.6)*1.1,z.y));gainCr(150);hid('regicide');sysEv('king');
  sysWorld('尸王已被击杀！','宿主获得悬赏：300 积分 · 稀有装备掉落在尸王身边');sfx('win');$('bossB').hidden=true}
@@ -2498,7 +2512,7 @@ function saveGame(){if(!G||G.over)return false;try{const p=G.p;
  const bl=BLD.map(b=>({id:b.id,ds:{hp:b.ds.hp,barr:b.ds.barr,broken:b.ds.broken,open:b.ds.open,planks:b.ds.planks},w:(b.wins||[]).map(W=>(W.broken?1:0)+(W.boarded?2:0))}));
  const loot={};for(const k in G.interiors){const I=G.interiors[k];if(I.loot&&I.loot.some(l=>l.done))loot[k]=I.loot.map(l=>l.done?1:0)}
  const S={v:1,at:Date.now(),mapSeed:G.mapSeed,diff:G.diff,len:G.len||1,day:G.day,t:G.t,p:P,stats:G.stats,dropDay:G.dropDay,
-  sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK},bl,loot,cars:G.cars.map(c=>c.drive?(c.fuel||0):null),base:G.base||null,bossN:G.bossN||{},scr:G.cars.map(c=>c.scrapped?1:0)};
+  sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK},bl,loot,cars:G.cars.map(c=>c.drive?(c.fuel||0):null),base:G.base||null,bossN:G.bossN||{},wx:G.weather,scr:G.cars.map(c=>c.scrapped?1:0)};
  localStorage.setItem(SAVE_K,JSON.stringify(S));return true}catch(e){console.warn('save',e);return false}}
 // called from begin() after a fresh world was built
 function applySave(S){const p=G.p;G.day=S.day;G.night=false;G.phaseT=G.dayLen*.03;G.t=S.t||0;G.stats=Object.assign(G.stats,S.stats||{});G.dropDay=S.dropDay;
@@ -2506,7 +2520,7 @@ function applySave(S){const p=G.p;G.day=S.day;G.night=false;G.phaseT=G.dayLen*.0
  p.x=P.pos.x;p.z=P.pos.z;p.y=supportAt(p.x,p.z,(P.pos.y||0)+.3);
  for(const s of S.bl||[]){const b=BID[s.id];if(!b)continue;Object.assign(b.ds,s.ds);updDoor(b);(b.wins||[]).forEach((W,i)=>{const v=s.w[i]||0;W.broken=!!(v&1);W.boarded=!!(v&2);updWindow(W)})}
  for(const k in S.loot||{}){const [bid,f]=k.split('#');if(!BID[bid])continue;const I=interior(bid,+f);(S.loot[k]||[]).forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}
- (S.cars||[]).forEach((f,i)=>{if(f!=null&&G.cars[i])G.cars[i].fuel=f});(S.scr||[]).forEach((f,i)=>{if(f&&G.cars[i])G.cars[i].scrapped=1});G.bossN=S.bossN||{};if(S.base)baseRecv(S.base);
+ (S.cars||[]).forEach((f,i)=>{if(f!=null&&G.cars[i])G.cars[i].fuel=f});(S.scr||[]).forEach((f,i)=>{if(f&&G.cars[i])G.cars[i].scrapped=1});G.bossN=S.bossN||{};if(WX[S.wx])G.weather=S.wx;if(S.base)baseRecv(S.base);
  Object.assign(RPG.kingN,(S.rpg&&S.rpg.kingN)||{});Object.assign(RPG.scanK,(S.rpg&&S.rpg.scanK)||{});
  // the city has had days to fill up with more of them
  spawnWave(Math.round((S.day-1)*3*[.7,1,1.3][G.diff]),G.day>=3?['walker','runner','crawler','stalker']:['walker','crawler']);
@@ -2619,7 +2633,7 @@ function netPersist(){if(!NET.on||!NET.started||!G||NET.ended)return;try{const p
  const o={at:Date.now(),room:NET.room,me:NET.me,name:NET.name,host:NET.host,seed:NET.seed,diff:G.diff,len:G.len,list:NET.list,T0:NET.T0,p:P,day:G.day,sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK}};
  if(NET.host)o.w={t:G.t,ph:G.phaseT,n:G.night?1:0,dropDay:G.dropDay,ds:netDoorArr(),cp:(G.corpses||[]).map(c=>c.done?1:0),ld:Object.keys(G.interiors).map(k=>[k,G.interiors[k].loot.map(l=>l.done?1:0)]),
   it:G.items.filter(it=>it.nid).map(it=>[it.nid,it.k,r1(it.x),r1(it.z),r1(it.y),it.inside||null,it.uses]),L:G.ladders.filter(L=>!L.fixed).map(L=>({x:L.x,z:L.z,nx:L.nx,nz:L.nz,base:L.base,top:L.top})),P:G.planks.map(P=>{const q={...P};delete q.id;return q}),
-  zs:G.zs.filter(z=>!z.dead).map(z=>[z.kind,r1(z.x),r1(z.z),Math.round(z.hp),Math.round(z.mhp)]),base:G.base||null,bossN:G.bossN||{},drop:G.drop?{x:G.drop.x,z:G.drop.z,t:G.drop.t,items:G.drop.items,open:G.drop.open,flare:G.drop.flare}:null,heli:G.heli?G.heli.t:null};
+  zs:G.zs.filter(z=>!z.dead).map(z=>[z.kind,r1(z.x),r1(z.z),Math.round(z.hp),Math.round(z.mhp)]),base:G.base||null,bossN:G.bossN||{},wx:G.weather,drop:G.drop?{x:G.drop.x,z:G.drop.z,t:G.drop.t,items:G.drop.items,open:G.drop.open,flare:G.drop.flare}:null,heli:G.heli?G.heli.t:null};
  localStorage.setItem(MPS_K,JSON.stringify(o))}catch(e){console.warn('persist',e)}}
 addEventListener('pagehide',()=>netPersist());
 function mpBackLabel(){const b=$('mpBack');if(!b)return;const s=readMP();b.hidden=!s;if(s)b.innerHTML=`📶 回到联机房间 ${esc(s.room)}<small>${s.host?'你是房主 · ':''}第 ${s.day} 天 · ${Math.max(1,Math.round((Date.now()-s.at)/60000))} 分钟前</small>`}
@@ -2638,7 +2652,7 @@ function netRestore(S){const p=G.p,P=S.p;for(const k in P)if(!['x','y','z','sc',
   W.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;ds.hp=a[0];ds.barr=a[1];ds.broken=!!(a[2]&1);ds.open=!!(a[2]&2);ds.planks=a[2]>>2;updDoor(b);(b.wins||[]).forEach((Wn,j)=>{Wn.broken=!!(a[3]>>(j*2)&1);Wn.boarded=!!(a[3]>>(j*2+1)&1);updWindow(Wn)})});
   (W.cp||[]).forEach((d,i)=>{if(d&&G.corpses[i])G.corpses[i].done=true});for(const [key,arr] of W.ld||[]){const [bid,f]=String(key).split('#');if(!BID[bid])continue;const I=interior(bid,+f);arr.forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}
   G.items=[];NET.known=new Set();for(const [nid,k,x,z,y,ins,u] of W.it||[])if(IT[k]){NET.known.add(nid);G.items.push({id:G.uid++,nid,k,x,z,y,inside:ins,uses:u})}netApplyLP(W);
-  G.zs=(W.zs||[]).filter(a=>ZK[a[0]]).map(([k,x,z,hp,mhp])=>{const q=mkZombie(k,x,z);q.hp=hp;q.mhp=mhp;return q});G.bossN=W.bossN||{};if(W.base)baseRecv(W.base);G.drop=W.drop;if(W.heli!=null)G.heli={x:BID.office.pad.x,z:BID.office.pad.z,y:BID.office.h,t:W.heli,on:0}}
+  G.zs=(W.zs||[]).filter(a=>ZK[a[0]]).map(([k,x,z,hp,mhp])=>{const q=mkZombie(k,x,z);q.hp=hp;q.mhp=mhp;return q});G.bossN=W.bossN||{};if(WX[W.wx])G.weather=W.wx;if(W.base)baseRecv(W.base);G.drop=W.drop;if(W.heli!=null)G.heli={x:BID.office.pad.x,z:BID.office.pad.z,y:BID.office.h,t:W.heli,on:0}}
  NET.rejoinSys=S.sys;NET.rejoin=null;renderThrow();renderHand();renderLv();
  setTimeout(()=>{sysMsg('联机',`已回到房间 <b>${esc(NET.room)}</b>${NET.host?' · 你是房主，世界从断开前的状态继续':''}`,{t:5000});if(!NET.host)netSend({k:'hello',from:NET.me})},1200)}
 // ---------- world setup in a multiplayer game (called from begin) ----------
@@ -2697,7 +2711,7 @@ function netDoorAggro(){for(const h of netHumans()){if(!h.sc||h.sc==='out'||h===
 function netSendWorld(){const zs=[];for(const z of G.zs){if(z.dead&&z.deadT<38)continue;zs.push(zPack(z))}
  const iz={};for(const id in NET.peers){const q=NET.peers[id];const P=q.proxy;if(q.gone||!P||!P.sc||P.sc==='out'||iz[P.sc])continue;const k=netEnsureSc(P.sc);if(!k)continue;iz[k]=G.interiors[k].zs.filter(z=>!(z.dead&&z.deadT<38)).map(zPack)}
  const ds=BLD.map(b=>[Math.round(b.ds.hp),Math.round(b.ds.barr),(b.ds.broken?1:0)|(b.ds.open?2:0)|((b.ds.planks||0)<<2),(b.wins||[]).reduce((a,W,i)=>a|((W.broken?1:0)<<(i*2))|((W.boarded?1:0)<<(i*2+1)),0)]);
- const D=G.drop;NET.tr.send('w',{f:NET.me,t:Math.round(G.t*10)/10,ph:Math.round(G.phaseT*10)/10,d:G.day,n:G.night?1:0,h:G.heli?Math.round(G.heli.t*10)/10:null,dr:D?[r1(D.x),r1(D.z),Math.round(D.t),D.open?1:0,D.flare?1:0,D.items]:null,k:G.king&&!G.king.dead?G.king.id:0,bs:G.boss&&!G.boss.dead?G.boss.id:0,zs,ds,iz})}
+ const D=G.drop;NET.tr.send('w',{f:NET.me,t:Math.round(G.t*10)/10,ph:Math.round(G.phaseT*10)/10,d:G.day,n:G.night?1:0,h:G.heli?Math.round(G.heli.t*10)/10:null,dr:D?[r1(D.x),r1(D.z),Math.round(D.t),D.open?1:0,D.flare?1:0,D.items]:null,k:G.king&&!G.king.dead?G.king.id:0,bs:G.boss&&!G.boss.dead?G.boss.id:0,wx:G.weather||'clear',zs,ds,iz})}
 function netOnWorld(s){if(!s||!G||!NET.started||NET.host||!Array.isArray(s.zs)||!Array.isArray(s.ds)||!NET.list.length||s.f!==NET.list[0].id)return;const pn=G.night;G.t=s.t;G.phaseT=s.ph;G.day=s.d;G.night=!!s.n;
  if(G.night&&!pn)onNight();if(!G.night&&pn&&G.day>1)onDawn();
  const H=BID.office;if(s.h!=null){if(!G.heli){G.heli={x:H.pad.x,z:H.pad.z,y:H.h,t:s.h,on:0};sfx('heli')}else G.heli.t=s.h}
@@ -2709,7 +2723,7 @@ function netOnWorld(s){if(!s||!G||!NET.started||NET.host||!Array.isArray(s.zs)||
  // zombies (mirrors): outside, then the floor we are standing on
  netMirror(s.zs,G.zs,'out');
  if(G.inside&&s.iz&&typeof s.iz==='object'&&Array.isArray(s.iz[G.inside])){const I=G.interiors[G.inside];I.zs=I.zs.filter(z=>z.net);netMirror(s.iz[G.inside],I.zs,G.inside)}
- G.king=s.k&&NET.zm?NET.zm.get(s.k)||null:null;G.boss=s.bs&&NET.zm?NET.zm.get(s.bs)||null:null}
+ if(typeof s.wx==='string'&&WX[s.wx])G.weather=s.wx;G.king=s.k&&NET.zm?NET.zm.get(s.k)||null:null;G.boss=s.bs&&NET.zm?NET.zm.get(s.bs)||null:null}
 function netMirror(arr,list,home){const seen=new Set();NET.zm=NET.zm||new Map();
  for(const a of arr){if(!Array.isArray(a)||a.length<9)continue;const [id,ki,x,z,y,an,hp,mh,f]=a;if(!fin(x)||!fin(z))continue;seen.add(id);let m=NET.zm.get(id);
   // it walked through a door: move the mirror to the list it is in now
@@ -3051,10 +3065,11 @@ Object.assign(ZXP,{tank:220,howler:180,spider:180,cop:14});Object.assign(ZCR,{ta
 ZKI.push('cop','tank','howler','spider');
 const BOSS_N={2:'tank',3:'howler',4:'spider'};
 const BOSS_TIP={tank:'弱点：怕火（燃烧瓶伤害 ×2.5）· 看到它低头蓄力就闪开，它会冲撞',howler:'弱点：尖叫前会蓄力（红圈），这时打它能打断 · 尖叫会召来疾行尸、震晕附近的人',spider:'弱点：怕推，推倒后伤害翻倍 · 它会爬墙、爬窗、上楼顶，躲哪儿都没用'};
-function spawnBoss(kind){const [x,z]=HALF>62?nearPoint():edgePoint();const k=mkZombie(kind,x,z);k.v.s=ZK[kind].big?1.3:1.1;k.v.t=1;k.state='investigate';k.bCd=6;
+function bossHpK(){const n=NET.on&&NET.started?Math.max(1,netHumans().length):1;return n<=1?.75:1+.45*(n-1)}
+function spawnBoss(kind){const [x,z]=HALF>62?nearPoint():edgePoint();const k=mkZombie(kind,x,z);k.v.s=ZK[kind].big?1.3:1.1;k.v.t=1;{const f=bossHpK();k.hp*=f;k.mhp*=f}k.state='investigate';k.bCd=6;
  const b=baseB();if(b){const [fx,fz]=doorFront(b);k.tx=fx;k.tz=fz;k.door=b;k.stimT=G.t+600}else{k.tx=G.p.x;k.tz=G.p.z}
  G.zs.push(k);G.boss=k;G.bossN=G.bossN||{};G.bossN[G.day]=1;sfx('roar');shake(.3);
- const t=`${ZK[kind].n}出现了！${b?'它正朝着据点过来':''}`;sysWorld(t,`悬赏 ${ZCR[kind]} 积分 + 稀有装备 · ${BOSS_TIP[kind]}`);if(NET.on&&NET.started)netSend({k:'bossMsg',t,s:BOSS_TIP[kind],kind})}
+ const t=`${ZK[kind].n}出现了！${b?'它正朝着据点过来':''}`;const s_=`血量 ${Math.round(k.mhp)} · 悬赏 ${ZCR[kind]} 积分 + 稀有装备 · ${BOSS_TIP[kind]}`;sysWorld(t,s_);if(NET.on&&NET.started)netSend({k:'bossMsg',t,s:s_,kind})}
 function bossDown(z){const loot={tank:['shotgun','shells','shells','vest'],howler:['pistol','ammo','ammo','helmet','antibio'],spider:['axe','jacket','antibio','battery']}[z.kind]||['antibio'];
  loot.concat(['scrap','scrap','scrap','scrap','scrap']).forEach((k,i)=>{if(IT[k])dropItem(k,z.x+Math.cos(i*1.2)*1.2,z.z+Math.sin(i*1.2)*1.2,z.y)});
  const t=`${ZK[z.kind].n}被击杀！`;sysWorld(t,'稀有装备和一堆零件掉在它身边');sfx('win');if(NET.on&&NET.started)netSend({k:'bossMsg',t,s:'稀有装备和零件掉在它身边'});G.boss=null}
@@ -3225,7 +3240,7 @@ function toast(h,cls=''){if(G&&G.p&&G.p.remote)return;const el=document.createEl
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function renderHUD(){const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp/maxHp()*100)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
  const len=G.night?G.nightLen:G.dayLen;$('dayT').textContent=G.heli?`第 ${G.day} 天 · 黎明`:`第 ${G.day} ${G.night?'晚':'天'}`;
- const left=G.heli?G.heli.t:len-G.phaseT;$('phT').textContent=G.heli?`🚁 直升机 ${fmt(left)} 后起飞`:G.night?`🌙 离天亮 ${fmt(left)}`:`☀ 离天黑 ${fmt(left)}`;$('phB').style.width=(G.heli?left/100:1-G.phaseT/len)*100+'%';$('clock').classList.toggle('night',G.night);$('clock').classList.toggle('soon',left<30);$('clock').classList.toggle('nofs',!isFull()&&matchMedia('(pointer:coarse)').matches);
+ const left=G.heli?G.heli.t:len-G.phaseT;$('phT').textContent=(G.weather&&G.weather!=='clear'?wx().ic+' ':'')+(G.heli?`🚁 直升机 ${fmt(left)} 后起飞`:G.night?`🌙 离天亮 ${fmt(left)}`:`☀ 离天黑 ${fmt(left)}`);$('phB').style.width=(G.heli?left/100:1-G.phaseT/len)*100+'%';$('clock').classList.toggle('night',G.night);$('clock').classList.toggle('soon',left<30);$('clock').classList.toggle('nofs',!isFull()&&matchMedia('(pointer:coarse)').matches);
  $('hurt').style.boxShadow=`inset 0 0 ${p.hurtT>0?140:p.hp<maxHp()*.3?90:0}px rgba(196,52,43,${p.hurtT>0?.7:p.hp<maxHp()*.3?.35:0})`;
  $('vig').style.background=p.inf>=60?'radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(40,70,10,.55) 100%)':'radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 100%)';
  if(AUD.drone){AUD.drone.gain.value=G.night?.05:0;AUD.wind.gain.value=G.inside?.006:.018}}
@@ -3294,7 +3309,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={get BLD(){return BLD},structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={get BLD(){return BLD},wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
