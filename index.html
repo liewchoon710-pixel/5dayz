@@ -357,7 +357,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.3 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.4 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1250,7 +1250,7 @@ function tickZombie(z,dt,sc){
   const dy=p.y-z.y;
   // a ladder the player climbed up: zombies that can't climb shake it until it falls
   if(dy>1.7&&sc==='out'&&!K.climb&&dy>pileMax()+.3){let L=null,bd=7;for(const l of G.ladders){if(l.fixed||Math.abs(l.top-p.y)>1.6||Math.abs(l.base-z.y)>.6)continue;const [bx,bz]=ladderBottom(l);const d=dd(bx,bz,z.x,z.z);if(d<bd){bd=d;L=l}}
-   if(L){const [bx,bz]=ladderBottom(L);if(bd>.8){tx=bx;tz=bz}else{z.ang=Math.atan2(L.x-z.x,L.z-z.z);if(z.cd<=0){z.cd=K.cd;z.lunge=.3;L.hp=(L.hp??50)-(K.big?25:10);sfx('whack',L.x,L.z);G.noises.push({x:L.x,z:L.z,r:6,t:.5,sc:'out'});if(L.hp<=0)knockLadder(L);else if(!G.ladTip&&!p.remote){G.ladTip=1;toast('<b>丧尸在摇你的梯子！</b> 梯子倒了你就下不去了，它们也会想别的办法上来','bad')}}return}}}
+   if(L){const [bx,bz]=ladderBottom(L);if(bd>.8){tx=bx;tz=bz}else{z.ang=Math.atan2(L.x-z.x,L.z-z.z);if(z.cd<=0){z.cd=K.cd;z.lunge=.3;{const dm=structDm('ladder',z);L.hp=(L.hp??50)-dm;strikeFx(L.x+L.nx*.4,L.base+1,L.z+L.nz*.4,'ladder',!!K.big,L.nx,L.nz,'out',dm)}sfx('whack',L.x,L.z);G.noises.push({x:L.x,z:L.z,r:6,t:.5,sc:'out'});if(L.hp<=0)knockLadder(L);else if(!G.ladTip&&!p.remote){G.ladTip=1;toast('<b>丧尸在摇你的梯子！</b> 梯子倒了你就下不去了，它们也会想别的办法上来','bad')}}return}}}
   if(dy>1.7&&K.climb&&sc==='out'){// find ladder to player's level
    let L=null,bd=18;for(const l of G.ladders){if(Math.abs(l.top-p.y)>1.5&&!(l.top>z.y+1.5))continue;const [bx,bz]=ladderBottom(l);const d=dd(bx,bz,z.x,z.z);if(d<bd&&Math.abs(l.base-z.y)<.6){bd=d;L=l}}
    if(L){const [bx,bz]=ladderBottom(L);if(dd(bx,bz,z.x,z.z)<.6){z.climb={L,t:0};return}tx=bx;tz=bz}}
@@ -1283,7 +1283,7 @@ function playerIn(b){return !!(G.inside&&G.interiors[G.inside]&&G.interiors[G.in
 function zEnter(z,b,f,x,zz){const I0=interior(b.id,f);if(I0.zs.filter(q=>!q.dead).length>=14&&!ZK[z.kind].boss&&!ZK[z.kind].king){z.door=null;z.entry=null;z.state='investigate';z.giveT=G.t+6;return}const i=G.zs.indexOf(z);if(i>=0)G.zs.splice(i,1);const I=I0;z.x=x;z.z=zz;z.y=0;z.door=null;z.entry=null;z.climb=null;z.kv=null;
  z.state=G.inside===I.key?'chase':'investigate';z.tx=0;z.tz=0;I.zs.push(z)}
 function doorFront(b){const D=b.door;return[D.x+D.nx*.8,D.z+D.nz*.8]}
-function hitDoor(b,dm,z){const ds=b.ds;sfx('bang',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:6,t:.5,sc:'out'});const inB=playerIn(b);
+function hitDoor(b,dm,z){const ds=b.ds;sfx('bang',z.x,z.z);{const K=z&&ZK[z.kind];const mat=doorMat(b);if(mat==='iron')sfx('whack',z.x,z.z);doorStrikeFx(b,mat,!!(K&&(K.big||K.boss||K.king)),dm)}G.noises.push({x:z.x,z:z.z,r:6,t:.5,sc:'out'});const inB=playerIn(b);
  if(inB){if(G.inside===interiorKey(b.id,0))sfx('bang');shake(.08);if(!(b.bangTipT>G.t)){b.bangTipT=G.t+7;toast(`<b>有东西在撞门！</b>（门 ${Math.max(0,Math.round(ds.hp+ds.barr))}）`,'bad')}}
  if(ds.barr>0){ds.barr-=dm;if(ds.barr<=0){ds.barr=0;ds.planks=0;const I=G.interiors[interiorKey(b.id,0)];if(I){for(const s of I.solids.filter(o=>o.atDoor)){s.atDoor=0;s.mov&&(s.x0+=-b.door.nx*1.2,s.x1+=-b.door.nx*1.2,s.z0+=-b.door.nz*1.2,s.z1+=-b.door.nz*1.2);if(s.g){s.g.position.x-=b.door.nx*1.2;s.g.position.z-=b.door.nz*1.2}}renderBar(I)}if(inB)toast('堵门的东西被撞开了！','bad')}}
  else{ds.hp-=dm;if(ds.hp<=0){ds.hp=0;ds.broken=true;updDoor(b);sfx('thud',b.door.x,b.door.z);if(inB)toast(`<b>${b.n}的门被撞破了！</b>`,'bad')}}}
@@ -1293,7 +1293,7 @@ function zBreakIn(z,dt,K){const p=G.p;
   const W=E.W,V=E.V;const ox=W?W.x+W.nx*.7:V.x,oz=W?W.z+W.nz*.7:V.z;
   if(dd(z.x,z.z,ox,oz)>.6){stepTo(z,ox,oz,dt,'out');return}
   z.ang=Math.atan2((W?W.x:V.wx)-z.x,(W?W.z:V.wz)-z.z);E.t=(E.t||0)+dt;
-  if(W){if(W.boarded){if(z.cd<=0){z.cd=K.cd;W.bhp=(W.bhp??90)-(K.boss?(K.climb?45:30):14);sfx('bang',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:5,t:.5,sc:'out'});if(W.bhp<=0){W.boarded=false;W.broken=true;updWindow(W);if(playerIn(b))toast('窗户上的木板被扯掉了！','bad')}}return}
+  if(W){if(W.boarded){if(z.cd<=0){z.cd=K.cd;{const mat=W.iron?'ironwin':'plank';const dm=structDm(mat,z)*(K.boss&&K.climb?1.8:1);W.bhp=(W.bhp??90)-dm;strikeFx(W.x+W.nx*.2,W.y+1.4,W.z+W.nz*.2,mat,!!(K.big||K.boss),W.nx,W.nz,'out',dm);if(mat==='ironwin')sfx('whack',z.x,z.z)}sfx('bang',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:5,t:.5,sc:'out'});if(W.bhp<=0){W.boarded=false;W.broken=true;updWindow(W);if(playerIn(b))toast('窗户上的木板被扯掉了！','bad')}}return}
    if(!W.broken){W.broken=true;updWindow(W);sfx('glass',z.x,z.z);G.noises.push({x:z.x,z:z.z,r:10,t:.5,sc:'out'});if(playerIn(b))toast('<b>有丧尸砸碎了窗户！</b>','bad');E.t=0;return}
    if(E.t>1.6){const I=interior(b.id,0);const q=I.wins.find(o=>o.W===W);zEnter(z,b,0,q?q.x-W.nx*.6:0,q?q.z-W.nz*.6:0);if(playerIn(b))toast(`${ZK[z.kind].n}从窗户爬进来了！`,'bad')}}
   else if(E.t>2.6){const I=interior(b.id,0);const q=I.vents.find(o=>o.V===V);zEnter(z,b,0,q?q.x-V.nx*.6:0,q?q.z-V.nz*.6:0);if(playerIn(b))toast(`${ZK[z.kind].n}从通风管钻进来了！`,'bad')}
@@ -1309,7 +1309,7 @@ function zBreakIn(z,dt,K){const p=G.p;
  if(K.smart){if(ds.barr<=0){z.openT=(z.openT||0)+dt;if(z.openT>1.4){z.openT=0;ds.open=true;updDoor(b);sfx('door',b.door.x,b.door.z);if(playerIn(b))toast(`<b>${ZK[z.kind].n}自己把门打开了！</b>`,'bad');}return}
   const opts=[...b.wins.filter(W=>W.f===0).map(W=>({b,W,d:dd(W.x,W.z,z.x,z.z)})),...b.vents.filter(V=>!V.roof).map(V=>({b,V,d:dd(V.x,V.z,z.x,z.z)+3}))].sort((a,c)=>a.d-c.d);
   if(opts.length){z.entry=opts[0];z.door=null;return}}
- if(z.cd<=0){z.cd=K.cd*1.15;hitDoor(b,((K.big?55:13)+(G.day-1)*3)*doorK()*(z.kind==='tank'?2.5:1),z)}}
+ if(z.cd<=0){z.cd=K.cd*1.15;hitDoor(b,structDm(doorMat(b),z)*doorK(),z)}}
 // zombies inside a building follow the player between floors
 function tickFloors(dt){if(NET.on&&NET.started&&!NET.host)return;const keys=new Set();if(G.inside)keys.add(G.inside);
  if(NET.on&&NET.started)for(const h of netHumans())if(h.remote&&h.sc&&h.sc!=='out'&&G.interiors[h.sc])keys.add(h.sc);
@@ -1430,7 +1430,7 @@ function zAttack(z){const p=G.p,K=ZK[z.kind];if(p.remote){if(p.id!=='_')netSend(
   startGrab(z);return}
  let dm=K.dm*zDmK();
  if(p.block&&front){if(shield||useSt(12)){dm*=shield?.08:.3;sfx('block',p.x,p.z);knock(z,p.x,p.z,.35,.35);shake(.12);if(dm>1)hurtPlayer(dm,0,z);return}}
- dm*=gearK('swipe');hurtPlayer(dm,K.inf*.4*gearK('scratchInf'),z);
+ dm*=gearK('swipe');hurtPlayer(dm,K.inf*.4*gearK('scratchInf'),z);{const d0=dd(p.x,p.z,z.x,z.z)||1;fx3('spray',p.x,p.y+1.35,p.z,{t:.45,dx:(p.x-z.x)/d0,dz:(p.z-z.z)/d0});fx3('blood',p.x,p.y+1.2,p.z);sfx('zhit',p.x,p.z);hitStop(K.big?.09:.035)}
  const d=dd(p.x,p.z,z.x,z.z)||1;const push=K.big?1.4:.25;moveEnt(p,(p.x-z.x)/d*push,(p.z-z.z)/d*push,.3);if(K.big){p.stag=.5;shake(.45);hitStop(.06)}else shake(.12)}
 // ---- player actions ----
 function weaponOf(){const p=G.p;return p.weapon?IT[p.weapon]:IT._fist}
@@ -1502,7 +1502,7 @@ function tickCombatP(dt){const p=G.p;if(p.st==null)pInit(p);
  if(p.block){p.stT=Math.max(p.stT,.25);p.st=Math.max(0,p.st-dt*2);if(p.st<=0)setBlock(false)}
  if(p.stT<=0)p.st=Math.min(maxSt(),p.st+dt*(p.mv?12:24)*stRegK());if(p.exhaust&&p.st>30)p.exhaust=false;
  if(p.grab){const zs=p.grab.zs.filter(z=>!z.dead&&z.grabbing&&dd(z.x,z.z,p.x,p.z)<1.6);if(!zs.length){p.grab=null;p.strug=0}else{p.grab.zs=zs;p.strug=Math.max(0,p.strug-dt*.3*Math.sqrt(zs.length));p.grab.bite-=dt*(1+(zs.length-1)*.5);
-   if(p.grab.bite<=0){p.grab.bite=biteTime();const z=zs[0],K=ZK[z.kind];hurtPlayer(8*zDmK()*gearK('biteDm'),K.inf*1.6*gearK('biteInf'),z);sfx('bite',p.x,p.z);fx3('spray',p.x,p.y+1.4,p.z,{t:.4,dx:0,dz:0});shake(.3);hitStop(.05)}}}
+   if(p.grab.bite<=0){p.grab.bite=biteTime();const z=zs[0],K=ZK[z.kind];hurtPlayer(8*zDmK()*gearK('biteDm'),K.inf*1.6*gearK('biteInf'),z);sfx('bite',p.x,p.z);fx3('spray',p.x,p.y+1.4,p.z,{t:.5,dx:0,dz:0});fx3('blood',p.x,p.y+1.5,p.z);shake(.35);hitStop(.07)}}}
  if(p.roll){p.roll.t+=dt;const k=p.roll.t/.48;if(k>=1)p.roll=null;else{const sp=7.4*(1-k*.55);moveEnt(p,p.roll.dx*sp*dt,p.roll.dz*sp*dt,.3)}}
  if(p.hide){const near=G.zs.filter(z=>!z.dead&&z.sawHide&&dd(z.x,z.z,p.x,p.z)<2.6);if(near.length){p.clawT=(p.clawT||1.8)-dt;if(p.clawT<=0){p.clawT=2;hurtPlayer(5*gearK('swipe'),2*gearK('scratchInf'),near[0]);sfx('zhit',p.x,p.z);if(!G.clawTip){G.clawTip=1;toast('丧尸在车底下抓你！<b>推（踢）开它</b>或者从另一边爬出去','bad')}}}}
  renderCombatHUD()}
@@ -1530,7 +1530,7 @@ function exitCar(){const p=G.p,c=p.inCar;if(!c)return;if(c.driving){c.driving=fa
 function startCar(){const p=G.p,c=p.inCar;if(!c||!c.drive)return;if(!p.inv.carkey){toast('没有车钥匙');return}if(c.fuel<=0){toast('没油了');return}
  c.driving=true;sfx('engine',c.x,c.z);noise(c.x,c.z,14);toast('发动了！摇杆往哪推车就往哪开 · 撞丧尸会把它们撞飞 · 很吵','good');$('acts').classList.add('driving')}
 function refuel(c){const p=G.p;if(!p.carry||p.carry.k!=='gascan')return;setBusy('加油中…',2,()=>{c.fuel=100;p.carry=null;sfx('pick',p.x,p.z);toast('加满油了 · 找到<b>车钥匙</b>就能开','good')})}
-function carBash(z,c){const K=ZK[z.kind];if(G.p.remote){z.cd=K.cd;if(G.p.id!=='_')netSend({k:'zAtk',to:G.p.id,zid:z.id,car:1});return}z.cd=K.cd;z.lunge=.3;c.glass-=K.big?30:10;sfx('bang',c.x,c.z);shake(.1);G.noises.push({x:c.x,z:c.z,r:5,t:.5,sc:'out'});
+function carBash(z,c){const K=ZK[z.kind];if(G.p.remote){z.cd=K.cd;if(G.p.id!=='_')netSend({k:'zAtk',to:G.p.id,zid:z.id,car:1});return}z.cd=K.cd;z.lunge=.3;{const dm=structDm('glass',z);c.glass-=dm;strikeFx(lerp(z.x,c.x,.5),1.3,lerp(z.z,c.z,.5),'glass',!!K.big,(z.x-c.x)/(dd(z.x,z.z,c.x,c.z)||1),(z.z-c.z)/(dd(z.x,z.z,c.x,c.z)||1),'out',dm)}sfx('bang',c.x,c.z);shake(.1);G.noises.push({x:c.x,z:c.z,r:5,t:.5,sc:'out'});
  if(!G.carTip){G.carTip=1;toast('丧尸在砸车窗！窗碎了会把你拖出去','bad')}
  if(c.glass<=0&&G.p.inCar===c){sfx('glass',c.x,c.z);exitCar();startGrab(z);toast('车窗被砸碎，你被拖出来了！','bad')}}
 // driving physics (arcade): steer toward the joystick direction, collide with solids, ram zombies
@@ -1950,6 +1950,8 @@ function syncFx(dt){for(const k in FXP)for(const o of FXP[k].list)o.visible=fals
   else if(f.k==='shell'){const o=fxObj('shell',()=>{const m=new T3.Mesh(new T3.CylinderGeometry(.012,.012,.04,6),std(0xc8a040,{m:.9,r:.3}));return m});o.position.set(f.x+f.sx*k*.8,f.y+k*.7-k*k*1.9,f.z+f.sz*k*.8);o.rotation.set(k*20,k*13,0)}
   else if(f.k==='ember'){const o=fxObj('ember',()=>glowSprite(0xff8a30,.5,.9));o.position.set(f.x,f.y+k*1.6,f.z);o.material.opacity=1-k;o.scale.setScalar(.6-k*.3)}
   else if(f.k==='boom'){const o=fxObj('boom',()=>glowSprite(0xffb050,4,1));o.position.set(f.x,f.y,f.z);o.scale.setScalar((f.big?7:4)*(.4+k));o.material.opacity=1-k}
+  else if(f.k==='debris'){for(let i=0;i<f.n;i++){const o=fxObj('deb'+f.col,()=>new T3.Mesh(new T3.BoxGeometry(1,1,1),new T3.MeshStandardMaterial({color:f.col,roughness:.75,metalness:f.col===0x7a7e82?.7:0,transparent:f.col===0xa8d8ec,opacity:f.col===0xa8d8ec?.75:1})));const a=i*2.39+f.x*7,sp=.55+((i*31)%7)*.13;
+   o.position.set(f.x+(f.dx*1.8+Math.sin(a)*.9)*k*sp,Math.max(.02,f.y+k*1.4*sp-k*k*3.2),f.z+(f.dz*1.8+Math.cos(a)*.9)*k*sp);const s=(f.big?.15:.1)*(1-k*.4);o.scale.set(s*(f.col===0xa8d8ec?1.4:2),s*(f.col===0xa8d8ec?.15:.55),s);o.rotation.set(k*9+i,k*7+i*.5,i)}}
   else if(f.k==='dust'){const o=fxObj('dust',()=>{const s=glowSprite(0xb0a890,1,.5);s.material.blending=T3.NormalBlending;return s});o.position.set(f.x,f.y+k*.4,f.z);o.scale.setScalar(.5+k);o.material.opacity=.5*(1-k)}
   else if(f.k==='proj'){const o=fxObj('proj_'+f.item,()=>{const m=itemModel(f.item);m.userData.ring.visible=false;return m});o.position.set(lerp(f.x,f.x1,k),lerp(f.y,f.y1,k)+Math.sin(k*Math.PI)*f.arc,lerp(f.z,f.z1,k));o.rotation.set(k*12,k*7,0)}
   else if(f.k==='fuse'){const o=fxObj('ember',()=>glowSprite(0xff8a30,.5,.9));o.position.set(f.x,f.y+Math.random()*.2,f.z);o.scale.setScalar(.4+Math.random()*.4)}
@@ -2701,7 +2703,7 @@ function netOnWorld(s){if(!s||!G||!NET.started||NET.host||!Array.isArray(s.zs)||
  const H=BID.office;if(s.h!=null){if(!G.heli){G.heli={x:H.pad.x,z:H.pad.z,y:H.h,t:s.h,on:0};sfx('heli')}else G.heli.t=s.h}
  if(s.dr){const [x,z,t,o,f,items]=s.dr;if(!G.drop||G.drop.x!==x||G.drop.z!==z){G.drop={x,z,t,items,open:!!o,flare:!!f};sfx('heli')}else{G.drop.t=t;if(o)G.drop.open=true;G.drop.flare=!!f}}else G.drop=null;
  // doors & windows
- s.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;const br=!!(a[2]&1),op=!!(a[2]&2),pl=a[2]>>2;const chg=br!==!!ds.broken||op!==!!ds.open||pl!==(ds.planks||0)||Math.abs(ds.barr-a[1])>1;ds.hp=a[0];ds.barr=a[1];ds.broken=br;ds.open=op;ds.planks=pl;if(chg){updDoor(b);const I=G.interiors[interiorKey(b.id,0)];if(I&&I.built!==false)try{renderBar(I)}catch(e){}}
+ s.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;{const dmg=(ds.hp+ds.barr)-(a[0]+a[1]);if(dmg>.5&&!ds.broken&&G.t>3&&(!G.inside||G.interiors[G.inside].b===b||dd(G.p.x,G.p.z,b.door.x,b.door.z)<30))doorStrikeFx(b,doorMat(b),dmg>40,dmg)}const br=!!(a[2]&1),op=!!(a[2]&2),pl=a[2]>>2;const chg=br!==!!ds.broken||op!==!!ds.open||pl!==(ds.planks||0)||Math.abs(ds.barr-a[1])>1;ds.hp=a[0];ds.barr=a[1];ds.broken=br;ds.open=op;ds.planks=pl;if(chg){updDoor(b);const I=G.interiors[interiorKey(b.id,0)];if(I&&I.built!==false)try{renderBar(I)}catch(e){}}
   (b.wins||[]).forEach((W,j)=>{const wb=!!(a[3]>>(j*2)&1),wo=!!(a[3]>>(j*2+1)&1);if(wb!==!!W.broken||wo!==!!W.boarded){W.broken=wb;W.boarded=wo;updWindow(W)}})});
  NET.doorSig=doorSig();
  // zombies (mirrors): outside, then the floor we are standing on
@@ -2809,8 +2811,8 @@ function openGive(q){let el=$('giveP');if(!el){el=document.createElement('div');
  $('giveX').onclick=()=>{el.hidden=true}}
 // ---------- 尸化体: break into buildings, chase people between floors ----------
 function zpBash(b,W){const p=G.p;if(p.atkCd>0)return;p.atkCd=.9;p.swing=1;
- if(W){W.bhp=(W.bhp??90)-22;sfx('bang',p.x,p.z);noise(p.x,p.z,5);if(W.bhp<=0){W.boarded=false;W.broken=true;updWindow(W);toast('窗户上的木板被你扯掉了','good')}return}
- hitDoor(b,22+(G.day-1)*3,{x:p.x,z:p.z});noise(p.x,p.z,6);if(b.ds.broken||b.ds.barr<=0)toast('门撞开了！','good')}
+ if(W){const dm=structDm(W.iron?'ironwin':'plank',null);W.bhp=(W.bhp??90)-dm;strikeFx(W.x+W.nx*.2,1.4,W.z+W.nz*.2,W.iron?'ironwin':'plank',false,W.nx,W.nz,'out',dm);sfx('bang',p.x,p.z);noise(p.x,p.z,5);if(W.bhp<=0){W.boarded=false;W.broken=true;updWindow(W);toast('窗户上的木板被你扯掉了','good')}return}
+ hitDoor(b,structDm(doorMat(b),null),{x:p.x,z:p.z});noise(p.x,p.z,6);if(b.ds.broken||b.ds.barr<=0)toast('门撞开了！','good')}
 function zpCtx(){const p=G.p,o=[];if(p.zpDown||G.over&&!NET.zp)return o;
  if(G.inside){const I=G.interiors[G.inside];if(!I)return o;const b=I.b,ds=b.ds;
   if(I.door&&dd(I.door.x,I.door.z,p.x,p.z)<1.5){if(ds.barr>0&&!ds.broken)o.push({l:'🧟 撞开堵门的东西',fn:()=>zpBash(b)});else o.push({l:'🚪 出门',fn:()=>exitTo(b.door.x+b.door.nx,b.door.z+b.door.nz,0,'door')})}
@@ -2839,6 +2841,7 @@ function netEnd(r){if(NET.ended)return;NET.ended=true;if(G.over&&!NET.zp)return;
 // ---------- rendering other players ----------
 function netRender(dt){if(!NET.on||!NET.started)return;const RM=MODELS.state==='ready';const sc=G.inside||'out';
  for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.sc!==sc||q.ov&&!q.zp||q.es)continue;
+  if(q.ht&&!q.htP)fx3('spray',q.rx,q.ry+1.3,q.rz,{t:.4,dx:0,dz:0});q.htP=q.ht;
   const key=(sc==='out'?'np':'Inp')+(q.zp?'z':'')+(RM?'r':'')+id;
   const e=ent(key,()=>RM?realModel(q.zp?'walker':'player',{s:1,t:.82+hashf(id)*.36}):(q.zp?zombieModel({kind:'walker',id:hashf(id)*1e3|0}):playerModel()));const m=e.m,ud=m.userData;
   const sp=dt>0?dd(q.rx,q.rz,ud.lx??q.rx,ud.lz??q.rz)/dt:0;ud.lx=q.rx;ud.lz=q.rz;m.position.set(q.rx,q.ry,q.rz);m.rotation.y=q.ra;m.visible=!q.hd&&!(q.car>=0);
@@ -3125,6 +3128,31 @@ function pileTick(dt){if(!G||!G.piles||!G.piles.length)return;if(NET.on&&NET.sta
    if(k>=1){P.up.splice(P.up.indexOf(z),1);z.pz=null;z.climb=null;z.x=rx;z.z=rz;z.y=P.top;z.vy=0;z.fallFrom=P.top;z.state='chase';z.seenT=5;sfx('groan',z.x,z.z)}}}}
 
 
+// ================= 破坏力：每种丧尸砸东西的力气不同，每种材料的硬度不同 · 砸东西有木屑/火花/玻璃渣、门在抖、镜头震动 =================
+const BDM={crawler:5,runner:8,screamer:10,walker:12,cop:15,stalker:15,climber:15,howler:18,spider:25,brute:60,king:70,tank:140};
+const MAT_N={wood:'木门',iron:'铁门',barr:'堵门的东西',plank:'木板',ironwin:'铁窗',glass:'车窗',ladder:'梯子'};
+function zBdm(z){return (z&&ZK[z.kind]?(BDM[z.kind]||12):22)*(1+.08*((G.day||1)-1))}
+// iron shrugs off small zombies; the big ones (巨尸, Boss) tear through anything
+function matK(mat,z){const K=z&&ZK[z.kind];const big=K&&(K.big||K.boss||K.king);if(mat==='iron'||mat==='ironwin')return big?1:.4;if(mat==='plank')return .8;if(mat==='glass')return .8;if(mat==='ladder')return .8;return 1}
+function structDm(mat,z){return zBdm(z)*matK(mat,z)}
+const MAT_FX={wood:[0x7a5634,'wood'],barr:[0x6a4a30,'wood'],plank:[0x8a6a44,'wood'],ladder:[0x9a7a50,'wood'],iron:[0x7a7e82,'metal'],ironwin:[0x7a7e82,'metal'],glass:[0xa8d8ec,'glass']};
+// x,z = point of impact · nx,nz = which way the bits fly · sc = which scene
+function strikeFx(x,y,z,mat,big,nx,nz,sc,dm){const F=MAT_FX[mat]||MAT_FX.wood;sc=sc||'out';
+ G.fx.push({k:'debris',x,y,z,dx:nx||0,dz:nz||0,col:F[0],n:big?9:5,big:!!big,t:big?.75:.55,m:big?.75:.55,sc});
+ if(F[1]==='metal'){G.fx.push({k:'spark',x,y,z,t:.18,m:.18,sc});G.fx.push({k:'spark',x:x+(nx||0)*.2,y:y+.2,z:z+(nz||0)*.2,t:.14,m:.14,sc})}
+ if(big)G.fx.push({k:'dust',x,y:y-.6,z,t:.9,m:.9,sc});
+ const L=G.lp||G.p;const here=(G.inside||'out')===sc;const d=here?dd(L.x,L.z,x,z):99;
+ if(d<16){shake(big?.3:.06*(1-d/16)+.03);if(big)hitStop(.03)}
+ if(dm&&d<15&&RPG.ftx.length<24)RPG.ftx.push({x,y:y+.9,z,s:'-'+Math.round(dm),c:F[1]==='metal'?'#c8d0d8':F[1]==='glass'?'#bfe8ff':'#e0b880',t:.8,big:!!big,sc})}
+function doorShudder(b,big){const m=b.doorMesh,B=b.doorBase;if(!m||!B||b.ds.broken||b.ds.open)return;const a=big?.14:.05;m.rotation.y=B.ry+(Math.random()<.5?-a:a);m.position.set(B.x-b.door.nx*(big?.12:.04),0,B.z-b.door.nz*(big?.12:.04));
+ const I=G.interiors[interiorKey(b.id,0)];if(I&&I.doorMesh){const im=I.doorMesh;im.userData.ry=im.userData.ry??im.rotation.y;im.rotation.y=im.userData.ry+(Math.random()<.5?-a:a)}
+ clearTimeout(b.shT);b.shT=setTimeout(()=>{updDoor(b);if(I&&I.doorMesh&&I.doorMesh.userData.ry!=null)I.doorMesh.rotation.y=I.doorMesh.userData.ry},big?110:70)}
+// a door taking a hit: outside debris + inside debris (for whoever hides behind it)
+function doorStrikeFx(b,mat,big,dm){const D=b.door;strikeFx(D.x+D.nx*.25,1.2+Math.random()*.6,D.z+D.nz*.25,mat,big,D.nx,D.nz,'out',dm);doorShudder(b,big);
+ const I=G.interiors[interiorKey(b.id,0)];if(I&&I.door&&G.inside===I.key){strikeFx(I.door.x-D.nx*.3,1.2+Math.random()*.5,I.door.z-D.nz*.3,mat,big,-D.nx,-D.nz,I.key,dm);shake(big?.35:.1)}}
+function doorMat(b){return b.ds.barr>0?'barr':b.iron?'iron':'wood'}
+
+
 // ================= audio (synthesized) =================
 const AUD={ctx:null,mute:false,last:{}};try{AUD.mute=localStorage.getItem('scwr-mute')==='1'}catch(e){}
 function audInit(){if(AUD.ctx){if(AUD.ctx.state==='suspended')AUD.ctx.resume().catch(()=>{});return}const C=window.AudioContext||window.webkitAudioContext;if(!C)return;try{AUD.ctx=new C()}catch(e){return}
@@ -3266,7 +3294,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={get BLD(){return BLD},pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={get BLD(){return BLD},structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
