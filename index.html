@@ -357,7 +357,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.2 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.3 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -660,7 +660,7 @@ function animReal(ud,dt,speed,o={}){// speed in m/s
   if(o.aim){for(const s of ['l','r']){const U=B['upperarm.'+s];if(U){U.rotation.x+=-1.25;U.rotation.z+=(s==='l'?.35:-.1)}if(B['lowerarm.'+s])B['lowerarm.'+s].rotation.x+=-.2}}
   const b=ud.blk;if(b>.01){for(const s of ['l','r']){if(B['upperarm.'+s]){B['upperarm.'+s].rotation.x+=C.ua*b;B['upperarm.'+s].rotation.z+=C.uz*b*(s==='l'?1:-1)}if(B['lowerarm.'+s])B['lowerarm.'+s].rotation.x+=C.la*b}}}
  if(o.roll!=null){const th=o.roll*Math.PI*2,h=.75;L.rotation.x=th;L.position.set(0,h-h*Math.cos(th),-h*Math.sin(th));L.scale.y=.8}
- else{L.rotation.x=ud.zombie?L.rotation.x:0;L.position.set(0,-ud.crk*CRP.y,0);L.scale.y=1}
+ else{L.rotation.x=ud.zombie&&o.pile?.5:ud.zombie&&L.rotation.x>.3?0:ud.zombie?L.rotation.x:0;if(o.pile&&!o.dead){const B=ud.bones;for(const s of ['l','r'])if(B['upperarm.'+s])B['upperarm.'+s].rotation.x+=-2.2}L.position.set(0,-ud.crk*CRP.y,0);L.scale.y=1}
  if(ud.mats){const f=o.flash?1:0;if(ud.fl!==f){ud.fl=f;for(const m of ud.mats){m.emissive&&m.emissive.setHex(f?0x6a0a04:0)}}}
  if(ud.zombie&&!ud.dead){const B=ud.bones;const t=(o.t||0)+ud.phase;if(B.head){B.head.rotation.z+=Math.sin(t*.8)*.18}}
 }
@@ -1224,7 +1224,7 @@ function hitZombie(z,dm,src){if(z.dead)return;if(z.net){netHitZ(z,dm,src);return
 function fx3(k,x,y,z,o={}){G.fx.push({k,x,y,z,t:o.t||.5,m:o.t||.5,sc:G._zsc||(G.p&&G.p.remote?'out':(G.inside||'out')),...o})}
 
 function tickZombie(z,dt,sc){
- if(z.dead){z.deadT-=dt;if(z.kv){const o=G.inside;G.inside=sc==='out'?null:sc;moveEnt(z,z.kv.x*dt,z.kv.z*dt,.3);G.inside=o;const f_=Math.exp(-7*dt);z.kv.x*=f_;z.kv.z*=f_;if(Math.abs(z.kv.x)+Math.abs(z.kv.z)<.1)z.kv=null}return}
+ if(z.dead){z.deadT-=dt;if(z.y>.05){const sp=supportAtFor(z,sc);if(z.y>sp+.05){z.vy=(z.vy||0)-22*dt;z.y=Math.max(sp,z.y+z.vy*dt)}}if(z.kv){const o=G.inside;G.inside=sc==='out'?null:sc;moveEnt(z,z.kv.x*dt,z.kv.z*dt,.3);G.inside=o;const f_=Math.exp(-7*dt);z.kv.x*=f_;z.kv.z*=f_;if(Math.abs(z.kv.x)+Math.abs(z.kv.z)<.1)z.kv=null}return}
  const p=G.p,K=ZK[z.kind];z.cd-=dt;z.stun-=dt;z.hitT-=dt;z.flashT-=dt;z.down-=dt;
  if(z.kv){const o=G.inside;G.inside=sc==='out'?null:sc;moveEnt(z,z.kv.x*dt,z.kv.z*dt,K.big?.45:.3);G.inside=o;const f_=Math.exp(-6*dt);z.kv.x*=f_;z.kv.z*=f_;if(Math.abs(z.kv.x)+Math.abs(z.kv.z)<.15)z.kv=null}
  if(z.grabbing){if(!p.grab||!p.grab.zs.includes(z)||sc!==(G.inside||'out')){z.grabbing=false}else{const d=dd(z.x,z.z,p.x,p.z)||1;const a=Math.atan2(p.x-z.x,p.z-z.z);z.ang=a;if(d>.62){const o=G.inside;G.inside=sc==='out'?null:sc;moveEnt(z,(p.x-z.x)/d*Math.min(d-.6,dt*3),(p.z-z.z)/d*Math.min(d-.6,dt*3),.25);G.inside=o}z.anim+=dt*3;return}}z.anim+=dt*(z.mv?zSpeed(z)*2.4:1);z.mv=0;z.groan-=dt;
@@ -1255,7 +1255,8 @@ function tickZombie(z,dt,sc){
    let L=null,bd=18;for(const l of G.ladders){if(Math.abs(l.top-p.y)>1.5&&!(l.top>z.y+1.5))continue;const [bx,bz]=ladderBottom(l);const d=dd(bx,bz,z.x,z.z);if(d<bd&&Math.abs(l.base-z.y)<.6){bd=d;L=l}}
    if(L){const [bx,bz]=ladderBottom(L);if(dd(bx,bz,z.x,z.z)<.6){z.climb={L,t:0};return}tx=bx;tz=bz}}
   if(p.inCar&&sc==='out'){const c=p.inCar;if(!c.driving&&dd(z.x,z.z,c.x,c.z)<2.9){z.ang=Math.atan2(c.x-z.x,c.z-z.z);if(z.cd<=0)carBash(z,c);return}}
-  if(dy>1.6&&sc==='out'&&!z.climb){const ph=K.boss&&K.climb?60:pileMax();if(dy<=ph+.3){z.pileCd=(z.pileCd||0)-dt;const S=solidUnder(p);if(S&&z.pileCd<=0){const ex=clamp(z.x,S.x0,S.x1),ez=clamp(z.z,S.z0,S.z1);const de=dd(ex,ez,z.x,z.z);if(de<.9){const n=zList().filter(o=>o!==z&&!o.dead&&Math.abs(o.y-z.y)<.5&&dd(o.x,o.z,z.x,z.z)<2.4).length+1;
+  const PT=dy>1.6&&sc==='out'&&!z.climb?pileTry(z,p):null;if(PT==='in')return;
+  if(PT){tx=PT[0];tz=PT[1]}else if(dy>1.6&&sc==='out'&&!z.climb){const ph=K.boss&&K.climb?60:pileMax();if(dy<=ph+.3){z.pileCd=(z.pileCd||0)-dt;const S=solidUnder(p);if(S&&z.pileCd<=0){const ex=clamp(z.x,S.x0,S.x1),ez=clamp(z.z,S.z0,S.z1);const de=dd(ex,ez,z.x,z.z);if(de<.9){const n=zList().filter(o=>o!==z&&!o.dead&&Math.abs(o.y-z.y)<.5&&dd(o.x,o.z,z.x,z.z)<2.4).length+1;
      if(n>=(K.boss&&K.climb?1:pileNeed())){z.pileCd=3;const ix=clamp(ex+(ex-z.x)*.0,S.x0+.4,S.x1-.4),iz=clamp(ez,S.z0+.4,S.z1-.4);z.climb={pile:true,t:0,dur:1.4+dy*.35,x0:z.x,z0:z.z,y0:z.y,x1:ix,z1:iz,y1:S.top};sfx('groan',z.x,z.z);if(!G.pileTip){G.pileTip=1;toast('<b>丧尸叠罗汉爬上来了！</b> 越往后它们爬得越高','bad')}return}}else{tx=ex;tz=ez}}}}
   const d=dd(z.x,z.z,p.x,p.z);
   if(d<(K.big?1.25:.95)&&Math.abs(dy)<1.7&&!p.climb&&!p.hide){z.ang=Math.atan2(p.x-z.x,p.z-z.z);if(z.cd<=0){z.cd=K.cd*(p.grab&&!p.grab.zs.includes(z)?.8:1);z.lunge=.3;zAttack(z)}return}
@@ -1324,9 +1325,9 @@ function upChase(dt){G.upT=(G.upT||0)-dt;
    const S=solidUnder({x:h.x,z:h.z,y:h.y});const b=S&&S.ref;if(!b||!b.door)continue;let ex=null;
    if(S.kind==='bld'&&b.hatch)ex={f:b.floors-1,roof:1,x:b.hatch.x+.9,z:b.hatch.z,y:b.h};
    else if(S.kind==='balc'){const W=b.wins.find(W=>W.f>0&&Math.abs(W.y-S.top)<.3&&dd(W.x,W.z,h.x,h.z)<3.5);if(W)ex={f:W.f,W,x:W.x+W.nx*.75,z:W.z+W.nz*.75,y:W.y}}
-   if(!ex)continue;G.upTg.push({b,ex,h});const pm=pileMax();
+   if(!ex)continue;G.upTg.push({b,ex,h});const pm=Math.max(pileMax(),Math.min(30,pileReach()));
    for(const z of G.zs){const K=ZK[z.kind];if(z.dead||z.door||z.entry||z.climb||(K.boss&&K.climb)||z.y>.5||h.y-z.y<1.7)continue;const d=dd(z.x,z.z,h.x,h.z);if(d>25||z.state==='idle'||z.state==='wander'&&d>14)continue;
-    if(h.y<=pm+.3&&!(z.id%2))continue;// half of them still try to pile up
+    if(h.y<=pm+.3&&z.id%3)continue;// most of them pile up against the wall, a third go in through the door
     z.door=b;z.stimT=G.t+25;z.up=b.id;z.state='investigate'}}}
  for(const T of G.upTg||[]){const {b,ex,h}=T;
   for(let f=0;f<b.floors;f++){const I=G.interiors[interiorKey(b.id,f)];if(!I)continue;
@@ -1361,7 +1362,7 @@ function tickWorld(dt){const CL=NET.on&&NET.started&&!NET.host;G._zsc=null;
  if(!CL){G._zsc='out';const H=NET.on?netHumans():null;const HP=H&&H.length?H:[G.lp||G.p];
   for(const z of G.zs){// far-away zombies think 4x less often (big maps on slow phones)
    let near=99;for(const h of HP){const d=Math.abs(h.x-z.x)+Math.abs(h.z-z.z);if(d<near)near=d}
-   z.lod=(z.lod||0)+dt;if(near>70&&z.lod<.25&&!z.dead)continue;const zd=Math.min(z.lod,.25);z.lod=0;
+   if(z.pz&&!z.dead)continue;z.lod=(z.lod||0)+dt;if(near>70&&z.lod<.25&&!z.dead)continue;const zd=Math.min(z.lod,.25);z.lod=0;
    if(NET.on)netTickZ(z,zd,H);else tickZombie(z,zd,'out')}G.zs=G.zs.filter(z=>!(z.dead&&z.deadT<=0));G._zsc=null}
  if(!CL)for(const k in G.interiors){const I=G.interiors[k];const Hk=NET.on&&NET.started?netHumansIn(k):null;
   if(k===G.inside||(Hk&&Hk.length)||I.zs.some(z=>z.state!=='idle')){G._zsc=k;for(const z of I.zs){if(Hk&&Hk.length)netTickZIn(z,dt,k,Hk);else tickZombie(z,dt,k)}G._zsc=null}I.zs=I.zs.filter(z=>!(z.dead&&z.deadT<=0))}
@@ -1374,7 +1375,7 @@ function tickWorld(dt){const CL=NET.on&&NET.started&&!NET.host;G._zsc=null;
  if(NET.on&&!CL)netDoorAggro();
  if(G.inside&&!CL){const b=G.interiors[G.inside].b;const [fx,fz]=doorFront(b);for(const z of G.zs)if(!z.dead&&!z.door&&!z.entry&&!(z.giveT>G.t)&&(z.state==='investigate'||z.state==='chase')&&dd(z.x,z.z,fx,fz)<4){z.door=b;z.stimT=G.t}
   for(const z of G.zs)if(z.door===b&&(G.t-(b.lastNoise||0))<1)z.stimT=G.t}
- tickFloors(dt);if(!CL)upChase(dt);
+ tickFloors(dt);if(!CL){upChase(dt);pileTick(dt)}
  // noises decay
  for(const n of G.noises)n.t-=dt;G.noises=G.noises.filter(n=>n.t>0);
  // fires
@@ -1914,7 +1915,7 @@ function syncScene(dt){
  // zombies
  const zs=zList();for(const z of zs){const zd=dd(z.x,z.z,p.x,p.z);if(!sc&&zd>55&&!(cam.fp&&zd<85))continue;const near=zd<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>RM?realModel(z.kind,z.v):zombieModel(z));const m=e.m,u=m.userData;const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;
   z.lunge=(z.lunge||0)-dt;
-  if(u.real){if(z.dead?((u.dT=(u.dT??2.5)-dt)>0):near)animReal(u,dt,z.climb?1:(z.kv||z.stun>0?0:Math.min(zsp,5)),{zombie:1,t:G.t,climb:!!z.climb,crawl:z.kind==='crawler',attack:z.lunge>.22,hit:z.hitT>0||(z.stun>0&&!z.down),dead:!!z.dead,down:z.down,grab:z.grabbing,flash:z.flashT>0});continue}
+  if(u.real){if(z.dead?((u.dT=(u.dT??2.5)-dt)>0):near)animReal(u,dt,z.climb?1:(z.kv||z.stun>0?0:Math.min(zsp,5)),{zombie:1,t:G.t,climb:!!z.climb,crawl:z.kind==='crawler',attack:z.lunge>.22,hit:z.hitT>0||(z.stun>0&&!z.down),dead:!!z.dead,down:z.down,grab:z.grabbing,flash:z.flashT>0,pile:!!z.pz});continue}
   if(z.dead||z.down>0){const k=z.dead?Math.min(1,(40-z.deadT)*3):1;u.body.rotation.x=-1.45*k;u.body.position.y=.15*k;m.position.y=z.y;continue}else if(u.body.rotation.x<-1)u.body.rotation.x=0
   pose(u,z.anim,z.climb?0:(z.mv?1:.06),{zombie:1,t:G.t+z.id,lunge:z.lunge>0,climb:!!z.climb,limp:u.look.limp});
   u.body.position.y=z.hitT>0?-.06:0;if(z.stun>0)u.head.rotation.z=Math.sin(T*10)*.35}
@@ -2519,7 +2520,7 @@ const NET={on:false,host:false,me:null,name:'',room:null,tr:null,peers:{},list:[
 const ZKI=['walker','runner','climber','crawler','screamer','stalker','brute','king'];
 // find a zombie by id outside or in any interior
 function zFind(id){let z=G.zs.find(o=>o.id===id);if(z){G._fsc='out';return z}for(const k in G.interiors){z=G.interiors[k].zs.find(o=>o.id===id);if(z){G._fsc=k;return z}}return null}
-function zFlags(z){let f=0;if(z.state==='chase')f|=1;else if(z.state==='investigate'||z.door||z.entry)f|=2;if(z.dead)f|=4;if(z.down>0)f|=8;if(z.stun>0)f|=16;if(z.grabbing)f|=32;if(z.climb)f|=64;if(z.lunge>0)f|=128;if(z.hitT>0)f|=256;if(z.burn>0)f|=512;return f}
+function zFlags(z){let f=0;if(z.state==='chase')f|=1;else if(z.state==='investigate'||z.door||z.entry)f|=2;if(z.dead)f|=4;if(z.down>0)f|=8;if(z.stun>0)f|=16;if(z.grabbing)f|=32;if(z.climb)f|=64;if(z.lunge>0)f|=128;if(z.hitT>0)f|=256;if(z.burn>0)f|=512;if(z.pz)f|=1024;return f}
 function zPack(z){return[z.id,ZKI.indexOf(z.kind),Math.round(z.x*10),Math.round(z.z*10),Math.round(z.y*10),Math.round(z.ang*100),Math.round(z.hp),Math.round(z.mhp),zFlags(z)]}
 function netId(){return Math.random().toString(36).slice(2,8)}
 function netSend(o){if(NET.tr)try{NET.tr.send('e',o)}catch(e){}}
@@ -2712,7 +2713,7 @@ function netMirror(arr,list,home){const seen=new Set();NET.zm=NET.zm||new Map();
   // it walked through a door: move the mirror to the list it is in now
   if(m&&m.home!==home){const old=m.home==='out'?G.zs:G.interiors[m.home]&&G.interiors[m.home].zs;if(old){const i=old.indexOf(m);if(i>=0)old.splice(i,1)}m.home=home;m.dead=false;m.deadT=40;m.x=x/10;m.z=z/10;m.y=y/10;list.push(m)}
   if(!m){m={id,home,kind:ZKI[ki]||'walker',x:x/10,z:z/10,y:y/10,ang:an/100,hp,mhp:mh,net:true,state:'idle',dead:false,deadT:40,down:0,stun:0,grabbing:false,climb:null,lunge:0,hitT:0,flashT:0,kv:null,mv:0,anim:hashf(id)*6,cd:0,v:{s:ZKI[ki]==='king'?1.5:.92+hashf(id+'s')*.18,t:.85+hashf(id+'t')*.27}};NET.zm.set(id,m);list.push(m)}
-  m.tx=x/10;m.tz=z/10;m.ty=y/10;m.ta=an/100;m.hp=hp;m.mhp=mh;m.state=f&1?'chase':f&2?'investigate':'idle';if(f&4&&!m.dead){m.dead=true;m.deadT=40}m.down=f&8?1:0;m.stun=f&16?1:0;m.grabbing=(G.p.grab&&G.p.grab.zs.includes(m))?true:!!(f&32);m.climb=f&64?{}:null;if(f&128)m.lunge=.3;if(f&256)m.hitT=.15;m.burn=f&512?1:0}
+  m.tx=x/10;m.tz=z/10;m.ty=y/10;m.ta=an/100;m.hp=hp;m.mhp=mh;m.state=f&1?'chase':f&2?'investigate':'idle';if(f&4&&!m.dead){m.dead=true;m.deadT=40}m.down=f&8?1:0;m.stun=f&16?1:0;m.grabbing=(G.p.grab&&G.p.grab.zs.includes(m))?true:!!(f&32);m.climb=f&64?{}:null;if(f&128)m.lunge=.3;if(f&256)m.hitT=.15;m.burn=f&512?1:0;m.pz=f&1024?1:0}
  // gone from the snapshot without dying (walked into a building, despawned): just vanish
  for(let i=list.length-1;i>=0;i--){const z=list[i];if(z.net&&!seen.has(z.id)&&!z.dead){list.splice(i,1);if(NET.zm.get(z.id)===z)NET.zm.delete(z.id);if(G.p.grab&&G.p.grab.zs.includes(z))releaseGrab(z)}}}
 function netInterp(dt){const k=Math.min(1,dt*8);const IL=G.inside&&G.interiors[G.inside]?G.interiors[G.inside].zs:[];for(const z of G.zs.concat(IL)){if(!z.net)continue;if(z.tx==null)continue;const ox=z.x,oz=z.z;z.x=lerp(z.x,z.tx,k);z.z=lerp(z.z,z.tz,k);z.y=lerp(z.y,z.ty,k);let da=z.ta-z.ang;da=Math.atan2(Math.sin(da),Math.cos(da));z.ang+=da*k;z.mv=dd(ox,oz,z.x,z.z)>.002?1:0;z.anim+=dt*(z.mv?2.4:1);z.hitT-=dt;z.flashT-=dt;z.lunge-=dt;if(z.dead)z.deadT-=dt}
@@ -3077,6 +3078,53 @@ function bossRing(z,r,t){G.fx.push({k:'kring',x:z.x,y:z.y,z:z.z,r,t,m:t,sc:'out'
 function netHumansAll(){return NET.on&&NET.started?netHumans():(G.over?[]:[G.p])}
 
 
+// ================= 尸墙：夜里有人站在高处，丧尸围过来贴着墙一只叠一只往上堆，堆够高后面的踩着尸墙爬上去 =================
+// 第 1 晚不会 · 第 2 晚最高 2 层楼 · 第 3 晚 3 层 · 第 4 晚起不限高度
+const PILE_STEP=.72;
+function pileReach(){if(!G||!G.night||G.day<2)return 0;return G.day===2?FLOOR_H*2+.4:G.day===3?FLOOR_H*3+.4:99}
+function pileSlot(P,i){const d=.38+Math.max(0,P.need-1-i)*.1,s=((i%3)-1)*.32;return{x:P.wx+P.nx*d+P.tx*s,z:P.wz+P.nz*d+P.tz*s,y:i*PILE_STEP}}
+function pileBase(P){return[P.wx+P.nx*(.7+P.need*.1),P.wz+P.nz*(.7+P.need*.1)]}
+function pileGet(S,h,z){G.piles=G.piles||[];let best=null,bd=9;for(const P of G.piles){if(P.S!==S)continue;const d=dd(P.wx,P.wz,h.x,h.z);if(d<bd){bd=d;best=P}}if(best)return best;
+ if(G.piles.filter(P=>P.S===S).length>=2)return G.piles.find(P=>P.S===S);
+ // the wall facing the crowd, lined up with the person on top
+ const sides=[['w',S.x0-z.x],['e',z.x-S.x1],['n',S.z0-z.z],['s',z.z-S.z1]].sort((a,b)=>b[1]-a[1]);
+ for(const [sd] of sides){const nx=sd==='w'?-1:sd==='e'?1:0,nz=sd==='n'?-1:sd==='s'?1:0;let wx,wz;
+  if(nx){wx=nx<0?S.x0:S.x1;wz=clamp(h.z,S.z0+.8,S.z1-.8)}else{wz=nz<0?S.z0:S.z1;wx=clamp(h.x,S.x0+.8,S.x1-.8)}
+  const fx=wx+nx*1.1,fz=wz+nz*1.1;if(Math.abs(fx)>HALF-1||Math.abs(fz)>HALF-1)continue;if(G.solids.some(o=>o!==S&&o.top>.6&&inRect(o,fx,fz,.35)))continue;
+  const P={id:G.uid++,S,wx,wz,nx,nz,tx:-nz,tz:nx,top:S.top,need:Math.max(1,Math.ceil((S.top-1.7)/PILE_STEP)+1),stack:[],up:[],seen:G.t};G.piles.push(P);return P}
+ return null}
+// called from a chasing zombie whose target is out of reach above it: null = not a pile situation, [x,z] = walk here, 'in' = joined
+function pileTry(z,p){const K=ZK[z.kind];if(K.big||K.boss||K.king||z.kind==='crawler'||z.pz||z.pzCd>G.t)return null;const R=pileReach();if(!R)return null;
+ const S=solidUnder(p);if(!S||S.top>R+.05||S.top-z.y<1.6||z.y>.5)return null;const P=pileGet(S,p,z);if(!P)return null;
+ const [bx,bz]=pileBase(P);if(dd(z.x,z.z,bx,bz)>1.1)return[bx,bz];pileEnter(P,z);return 'in'}
+function pileEnter(P,z){z.pz=P;z.pzT=0;z.pzF={x:z.x,z:z.z,y:z.y};z.climb={pile:1,stack:1};z.grabbing=false;z.kv=null;z.door=null;z.entry=null;
+ if(P.stack.length<P.need){z.pzi=P.stack.length;P.stack.push(z);z.pzD=.45+z.pzi*.2;
+  if(P.stack.length===1)pileSay(P,'丧尸开始贴着墙<b>叠尸墙</b>往上爬了！打掉最下面的，整堆都会塌','start');
+  if(P.stack.length===P.need)pileSay(P,'<b>尸墙堆到顶了！</b> 它们正踩着同伴爬上来','full')}
+ else{z.pzi=-1;P.up.push(z);z.pzD=.8+P.top*.28}}
+function pileSay(P,t,k){const L=G.lp||G.p;if(G.inside||NET.zp)return;const S=solidUnder(L);if(S!==P.S&&dd(L.x,L.z,P.wx,P.wz)>14)return;if(P['said'+k])return;P['said'+k]=1;toast(t,'bad');if(k==='start')sfx('groan',P.wx,P.wz)}
+function pileRelease(z,P){z.pzCd=G.t+5;z.pz=null;z.climb=null;z.vy=0;z.fallFrom=z.y;z.stun=Math.max(z.stun||0,1.1);if(!z.kv)z.kv={x:P.nx*(1+Math.random()),z:P.nz*(1+Math.random())}}
+function pileCollapse(P,from){for(let k=P.stack.length-1;k>=from;k--){const z=P.stack[k];if(z.pz===P)pileRelease(z,P)}P.stack.length=Math.min(P.stack.length,from);
+ for(const z of P.up)if(z.pz===P)pileRelease(z,P);P.up.length=0;P.saidfull=0}
+function pileTick(dt){if(!G||!G.piles||!G.piles.length)return;if(NET.on&&NET.started&&!NET.host)return;
+ const H=NET.on&&NET.started?netHumans():(G.over?[]:[G.p]);
+ for(const P of G.piles.slice()){
+  for(const h of H){const out=h.remote?h.sc==='out':!G.inside;if(out&&solidUnder(h)===P.S)P.seen=G.t}
+  if(!pileReach()||G.t-P.seen>12){pileCollapse(P,0);G.piles.splice(G.piles.indexOf(P),1);continue}
+  // the stack: anyone killed, knocked or shoved off brings down everything above
+  for(let i=0;i<P.stack.length;i++){const z=P.stack[i];if(z.dead||z.kv||z.pz!==P){pileCollapse(P,i+1);if(z.pz===P){if(z.dead)z.pz=null;else pileRelease(z,P)}P.stack.length=i;break}}
+  for(const z of P.stack){const sl=pileSlot(P,z.pzi);z.pzT=Math.min(1,z.pzT+dt/z.pzD);const k=z.pzT,e=k*k*(3-2*k);
+   z.x=lerp(z.pzF.x,sl.x,e);z.z=lerp(z.pzF.z,sl.z,e);z.y=lerp(z.pzF.y,sl.y,Math.min(1,k*1.15));z.ang=Math.atan2(-P.nx,-P.nz);z.mv=k<1?1:0;z.anim+=dt*2;
+   if(z.burn>0){z.burn-=dt;hitZombie(z,22*dt,'fire')}z.cd-=dt;z.hitT-=dt;z.flashT-=dt}
+  // climbers: up the pile, over the edge, then hunt
+  const topY=P.stack.length?(P.stack.length-1)*PILE_STEP+1.7:1.7;
+  for(const z of P.up.slice()){if(z.dead||z.kv||z.pz!==P){P.up.splice(P.up.indexOf(z),1);if(z.pz===P&&!z.dead)pileRelease(z,P);continue}
+   if(topY<P.top-.25){P.up.splice(P.up.indexOf(z),1);pileRelease(z,P);continue}
+   z.pzT=Math.min(1,z.pzT+dt/z.pzD);const k=z.pzT;const ex=P.wx+P.nx*.3,ez=P.wz+P.nz*.3,rx=P.wx-P.nx*.8,rz=P.wz-P.nz*.8;z.ang=Math.atan2(-P.nx,-P.nz);z.mv=1;z.anim+=dt*3;
+   if(k<.85){const m=k/.85;z.x=lerp(z.pzF.x,ex,m);z.z=lerp(z.pzF.z,ez,m);z.y=lerp(z.pzF.y,P.top,m)}else{const m=(k-.85)/.15;z.x=lerp(ex,rx,m);z.z=lerp(ez,rz,m);z.y=P.top}
+   if(k>=1){P.up.splice(P.up.indexOf(z),1);z.pz=null;z.climb=null;z.x=rx;z.z=rz;z.y=P.top;z.vy=0;z.fallFrom=P.top;z.state='chase';z.seenT=5;sfx('groan',z.x,z.z)}}}}
+
+
 // ================= audio (synthesized) =================
 const AUD={ctx:null,mute:false,last:{}};try{AUD.mute=localStorage.getItem('scwr-mute')==='1'}catch(e){}
 function audInit(){if(AUD.ctx){if(AUD.ctx.state==='suspended')AUD.ctx.resume().catch(()=>{});return}const C=window.AudioContext||window.webkitAudioContext;if(!C)return;try{AUD.ctx=new C()}catch(e){return}
@@ -3218,7 +3266,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={get BLD(){return BLD},ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={get BLD(){return BLD},pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
