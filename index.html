@@ -108,13 +108,17 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #err{position:fixed;left:16px;right:16px;bottom:16px;background:#3a1414;border:1px solid var(--blood);padding:10px;font-size:12px;border-radius:8px;z-index:50}
 
 /* ---- 末日系统 ---- */
-#sysPop{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 92px);width:min(340px,82vw);display:flex;flex-direction:column;gap:6px;z-index:12;pointer-events:none}
+#sysPop{position:fixed;right:calc(env(safe-area-inset-right,0px) + 8px);top:calc(env(safe-area-inset-top,0px) + 100px);width:min(250px,34vw);opacity:.92;display:flex;flex-direction:column;gap:6px;z-index:12;pointer-events:none}
 #sysPop .sp{pointer-events:auto;background:linear-gradient(180deg,rgba(8,30,38,.93),rgba(6,20,26,.9));border:1px solid rgba(110,225,255,.6);box-shadow:0 0 18px rgba(80,200,255,.25),inset 0 0 14px rgba(80,200,255,.12);border-radius:8px;padding:8px 11px;animation:spIn .28s ease-out}
+@media (orientation:portrait){#sysPop{right:50%;transform:translateX(50%);top:calc(env(safe-area-inset-top,0px) + 150px);width:min(300px,84vw)}}
+@keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,210,90,.75),0 0 10px rgba(255,200,80,.45)}50%{box-shadow:0 0 0 7px rgba(255,210,90,0),0 0 20px rgba(255,200,80,.9)}}
+.pulse,#bagX{animation:ctaPulse 1.3s ease-in-out infinite;border-color:#ffd25a!important}
+#fsBtn{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 48px);z-index:30;padding:8px 16px;border-radius:20px;border:1px solid #ffd25a;background:rgba(20,16,6,.86);color:#ffe7a8;font-size:14px;font-weight:700;animation:ctaPulse 1.3s infinite}
 #sysPop .sp.out{opacity:0;transform:translateY(-6px);transition:.3s}
-#sysPop .st{font-size:12px;color:#7fe6ff;font-weight:800;letter-spacing:.04em}#sysPop .sb{font-size:12.5px;line-height:1.5;color:#d9f4fb;margin-top:2px}#sysPop .sb b{color:#fff}
+#sysPop .st{font-size:11px;color:#7fe6ff;font-weight:800;letter-spacing:.04em}#sysPop .sb{font-size:11.5px;line-height:1.42;max-height:5.8em;overflow:hidden;color:#d9f4fb;margin-top:2px}#sysPop .sb b{color:#fff}
 #sysPop .sp.ok{border-color:rgba(130,230,140,.7)}#sysPop .sp.ok .st{color:#9af0a0}#sysPop .sp.bad{border-color:rgba(255,90,70,.75)}#sysPop .sp.bad .st{color:#ff8a70}#sysPop .sp.warn .st{color:#ffd070}
 @keyframes spIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
-#sysWorld{position:fixed;left:0;right:0;top:34%;z-index:13;pointer-events:none;display:flex;gap:12px;align-items:center;justify-content:center;padding:12px 18px;background:linear-gradient(90deg,rgba(80,0,0,0),rgba(90,6,4,.82) 15%,rgba(90,6,4,.82) 85%,rgba(80,0,0,0));border-top:1px solid #ff4a3a;border-bottom:1px solid #ff4a3a}
+#sysWorld{position:fixed;left:18%;right:18%;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:13;pointer-events:none;display:flex;gap:10px;align-items:center;justify-content:center;padding:5px 14px;font-size:.82em;background:linear-gradient(90deg,rgba(80,0,0,0),rgba(90,6,4,.82) 15%,rgba(90,6,4,.82) 85%,rgba(80,0,0,0));border-top:1px solid #ff4a3a;border-bottom:1px solid #ff4a3a}
 #sysWorld.go{animation:wIn .35s ease-out,wFlash 1s 3}
 #sysWorld .wi{font:900 40px var(--disp);color:#ff3a2a;text-shadow:0 0 14px #ff2010}#sysWorld .wt{font:800 17px var(--body);color:#ff6a58;text-shadow:0 0 8px rgba(255,40,20,.6)}#sysWorld .ws{font-size:12.5px;color:#ffd0c8;margin-top:2px}
 @keyframes wIn{from{opacity:0;transform:scaleY(.4)}to{opacity:1;transform:none}}@keyframes wFlash{50%{background:linear-gradient(90deg,rgba(80,0,0,0),rgba(150,10,6,.9) 15%,rgba(150,10,6,.9) 85%,rgba(80,0,0,0))}}
@@ -357,7 +361,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.5 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.6 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -808,10 +812,20 @@ function supportAt(x,z,y){let best=0;for(const s of solidsOf())if(s.top<=y+STEP&
 function blockedAt(x,z,y,r){for(const s of solidsOf())if(s.top>y+STEP&&!(s.bot!=null&&s.bot>y+1.6)&&inRect(s,x,z,r))return s;
  if(G.inside){const I=G.interiors[G.inside];if(Math.abs(x)>I.w/2-r||Math.abs(z)>I.d/2-r)return{wall:1}}else if(Math.abs(x)>HALF-.4||Math.abs(z)>HALF-.4)return{edge:1};return null}
 // move an entity with sliding collisions; returns true if moved
+// how deep a point sits inside a solid's padded rectangle (<=0 means outside)
+function penDepth(s,x,z,r){return Math.min(x-(s.x0-r),(s.x1+r)-x,z-(s.z0-r),(s.z1+r)-z)}
+// blocked, unless we are already overlapping that solid (fell down its side, stepped off a roof edge) and this step gets us further out
+function blockedMove(ox,oz,x,z,y,r){for(const s of solidsOf()){if(!(s.top>y+STEP&&!(s.bot!=null&&s.bot>y+1.6)&&inRect(s,x,z,r)))continue;
+  if(inRect(s,ox,oz,r)&&penDepth(s,x,z,r)<penDepth(s,ox,oz,r)-1e-5&&penDepth(s,ox,oz,r)<r+.02)continue;return s}
+ if(G.inside){const I=G.interiors[G.inside];if(Math.abs(x)>I.w/2-r||Math.abs(z)>I.d/2-r)return Math.abs(x)>Math.abs(ox)+1e-6||Math.abs(z)>Math.abs(oz)+1e-6?{wall:1}:null}else if(Math.abs(x)>HALF-.4||Math.abs(z)>HALF-.4)return{edge:1};return null}
 function moveEnt(e,dx,dz,r=.3){const nx=e.x+dx,nz=e.z+dz;let moved=false;
- if(!blockedAt(nx,e.z,e.y,r)){e.x=nx;moved=true}
- if(!blockedAt(e.x,nz,e.y,r)){e.z=nz;moved=true}
+ if(!blockedMove(e.x,e.z,nx,e.z,e.y,r)){e.x=nx;moved=true}
+ if(!blockedMove(e.x,e.z,e.x,nz,e.y,r)){e.z=nz;moved=true}
  return moved}
+// pushed deep inside something (bad landing, teleport, lag): pop out to the nearest free side
+function unstick(e,r=.3){for(const s of solidsOf()){if(!(s.top>e.y+STEP&&!(s.bot!=null&&s.bot>e.y+1.6)&&inRect(s,e.x,e.z,r-.05)))continue;if(penDepth(s,e.x,e.z,r)<r+.02)continue;
+  const opts=[[s.x0-r-.05,e.z],[s.x1+r+.05,e.z],[e.x,s.z0-r-.05],[e.x,s.z1+r+.05]].sort((a,b)=>dd(a[0],a[1],e.x,e.z)-dd(b[0],b[1],e.x,e.z));
+  for(const [x,z] of opts)if(!blockedAt(x,z,e.y,r-.05)){e.x=x;e.z=z;return true}}return false}
 
 // ================= renderer / scene =================
 function gl(){
@@ -1001,6 +1015,11 @@ const LOOT_T={house:['can','biscuit','water','bandage','cloth','bottle','knife',
  firest:['can','water','axe','hardhat','jacket','crowbar','bandage'],school:['biscuit','water','bat','cloth','alarm','bottle','bandage'],office:['biscuit','water','alarm','lighter','cloth','bandage','carkey'],ware:['crowbar','nails','cinder','brick','bottle'],garage:['water','carkey','crowbar','nails','lighter'],
  park:['carkey','cinder','brick'],church:['can','biscuit','bandage','cloth','bottle','alarm'],mall:['can','can','biscuit','biscuit','water','water','bottle','bandage','cloth','lighter','alarm','knife','jacket','bandage']};
 const BIGLOOT={hardware:['plank','ladder'],ware:['plank','gascan'],garage:['gascan'],park:['gascan'],firest:['ladder']};
+function iconSprite(txt,col){const [c,g]=cvs(128,64);g.clearRect(0,0,128,64);g.fillStyle='rgba(8,18,22,.55)';g.beginPath();g.roundRect?g.roundRect(4,6,120,52,18):g.rect(4,6,120,52);g.fill();g.strokeStyle=col||'#9ad0f0';g.lineWidth=3;g.stroke();
+ g.font='34px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,64,34);const t=new T3.CanvasTexture(c);
+ const sp=new T3.Sprite(new T3.SpriteMaterial({map:t,transparent:true,depthWrite:false,opacity:.92}));sp.scale.set(txt.length>2?.9:.62,.45,1);return sp}
+// stair doors between floor f and f+1: zombies have to break them to change floors
+function stairDoor(bid,f){G.sdoors=G.sdoors||{};const k=bid+'#'+f;return G.sdoors[k]||(G.sdoors[k]={hp:60,mhp:60})}
 function interiorKey(bid,f){return bid+'#'+f}
 function i2x(I,x,z,inset=.7){const b=I.b,cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;return[clamp((x-cx)*I.sx,-I.w/2+inset,I.w/2-inset),clamp((z-cz)*I.sz,-I.d/2+inset,I.d/2-inset)]}
 function genInterior(b,f){const bw=b.x1-b.x0,bd=b.z1-b.z0;const w=clamp(bw-.6,6,16),d=clamp(bd-.6,6,16);const R=mulberry(b.id+'#'+f);const rr=(a,c)=>a+R()*(c-a);
@@ -1051,10 +1070,11 @@ function buildInteriorMesh(I){const g=new T3.Group();const w=I.w,d=I.d,b=I.b;
  for(const q of I.wins){const W=q.W;const wx=q.x+W.nx*.5,wz=q.z+W.nz*.5;const win=M('plane',new T3.MeshBasicMaterial({color:W.broken?0x9aaab8:0x8a9aa8,transparent:true,opacity:.45}),1.4,1.1,1,wx,1.6,wz,g,false);win.rotation.y=Math.atan2(-W.nx,-W.nz);q.mesh=win}
  for(const q of I.vents){const V=q.V;if(V.roof){BX(std(0x3a3c3e,{m:.5}),1,.05,1,q.x,2.9,q.z,g,false);BX(std(0x6a6c6a,{m:.5}),.08,2.9,.08,q.x+.45,0,q.z,g,false)}else BX(std(0x6a6e70,{m:.6,r:.45}),V.nz?.8:.06,.55,V.nz?.06:.8,q.x+V.nx*.45,.15,q.z+V.nz*.45,g,false)}
  for(const s of I.solids)g.add(furnMesh(s));
- const mk=(q,col)=>{if(!q)return;M('cyl',new T3.MeshBasicMaterial({color:col,transparent:true,opacity:.45}),1.2,.02,1.2,q.x,.03,q.z,g,false);const s=glowSprite(col,1,.4);s.position.set(q.x,.4,q.z);g.add(s)};
- if(I.up){BX(std(0x5a5650),1.4,.3,1.4,I.up.x,0,I.up.z,g);BX(std(0x5a5650),1.4,.3,1,I.up.x,.3,I.up.z,g);mk(I.up,0xf0c060)}
- if(I.down)mk(I.down,0x9ad0f0);if(I.roof){BX(std(0x6a6c6a,{m:.5}),.5,2.6,.05,I.roof.x,0,I.roof.z-.6,g);mk(I.roof,0xf0c060)}
- if(I.door)mk(I.door,0x9ad0f0);for(const q of I.wins)mk(q,0x9ad0f0);for(const q of I.vents)mk(q,0xa0a0a0);
+ // floating icons instead of rings: 🚪 doors, ⬆/⬇ stair doors, 🪟 windows, 🕳 vents
+ const mk=(q,col,ic)=>{if(!q)return;const sp=iconSprite(ic||'🚪',col);const low=ic==='🪟'||ic==='🕳';sp.position.set(q.x,low?.55:1.55,q.z);if(low)sp.scale.multiplyScalar(.75);g.add(sp);q.icon=sp;const sh=new T3.Mesh(new T3.CircleGeometry(.32,20),new T3.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.set(q.x,.02,q.z);g.add(sh)};
+ if(I.up){BX(std(0x5a5650),1.4,.3,1.4,I.up.x,0,I.up.z,g);BX(std(0x5a5650),1.4,.3,1,I.up.x,.3,I.up.z,g);mk(I.up,'#f0c060','🚪⬆')}
+ if(I.down)mk(I.down,'#9ad0f0','🚪⬇');if(I.roof){BX(std(0x6a6c6a,{m:.5}),.5,2.6,.05,I.roof.x,0,I.roof.z-.6,g);mk(I.roof,'#f0c060','🪜')}
+ if(I.door)mk(I.door,'#9ad0f0','🚪');for(const q of I.wins)mk(q,'#9ad0f0','🪟');for(const q of I.vents)mk(q,'#a0a0a0','🕳');
  const lamp=new T3.PointLight(0xffd8a0,.5,Math.max(w,d)*1.1,2);lamp.position.set(0,2.6,0);g.add(lamp);I.lamp=lamp;
  I.group=g;return g}
 function renderBar(I){if(!I.barMesh)return;I.barMesh.clear();const ds=I.b.ds;const D=I.door;if(!D)return;
@@ -1071,26 +1091,57 @@ function enterInterior(bid,f,at,ref){const I=interior(bid,f);if(at==='door'&&!I.
  else if(at==='door'){ox=-I.door.nx*.9;oz=-I.door.nz*.9}else oz=.9;
  q=q||{x:0,z:0};p.x=q.x+ox;p.z=q.z+oz;
  if(!I.group)buildInteriorMesh(I);inGroup.clear();for(const [k,e] of ENT)if(e.parent===inGroup)ENT.delete(k);inGroup.add(I.group);outGroup.visible=false;inGroup.visible=true;
- for(const z of chasers){const F=G.interiors[from];F.zs.splice(F.zs.indexOf(z),1);z.pend=dd(z.x,z.z,p.x,p.z)/zSpeed(z)+1.5;z.pendTo=I.key;z.pendAt={x:q.x,z:q.z+.5};G.pendZ.push(z)}
+ for(const z of chasers){z.floorT=G.t+30;z.state='investigate'}if(chasers.length&&at!=='door'){const sd=stairDoor(b.id,Math.min(f,G.interiors[from].f));if(sd.hp<=0)for(const z of chasers){const F=G.interiors[from];F.zs.splice(F.zs.indexOf(z),1);z.pend=dd(z.x,z.z,p.x,p.z)/zSpeed(z)+1.5;z.pendTo=I.key;z.pendAt={x:q.x,z:q.z+.5};G.pendZ.push(z)}}
  const n=G.zs.filter(z=>z.door===b&&!z.dead).length;
- toast(`进入${b.n}${b.floors>1?' · '+(f+1)+' 楼':''}${n&&f===0?` · <b style="color:#e06050">${n} 只丧尸跟到门口了</b>，搬家具或用木板堵门`:''}${chasers.length?` · <b style="color:#e06050">${chasers.length} 只追上楼来了</b>`:''}`,n||chasers.length?'bad':'');
+ toast(`进入${b.n}${b.floors>1?' · '+(f+1)+' 楼':''}${n&&f===0?` · <b style="color:#e06050">${n} 只丧尸跟到门口了</b>，搬家具或用木板堵门`:''}${chasers.length?` · <b style="color:#e06050">${chasers.length} 只追过来了</b>${stairDoor(b.id,Math.min(f,G.interiors[from].f)).hp>0?'，正在撞楼梯门':''}`:''}`,n||chasers.length?'bad':'');
  sfx('door')}
 function exitTo(x,z,y,how){const p=G.p;const I=G.interiors[G.inside];const chasers=I&&!(NET.on&&NET.started&&!NET.host)?I.zs.filter(q=>!q.dead&&q.state==='chase'&&dd(q.x,q.z,p.x,p.z)<5):[];
  G.inside=null;p.x=x;p.z=z;p.y=y;p.vy=0;outGroup.visible=true;inGroup.visible=false;
  if(I&&how==='door')for(const q of chasers){I.zs.splice(I.zs.indexOf(q),1);q.pend=1.5;q.pendTo='out';q.pendAt={x,z};G.pendZ.push(q)}
  sfx('door')}
+// placed furniture keeps its real shape: turned 90° and/or laid on its side
+function furnMeshPlaced(s){const D0=s.dim0;if(!D0||(!s.lay&&!s.rot)&&Math.abs((s.x1-s.x0)-D0.w)<.01)return furnMesh(s);
+ const W=new T3.Group();const tmp={x0:-D0.w/2,x1:D0.w/2,z0:-D0.d/2,z1:D0.d/2,top:D0.h,kind:s.kind};const inner=furnMesh(tmp);inner.position.set(0,s.lay?D0.d/2:0,s.lay?D0.h/2:0);inner.rotation.x=s.lay?-Math.PI/2:0;W.add(inner);
+ const along=(s.x1-s.x0)>(s.z1-s.z0)+.01,natAlong=(s.lay?D0.w>D0.h:D0.w>D0.d);W.rotation.y=along!==natAlong?Math.PI/2:0;W.position.set((s.x0+s.x1)/2,0,(s.z0+s.z1)/2);s.g=W;return W}
+function furnTurn(){const c=G.p.carry;if(!c||c.k!=='furn')return;c.rot=c.rot?0:1;sfx('drop');toast(`${c.s.fname}：${furnDesc(c)}`)}
+function furnLay(){const c=G.p.carry;if(!c||c.k!=='furn')return;c.lay=c.lay?0:1;sfx('drop');toast(`${c.s.fname}：${furnDesc(c)}`)}
+function furnDesc(c){const D0=c.s.dim0||{h:1};return (c.lay?'放倒（躺着放，变矮）':'立着放')+' · '+(c.rot?'转了 90°':'原来的方向')}
 // ================= barricading with furniture =================
 function nearFurn(I,p){let best=null,bd=1.1;for(const s of I.solids){if(!s.mov)continue;const cx=clamp(p.x,s.x0,s.x1),cz=clamp(p.z,s.z0,s.z1);const d=dd(cx,cz,p.x,p.z);if(d<bd){bd=d;best=s}}return best}
-function liftFurn(I,s){const p=G.p;I.solids.splice(I.solids.indexOf(s),1);if(s.g)s.g.visible=false;if(s.atDoor){I.b.ds.barr=Math.max(0,I.b.ds.barr-s.mov);s.atDoor=0}
- p.carry={k:'furn',s,I};toast(`搬起了<b>${s.fname}</b> · 很重，走得慢 · 拖到门口可以堵门`);sfx('drop',p.x,p.z);noise(p.x,p.z,3)}
-function placeFurn(){const p=G.p,c=p.carry,I=G.interiors[G.inside];if(!c||c.k!=='furn'||!I||c.I!==I){return false}const s=c.s;const sx=s.x1-s.x0,sz=s.z1-s.z0;let x,z,atDoor=false;
+function liftFurn(I,s){const p=G.p;if(!s.dim0)s.dim0={w:s.x1-s.x0,d:s.z1-s.z0,h:s.top};I.solids.splice(I.solids.indexOf(s),1);if(s.g)s.g.visible=false;if(s.atDoor){I.b.ds.barr=Math.max(0,I.b.ds.barr-s.mov);s.atDoor=0}
+ p.carry={k:'furn',s,I,rot:s.rot||0,lay:s.lay||0};toast(`搬起了<b>${s.fname}</b> · 很重，走得慢 · 拖到门口可以堵门`);sfx('drop',p.x,p.z);noise(p.x,p.z,3)}
+function placeFurn(){const p=G.p,c=p.carry,I=G.interiors[G.inside];if(!c||c.k!=='furn'||!I||c.I!==I){return false}const s=c.s;const D0=s.dim0||{w:s.x1-s.x0,d:s.z1-s.z0,h:s.top};let fw=D0.w,fd=c.lay?D0.h:D0.d;const fh=c.lay?D0.d:D0.h;if(c.rot)[fw,fd]=[fd,fw];const sx=fw,sz=fd;s.top=fh;s.rot=c.rot;s.lay=c.lay;let x,z,atDoor=false;
  if(I.door&&dd(p.x,p.z,I.door.x,I.door.z)<2.2&&!I.b.ds.broken){const D=I.door;const across=Math.max(sx,sz),thin=Math.min(sx,sz);const k=I.solids.filter(o=>o.atDoor).reduce((a,o)=>a+Math.min(o.x1-o.x0,o.z1-o.z0)+.05,0);
   const nsx=D.nz?across:thin,nsz=D.nz?thin:across;x=D.x-D.nx*(thin/2+.15+k);z=D.z-D.nz*(thin/2+.15+k);s.x0=x-nsx/2;s.x1=x+nsx/2;s.z0=z-nsz/2;s.z1=z+nsz/2;atDoor=true}
  else{x=p.x+Math.sin(p.ang)*(Math.max(sx,sz)/2+.5);z=p.z+Math.cos(p.ang)*(Math.max(sx,sz)/2+.5);x=clamp(x,-I.w/2+sx/2+.1,I.w/2-sx/2-.1);z=clamp(z,-I.d/2+sz/2+.1,I.d/2-sz/2-.1);s.x0=x-sx/2;s.x1=x+sx/2;s.z0=z-sz/2;s.z1=z+sz/2;
   if(inRect(s,p.x,p.z,.3)){toast('这里放不下');return true}}
- I.solids.push(s);if(s.g){s.g.parent&&s.g.parent.remove(s.g)}I.group.add(furnMesh(s));p.carry=null;sfx('thud',p.x,p.z);noise(p.x,p.z,4);
+ I.solids.push(s);if(s.g){s.g.parent&&s.g.parent.remove(s.g)}I.group.add(furnMeshPlaced(s));p.carry=null;sfx('thud',p.x,p.z);noise(p.x,p.z,4);
  if(atDoor){s.atDoor=1;I.b.ds.barr+=s.mov;toast(`用${s.fname}堵住了门 · 门的耐久 +${s.mov}（${Math.round(I.b.ds.barr+I.b.ds.hp)}）`,'good')}
  return true}
+// ================= searching: every piece of furniture is searched its own way =================
+const SEARCH={
+ desk:{l:'🗄 翻抽屉',t:1,n:2,msg:'抽屉里'},table:{l:'🗄 翻桌子抽屉',t:1,n:2,msg:'抽屉里'},counter:{l:'💰 翻收银台',t:1.3,n:3,msg:'收银台里',extra:['ammo','carkey','battery'],ch:.2},tv:{l:'📺 翻电视柜',t:1.1,n:2,msg:'电视柜里'},
+ cabinet:{l:'🚪 打开柜子',t:1.2,n:3,lock:.45,msg:'柜子里'},locker:{l:'🔐 打开铁柜',t:1.3,n:4,lock:.6,msg:'铁柜里'},
+ shelf:{l:'📦 翻货架',t:2,n:3,more:.35,msg:'货架上'},rack:{l:'📦 翻货架',t:2,n:4,more:.35,msg:'货架上'},
+ bed:{l:'🛏 翻床底',t:1.3,n:2,extra:['ammo','carkey','bandage','battery'],ch:.25,msg:'床底下'},sofa:{l:'🛋 摸沙发缝',t:1,n:1,extra:['ammo','carkey','lighter'],ch:.3,msg:'沙发缝里'},
+ pew:{l:'🔍 翻长椅底下',t:1.2,n:2,msg:'长椅底下'}};
+const TOOLS=['crowbar','axe','machete','knife'];
+function searchOpt(I,l){const p=G.p;const S=SEARCH[l.s&&l.s.kind]||{l:'🔍 搜索',t:1.4,n:2.5,msg:''};
+ // locked cabinets: deterministic per spot so everyone in the room sees the same lock
+ const locked=S.lock&&!l.opened&&hashf(I.key+'#'+I.loot.indexOf(l))<S.lock;
+ if(locked){const tool=TOOLS.find(k=>p.inv[k]);
+  if(tool)return{l:`🔧 用${IT[tool].n}撬开${S.msg.replace('里','')}`,fn:()=>setBusy(`用${IT[tool].n}撬锁…`,1.4,()=>{l.opened=1;noise(p.x,p.z,6);sfx('whack',p.x,p.z);doSearch(I,l,S,1)})};
+  return{l:`💪 硬扳上锁的${S.msg.replace('里','')}（很吵）`,fn:()=>setBusy('硬扳柜门…',3.2,()=>{l.opened=1;noise(p.x,p.z,9);sfx('bang',p.x,p.z);shake(.1);doSearch(I,l,S,1)})}}
+ return{l:S.l,fn:()=>setBusy(S.l.replace(/^\S+\s/,'')+'…',S.t*(hasT('scav')?.8:1),()=>doSearch(I,l,S,0))}}
+function doSearch(I,l,S,wasLocked){const p=G.p;if(l.done){toast('已经被别人搜过了');return}l.done=true;netLoot(I,l);G.stats.looted++;
+ const its=l.items.slice();const pool=LOOT_T[I.b.type]||LOOT_T.house;
+ if(wasLocked&&its.length<3)its.push(pool[Math.floor(Math.random()*pool.length)]);// locked ones were worth the effort
+ if(S.more&&Math.random()<S.more)its.push(pool[Math.floor(Math.random()*pool.length)]);
+ if(S.extra&&Math.random()<S.ch)its.push(pick(S.extra));
+ if(hasT('scav')&&its.length&&Math.random()<.5)its.push(pick(its.filter(k=>!IT[k].big).length?its.filter(k=>!IT[k].big):its));
+ gainXP(3);if(!its.length){toast(`${S.msg||'这里'}什么都没有`);noise(p.x,p.z,S.n);return}
+ const got=[];for(const k of its){if(!IT[k])continue;if(IT[k].big)dropItem(k,p.x,p.z,0);else if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}
+ toast(got.length?`${S.msg?S.msg+'找到：':'找到：'}${got.join('、')}`:'找到的东西放不下，掉在地上了','good');sysEv('loot',I.b.id);sfx('pick');renderThrow();noise(p.x,p.z,S.n)}
 
 
 // ================= items =================
@@ -1198,7 +1249,7 @@ function mkZombie(kind,x,z,y=0){const K=ZK[kind];const day=G?G.day:1;const hpK=(
 function zSpeed(z){const K=ZK[z.kind];return (baseLit(z)?.72:1)*K.sp*(G.night?1.3:1)*(1+.05*(G.day-1))*(z.stun>0?0:1)*(z.burn>0?1.2:1)}
 function zList(){return G.inside?G.interiors[G.inside].zs:G.zs}
 function noise(x,z,r,label){if(G&&G.weather&&G.weather!=='clear'&&!(G.p&&G.p.remote?G._zsc&&G._zsc!=='out':G.inside))r*=wx().noise;if(G.p&&G.p.remote){G.noises.push({x,z,r,t:.5,sc:G._zsc||'out'});return}const sc=G.inside||'out';netNoise(x,z,r,sc);G.noises.push({x,z,r,t:.5,sc});G.fx.push({k:'nring',x,z,y:G.p.y,r,t:.9,m:.9,sc});
- if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;
+ if(G.inside&&r>=3)G.interiors[G.inside].b.lastNoise=G.t;if(G.inside&&r>=6&&!(NET.on&&NET.started&&!NET.host))floorAlert(G.interiors[G.inside]);
  if(G.inside&&r>=9){const I=G.interiors[G.inside];if(I.b.door)G.noises.push({x:I.b.door.x,z:I.b.door.z,r:r*.6,t:.5,sc:'out'})}}
 function sightR(z,p){const K=ZK[z.kind];let s=(G.weather&&G.weather!=='clear'&&(p.remote?p.sc==='out':!G.inside)?wx().sight:1)*K.sight*(G.night?.75:1)*(p.flash&&G.night?1.5:1)*(p.crouch?.6:1)*sightK();if(Math.abs(p.y-z.y)>2.5)s*=1.15;return s}
 function canSee(z,p){if(p.hide){// under a car: a strong smell, or bumping right into it at night, gives you away
@@ -1316,8 +1367,16 @@ function tickFloors(dt){if(NET.on&&NET.started&&!NET.host)return;const keys=new 
  for(const key of keys)floorsToward(G.interiors[key],dt,keys,key===G.inside)}
 function floorsToward(cur,dt,keys,mine){const b=cur.b;
  for(let f=0;f<b.floors;f++){if(f===cur.f||keys.has(interiorKey(b.id,f)))continue;const I=G.interiors[interiorKey(b.id,f)];if(!I)continue;const goUp=cur.f>f;const tgt=goUp?I.up:I.down;if(!tgt)continue;
-  for(const z of I.zs.slice()){if(z.dead||z.state==='idle')continue;if(dd(z.x,z.z,tgt.x,tgt.z)>.8){stepTo(z,tgt.x,tgt.z,dt,I.key);continue}
-   I.zs.splice(I.zs.indexOf(z),1);const N=interior(b.id,f+(goUp?1:-1));const q=goUp?N.down:N.up;z.x=q?q.x:0;z.z=q?q.z+.6:0;z.state=N===cur?'chase':'investigate';N.zs.push(z);if(N===cur&&mine)toast(`${ZK[z.kind].n}从楼梯追上来了`,'bad')}}}
+  for(const z of I.zs.slice()){if(z.dead||!(z.floorT>G.t))continue;z.state='investigate';z.tx=tgt.x;z.tz=tgt.z;if(dd(z.x,z.z,tgt.x,tgt.z)>.8){stepTo(z,tgt.x,tgt.z,dt,I.key);continue}
+   if(stairBash(z,I,b,goUp?f:f-1,tgt,dt))continue;
+   I.zs.splice(I.zs.indexOf(z),1);const N=interior(b.id,f+(goUp?1:-1));const q=goUp?N.down:N.up;z.x=q?q.x:0;z.z=q?q.z+.6:0;z.state='investigate';z.tx=z.x;z.tz=z.z+1.5;N.zs.push(z);if(N===cur&&mine)toast(`${ZK[z.kind].n}从楼梯冲进来了`,'bad')}}}
+// a zombie at a closed stair door keeps hitting it; returns true while the door still stands
+function stairBash(z,I,b,sf,tgt,dt){const sd=stairDoor(b.id,sf);if(sd.hp<=0)return false;z.ang=Math.atan2(tgt.x-z.x,tgt.z-z.z);z.sdT=(z.sdT||0)-dt;if(z.sdT>0)return true;const K=ZK[z.kind];z.sdT=K.cd*1.15;z.lunge=.3;
+ const dm=structDm('wood',z)*doorK();sd.hp=Math.max(0,sd.hp-dm);const big=!!(K.big||K.boss||K.king);strikeFx(tgt.x,1.3,tgt.z,'wood',big,0,0,I.key,dm);const P=G.lp||G.p;const here=G.inside&&G.interiors[G.inside]&&G.interiors[G.inside].b===b;
+ if(here){sfx('bang');shake(.05);if(!(b.sdTipT>G.t)){b.sdTipT=G.t+8;toast(`${I.f>((G.interiors[G.inside].f)||0)?'楼上':'楼下'}有东西在撞楼梯门！（${Math.round(sd.hp)}）`,'bad')}}
+ if(sd.hp<=0){if(here)toast('<b>楼梯门被撞破了！</b>','bad');if(NET.on&&NET.started)netSend({k:'sdoor',key:b.id+'#'+sf,hp:0})}return sd.hp>0}
+// a loud noise inside carries to the other floors: their zombies come looking (quiet = they stay put)
+function floorAlert(I){if(!I||!I.b)return;const b=I.b;for(let f=0;f<b.floors;f++){if(f===I.f)continue;const J=G.interiors[interiorKey(b.id,f)];if(!J)continue;for(const z of J.zs)if(!z.dead){z.floorT=G.t+25;if(z.state==='idle')z.state='investigate'}}}
 // rooftops and balconies are not safe: zombies that can't climb up break into the building and come up from inside
 function upChase(dt){G.upT=(G.upT||0)-dt;
  if(G.upT<=0){G.upT=.5;G.upTg=[];const H=NET.on&&NET.started?netHumans():(G.over?[]:[G.p]);
@@ -1334,6 +1393,7 @@ function upChase(dt){G.upT=(G.upT||0)-dt;
    for(const z of I.zs.slice()){if(z.dead||(z.up!==b.id&&z.state==='idle'))continue;if(NET.on&&NET.started&&netHumansIn(I.key).length)continue;z.up=b.id;
     let tx,tz;if(f<ex.f){if(!I.up)continue;tx=I.up.x;tz=I.up.z}else if(f>ex.f){if(!I.down)continue;tx=I.down.x;tz=I.down.z}else if(ex.roof){if(!I.roof)continue;tx=I.roof.x;tz=I.roof.z}else{const q=I.wins.find(o=>o.W===ex.W);if(!q)continue;tx=q.x;tz=q.z}
     z.state='investigate';z.tx=tx;z.tz=tz;if(dd(z.x,z.z,tx,tz)>.9)continue;
+    if(f!==ex.f&&stairBash(z,I,b,f<ex.f?f:f-1,{x:tx,z:tz},dt))continue;
     I.zs.splice(I.zs.indexOf(z),1);z.grabbing=false;
     if(f!==ex.f){const N=interior(b.id,f+(f<ex.f?1:-1));const q=f<ex.f?N.down:N.up;z.x=q?q.x:0;z.z=q?q.z+.6:0;N.zs.push(z)}
     else{if(ex.W&&!ex.W.broken){ex.W.broken=true;updWindow(ex.W)}z.x=ex.x;z.z=ex.z;z.y=ex.y;z.vy=0;z.state='chase';z.seenT=4;z.up=null;G.zs.push(z);sfx(ex.roof?'door':'glass',ex.x,ex.z);
@@ -1684,21 +1744,22 @@ function computeCtx(){const p=G.p,o=[];if(NET.zp&&G&&!p.climb){ctxOpts=zpCtx();r
  for(const it of its.slice(0,2)){if(it.k==='gascan'&&!p.carry){if(p.inv.lighter)o.push({l:'🔥 点燃汽油桶',fn:()=>igniteGas(it)});if(p.inv.bottle)o.push({l:`🍾 灌燃烧瓶（剩 ${it.uses} 次）`,fn:()=>fillMolotov(it),alt:1})}
   if(!(IT[it.k].big&&p.carry))o.push({l:`${IT[it.k].big?'搬起':'捡起'} ${IT[it.k].n}`,fn:()=>pickUp(it),alt:o.length>0})}
  if(G.inside){const I=G.interiors[G.inside];
-  for(const l of I.loot)if(!l.done&&dd(l.x,l.z,p.x,p.z)<1.2){o.unshift({l:'🔍 搜索',fn:()=>setBusy('搜索中…',1.4,()=>{if(l.done){toast('已经被别人搜过了');return}l.done=true;netLoot(I,l);G.stats.looted++;if(!l.items.length){toast('什么都没有');return}const got=[];const its=l.items.slice();if(hasT('scav')&&its.length&&Math.random()<.5)its.push(pick(its.filter(k=>!IT[k].big).length?its.filter(k=>!IT[k].big):its));gainXP(3);for(const k of its){if(IT[k].big)dropItem(k,p.x,p.z,0);else if(invAdd(k))got.push(IT[k].ic+' '+IT[k].n);else dropItem(k,p.x,p.z,0)}toast(got.length?'找到：'+got.join('、')+'（在左边快捷栏）':'找到的东西放不下，掉在地上了','good');sysEv('loot',I.b.id);sfx('pick');renderThrow();noise(p.x,p.z,2.5)})});break}
+  for(const l of I.loot)if(!l.done&&dd(l.x,l.z,p.x,p.z)<1.2){o.unshift(searchOpt(I,l));break}
   const ds=I.b.ds;
   if(I.door&&dd(I.door.x,I.door.z,p.x,p.z)<1.5){if(ds.barr>0&&!ds.broken)o.push({l:'门被堵住了（先搬开家具/拆木板）',fn:()=>toast('要出去得先把堵门的东西搬开，或者走窗户/通风管'),alt:1});else o.push({l:'🚪 出门',fn:()=>{const b=I.b;exitTo(b.door.x+b.door.nx*1,b.door.z+b.door.nz*1,0,'door')}});
    if(ds.open&&!ds.broken)o.unshift({l:'🚪 关上门',fn:()=>{ds.open=false;updDoor(I.b);sfx('door',p.x,p.z);toast('门关上了','good')}});
    if(p.carry&&p.carry.k==='plank'&&!ds.broken&&(ds.planks||0)<3)o.unshift({l:'🪵 用木板钉住门',fn:()=>{p.carry=null;ds.planks=(ds.planks||0)+1;ds.barr+=120;ds.open=false;updDoor(I.b);renderBar(I);toast(`门钉上了木板 · 门的耐久 ${Math.round(ds.hp+ds.barr)}`,'good');sfx('ladder',p.x,p.z);noise(p.x,p.z,5)}});
    if(ds.planks>0&&!p.carry)o.push({l:'拆下一块木板',fn:()=>{ds.planks--;ds.barr=Math.max(0,ds.barr-120);renderBar(I);p.carry={k:'plank'}},alt:1});
    if(ds.broken&&!G.brokeTip){G.brokeTip=1;toast('这扇门已经被撞坏了，堵不上了 · 去楼上或者换个地方躲','bad')}}
-  if(p.carry&&p.carry.k==='furn'){const near=I.door&&dd(p.x,p.z,I.door.x,I.door.z)<2.2&&!ds.broken;o.unshift({l:near?`🛋 用${p.carry.s.fname}堵门`:`放下${p.carry.s.fname}`,fn:placeFurn})}
+  if(p.carry&&p.carry.k==='furn'){const near=I.door&&dd(p.x,p.z,I.door.x,I.door.z)<2.2&&!ds.broken;o.unshift({l:near?`🛋 用${p.carry.s.fname}堵门`:`放下${p.carry.s.fname}`,fn:placeFurn,pulse:1},{l:'↻ 转 90°',fn:furnTurn,alt:1},{l:p.carry.lay?'⬆ 立起来':'🛏 放倒',fn:furnLay,alt:1})}
   else if(!p.carry){const s=nearFurn(I,p);if(s)o.push({l:`🛋 搬起${s.fname}`,fn:()=>liftFurn(I,s),alt:o.length>0})}
   for(const q of I.wins){if(dd(q.x,q.z,p.x,p.z)<1.3){const W=q.W;if(W.boarded){if(!p.carry)o.push({l:'拆下窗户木板',fn:()=>{W.boarded=false;updWindow(W);p.carry={k:'plank'}},alt:1})}
     else{if(p.carry&&p.carry.k==='plank')o.unshift({l:'🪵 用木板封住窗户',fn:()=>{p.carry=null;W.boarded=true;W.bhp=90;updWindow(W);toast('窗户封好了','good');sfx('ladder',p.x,p.z);noise(p.x,p.z,4)}});
      if(!p.carry)o.push({l:W.f?'🪟 从窗户爬到阳台':'🪟 从窗户爬出去',fn:()=>setBusy(W.broken?'爬窗中…':'砸窗中…',W.broken?.8:1.2,()=>{if(!W.broken){W.broken=true;updWindow(W);sfx('glass',p.x,p.z);noise(p.x,p.z,9)}exitTo(W.x+W.nx*.75,W.z+W.nz*.75,W.y,'win')})})}break}}
   for(const q of I.vents){if(dd(q.x,q.z,p.x,p.z)<1.3&&!p.carry){const V=q.V;o.push({l:V.roof?'🕳 钻通风管爬上屋顶':'🕳 钻通风管出去',fn:()=>setBusy('在通风管里爬…',2,()=>{exitTo(V.x,V.z,V.y,'vent')})});break}}
-  if(I.up&&dd(I.up.x,I.up.z,p.x,p.z)<1.3&&!(p.carry&&p.carry.k==='furn'))o.push({l:`⬆ 上 ${I.f+2} 楼`,fn:()=>enterInterior(I.b.id,I.f+1,'down')});
-  if(I.down&&dd(I.down.x,I.down.z,p.x,p.z)<1.3&&!(p.carry&&p.carry.k==='furn'))o.push({l:`⬇ 下 ${I.f} 楼`,fn:()=>enterInterior(I.b.id,I.f-1,'up')});
+  for(const [q,df] of [[I.up,1],[I.down,-1]]){if(!q||dd(q.x,q.z,p.x,p.z)>=1.3)continue;const sf=df>0?I.f:I.f-1;const sd=stairDoor(I.b.id,sf);const st=sd.hp<=0?'（楼梯门坏了）':sd.hp<sd.mhp?`（楼梯门 ${Math.round(sd.hp)}）`:'';
+   if(p.carry&&p.carry.k==='plank'&&sd.hp<300)o.unshift({l:sd.hp<=0?'🪵 用木板修好楼梯门':'🪵 用木板钉牢楼梯门',fn:()=>{p.carry=null;sd.hp=Math.min(300,Math.max(sd.hp,0)+120);sd.mhp=Math.max(sd.mhp,sd.hp);if(NET.on&&NET.started)netSend({k:'sdoor',key:I.b.id+'#'+sf,hp:sd.hp});toast(`楼梯门钉牢了 · 耐久 ${Math.round(sd.hp)}`,'good');sfx('ladder',p.x,p.z);noise(p.x,p.z,5)},pulse:1});
+   if(!(p.carry&&p.carry.k==='furn'))o.push({l:df>0?`⬆ 上 ${I.f+2} 楼${st}`:`⬇ 下 ${I.f} 楼${st}`,fn:()=>enterInterior(I.b.id,I.f+df,df>0?'down':'up')})}
   if(I.roof&&dd(I.roof.x,I.roof.z,p.x,p.z)<1.3&&!p.carry)o.push({l:'⬆ 爬上屋顶',fn:()=>{const b=I.b;exitTo(b.hatch.x+.9,b.hatch.z,b.h,'roof')}});
  }else{
   for(const b of BLD){const ds=b.ds;
@@ -1718,10 +1779,10 @@ function computeCtx(){const p=G.p,o=[];if(NET.zp&&G&&!p.climb){ctxOpts=zpCtx();r
   // vault onto low objects
   if(!p.carry&&!p.hide)for(const s of G.solids){if(!s.climb)continue;const dh=s.top-p.y;if(dh<.5||dh>1.7)continue;const cx=clamp(p.x,s.x0,s.x1),cz=clamp(p.z,s.z0,s.z1);if(dd(cx,cz,p.x,p.z)<.9){const ix=clamp(p.x,s.x0+.3,s.x1-.3),iz=clamp(p.z,s.z0+.3,s.z1-.3);o.push({l:`爬上${s.kind==='car'?'车顶':s.kind==='dump'?'垃圾箱':s.kind==='container'?'集装箱':s.kind==='barrel'?'油桶':'木箱'}`,fn:()=>{p.climb={kind:'up',x0:p.x,z0:p.z,y0:p.y,x1:ix,z1:iz,y1:s.top,t:0,dur:.55}},alt:o.length>0});break}}
  }
- if(p.carry&&p.carry.k!=='furn'){const k=p.carry.k;let lab='放下 '+IT[k].n;if(k==='ladder'&&!G.inside&&findLadderSpot(p))lab='🪜 把梯子靠在墙上';if(k==='plank'&&!G.inside&&findPlankSpot(p))lab='🪵 搭木板到对面楼顶';o.push({l:lab,fn:placeCarry,alt:!/靠|搭/.test(lab)&&o.length>0})}
+ if(p.carry&&p.carry.k!=='furn'){const k=p.carry.k;let lab='放下 '+IT[k].n;if(k==='ladder'&&!G.inside&&findLadderSpot(p))lab='🪜 把梯子靠在墙上';if(k==='plank'&&!G.inside&&findPlankSpot(p))lab='🪵 搭木板到对面楼顶';o.push({l:lab,fn:placeCarry,pulse:1,alt:!/靠|搭/.test(lab)&&o.length>0})}
  {const bo=[];baseCtx(bo);if(bo.length){if(o.length)bo.forEach(x=>x.alt=1);o.splice(Math.min(1,o.length),0,...bo)}}ctxOpts=o.slice(0,3)}
-function renderCtx(){const el=$('ctx');const sig=ctxOpts.map(o=>o.l+(o.alt?'1':'0')).join('|');if(sig===ctxSig)return;ctxSig=sig;el.innerHTML='';el.hidden=!ctxOpts.length;
- ctxOpts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o.l;if(o.alt&&i>0)b.className='alt';b.onclick=e=>{e.stopPropagation();o.fn();ctxSig='';computeCtx();renderCtx();renderHand()};el.appendChild(b)})}
+function renderCtx(){const el=$('ctx');const sig=ctxOpts.map(o=>o.l+(o.alt?'1':'0')+(o.pulse?'p':'')).join('|');if(sig===ctxSig)return;ctxSig=sig;el.innerHTML='';el.hidden=!ctxOpts.length;
+ ctxOpts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o.l;if(o.alt&&i>0)b.className='alt';if(o.pulse)b.classList.add('pulse');b.onclick=e=>{e.stopPropagation();o.fn();ctxSig='';computeCtx();renderCtx();renderHand()};el.appendChild(b)})}
 function igniteGas(it){const p=G.p;G.items.splice(G.items.indexOf(it),1);toast('汽油桶点着了！快跑！','bad');const sc=G.inside||'out';const x=it.x,z=it.z,y=it.y;
  G.fx.push({k:'fuse',x,y:y+.6,z,t:1.6,m:1.6,sc});setTimeout(()=>{if(!G||G.over)return;const old=G.inside;G.inside=sc==='out'?null:sc;
   for(const q of zList())if(!q.dead&&dd(q.x,q.z,x,z)<3.6)hitZombie(q,85,'fire');if((old||'out')===sc&&dd(G.p.x,G.p.z,x,z)<3.2&&Math.abs(G.p.y-y)<2)hurtPlayer(35,0);
@@ -1942,6 +2003,7 @@ function syncScene(dt){
  extraRender(dt);netRender(dt);
  // fx
  syncFx(dt);
+ windowEnts(dt);
  for(const [k,e] of ENT)if(!e.live&&!k.startsWith('fx')){e.parent.remove(e.m);ENT.delete(k)}
 }
 // fx pool
@@ -2007,10 +2069,11 @@ const ovc=$('ov'),oc=ovc.getContext('2d');const V3=new T3.Vector3();
 function proj(x,y,z){V3.set(x,y,z).project(camera);if(V3.z>1)return null;return[(V3.x+1)/2*innerWidth,(1-V3.y)/2*innerHeight]}
 function drawOverlay(){const dpr=ovc.width/innerWidth;oc.setTransform(dpr,0,0,dpr,0,0);oc.clearRect(0,0,innerWidth,innerHeight);const p=G.p;drawItemHints();
  if(p.weapon&&IT[p.weapon].kind==='gun'&&!p.inCar){const t=gunTarget(IT[p.weapon]);if(t){const s=proj(t.x,t.y+1.5,t.z);if(s){oc.strokeStyle='rgba(255,70,50,.9)';oc.lineWidth=2;oc.beginPath();oc.arc(s[0],s[1],13,0,7);oc.stroke();oc.beginPath();for(const [a,b] of [[[-19,0],[-8,0]],[[19,0],[8,0]],[[0,-19],[0,-8]],[[0,19],[0,8]]]){oc.moveTo(s[0]+a[0],s[1]+a[1]);oc.lineTo(s[0]+b[0],s[1]+b[1])}oc.stroke()}}}
- for(const z of zList()){if(z.dead)continue;const d=dd(z.x,z.z,p.x,p.z);if(d>16)continue;const s=proj(z.x,z.y+(ZK[z.kind].big?2.6:1.95),z.z);if(!s)continue;
+ {const placed=[];let nn=0;const zl=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=16).sort((a,b)=>(a.state==='chase'?0:9)+dd(a.x,a.z,p.x,p.z)-((b.state==='chase'?0:9)+dd(b.x,b.z,p.x,p.z)));
+ for(const z of zl){const d=dd(z.x,z.z,p.x,p.z);if(++nn>7)break;const s=proj(z.x,z.y+(ZK[z.kind].big?2.6:1.95),z.z);if(!s)continue;if(placed.some(q=>Math.abs(q[0]-s[0])<22&&Math.abs(q[1]-s[1])<16))continue;placed.push(s);oc.globalAlpha=d<8?1:.75;
   if(z.hp<z.mhp){oc.fillStyle='rgba(0,0,0,.6)';oc.fillRect(s[0]-13,s[1],26,4);oc.fillStyle='#c4342b';oc.fillRect(s[0]-12,s[1]+1,24*z.hp/z.mhp,2)}
   if(z.state==='chase'){oc.fillStyle='#ff5040';oc.font='800 14px Oswald,sans-serif';oc.textAlign='center';oc.fillText('!',s[0],s[1]-3)}else if(z.state==='investigate'){oc.fillStyle='#f0c060';oc.font='800 12px Oswald,sans-serif';oc.textAlign='center';oc.fillText('?',s[0],s[1]-3)}
-  if(z.kind!=='walker'&&d<10){oc.fillStyle='rgba(255,200,180,.85)';oc.font='600 10px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(ZK[z.kind].n,s[0],s[1]-16)}}
+  if(z.kind!=='walker'&&d<10&&nn<=3){oc.fillStyle='rgba(255,200,180,.85)';oc.font='600 10px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(ZK[z.kind].n,s[0],s[1]-16)}}oc.globalAlpha=1}
  if(G.heli&&!G.inside){const s=proj(G.heli.x,G.heli.y+1,G.heli.z);const W=innerWidth,H=innerHeight;let x,y,off=false;if(s){x=s[0];y=s[1];off=x<20||x>W-20||y<90||y>H-170}else off=true;
   if(off){const a=Math.atan2(G.heli.x-p.x,G.heli.z-p.z)-cam.yaw;x=W/2-Math.sin(a)*W*.42;y=H/2-Math.cos(a)*H*.33}
   oc.fillStyle='#f0c060';oc.font='800 18px sans-serif';oc.textAlign='center';oc.fillText('★',x,y);oc.font='700 11px "Noto Sans SC",sans-serif';oc.fillText(`直升机 ${Math.ceil(G.heli.t)}秒`,x,y+14)}
@@ -2053,9 +2116,9 @@ function duck(on){if(MUS.out&&AUD.ctx&&MUS.on)MUS.out.gain.setTargetAtTime(on?1.
 function toggleVoice(){VOICE.on=!VOICE.on;try{localStorage.setItem('scwr-voice',VOICE.on?'1':'0')}catch(e){}if(!VOICE.on&&window.speechSynthesis)speechSynthesis.cancel();$('bVoice').classList.toggle('on',VOICE.on);toast(VOICE.on?'系统语音：开':'系统语音：关')}
 // ---------- UI: personal system popup (cyan) and world banner (red ❗) ----------
 function sysMsg(title,html,o={}){if(!o.mute)say((o.kind==='bad'?'警告！':'叮！')+title+'。'+html,false);const el=$('sysPop');const d=document.createElement('div');d.className='sp'+(o.kind?' '+o.kind:'');d.innerHTML=`<div class="st">【末日系统】${title}</div><div class="sb">${html}</div>`;el.appendChild(d);sfx('sys');
- const close=()=>{d.classList.add('out');setTimeout(()=>d.remove(),300)};d.onclick=close;setTimeout(close,o.t||5200);while(el.children.length>2)el.firstChild.remove()}
+ const close=()=>{d.classList.add('out');setTimeout(()=>d.remove(),300)};d.onclick=close;setTimeout(close,Math.min(o.t||4200,6000));while(el.children.length>2)el.firstChild.remove()}
 function sysWorld(text,sub){worldFlash();say('警告！世界通报：'+text+(sub?'。'+sub:''),true);const el=$('sysWorld');el.innerHTML=`<div class="wi">❗</div><div><div class="wt">【世界系统】${text}</div>${sub?`<div class="ws">${sub}</div>`:''}</div>`;el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');sfx('alarmSys');buzz(150);
- clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true},5200)}
+ clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true},4000)}
 // ---------- quests ----------
 const STORY=[
  {n:'第一步：进入便利店，搜一处物资',chk:e=>e.t==='loot'&&e.b==='shop',rw:['can','water']},
@@ -2141,14 +2204,38 @@ function drawItemHints(){const p=G.p,sc=G.inside;const list=G.items.filter(it=>i
 // ---------- starter roulette ----------
 const WHEEL=[['can','罐头×2',['can','can']],['bandage','绷带×2',['bandage','bandage']],['bat','球棒',['bat']],['pipe','铁管',['pipe']],['knife','小刀',['knife']],['gascan','汽油桶',['gascan']],['ladder','梯子',['ladder']],['pistol','手枪+子弹',['pistol','ammo']],['antibio','抗生素',['antibio']],['jacket','皮夹克',['jacket']],['water','水×2+饼干',['water','water','biscuit']],['molotov','燃烧瓶×2',['molotov','molotov']]];
 function showWheel(done){const ov=$('wheel');ov.hidden=false;G.pause=true;const cv=$('whc'),g=cv.getContext('2d'),N=WHEEL.length,R=130;let ang=0,spinning=false;
- const draw=()=>{g.clearRect(0,0,280,280);g.save();g.translate(140,140);g.rotate(ang);for(let i=0;i<N;i++){g.beginPath();g.moveTo(0,0);g.arc(0,0,R,i*2*Math.PI/N,(i+1)*2*Math.PI/N);g.closePath();g.fillStyle=i%2?'#1c2a30':'#13343c';g.fill();g.strokeStyle='rgba(120,230,255,.5)';g.stroke();
-   g.save();g.rotate((i+.5)*2*Math.PI/N);g.textAlign='right';g.fillStyle='#d8f6ff';g.font='20px sans-serif';g.fillText(IT[WHEEL[i][0]].ic,R-12,7);g.font='11px sans-serif';g.fillStyle='#9ad8e8';g.fillText(WHEEL[i][1],R-40,5);g.restore()}
-  g.restore();g.fillStyle='#ff5040';g.beginPath();g.moveTo(140,4);g.lineTo(130,24);g.lineTo(150,24);g.fill();g.beginPath();g.arc(140,140,16,0,7);g.fillStyle='#0e1a1e';g.fill();g.strokeStyle='#6ae0ff';g.stroke()};draw();
+ // crisp on phones: draw at 2x
+ const S=2;cv.width=280*S;cv.height=280*S;let win=-1,bulb=0;
+ const RARE={pistol:1,molotov:1,antibio:1,jacket:1};
+ const draw=()=>{g.setTransform(S,0,0,S,0,0);g.clearRect(0,0,280,280);const C=140;
+  // outer glow + metal rim with bulbs
+  const halo=g.createRadialGradient(C,C,R-4,C,C,R+16);halo.addColorStop(0,'rgba(90,220,255,.35)');halo.addColorStop(1,'rgba(90,220,255,0)');g.fillStyle=halo;g.beginPath();g.arc(C,C,R+16,0,7);g.fill();
+  const rim=g.createLinearGradient(0,10,0,270);rim.addColorStop(0,'#9aa4a8');rim.addColorStop(.5,'#3c4448');rim.addColorStop(1,'#8a9498');g.fillStyle=rim;g.beginPath();g.arc(C,C,R+9,0,7);g.fill();
+  g.fillStyle='#0b1418';g.beginPath();g.arc(C,C,R+1,0,7);g.fill();
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;const on=spinning?((i+bulb)%3===0):(win>=0?i%2===(bulb%2):i%2===0);g.fillStyle=on?'#ffe08a':'#4a4030';g.shadowColor=on?'#ffcc40':'transparent';g.shadowBlur=on?8:0;g.beginPath();g.arc(C+Math.cos(a)*(R+5),C+Math.sin(a)*(R+5),2.6,0,7);g.fill()}g.shadowBlur=0;
+  g.save();g.translate(C,C);g.rotate(ang);
+  for(let i=0;i<N;i++){const a0=i*2*Math.PI/N,a1=(i+1)*2*Math.PI/N,k=WHEEL[i][0];const rare=RARE[k];
+   const gr=g.createRadialGradient(0,0,18,0,0,R);gr.addColorStop(0,rare?'#3a2c10':i%2?'#10262e':'#0d3038');gr.addColorStop(1,rare?'#6a4a14':i%2?'#173a44':'#1a4a54');
+   g.beginPath();g.moveTo(0,0);g.arc(0,0,R,a0,a1);g.closePath();g.fillStyle=gr;g.fill();
+   if(i===win){g.fillStyle=`rgba(255,220,120,${.25+.2*Math.sin(performance.now()/120)})`;g.fill()}
+   g.strokeStyle=rare?'rgba(255,200,90,.7)':'rgba(120,230,255,.45)';g.lineWidth=1.2;g.stroke();
+   g.save();g.rotate((a0+a1)/2);g.translate(R-30,0);g.rotate(Math.PI/2);
+   g.fillStyle=rare?'rgba(255,210,110,.18)':'rgba(140,230,255,.12)';g.beginPath();g.arc(0,0,15,0,7);g.fill();
+   g.font='22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(IT[k].ic,0,1);
+   g.font='700 9px "Noto Sans SC",sans-serif';g.fillStyle=rare?'#ffd98a':'#bfeefa';g.fillText(WHEEL[i][1],0,26);g.restore()}
+  g.restore();
+  // hub
+  const hub=g.createRadialGradient(C-6,C-6,2,C,C,26);hub.addColorStop(0,'#3a5a62');hub.addColorStop(1,'#0a161a');g.fillStyle=hub;g.beginPath();g.arc(C,C,24,0,7);g.fill();g.strokeStyle='#6ae0ff';g.lineWidth=2;g.stroke();
+  g.fillStyle='#bff4ff';g.font='800 11px "Noto Sans SC",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('末日',C,C-6);g.fillText('轮盘',C,C+7);
+  // pointer
+  g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=6;g.fillStyle='#ff4a36';g.beginPath();g.moveTo(C,30);g.lineTo(C-12,4);g.lineTo(C+12,4);g.closePath();g.fill();g.restore();
+  g.fillStyle='#ffd0c8';g.beginPath();g.arc(C,10,3,0,7);g.fill()};draw();
+ clearInterval(WHEEL.iv);WHEEL.iv=setInterval(()=>{if(ov.hidden){clearInterval(WHEEL.iv);return}bulb++;if(!spinning)draw()},260);
  $('whR').textContent='';say('新手礼包已发放。请宿主转动末日轮盘。',false);$('whGo').disabled=false;$('whGo').textContent='开始抽取';
  $('whGo').onclick=()=>{if(spinning)return;if($('whGo').dataset.done){ov.hidden=true;$('whGo').dataset.done='';G.pause=false;done&&done();return}spinning=true;$('whGo').disabled=true;sfx('click');
   const pickI=Math.floor(Math.random()*N);const target=-Math.PI/2-(pickI+.5)*2*Math.PI/N;let end=target-Math.PI*2*6;while(end>ang-Math.PI*12)end-=Math.PI*2;const start=ang,T0=performance.now(),DUR=3600;let lastSeg=-1;
-  const step=now=>{const k=Math.min(1,(now-T0)/DUR);const e=1-Math.pow(1-k,3.4);ang=start+(end-start)*e;draw();const seg=Math.floor(((-ang-Math.PI/2)%(2*Math.PI)+4*Math.PI)%(2*Math.PI)/(2*Math.PI/N));if(seg!==lastSeg){lastSeg=seg;sfx('click')}
-   if(k<1)requestAnimationFrame(step);else{spinning=false;const W=WHEEL[pickI];const got=giveRewards(W[2]);$('whR').innerHTML=`获得：<b>${got}</b>`;sfx('craft');say('叮！恭喜宿主获得：'+got,true);$('whGo').disabled=false;$('whGo').textContent='收下，开始求生';$('whGo').dataset.done='1'}};requestAnimationFrame(step)}}
+  const step=now=>{const k=Math.min(1,(now-T0)/DUR);const e=1-Math.pow(1-k,3.4);ang=start+(end-start)*e;bulb=Math.floor(now/70);draw();const seg=Math.floor(((-ang-Math.PI/2)%(2*Math.PI)+4*Math.PI)%(2*Math.PI)/(2*Math.PI/N));if(seg!==lastSeg){lastSeg=seg;sfx('click')}
+   if(k<1)requestAnimationFrame(step);else{spinning=false;win=pickI;draw();const W=WHEEL[pickI];const got=giveRewards(W[2]);$('whR').innerHTML=`获得：<b>${got}</b>`;sfx('craft');say('叮！恭喜宿主获得：'+got,true);$('whGo').disabled=false;$('whGo').textContent='收下，开始求生';$('whGo').dataset.done='1'}};requestAnimationFrame(step)}}
 // ---------- tutorial (coach marks, skippable, first game only) ----------
 const TUT=[
  [null,'欢迎来到尸城。我是你的<b>末日系统</b>。接下来几步教你怎么活下去（随时可以跳过）。'],
@@ -2433,8 +2520,8 @@ function onDawn(){const p=G.p;if(G.nightTrack&&p.nightDmg<1)hid('phoenix');G.nig
  if(!NET.on&&saveGame())setTimeout(()=>sysMsg('自动存档',`第 ${G.day} 天的进度已保存 · 关掉网页后可以在开始画面【继续游戏】`,{kind:'ok',mute:true,t:4200}),2500)}
 // ---- eagle eye: colour by state + each zombie's sight ring on the ground ----
 function zCol(z){return z.state==='chase'?[255,74,58]:z.state==='investigate'||z.door||z.entry?[240,192,80]:[170,176,170]}
-function eagleDraw(p){const zs=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=20);
- for(const z of zs){const R=sightR(z,p),c=zCol(z),d=dd(z.x,z.z,p.x,p.z),inside=d<R;const pts=[];for(let i=0;i<=32;i++){const a=i/32*Math.PI*2;const s=proj(z.x+Math.cos(a)*R,z.y+.05,z.z+Math.sin(a)*R);if(!s){pts.length=0;break}pts.push(s)}
+function eagleDraw(p){const zs=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=20).sort((a,b)=>dd(a.x,a.z,p.x,p.z)-sightR(a,p)-(dd(b.x,b.z,p.x,p.z)-sightR(b,p))).slice(0,10);
+ for(const z of zs.slice(0,zs.length>5?3:5)){const R=sightR(z,p),c=zCol(z),d=dd(z.x,z.z,p.x,p.z),inside=d<R;const pts=[];for(let i=0;i<=32;i++){const a=i/32*Math.PI*2;const s=proj(z.x+Math.cos(a)*R,z.y+.05,z.z+Math.sin(a)*R);if(!s){pts.length=0;break}pts.push(s)}
   if(pts.length){oc.beginPath();pts.forEach((s,i)=>i?oc.lineTo(s[0],s[1]):oc.moveTo(s[0],s[1]));oc.closePath();oc.fillStyle=`rgba(${c},${inside?.16:.07})`;oc.fill();oc.setLineDash(inside?[]:[6,5]);oc.lineWidth=inside?2:1.2;oc.strokeStyle=`rgba(${c},${inside?.85:.45})`;oc.stroke();oc.setLineDash([])}}
  for(const z of zs){const d=dd(z.x,z.z,p.x,p.z);const s=proj(z.x,z.y+1,z.z);if(!s)continue;const c=zCol(z);oc.globalAlpha=Math.max(.35,.95*(1-d/26));oc.strokeStyle=`rgb(${c})`;oc.fillStyle=`rgba(${c},.25)`;oc.lineWidth=2;oc.beginPath();oc.moveTo(s[0],s[1]-9);oc.lineTo(s[0]+6,s[1]);oc.lineTo(s[0],s[1]+9);oc.lineTo(s[0]-6,s[1]);oc.closePath();oc.fill();oc.stroke()}oc.globalAlpha=1}
 // ---- overlay: scan card, floating numbers, eagle-eye marks ----
@@ -2512,7 +2599,7 @@ function saveGame(){if(!G||G.over)return false;try{const p=G.p;
  const bl=BLD.map(b=>({id:b.id,ds:{hp:b.ds.hp,barr:b.ds.barr,broken:b.ds.broken,open:b.ds.open,planks:b.ds.planks},w:(b.wins||[]).map(W=>(W.broken?1:0)+(W.boarded?2:0))}));
  const loot={};for(const k in G.interiors){const I=G.interiors[k];if(I.loot&&I.loot.some(l=>l.done))loot[k]=I.loot.map(l=>l.done?1:0)}
  const S={v:1,at:Date.now(),mapSeed:G.mapSeed,diff:G.diff,len:G.len||1,day:G.day,t:G.t,p:P,stats:G.stats,dropDay:G.dropDay,
-  sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK},bl,loot,cars:G.cars.map(c=>c.drive?(c.fuel||0):null),base:G.base||null,bossN:G.bossN||{},wx:G.weather,scr:G.cars.map(c=>c.scrapped?1:0)};
+  sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK},bl,loot,cars:G.cars.map(c=>c.drive?(c.fuel||0):null),base:G.base||null,bossN:G.bossN||{},wx:G.weather,sd:G.sdoors||{},scr:G.cars.map(c=>c.scrapped?1:0)};
  localStorage.setItem(SAVE_K,JSON.stringify(S));return true}catch(e){console.warn('save',e);return false}}
 // called from begin() after a fresh world was built
 function applySave(S){const p=G.p;G.day=S.day;G.night=false;G.phaseT=G.dayLen*.03;G.t=S.t||0;G.stats=Object.assign(G.stats,S.stats||{});G.dropDay=S.dropDay;
@@ -2520,7 +2607,7 @@ function applySave(S){const p=G.p;G.day=S.day;G.night=false;G.phaseT=G.dayLen*.0
  p.x=P.pos.x;p.z=P.pos.z;p.y=supportAt(p.x,p.z,(P.pos.y||0)+.3);
  for(const s of S.bl||[]){const b=BID[s.id];if(!b)continue;Object.assign(b.ds,s.ds);updDoor(b);(b.wins||[]).forEach((W,i)=>{const v=s.w[i]||0;W.broken=!!(v&1);W.boarded=!!(v&2);updWindow(W)})}
  for(const k in S.loot||{}){const [bid,f]=k.split('#');if(!BID[bid])continue;const I=interior(bid,+f);(S.loot[k]||[]).forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}
- (S.cars||[]).forEach((f,i)=>{if(f!=null&&G.cars[i])G.cars[i].fuel=f});(S.scr||[]).forEach((f,i)=>{if(f&&G.cars[i])G.cars[i].scrapped=1});G.bossN=S.bossN||{};if(WX[S.wx])G.weather=S.wx;if(S.base)baseRecv(S.base);
+ (S.cars||[]).forEach((f,i)=>{if(f!=null&&G.cars[i])G.cars[i].fuel=f});(S.scr||[]).forEach((f,i)=>{if(f&&G.cars[i])G.cars[i].scrapped=1});G.bossN=S.bossN||{};if(WX[S.wx])G.weather=S.wx;if(S.sd&&typeof S.sd==='object')G.sdoors=S.sd;if(S.base)baseRecv(S.base);
  Object.assign(RPG.kingN,(S.rpg&&S.rpg.kingN)||{});Object.assign(RPG.scanK,(S.rpg&&S.rpg.scanK)||{});
  // the city has had days to fill up with more of them
  spawnWave(Math.round((S.day-1)*3*[.7,1,1.3][G.diff]),G.day>=3?['walker','runner','crawler','stalker']:['walker','crawler']);
@@ -2544,15 +2631,20 @@ function hashf(s){let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;re
 // ---------- transport (real: Supabase broadcast + presence · tests: window.__fakeNet) ----------
 function netTransport(room){if(window.__fakeNet)return window.__fakeNet(room,NET.me);
  if(!window.supabase||!window.supabase.createClient)throw new Error('联机组件没有加载（检查网络）');
- const sb=NET.sb||(NET.sb=window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:40}},auth:{persistSession:true,autoRefreshToken:true}}));
+ const sb=netClient();
  const hs=[];let pres=null,ch=null;
  return{send(ev,p){if(ch)ch.send({type:'broadcast',event:ev,payload:p})},on(ev,fn){hs.push([ev,fn])},presence(fn){pres=fn},
   track(o){return ch&&ch.track(o)},
   // sign in anonymously so the room can be a private channel guarded by row-level security; fall back to a public channel if that is switched off
-  async subscribe(cb){let priv=false;try{const r=await sb.auth.getSession();let s=r.data&&r.data.session;if(!s){const a=await sb.auth.signInAnonymously();s=!a.error&&a.data&&a.data.session}if(s&&s.access_token){priv=true;sb.realtime.setAuth(s.access_token)}}catch(e){priv=false}
+  async subscribe(cb){let priv=false;try{const s=await netAuth();if(s&&s.access_token){priv=true;sb.realtime.setAuth(s.access_token)}}catch(e){priv=false}
    NET.priv=priv;ch=sb.channel('scwr-'+room,{config:{private:priv,broadcast:{self:false,ack:false},presence:{key:NET.me}}});
    for(const [ev,fn] of hs)ch.on('broadcast',{event:ev},m=>{try{fn(m.payload)}catch(e){console.warn('net',ev,e)}});if(pres)ch.on('presence',{event:'sync'},()=>{try{pres(ch.presenceState())}catch(e){console.warn(e)}});
-   ch.subscribe(st=>cb(st))},close(){try{ch&&ch.untrack();ch&&sb.removeChannel(ch)}catch(e){}}}}
+   ch.subscribe(st=>cb(st),7000)},close(){try{ch&&ch.untrack();ch&&sb.removeChannel(ch)}catch(e){}}}}
+function netClient(){return NET.sb||(NET.sb=window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:40},timeout:7000},auth:{persistSession:true,autoRefreshToken:true}}))}
+// sign in once and reuse it (a fresh anonymous login on every join was the slow part)
+function netAuth(){if(NET.authP)return NET.authP;const sb=netClient();NET.authP=(async()=>{const r=await sb.auth.getSession();let s=r.data&&r.data.session;if(!s){const a=await sb.auth.signInAnonymously();s=!a.error&&a.data&&a.data.session}return s||null})().catch(()=>null);
+ NET.authP.then(s=>{if(!s)NET.authP=null});return NET.authP}
+function netPrewarm(){if(window.__fakeNet||!window.supabase||!window.supabase.createClient)return;try{netAuth().then(s=>{try{if(s)netClient().realtime.setAuth(s.access_token);netClient().realtime.connect()}catch(e){}})}catch(e){}}
 const ROOM_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function roomCode(){let s='';const a=new Uint32Array(6);(window.crypto||{}).getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*1e9);for(const v of a)s+=ROOM_CH[v%ROOM_CH.length];return s}
 // ---------- incoming message hygiene: only room members, sane sizes, rate limited ----------
@@ -2581,16 +2673,17 @@ function mpDom(){if($('mpP'))return;const P=document.createElement('div');P.id='
 function mpFFUI(){document.querySelectorAll('#mpFF [data-ff]').forEach(b=>b.classList.toggle('on',+b.dataset.ff===NET.ff))}
 function ffName(f){return f===0?'关':f===.5?'半伤':'全伤'}
 function mpMsg(t){const el=$('mpMsg');if(el)el.textContent=t||''}
-function openMP(code){mpDom();$('mpP').hidden=false;if(code){$('mpCode').value=code}mpMsg(code?'输入名字后点【加入房间】':'')}
-function mpEnter(code,host){goFull();const nm=($('mpName').value||'').trim().slice(0,8)||'幸存者';try{localStorage.setItem('scwr-name',nm)}catch(e){}
+function openMP(code){mpDom();$('mpP').hidden=false;netPrewarm();if(code){$('mpCode').value=code}mpMsg(code?'输入名字后点【加入房间】':'')}
+function mpEnter(code,host,retry){if(!retry)NET.try=0;goFull();const nm=($('mpName').value||'').trim().slice(0,8)||'幸存者';try{localStorage.setItem('scwr-name',nm)}catch(e){}
  mpLeave();Object.assign(NET,{on:true,host,me:netId(),name:nm,room:code,peers:{},started:false,ended:false,zp:false,esc:false,known:new Set(),gone:new Set(),hostSeen:0});
  try{NET.tr=netTransport(code)}catch(e){NET.on=false;mpMsg(e.message);return}
  const T=NET.tr;T.on('e',netOnEvent);T.on('w',netOnWorld);T.on('p',netOnPlayer);T.on('start',netOnStart);T.presence(netOnPresence);
  mpMsg('连接中……');NET.T0=Date.now();T.subscribe(st=>{if(st==='SUBSCRIBED'){T.track({id:NET.me,name:nm,host,t:NET.T0});$('mpA').hidden=true;$('mpB').hidden=false;$('mpRoom').textContent=code;$('mpGo').hidden=!host;$('mpFF').hidden=!host;$('mpWait').hidden=host;mpMsg(host?'把房号或邀请链接发给朋友':'');
-   if(!host){setTimeout(()=>{if(NET.on&&!NET.started&&!NET.hostSeen){mpMsg('找不到这个房间（房号错了，或者房主还没创建）')}},4000);
+   NET.try=0;if(!host){mpMsg('已连上，正在找房主……');setTimeout(()=>{if(NET.on&&!NET.started&&!NET.hostSeen){mpMsg('还没找到房主……（房号对吗？房主的网页要开着）')}},6000);setTimeout(()=>{if(NET.on&&!NET.started&&NET.hostSeen)mpMsg('')},6100);
     // the game may already be running: keep asking the host to let us in
     const ask=setInterval(()=>{if(!NET.on||NET.started||NET.tr!==T){clearInterval(ask);return}if(NET.hostSeen)T.send('e',{k:'lateReq',from:NET.me})},3000)}}
-  else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){if(NET.started&&NET.on)netReconnect();else mpMsg('连接失败，检查网络后再试')}})}
+  else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){if(NET.started&&NET.on){netReconnect();return}if(!NET.on||NET.tr!==T||T.done)return;T.done=1;NET.try=(NET.try||0)+1;
+   if(NET.try<=3){mpMsg(`连接慢，正在重试（${NET.try}/3）……`);setTimeout(()=>{if(NET.on&&!NET.started&&NET.room===code)mpEnter(code,host,1)},900);return}NET.try=0;mpMsg('连接失败，检查网络后再点一次')}})}
 // lost the connection mid-game: rejoin the same room with the same id (keeps everything we hold locally)
 function netReconnect(){if(NET.rc||!NET.on)return;NET.rc=1;toast('📶 联机断开了，正在重连……','bad');
  const go=()=>{if(!NET.on)return;try{NET.tr&&NET.tr.close()}catch(e){}let T;try{T=netTransport(NET.room)}catch(e){setTimeout(go,4000);return}NET.tr=T;
@@ -2633,7 +2726,7 @@ function netPersist(){if(!NET.on||!NET.started||!G||NET.ended)return;try{const p
  const o={at:Date.now(),room:NET.room,me:NET.me,name:NET.name,host:NET.host,seed:NET.seed,diff:G.diff,len:G.len,list:NET.list,T0:NET.T0,p:P,day:G.day,sys:{story:SYS.story,q:SYS.q.map(q=>[q.c,q.done])},rpg:{kingN:RPG.kingN,scanK:RPG.scanK}};
  if(NET.host)o.w={t:G.t,ph:G.phaseT,n:G.night?1:0,dropDay:G.dropDay,ds:netDoorArr(),cp:(G.corpses||[]).map(c=>c.done?1:0),ld:Object.keys(G.interiors).map(k=>[k,G.interiors[k].loot.map(l=>l.done?1:0)]),
   it:G.items.filter(it=>it.nid).map(it=>[it.nid,it.k,r1(it.x),r1(it.z),r1(it.y),it.inside||null,it.uses]),L:G.ladders.filter(L=>!L.fixed).map(L=>({x:L.x,z:L.z,nx:L.nx,nz:L.nz,base:L.base,top:L.top})),P:G.planks.map(P=>{const q={...P};delete q.id;return q}),
-  zs:G.zs.filter(z=>!z.dead).map(z=>[z.kind,r1(z.x),r1(z.z),Math.round(z.hp),Math.round(z.mhp)]),base:G.base||null,bossN:G.bossN||{},wx:G.weather,drop:G.drop?{x:G.drop.x,z:G.drop.z,t:G.drop.t,items:G.drop.items,open:G.drop.open,flare:G.drop.flare}:null,heli:G.heli?G.heli.t:null};
+  zs:G.zs.filter(z=>!z.dead).map(z=>[z.kind,r1(z.x),r1(z.z),Math.round(z.hp),Math.round(z.mhp)]),base:G.base||null,bossN:G.bossN||{},wx:G.weather,sd:G.sdoors||{},drop:G.drop?{x:G.drop.x,z:G.drop.z,t:G.drop.t,items:G.drop.items,open:G.drop.open,flare:G.drop.flare}:null,heli:G.heli?G.heli.t:null};
  localStorage.setItem(MPS_K,JSON.stringify(o))}catch(e){console.warn('persist',e)}}
 addEventListener('pagehide',()=>netPersist());
 function mpBackLabel(){const b=$('mpBack');if(!b)return;const s=readMP();b.hidden=!s;if(s)b.innerHTML=`📶 回到联机房间 ${esc(s.room)}<small>${s.host?'你是房主 · ':''}第 ${s.day} 天 · ${Math.max(1,Math.round((Date.now()-s.at)/60000))} 分钟前</small>`}
@@ -2652,7 +2745,7 @@ function netRestore(S){const p=G.p,P=S.p;for(const k in P)if(!['x','y','z','sc',
   W.ds.forEach((a,i)=>{const b=BLD[i];if(!b)return;const ds=b.ds;ds.hp=a[0];ds.barr=a[1];ds.broken=!!(a[2]&1);ds.open=!!(a[2]&2);ds.planks=a[2]>>2;updDoor(b);(b.wins||[]).forEach((Wn,j)=>{Wn.broken=!!(a[3]>>(j*2)&1);Wn.boarded=!!(a[3]>>(j*2+1)&1);updWindow(Wn)})});
   (W.cp||[]).forEach((d,i)=>{if(d&&G.corpses[i])G.corpses[i].done=true});for(const [key,arr] of W.ld||[]){const [bid,f]=String(key).split('#');if(!BID[bid])continue;const I=interior(bid,+f);arr.forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}
   G.items=[];NET.known=new Set();for(const [nid,k,x,z,y,ins,u] of W.it||[])if(IT[k]){NET.known.add(nid);G.items.push({id:G.uid++,nid,k,x,z,y,inside:ins,uses:u})}netApplyLP(W);
-  G.zs=(W.zs||[]).filter(a=>ZK[a[0]]).map(([k,x,z,hp,mhp])=>{const q=mkZombie(k,x,z);q.hp=hp;q.mhp=mhp;return q});G.bossN=W.bossN||{};if(WX[W.wx])G.weather=W.wx;if(W.base)baseRecv(W.base);G.drop=W.drop;if(W.heli!=null)G.heli={x:BID.office.pad.x,z:BID.office.pad.z,y:BID.office.h,t:W.heli,on:0}}
+  G.zs=(W.zs||[]).filter(a=>ZK[a[0]]).map(([k,x,z,hp,mhp])=>{const q=mkZombie(k,x,z);q.hp=hp;q.mhp=mhp;return q});G.bossN=W.bossN||{};if(WX[W.wx])G.weather=W.wx;if(W.sd)G.sdoors=W.sd;if(W.base)baseRecv(W.base);G.drop=W.drop;if(W.heli!=null)G.heli={x:BID.office.pad.x,z:BID.office.pad.z,y:BID.office.h,t:W.heli,on:0}}
  NET.rejoinSys=S.sys;NET.rejoin=null;renderThrow();renderHand();renderLv();
  setTimeout(()=>{sysMsg('联机',`已回到房间 <b>${esc(NET.room)}</b>${NET.host?' · 你是房主，世界从断开前的状态继续':''}`,{t:5000});if(!NET.host)netSend({k:'hello',from:NET.me})},1200)}
 // ---------- world setup in a multiplayer game (called from begin) ----------
@@ -2700,7 +2793,7 @@ function netTickZIn(z,dt,k,H){let T=null,bd=1e9;for(const h of H){let d=dd(z.x,z
 // host: a teammate went through a door / stairs: the zombies chasing them follow a moment later
 function netFollow(P,from,to,ox,oz){if(!from||from==='out'||!G.interiors[from])return;const F=G.interiors[from];
  const ch=F.zs.filter(z=>!z.dead&&z.state==='chase'&&z.tgt===P.id&&dd(z.x,z.z,ox,oz)<(to==='out'?5:7));if(!ch.length)return;
- if(to!=='out'){const k=netEnsureSc(to);if(!k)return;to=k;if(G.interiors[to].b!==F.b)return}
+ if(to!=='out'){const k=netEnsureSc(to);if(!k)return;to=k;if(G.interiors[to].b!==F.b)return;for(const z of ch){z.floorT=G.t+30;z.state='investigate'}if(stairDoor(F.b.id,Math.min(F.f,G.interiors[to].f)).hp>0)return}
  for(const z of ch){F.zs.splice(F.zs.indexOf(z),1);z.grabbing=false;z.pend=to==='out'?1.5:dd(z.x,z.z,ox,oz)/zSpeed(z)+1.5;z.pendTo=to;z.pendAt={x:P.x,z:P.z};G.pendZ.push(z)}}
 // make sure the host has the interior a remote player stands in (it may never have been generated here)
 function netEnsureSc(sc){if(!sc||sc==='out')return null;if(G.interiors[sc])return sc;const [bid,f]=String(sc).split('#');if(!BID[bid])return null;try{return interior(bid,+f).key}catch(e){return null}}
@@ -2743,7 +2836,7 @@ function netOnEvent(m){if(!m||typeof m!=='object')return;if(m.to&&m.to!==NET.me)
   case 'hitZ':if(!NET.host)return;{const z=zFind(m.zid);if(!z||z.dead)return;G._by=m.from;G._raw=true;G._zsc=G._fsc;try{hitZombie(z,m.dm,m.src)}finally{G._raw=false;G._by=null;G._zsc=null}break}
   case 'knockZ':if(!NET.host)return;{const z=zFind(m.zid);if(!z||z.dead)return;knock(z,m.fx,m.fz,m.d,m.s,m.dn);if(m.st)z.stun=Math.max(z.stun,m.st);break}
   case 'noise':{if(!NET.host||!fin(m.x)||!fin(m.z)||!fin(m.r))return;const r=clamp(m.r,0,40);
-   if(m.sc){const k=netEnsureSc(m.sc);if(!k)return;G.noises.push({x:m.x,z:m.z,r,t:.5,sc:k});const b=G.interiors[k].b;if(r>=3)b.lastNoise=G.t;if(r>=9&&b.door)G.noises.push({x:b.door.x,z:b.door.z,r:r*.6,t:.5,sc:'out'});break}
+   if(m.sc){const k=netEnsureSc(m.sc);if(!k)return;G.noises.push({x:m.x,z:m.z,r,t:.5,sc:k});if(r>=6)floorAlert(G.interiors[k]);const b=G.interiors[k].b;if(r>=3)b.lastNoise=G.t;if(r>=9&&b.door)G.noises.push({x:b.door.x,z:b.door.z,r:r*.6,t:.5,sc:'out'});break}
    G.noises.push({x:m.x,z:m.z,r,t:.5,sc:'out'});if(m.b&&BID[m.b])BID[m.b].lastNoise=G.t;break}
   case 'fire':G.fires.push({x:m.x,z:m.z,y:m.y,r:m.r,t:m.t,sc:m.sc});break;
   case 'zAtk':{const z=zFind(m.zid);if(!z||G.over)return;if(m.car&&p.inCar)carBash(z,p.inCar);else zAttack(z);break}
@@ -2774,15 +2867,16 @@ function netOnEvent(m){if(!m||typeof m!=='object')return;if(m.to&&m.to!==NET.me)
   case 'boxGive':{const k=m.kk;if(!IT[k])return;if(!invAdd(k))dropItem(k,p.x,p.z,p.y);sfx('pick');renderThrow();baseUI();break}
   case 'scrapCar':if(G.cars[m.i])G.cars[m.i].scrapped=1;break;
   case 'kring':if(fin(m.x)&&fin(m.z))G.fx.push({k:'kring',x:m.x,y:0,z:m.z,r:clamp(+m.r||2,1,8),t:clamp(+m.t||1,.2,2),m:clamp(+m.t||1,.2,2),sc:'out'});break;
+  case 'sdoor':if(typeof m.key==='string'&&fin(m.hp)){const [bid,f]=m.key.split('#');if(BID[bid])stairDoor(bid,+f).hp=clamp(m.hp,0,300)}break;
   case 'bossMsg':if(typeof m.t==='string')sysWorld(esc(m.t.slice(0,40)),esc(String(m.s||'').slice(0,120)));break;
   case 'bHit':if(G.over)return;bossHit({},clamp(+m.dm||0,0,40),+m.x||0,+m.z||0,clamp(+m.st||0,0,2),clamp(+m.inf||0,0,10));break;
   case 'hello':if(NET.host)netResync(m.from);break;
   case 'full':{const have=new Map(G.items.map(it=>[it.nid,it]));const keep=new Set(m.it.map(a=>a[0]));G.items=G.items.filter(it=>!it.nid||keep.has(it.nid)||!NET.known.has(it.nid));
    for(const [nid,k,x,z,y,ins,u] of m.it){NET.known.add(nid);if(!have.has(nid)&&IT[k])G.items.push({id:G.uid++,nid,k,x,z,y,inside:ins,uses:u})}netApplyLP(m);(m.cp||[]).forEach((d,i)=>{if(d&&G.corpses&&G.corpses[i])G.corpses[i].done=true});
-   for(const [key,arr] of m.ld||[]){const [bid,f]=String(key).split('#');if(!BID[bid])continue;const I=interior(bid,+f);arr.forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}if(m.base!==undefined)baseRecv(m.base);(m.scr||[]).forEach((f,i)=>{if(f&&G.cars[i])G.cars[i].scrapped=1});break}
+   for(const [key,arr] of m.ld||[]){const [bid,f]=String(key).split('#');if(!BID[bid])continue;const I=interior(bid,+f);arr.forEach((d,i)=>{if(d&&I.loot[i])I.loot[i].done=true})}if(m.base!==undefined)baseRecv(m.base);if(m.sd&&typeof m.sd==='object')for(const k in m.sd){const v=m.sd[k];if(v&&fin(v.hp))(G.sdoors=G.sdoors||{})[k]={hp:clamp(v.hp,0,300),mhp:clamp(v.mhp||60,60,300)}}(m.scr||[]).forEach((f,i)=>{if(f&&G.cars[i])G.cars[i].scrapped=1});break}
  }}
 // host sends a reconnecting player the parts of the world that are only sent as events
-function netResync(to){netSend({k:'full',to,it:G.items.filter(it=>it.nid).map(it=>[it.nid,it.k,r1(it.x),r1(it.z),r1(it.y),it.inside||null,it.uses]),L:G.ladders.filter(L=>!L.fixed).map(L=>({x:L.x,z:L.z,nx:L.nx,nz:L.nz,base:L.base,top:L.top})),P:G.planks.map(P=>{const o={...P};delete o.id;return o}),cp:(G.corpses||[]).map(c=>c.done?1:0),ld:Object.keys(G.interiors).map(k=>[k,G.interiors[k].loot.map(l=>l.done?1:0)]),base:G.base||null,scr:G.cars.map(c=>c.scrapped?1:0)})}
+function netResync(to){netSend({k:'full',to,it:G.items.filter(it=>it.nid).map(it=>[it.nid,it.k,r1(it.x),r1(it.z),r1(it.y),it.inside||null,it.uses]),L:G.ladders.filter(L=>!L.fixed).map(L=>({x:L.x,z:L.z,nx:L.nx,nz:L.nz,base:L.base,top:L.top})),P:G.planks.map(P=>{const o={...P};delete o.id;return o}),cp:(G.corpses||[]).map(c=>c.done?1:0),ld:Object.keys(G.interiors).map(k=>[k,G.interiors[k].loot.map(l=>l.done?1:0)]),base:G.base||null,sd:G.sdoors||{},scr:G.cars.map(c=>c.scrapped?1:0)})}
 // ---------- client → host helpers ----------
 function netHitZ(z,dm,src){dm=zDmgMod(z,dm,src);z.hitT=.15;fx3('blood',z.x,z.y+1,z.z);dmgNum(z,dm,src);if(Math.random()<.4)sfx('zhit',z.x,z.z);netSend({k:'hitZ',from:NET.me,zid:z.id,dm,src})}
 function netKnockZ(z,fx,fz,d,s,dn){netSend({k:'knockZ',from:NET.me,zid:z.id,fx,fz,d,s,dn})}
@@ -3168,6 +3262,25 @@ function doorStrikeFx(b,mat,big,dm){const D=b.door;strikeFx(D.x+D.nx*.25,1.2+Mat
 function doorMat(b){return b.ds.barr>0?'barr':b.iron?'iron':'wood'}
 
 
+// ================= 室内窗户：看得到外面的实时画面（同一时间只渲染离你最近的那扇窗） =================
+const WV={rt:null,cam:null,t:0,q:null,mat:null};
+// keep the zombies outside the watched window alive in the scene (called from syncScene before cleanup)
+function windowEnts(dt){if(!G||!G.inside||!WV.q)return;const W=WV.q.W;const RM=MODELS.state==='ready';
+ for(const z of G.zs){if(z.dead&&z.deadT<36)continue;if(dd(z.x,z.z,W.x,W.z)>30)continue;const e=ent('wz'+(RM?'r':'')+z.id,()=>RM?realModel(z.kind,z.v):zombieModel(z));const m=e.m,u=m.userData;
+  const sp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;
+  if(u.real)animReal(u,dt,z.climb?1:Math.min(sp,5),{zombie:1,t:G.t,climb:!!z.climb,dead:!!z.dead,down:z.down,pile:!!z.pz});else pose(u,z.anim,z.mv?1:.06,{zombie:1,t:G.t+z.id})}}
+function winRestore(){const q=WV.q;if(q&&q.mesh&&q.mat0){q.mesh.material=q.mat0}WV.q=null}
+function windowView(dt){if(!G||!renderer)return;if(!G.inside){if(WV.q)winRestore();return}
+ const I=G.interiors[G.inside];if(!I||!I.wins)return;const p=G.p;let best=null,bd=9;
+ for(const q of I.wins){if(q.W.boarded||!q.mesh)continue;const d=dd(q.x,q.z,p.x,p.z);if(d<bd){bd=d;best=q}}
+ if(best!==WV.q){winRestore();WV.q=best;if(best){if(!WV.rt){WV.rt=new T3.WebGLRenderTarget(256,200);WV.rt.texture.encoding=renderer.outputEncoding;WV.cam=new T3.PerspectiveCamera(62,1.28,.2,90);WV.mat=new T3.MeshBasicMaterial({map:WV.rt.texture,toneMapped:false})}best.mat0=best.mesh.material;best.mesh.material=WV.mat;WV.t=0}}
+ if(!best)return;WV.t-=dt;if(WV.t>0)return;WV.t=QUAL.lv===0?.4:.14;
+ const W=best.W;const c=WV.cam;c.position.set(W.x+W.nx*.3,W.y+1.6,W.z+W.nz*.3);c.lookAt(W.x+W.nx*10,W.y+1.1,W.z+W.nz*10);
+ const ins=G.inside,ov=outGroup.visible,iv=inGroup.visible,hidden=[];for(const [k,e] of ENT)if(k.startsWith('player')&&e.m.visible){e.m.visible=false;hidden.push(e.m)}
+ const su=renderer.shadowMap.autoUpdate;try{G.inside=null;updateLights();outGroup.visible=true;inGroup.visible=false;renderer.shadowMap.autoUpdate=false;renderer.setRenderTarget(WV.rt);renderer.render(scene,c)}
+ finally{renderer.setRenderTarget(null);renderer.shadowMap.autoUpdate=su;G.inside=ins;outGroup.visible=ov;inGroup.visible=iv;for(const m of hidden)m.visible=true;updateLights()}}
+
+
 // ================= audio (synthesized) =================
 const AUD={ctx:null,mute:false,last:{}};try{AUD.mute=localStorage.getItem('scwr-mute')==='1'}catch(e){}
 function audInit(){if(AUD.ctx){if(AUD.ctx.state==='suspended')AUD.ctx.resume().catch(()=>{});return}const C=window.AudioContext||window.webkitAudioContext;if(!C)return;try{AUD.ctx=new C()}catch(e){return}
@@ -3250,13 +3363,13 @@ let last=performance.now(),ctxT=0,hudT=0,miniT=0;
 function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;if(G&&G.hs>0){G.hs-=dt;dt*=.06}
  if(G&&renderer)tickAll(dt,true);
  requestAnimationFrame(frame)}
-function tickAll(dt,draw){sanity();
+function tickAll(dt,draw){sanity();safe('unstick',()=>{const p=G.p;if(!G.over&&!p.climb&&!p.inCar&&!p.hide&&!p.para)unstick(p)});
   safe('world',()=>{if(NET.on&&NET.started?!NET.ended&&(!G.over||NET.host):!G.over&&!G.pause)tickWorld(dt)});
   safe('player',()=>{if(!G.over&&!G.pause)tickPlayer(dt)});safe('net',()=>netTick(dt));
   safe('fx',()=>{fxTick(dt);smokeTick(dt);musicTick(dt)});safe('sys',()=>{sysTick(dt);rpgTick(dt)});safe('base',()=>{if(!G.over||NET.zp)baseTick(dt)});safe('visor',()=>visorTick(dt));safe('steps',()=>{if(!G.over)footstep(dt)});
   safe('ctx',()=>{ctxT-=dt;if(ctxT<=0){ctxT=.15;computeCtx();renderCtx();renderHand()}});
   safe('hud',()=>{hudT-=dt;if(hudT<=0){hudT=.2;renderHUD()}miniT-=dt;if(miniT<=0){miniT=.3;drawMini($('mc'),208,false)}});
-  safe('cam',()=>{updateCamera(dt);updateLights();cullTick(dt)});safe('scene',()=>syncScene(dt));if(draw)safe('render',()=>renderer.render(scene,camera));safe('overlay',()=>drawOverlay())}
+  safe('cam',()=>{updateCamera(dt);updateLights();cullTick(dt)});safe('scene',()=>syncScene(dt));safe('window',()=>windowView(dt));if(draw)safe('render',()=>renderer.render(scene,camera));safe('overlay',()=>drawOverlay())}
 // ---------- stability: isolate errors per subsystem, keep the game running, show a short notice ----------
 const ERRS={seen:{},n:0,t:0};
 function safe(name,f){try{f()}catch(e){ERRS.n++;const k=name+':'+e.message;if(!ERRS.seen[k]){ERRS.seen[k]=1;console.error(name,e);const el=$('err');el.hidden=false;el.textContent='⚠ 出了个小错误，已自动跳过（'+name+'：'+e.message+'）';clearTimeout(ERRS.t);ERRS.t=setTimeout(()=>{el.hidden=true},6000)}}}
@@ -3276,6 +3389,12 @@ function goFull(){if(!matchMedia('(pointer:coarse)').matches)return;const d=docu
  Promise.resolve(r).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function toggleFull(){if(isFull()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}}else goFull()}
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>addEventListener(ev,()=>setTimeout(()=>{resize();joyHome();$('clock')&&$('clock').classList.toggle('nofs',!isFull())},250)));
+// knocked out of fullscreen (rotation, notification, back gesture): a big button to get back, and the next tap on the game also restores it
+function fsCheck(){const coarse=matchMedia('(pointer:coarse)').matches;const inGame=!!(G&&!$('hud').hidden);let b=$('fsBtn');
+ if(!b){b=document.createElement('button');b.id='fsBtn';b.textContent='⛶ 点这里回到全屏横屏';b.hidden=true;document.body.appendChild(b);b.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();goFull();setTimeout(fsCheck,600)})}
+ b.hidden=!(coarse&&inGame&&!isFull())}
+['fullscreenchange','webkitfullscreenchange','orientationchange','resize'].forEach(ev=>addEventListener(ev,()=>setTimeout(fsCheck,300)));setInterval(fsCheck,2000);
+addEventListener('pointerdown',()=>{if(G&&!$('hud').hidden&&!isFull()&&matchMedia('(pointer:coarse)').matches&&innerWidth>innerHeight)goFull()},true);
 function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)load=null;else if(load===true)load=readSave();else if(load&&!load.v)load=null;if(load){diff=load.diff;len=load.len}audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
  if(MODELS.want&&MODELS.state!=='ready'&&MODELS.state!=='fail'){loadingNow=true;const btn=$('go');const t0=btn.textContent;btn.textContent='载入素材 0%';btn.disabled=true;
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin(load)},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
@@ -3309,7 +3428,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={get BLD(){return BLD},wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 })();
 
 </script>
