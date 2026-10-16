@@ -108,17 +108,25 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #err{position:fixed;left:16px;right:16px;bottom:16px;background:#3a1414;border:1px solid var(--blood);padding:10px;font-size:12px;border-radius:8px;z-index:50}
 
 /* ---- 末日系统 ---- */
-#sysPop{position:fixed;right:calc(env(safe-area-inset-right,0px) + 8px);top:calc(env(safe-area-inset-top,0px) + 100px);width:min(250px,34vw);opacity:.92;display:flex;flex-direction:column;gap:6px;z-index:12;pointer-events:none}
+#sysPop{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 92px);width:min(340px,82vw);display:flex;flex-direction:column;gap:6px;z-index:12;pointer-events:none}
 #sysPop .sp{pointer-events:auto;background:linear-gradient(180deg,rgba(8,30,38,.93),rgba(6,20,26,.9));border:1px solid rgba(110,225,255,.6);box-shadow:0 0 18px rgba(80,200,255,.25),inset 0 0 14px rgba(80,200,255,.12);border-radius:8px;padding:8px 11px;animation:spIn .28s ease-out}
-@media (orientation:portrait){#sysPop{right:50%;transform:translateX(50%);top:calc(env(safe-area-inset-top,0px) + 150px);width:min(300px,84vw)}}
+#rpgQ{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 170px);display:flex;gap:6px;z-index:9}
+#rpgQ button{padding:7px 12px;border-radius:18px;font-size:13px;font-weight:800;color:#2a1a00;background:linear-gradient(180deg,#ffe08a,#e8a830);border:1px solid #fff2c0;box-shadow:0 2px 8px rgba(0,0,0,.45),0 0 10px rgba(255,190,60,.35);white-space:nowrap}
+#rpgQ button small{font-size:11px;font-weight:700;opacity:.8}
+#rpgQ #bPts{background:linear-gradient(180deg,#9ae8ff,#3aa8d8);border-color:#d8f6ff;color:#06222c}
+#rpgQ #bPts.has{background:linear-gradient(180deg,#ffe08a,#ff9a30);color:#2a1000;animation:ctaPulse 1.2s ease-in-out infinite}
+#rpgQ #bPts b{display:inline-block;min-width:18px;padding:0 4px;margin-left:2px;border-radius:9px;background:#d8241a;color:#fff}
+body.zp #rpgQ,#rpgQ:empty{display:none}
+@media (orientation:portrait){#rpgQ{left:auto;right:calc(env(safe-area-inset-right,0px) + 8px);top:calc(env(safe-area-inset-top,0px) + 112px);flex-direction:column}}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,210,90,.75),0 0 10px rgba(255,200,80,.45)}50%{box-shadow:0 0 0 7px rgba(255,210,90,0),0 0 20px rgba(255,200,80,.9)}}
 .pulse,#bagX{animation:ctaPulse 1.3s ease-in-out infinite;border-color:#ffd25a!important}
 #fsBtn{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 48px);z-index:30;padding:8px 16px;border-radius:20px;border:1px solid #ffd25a;background:rgba(20,16,6,.86);color:#ffe7a8;font-size:14px;font-weight:700;animation:ctaPulse 1.3s infinite}
+#sysPop .sp.dim,#sysWorld.dim{opacity:.22;transition:opacity 1.2s ease;pointer-events:none!important}
 #sysPop .sp.out{opacity:0;transform:translateY(-6px);transition:.3s}
-#sysPop .st{font-size:11px;color:#7fe6ff;font-weight:800;letter-spacing:.04em}#sysPop .sb{font-size:11.5px;line-height:1.42;max-height:5.8em;overflow:hidden;color:#d9f4fb;margin-top:2px}#sysPop .sb b{color:#fff}
+#sysPop .st{font-size:12px;color:#7fe6ff;font-weight:800;letter-spacing:.04em}#sysPop .sb{font-size:12.5px;line-height:1.5;color:#d9f4fb;margin-top:2px}#sysPop .sb b{color:#fff}
 #sysPop .sp.ok{border-color:rgba(130,230,140,.7)}#sysPop .sp.ok .st{color:#9af0a0}#sysPop .sp.bad{border-color:rgba(255,90,70,.75)}#sysPop .sp.bad .st{color:#ff8a70}#sysPop .sp.warn .st{color:#ffd070}
 @keyframes spIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
-#sysWorld{position:fixed;left:18%;right:18%;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:13;pointer-events:none;display:flex;gap:10px;align-items:center;justify-content:center;padding:5px 14px;font-size:.82em;background:linear-gradient(90deg,rgba(80,0,0,0),rgba(90,6,4,.82) 15%,rgba(90,6,4,.82) 85%,rgba(80,0,0,0));border-top:1px solid #ff4a3a;border-bottom:1px solid #ff4a3a}
+#sysWorld{position:fixed;left:0;right:0;top:34%;z-index:13;pointer-events:none;display:flex;gap:12px;align-items:center;justify-content:center;padding:12px 18px;transition:opacity .25s;background:linear-gradient(90deg,rgba(80,0,0,0),rgba(90,6,4,.82) 15%,rgba(90,6,4,.82) 85%,rgba(80,0,0,0));border-top:1px solid #ff4a3a;border-bottom:1px solid #ff4a3a}
 #sysWorld.go{animation:wIn .35s ease-out,wFlash 1s 3}
 #sysWorld .wi{font:900 40px var(--disp);color:#ff3a2a;text-shadow:0 0 14px #ff2010}#sysWorld .wt{font:800 17px var(--body);color:#ff6a58;text-shadow:0 0 8px rgba(255,40,20,.6)}#sysWorld .ws{font-size:12.5px;color:#ffd0c8;margin-top:2px}
 @keyframes wIn{from{opacity:0;transform:scaleY(.4)}to{opacity:1;transform:none}}@keyframes wFlash{50%{background:linear-gradient(90deg,rgba(80,0,0,0),rgba(150,10,6,.9) 15%,rgba(150,10,6,.9) 85%,rgba(80,0,0,0))}}
@@ -361,7 +369,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.6 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.7 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -2070,7 +2078,7 @@ function proj(x,y,z){V3.set(x,y,z).project(camera);if(V3.z>1)return null;return[
 function drawOverlay(){const dpr=ovc.width/innerWidth;oc.setTransform(dpr,0,0,dpr,0,0);oc.clearRect(0,0,innerWidth,innerHeight);const p=G.p;drawItemHints();
  if(p.weapon&&IT[p.weapon].kind==='gun'&&!p.inCar){const t=gunTarget(IT[p.weapon]);if(t){const s=proj(t.x,t.y+1.5,t.z);if(s){oc.strokeStyle='rgba(255,70,50,.9)';oc.lineWidth=2;oc.beginPath();oc.arc(s[0],s[1],13,0,7);oc.stroke();oc.beginPath();for(const [a,b] of [[[-19,0],[-8,0]],[[19,0],[8,0]],[[0,-19],[0,-8]],[[0,19],[0,8]]]){oc.moveTo(s[0]+a[0],s[1]+a[1]);oc.lineTo(s[0]+b[0],s[1]+b[1])}oc.stroke()}}}
  {const placed=[];let nn=0;const zl=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=16).sort((a,b)=>(a.state==='chase'?0:9)+dd(a.x,a.z,p.x,p.z)-((b.state==='chase'?0:9)+dd(b.x,b.z,p.x,p.z)));
- for(const z of zl){const d=dd(z.x,z.z,p.x,p.z);if(++nn>7)break;const s=proj(z.x,z.y+(ZK[z.kind].big?2.6:1.95),z.z);if(!s)continue;if(placed.some(q=>Math.abs(q[0]-s[0])<22&&Math.abs(q[1]-s[1])<16))continue;placed.push(s);oc.globalAlpha=d<8?1:.75;
+ for(const z of zl){const d=dd(z.x,z.z,p.x,p.z);if(++nn>7)break;const s=proj(z.x,z.y+(ZK[z.kind].big?2.6:1.95),z.z);if(!s)continue;if(placed.some(q=>Math.abs(q[0]-s[0])<22&&Math.abs(q[1]-s[1])<16))continue;placed.push(s);oc.globalAlpha=(d<3?.18:d<6?.32:d<10?.6:.8)*(zl.length>5?.6:1);
   if(z.hp<z.mhp){oc.fillStyle='rgba(0,0,0,.6)';oc.fillRect(s[0]-13,s[1],26,4);oc.fillStyle='#c4342b';oc.fillRect(s[0]-12,s[1]+1,24*z.hp/z.mhp,2)}
   if(z.state==='chase'){oc.fillStyle='#ff5040';oc.font='800 14px Oswald,sans-serif';oc.textAlign='center';oc.fillText('!',s[0],s[1]-3)}else if(z.state==='investigate'){oc.fillStyle='#f0c060';oc.font='800 12px Oswald,sans-serif';oc.textAlign='center';oc.fillText('?',s[0],s[1]-3)}
   if(z.kind!=='walker'&&d<10&&nn<=3){oc.fillStyle='rgba(255,200,180,.85)';oc.font='600 10px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(ZK[z.kind].n,s[0],s[1]-16)}}oc.globalAlpha=1}
@@ -2116,9 +2124,9 @@ function duck(on){if(MUS.out&&AUD.ctx&&MUS.on)MUS.out.gain.setTargetAtTime(on?1.
 function toggleVoice(){VOICE.on=!VOICE.on;try{localStorage.setItem('scwr-voice',VOICE.on?'1':'0')}catch(e){}if(!VOICE.on&&window.speechSynthesis)speechSynthesis.cancel();$('bVoice').classList.toggle('on',VOICE.on);toast(VOICE.on?'系统语音：开':'系统语音：关')}
 // ---------- UI: personal system popup (cyan) and world banner (red ❗) ----------
 function sysMsg(title,html,o={}){if(!o.mute)say((o.kind==='bad'?'警告！':'叮！')+title+'。'+html,false);const el=$('sysPop');const d=document.createElement('div');d.className='sp'+(o.kind?' '+o.kind:'');d.innerHTML=`<div class="st">【末日系统】${title}</div><div class="sb">${html}</div>`;el.appendChild(d);sfx('sys');
- const close=()=>{d.classList.add('out');setTimeout(()=>d.remove(),300)};d.onclick=close;setTimeout(close,Math.min(o.t||4200,6000));while(el.children.length>2)el.firstChild.remove()}
-function sysWorld(text,sub){worldFlash();say('警告！世界通报：'+text+(sub?'。'+sub:''),true);const el=$('sysWorld');el.innerHTML=`<div class="wi">❗</div><div><div class="wt">【世界系统】${text}</div>${sub?`<div class="ws">${sub}</div>`:''}</div>`;el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');sfx('alarmSys');buzz(150);
- clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true},4000)}
+ const close=()=>{d.classList.add('out');setTimeout(()=>d.remove(),300)};d.onclick=close;setTimeout(()=>d.classList.add('dim'),2000);setTimeout(close,Math.max(4500,Math.min(o.t||5200,7000)));while(el.children.length>2)el.firstChild.remove()}
+function sysWorld(text,sub){worldFlash();say('警告！世界通报：'+text+(sub?'。'+sub:''),true);const el=$('sysWorld');el.innerHTML=`<div class="wi">❗</div><div><div class="wt">【世界系统】${text}</div>${sub?`<div class="ws">${sub}</div>`:''}</div>`;el.hidden=false;el.classList.remove('go','dim');void el.offsetWidth;el.classList.add('go');clearTimeout(el._d);el._d=setTimeout(()=>el.classList.add('dim'),2000);sfx('alarmSys');buzz(150);
+ clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true},5200)}
 // ---------- quests ----------
 const STORY=[
  {n:'第一步：进入便利店，搜一处物资',chk:e=>e.t==='loot'&&e.b==='shop',rw:['can','water']},
@@ -2445,11 +2453,13 @@ function rpgDom(){if($('rpgP'))return;
  const P=document.createElement('div');P.id='rpgP';P.hidden=true;P.innerHTML='<h3><span>📊 末日系统 · 宿主面板</span><button id="rpgX">关闭</button></h3><div class="tabs"><button data-t="attr">属性</button><button data-t="tal">天赋 · 称号</button><button data-t="shop">商城</button></div><div id="rpgL"></div>';document.body.appendChild(P);
  const T=document.createElement('div');T.id='talOv';T.className='ov2';T.hidden=true;T.innerHTML='<div class="wbox talbox"><div class="st">【末日系统】天赋觉醒</div><p>三选一 · 选了就不能改</p><div id="talC"></div></div>';document.body.appendChild(T);
  const B=document.createElement('div');B.id='bossB';B.hidden=true;B.innerHTML='<div class="bn"><span id="bossN">尸王</span><small id="bossH"></small></div><div class="bb"><i id="bossI"></i></div>';document.body.appendChild(B);
+ {const Q=document.createElement('div');Q.id='rpgQ';Q.innerHTML='<button id="bPts">⬆ 加点</button><button id="bShop">🛒 末日商店</button>';document.body.appendChild(Q);Q.addEventListener('pointerdown',e=>e.stopPropagation());
+  $('bPts').onclick=()=>{RPG.tab='attr';openRpg()};$('bShop').onclick=()=>{RPG.tab='shop';openRpg()}}
  $('rpgX').onclick=()=>{P.hidden=true};P.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{RPG.tab=b.dataset.t;renderRpg()});
  ['rpgP','talOv'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()))}
 function openRpg(){if(!G)return;$('rpgP').hidden=false;renderRpg()}
 function renderLv(){const p=G&&G.p;if(!p||!p.lv||!$('lvT'))return;$('lvT').textContent=p.lv+' 级';const t=p.titles[p.titles.length-1];$('tiT').textContent=t?'【'+TITLES[t].n+'】':'';$('crT').textContent='积分 '+p.cr;$('xpB').style.width=Math.min(100,p.xp/xpNeed(p.lv)*100)+'%';
- const b=$('bStat');if(b)b.classList.toggle('dot',p.pts>0)}
+ const b=$('bStat');if(b)b.classList.toggle('dot',p.pts>0);const bp=$('bPts');if(bp){bp.innerHTML=p.pts>0?`⬆ 加点 <b>${p.pts}</b>`:'⬆ 属性';bp.classList.toggle('has',p.pts>0)}const bs=$('bShop');if(bs)bs.innerHTML=`🛒 商店 <small>${p.cr} 分</small>`}
 function renderRpg(){const el=$('rpgL');if(!el||$('rpgP').hidden)return;const p=G.p;
  $('rpgP').querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('sel',b.dataset.t===RPG.tab));
  if(RPG.tab==='attr'){el.innerHTML=`<div class="pr"><b>${p.lv} 级</b> · 经验 ${Math.floor(p.xp)}/${xpNeed(p.lv)} · 积分 <b>${p.cr}</b></div>
@@ -2521,9 +2531,9 @@ function onDawn(){const p=G.p;if(G.nightTrack&&p.nightDmg<1)hid('phoenix');G.nig
 // ---- eagle eye: colour by state + each zombie's sight ring on the ground ----
 function zCol(z){return z.state==='chase'?[255,74,58]:z.state==='investigate'||z.door||z.entry?[240,192,80]:[170,176,170]}
 function eagleDraw(p){const zs=zList().filter(z=>!z.dead&&dd(z.x,z.z,p.x,p.z)<=20).sort((a,b)=>dd(a.x,a.z,p.x,p.z)-sightR(a,p)-(dd(b.x,b.z,p.x,p.z)-sightR(b,p))).slice(0,10);
- for(const z of zs.slice(0,zs.length>5?3:5)){const R=sightR(z,p),c=zCol(z),d=dd(z.x,z.z,p.x,p.z),inside=d<R;const pts=[];for(let i=0;i<=32;i++){const a=i/32*Math.PI*2;const s=proj(z.x+Math.cos(a)*R,z.y+.05,z.z+Math.sin(a)*R);if(!s){pts.length=0;break}pts.push(s)}
+ const crowd=zs.length>5?.45:1;for(const z of zs.slice(0,zs.length>5?3:5)){const R=sightR(z,p),c=zCol(z),d=dd(z.x,z.z,p.x,p.z),inside=d<R;oc.globalAlpha=crowd*(d<4?.35:d<8?.6:1);const pts=[];for(let i=0;i<=32;i++){const a=i/32*Math.PI*2;const s=proj(z.x+Math.cos(a)*R,z.y+.05,z.z+Math.sin(a)*R);if(!s){pts.length=0;break}pts.push(s)}
   if(pts.length){oc.beginPath();pts.forEach((s,i)=>i?oc.lineTo(s[0],s[1]):oc.moveTo(s[0],s[1]));oc.closePath();oc.fillStyle=`rgba(${c},${inside?.16:.07})`;oc.fill();oc.setLineDash(inside?[]:[6,5]);oc.lineWidth=inside?2:1.2;oc.strokeStyle=`rgba(${c},${inside?.85:.45})`;oc.stroke();oc.setLineDash([])}}
- for(const z of zs){const d=dd(z.x,z.z,p.x,p.z);const s=proj(z.x,z.y+1,z.z);if(!s)continue;const c=zCol(z);oc.globalAlpha=Math.max(.35,.95*(1-d/26));oc.strokeStyle=`rgb(${c})`;oc.fillStyle=`rgba(${c},.25)`;oc.lineWidth=2;oc.beginPath();oc.moveTo(s[0],s[1]-9);oc.lineTo(s[0]+6,s[1]);oc.lineTo(s[0],s[1]+9);oc.lineTo(s[0]-6,s[1]);oc.closePath();oc.fill();oc.stroke()}oc.globalAlpha=1}
+ for(const z of zs){const d=dd(z.x,z.z,p.x,p.z);const s=proj(z.x,z.y+1,z.z);if(!s)continue;const c=zCol(z);oc.globalAlpha=crowd*(d<3?.2:d<6?.35:Math.max(.35,.95*(1-d/26)));oc.strokeStyle=`rgb(${c})`;oc.fillStyle=`rgba(${c},.25)`;oc.lineWidth=2;oc.beginPath();oc.moveTo(s[0],s[1]-9);oc.lineTo(s[0]+6,s[1]);oc.lineTo(s[0],s[1]+9);oc.lineTo(s[0]-6,s[1]);oc.closePath();oc.fill();oc.stroke()}oc.globalAlpha=1}
 // ---- overlay: scan card, floating numbers, eagle-eye marks ----
 function rpgOverlay(){const p=G.p;const sc=G.inside||'out';
  if(hasT('eagle'))eagleDraw(p);
@@ -3351,7 +3361,7 @@ addEventListener('pointerdown',()=>audInit(),{capture:true});
 // ================= HUD =================
 function toast(h,cls=''){if(G&&G.p&&G.p.remote)return;const el=document.createElement('div');el.className='toast '+cls;el.innerHTML=h;$('msg').appendChild(el);setTimeout(()=>el.remove(),3600);while($('msg').children.length>4)$('msg').firstChild.remove()}
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
-function renderHUD(){const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp/maxHp()*100)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
+function renderHUD(){{const q=$("rpgQ");if(q)q.hidden=$("hud").hidden||!!G.over||!!NET.zp}const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp/maxHp()*100)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
  const len=G.night?G.nightLen:G.dayLen;$('dayT').textContent=G.heli?`第 ${G.day} 天 · 黎明`:`第 ${G.day} ${G.night?'晚':'天'}`;
  const left=G.heli?G.heli.t:len-G.phaseT;$('phT').textContent=(G.weather&&G.weather!=='clear'?wx().ic+' ':'')+(G.heli?`🚁 直升机 ${fmt(left)} 后起飞`:G.night?`🌙 离天亮 ${fmt(left)}`:`☀ 离天黑 ${fmt(left)}`);$('phB').style.width=(G.heli?left/100:1-G.phaseT/len)*100+'%';$('clock').classList.toggle('night',G.night);$('clock').classList.toggle('soon',left<30);$('clock').classList.toggle('nofs',!isFull()&&matchMedia('(pointer:coarse)').matches);
  $('hurt').style.boxShadow=`inset 0 0 ${p.hurtT>0?140:p.hp<maxHp()*.3?90:0}px rgba(196,52,43,${p.hurtT>0?.7:p.hp<maxHp()*.3?.35:0})`;
