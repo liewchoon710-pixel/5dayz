@@ -1,6 +1,6 @@
 // 尸城五日 · offline cache. The game page is network-first (you always get the newest version when online);
 // models, textures and libraries are cached so the app starts fast and works with a weak signal.
-const V='scwr-v1';
+const V='scwr-v2';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).catch(()=>{}));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
