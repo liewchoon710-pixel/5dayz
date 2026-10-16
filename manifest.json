@@ -1,1 +1,2 @@
-{"name":"尸城五日","short_name":"尸城五日","start_url":"./","scope":"./","display":"fullscreen","orientation":"landscape","background_color":"#0b0d0e","theme_color":"#0e0f10"}
+{"id":"./","name":"尸城五日","short_name":"尸城五日","description":"丧尸生存游戏：在被丧尸占领的城市里撑过五个夜晚，可以多人联机。","lang":"zh-CN","start_url":"./?app=1","scope":"./","display":"fullscreen","display_override":["fullscreen","standalone"],"orientation":"landscape","background_color":"#0b0d0e","theme_color":"#160b0b","categories":["games"],
+"icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}

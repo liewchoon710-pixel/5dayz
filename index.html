@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0e0f10">
 <title>尸城五日</title>
-<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><meta name="apple-mobile-web-app-title" content="尸城五日">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;800&family=Oswald:wght@500;700&display=swap">
 <style>
@@ -118,6 +118,8 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
 #rpgQ #bPts b{display:inline-block;min-width:18px;padding:0 4px;margin-left:2px;border-radius:9px;background:#d8241a;color:#fff}
 body.zp #rpgQ,#rpgQ:empty{display:none}
 @media (orientation:portrait){#rpgQ{left:auto;right:calc(env(safe-area-inset-right,0px) + 8px);top:calc(env(safe-area-inset-top,0px) + 112px);flex-direction:column}}
+#installB{display:block;margin:10px auto 0;padding:10px 18px;border-radius:22px;border:1px solid #ffd25a;background:linear-gradient(180deg,#ffe08a,#e8a830);color:#2a1a00;font-size:15px;font-weight:800;animation:ctaPulse 1.4s infinite}
+#installTip{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center}#installTip .wbox{max-width:min(420px,92vw);text-align:left}
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,210,90,.75),0 0 10px rgba(255,200,80,.45)}50%{box-shadow:0 0 0 7px rgba(255,210,90,0),0 0 20px rgba(255,200,80,.9)}}
 .pulse,#bagX{animation:ctaPulse 1.3s ease-in-out infinite;border-color:#ffd25a!important}
 #fsBtn{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 48px);z-index:30;padding:8px 16px;border-radius:20px;border:1px solid #ffd25a;background:rgba(20,16,6,.86);color:#ffe7a8;font-size:14px;font-weight:700;animation:ctaPulse 1.3s infinite}
@@ -369,7 +371,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.7 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 3.8 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -3439,6 +3441,19 @@ addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnVa
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
 window.__sc={get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+// ---------- installable app (PWA): offline cache + 'install' button on the start screen ----------
+try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$|vercel\.app$|netlify\.app$/.test(location.hostname))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
+const APP={evt:null};
+function appInstalled(){return matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||/[?&]app=1/.test(location.search)}
+function installBtn(){if(appInstalled()||!/github\.io$|vercel\.app$|netlify\.app$|localhost/.test(location.hostname))return;const st=$('start');if(!st||$('installB'))return;const b=document.createElement('button');b.id='installB';b.textContent='📲 安装成手机 App（全屏 · 有图标）';
+ const box=st.querySelector('#go')?st.querySelector('#go').parentNode:st;box.appendChild(b);
+ b.onclick=async()=>{if(APP.evt){APP.evt.prompt();const r=await APP.evt.userChoice.catch(()=>null);APP.evt=null;if(r&&r.outcome==='accepted')b.remove();return}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);let t=$('installTip');if(!t){t=document.createElement('div');t.id='installTip';document.body.appendChild(t);t.addEventListener('pointerdown',e=>{if(e.target===t)t.remove()})}
+  t.innerHTML=`<div class="wbox"><div class="st">【末日系统】安装成 App</div>${ios?'<p>1. 用 <b>Safari</b> 打开这个网页<br>2. 点下面的 <b>分享</b> 按钮（方框加箭头）<br>3. 选 <b>“添加到主屏幕”</b><br>4. 主屏幕上就有《尸城五日》的图标了，点开是全屏</p>':'<p>1. 用 <b>Chrome</b> 打开这个网页<br>2. 点右上角 <b>⋮</b> 菜单<br>3. 选 <b>“安装应用”</b> 或 <b>“添加到主屏幕”</b><br>4. 桌面上就有《尸城五日》的图标了，点开是全屏横屏</p>'}<button class="big" onclick="this.closest('#installTip').remove()">知道了</button></div>`}}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();APP.evt=e;installBtn()});
+addEventListener('appinstalled',()=>{const b=$('installB');if(b)b.remove();toast('已安装！以后从桌面图标打开就是全屏 App','good')});
+addEventListener('load',()=>setTimeout(installBtn,600));
+
 })();
 
 </script>
