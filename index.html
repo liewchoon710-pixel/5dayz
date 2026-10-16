@@ -373,13 +373,14 @@ body.undercar #fpHud .br{display:none}
     <div><div class="lab">难度</div><div class="seg" id="diffSeg"><button data-v="0">简单 · 小城</button><button data-v="1" class="sel">普通 · 大城</button><button data-v="2">困难 · 巨城 · 随机空投</button></div></div>
     <div><div class="lab">一天的长度</div><div class="seg" id="lenSeg"><button data-v="0.55">短 · 约 22 分钟</button><button data-v="1" class="sel">标准 · 约 40 分钟</button></div></div>
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
-    <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="1" class="sel">完整素材（人物动画 + 真实道具，约 10 兆）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
+    <div><div class="lab">模型与素材</div><div class="seg" id="mdlSeg"><button data-v="2" class="sel">✨ 高清写实人物（新 · 约 15 兆）</button><button data-v="1">经典卡通人物（旧版素材）</button><button data-v="0">简易模型（免下载，最流畅）</button></div></div>
     <button class="big" id="cont" hidden></button>
     <button class="big" id="go">开始求生</button>
     <button class="big mpb" id="mpBack" hidden></button>
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
+    <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 4.0 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 5.0 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -586,7 +587,7 @@ function deadTree(g,x,z){const tm=std(0x3a2e24,{r:1});const t=mesh(new T3.Cylind
 
 // ================= external 3D assets (rigged characters, realistic props, photo textures) =================
 // GitHub Pages: same-origin assets/ ; elsewhere (claude artifact): jsDelivr mirror of the repo's cdn branch
-const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@4ad7c25362f8ba9f724ba964d84b8358c3a90471/'})();
+const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@b10a3a2dffca9d73b1a0290b4869d4bd4bb98849/'})();
 const CHAR_SRC={player:'chars/Characters_Matt.glb',walker:'chars/Zombie_Basic.glb',runner:'chars/Zombie_Arm.glb',climber:'chars/Zombie_Ribcage.glb',brute:'chars/Zombie_Chubby.glb'};
 const KMODEL={crawler:'climber',screamer:'walker',stalker:'runner'};
 const PROP_SRC={container:1,sofa:1,couch:1,vending:1,forklift:1,bus:1,tvstand:1,door:1,bike:1,laptop:1,chair:1};
@@ -600,12 +601,14 @@ function loadModels(onDone,onProg){if(MODELS.state==='loading'||MODELS.state==='
  const jobs=[];const tick=()=>{MODELS.done++;onProg&&onProg(MODELS.done/MODELS.total)};
  const glb=(path,ok)=>jobs.push(new Promise(res=>{L.load(ASSET_BASE+path,g=>{try{ok(g)}catch(e){console.warn(path,e)}tick();res()},undefined,e=>{console.warn('asset fail',path);tick();res()})}));
  const tex=(name,ok)=>jobs.push(new Promise(res=>{TL.load(ASSET_BASE+'tex/'+name+'.jpg',t=>{ok(t);tick();res()},undefined,()=>{tick();res()})}));
- for(const k in CHAR_SRC)glb(CHAR_SRC[k],g=>{g.h=skinHeight(g.scene);g.clips={};for(const c of g.animations)g.clips[c.name.toLowerCase()]=c;if(g.h>.2&&g.animations.length)MODELS.g[k]=g});
+ MODELS.pack=MODELS.hd?'hd':'classic';if(MODELS.hd){glb(MX.dir+'anims.glb',g=>{MX.anims=g.animations;if(g.userData&&g.userData.rest&&g.userData.rest.h_idle)MX.rest=g.userData.rest.h_idle;MX.clipC=new Map()});
+  const me=mxMyHum();const need=new Set([me,...Object.values(MX.kind).flat()]);for(const n of need)glb(MX.dir+n+'.glb',g=>{mxPrep(g,n);if(n===me)MODELS.g.player=g;if(MX.kind.walker.includes(n)&&!MODELS.g.walker)MODELS.g.walker=g})}
+ else for(const k in CHAR_SRC)glb(CHAR_SRC[k],g=>{g.h=skinHeight(g.scene);g.clips={};for(const c of g.animations)g.clips[c.name.toLowerCase()]=c;if(g.h>.2&&g.animations.length)MODELS.g[k]=g});
  for(const k in PROP_SRC)glb('props/'+k+'.glb',g=>{g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms){m.envMapIntensity=.45;if(m.map)m.map.anisotropy=4}}});const bx=new T3.Box3().setFromObject(g.scene),w=new T3.Group();g.scene.position.set(-(bx.min.x+bx.max.x)/2,-bx.min.y,-(bx.min.z+bx.max.z)/2);w.add(g.scene);MODELS.props[k]=w});
  const tn=new Set();for(const k in FACADE){tn.add(FACADE[k][0]);if(FACADE[k][3])tn.add(FACADE[k][3])}
  for(const n of tn)tex(n,t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=8;if(!/_n$/.test(n))t.encoding=T3.sRGBEncoding;MODELS.tex[n]=t});
  MODELS.total=jobs.length;MODELS.done=0;let fin=false;
- const end=()=>{if(fin)return;fin=true;MODELS.state=(MODELS.g.player&&MODELS.g.walker)?'ready':'fail';if(MODELS.state==='fail')MODELS.why=MODELS.done<MODELS.total?'超时':'加载出错';onDone&&onDone(MODELS.state==='ready')};
+ const end=()=>{if(fin)return;fin=true;MODELS.state=(MODELS.g.player&&MODELS.g.walker&&(!MODELS.hd||MX.anims))?'ready':'fail';if(MODELS.state==='ready'&&MODELS.hd&&NET.on)for(const n of MX.hum)mxLoad(n);if(MODELS.state==='fail')MODELS.why=MODELS.done<MODELS.total?'超时':'加载出错';onDone&&onDone(MODELS.state==='ready')};
  setTimeout(end,35000);Promise.all(jobs).then(end)}
 // true standing height of a skinned character (bind pose, weapons excluded)
 function skinHeight(root){root.updateMatrixWorld(true);let lo=1e9,hi=-1e9;const v=new T3.Vector3();
@@ -627,6 +630,7 @@ const ZTINT={walker:[.78,.8,.74],runner:[.74,.72,.7],climber:[.7,.72,.66],brute:
 const ZH={walker:1.8,runner:1.78,climber:1.7,brute:2.05,player:1.78};
 const WNODE={axe:'Axe',pistol:'Pistol',shotgun:'Shotgun',nailbat:'WoodenBat_Barbed',knife:'Knife',machete:'Knife'};
 function realModel(kind,v){// kind: 'player' or zombie kind
+ if(MODELS.pack==='hd'&&MX.anims)return realModelMX(kind,v);
  const G_=MODELS.g[kind]||MODELS.g[KMODEL[kind]]||MODELS.g.walker;const root=T3.SkeletonUtils.clone(G_.scene);const wrap=new T3.Group();const lean=new T3.Group();wrap.add(lean);lean.add(root);
  const sc=(ZH[kind]||ZH[KMODEL[kind]]||1.8)/G_.h*(v?v.s:1);root.scale.setScalar(sc);
  const z=kind!=='player';const bones={},wn={};
@@ -656,6 +660,7 @@ function setWeapon(ud,k){for(const n in ud.wn)ud.wn[n].visible=false;if(ud.wx){u
  if(k==='crowbar'){const h=new T3.Mesh(new T3.TorusGeometry(.06*L,.022*L,6,10,Math.PI),m.material);h.position.copy(c).addScaledVector(to,len/2);g.add(h)}
  ud.wx=g;ud.wnode=m;return true}
 function animReal(ud,dt,speed,o={}){// speed in m/s
+ if(ud.mx)return animMX(ud,dt,speed,o);
  const A=ud.act;let base;
  if(ud.zombie){base=o.climb?'walk':speed>2.6?(A.run_arms?'run_arms':'run'):speed>.15?'walk':'idle';if(o.crawl&&A.crawl)base=speed>.05||true?'crawl':base}
  else{const gun=(o.gun||o.block)&&A.idle_gun;base=o.climb?'walk':speed>3?(gun?'run_gun':'run'):speed>.15?(gun?'walk_gun':'walk'):(gun?'idle_gun':'idle');}
@@ -686,6 +691,60 @@ function animReal(ud,dt,speed,o={}){// speed in m/s
  if(ud.mats){const f=o.flash?1:0;if(ud.fl!==f){ud.fl=f;for(const m of ud.mats){m.emissive&&m.emissive.setHex(f?0x6a0a04:0)}}}
  if(ud.zombie&&!ud.dead){const B=ud.bones;const t=(o.t||0)+ud.phase;if(B.head){B.head.rotation.z+=Math.sin(t*.8)*.18}}
 }
+// ================= 高清写实人物（Mixamo 角色 + 共用动作包） =================
+const MX={dir:'mx/',rest:1.0613,anims:null,pend:{},clipC:new Map(),
+ hum:['ch49nonpbr','ch15nonpbr','ch35nonpbr','swat','evebyjgonzales','ch17nonpbr','brute'],
+ kind:{walker:['warzombiefpedroso','zombiestandup1','yakujignite'],screamer:['zombiegirlwkurniawan','nightshadejfriedrich'],runner:['parasitelstarkie'],crawler:['zombiegirlwkurniawan','warzombiefpedroso'],climber:['yakujignite','parasitelstarkie'],stalker:['ch30nonpbr'],cop:['copzombielactisdato'],brute:['pumpkinhulklshaw'],tank:['pumpkinhulklshaw'],howler:['skeletonzombiestandup'],spider:['parasitelstarkie'],king:['skeletonzombiestandup']},
+ nat:{walk:[1.05,.35],run:[2.78,3.16],walk_gun:[1.02,1],run_gun:[3.2,3],crawl:[.45,.45]}};
+const MX_ONE=['death','hitreact','punch','slash','stab','idle_attack','shove','jump','throw','scream','standup'],MX_LOOP=['idle','walk','run','idle_gun','walk_gun','run_gun','crawl','crouch','block','climb'];
+try{MODELS.hd=localStorage.getItem('scwr-hd')!=='0'}catch(e){MODELS.hd=true}
+function mxMyHum(){return MX.hum[(NET.on&&NET.started?netSpawnIdx():0)%MX.hum.length]}
+function mxSkin(kind,v){if(kind==='player'){let i=0;if(v&&v.id&&NET.list){i=Math.max(0,NET.list.findIndex(o=>o.id===v.id))}else if(NET.on&&NET.started)i=netSpawnIdx();return MX.hum[i%MX.hum.length]}
+ const L=MX.kind[kind]||MX.kind[KMODEL[kind]]||MX.kind.walker;return L[Math.floor(Math.random()*L.length)]}
+function mxPrep(g,n){g.mxName=n;g.h=skinHeight(g.scene);g.hipsY=MX.rest;g.scene.traverse(o=>{if(o.isBone&&/Hips$/.test(o.name)&&g.hipsY===MX.rest)g.hipsY=o.position.y});MODELS.g['mx:'+n]=g}
+function mxLoad(n){if(MODELS.g['mx:'+n]||MX.pend[n]||!T3.GLTFLoader)return;MX.pend[n]=1;new T3.GLTFLoader().load(ASSET_BASE+MX.dir+n+'.glb',g=>{try{mxPrep(g,n)}catch(e){console.warn(e)}},undefined,()=>{})}
+// same clips for every body; the hips height track is rescaled to each body so nobody floats or sinks
+function mxClips(g){let C=MX.clipC.get(g);if(C)return C;C={};const k=g.hipsY/MX.rest;
+ for(const c of MX.anims||[]){const cl=c.clone();if(Math.abs(k-1)>.01)for(const t of cl.tracks)if(/Hips\.position$/.test(t.name)){t.values=t.values.slice();for(let i=0;i<t.values.length;i++)t.values[i]*=k}C[c.name]=cl}
+ MX.clipC.set(g,C);return C}
+function realModelMX(kind,v){const z=kind!=='player';const want=mxSkin(kind,v);let G_=MODELS.g['mx:'+want];if(!G_){mxLoad(want);G_=z?MODELS.g.walker:MODELS.g.player}
+ const root=T3.SkeletonUtils.clone(G_.scene);const wrap=new T3.Group(),lean=new T3.Group();wrap.add(lean);lean.add(root);
+ root.scale.setScalar((ZH[kind]||ZH[KMODEL[kind]]||1.8)/G_.h*(v&&v.s?v.s:1));
+ const bones={},mats=[];const tint=z&&v&&v.t!=null?.86+.14*Math.min(1.2,v.t):1;
+ root.traverse(o=>{if(o.isMesh||o.isSkinnedMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
+   const ms=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{const c=m.clone();c.envMapIntensity=.35;c.roughness=Math.max(c.roughness??.8,.62);c.metalness=Math.min(c.metalness??0,.25);if(tint!==1)c.color.multiplyScalar(tint);mats.push(c);return c});o.material=Array.isArray(o.material)?ms:ms[0]}
+  if(o.isBone)bones[o.name.toLowerCase()]=o});
+ const mixer=new T3.AnimationMixer(root);const act={};const C=mxClips(G_);const pre=z?'z_':'h_';
+ for(const k in C){if(!k.startsWith(pre))continue;const nm=k.slice(2);act[nm]=mixer.clipAction(C[k]);act[nm].setEffectiveWeight(0)}
+ if(z&&act.punch)act.run_attack=act.punch;
+ for(const k of MX_ONE)if(act[k]){act[k].setLoop(T3.LoopOnce);act[k].clampWhenFinished=true}
+ for(const k of MX_LOOP)if(act[k])act[k].play();if(act.idle)act.idle.setEffectiveWeight(1);
+ const ud={real:1,mx:1,mixer,act,bones,lean,root,zombie:z,kind,phase:Math.random()*3,wn:{},one:null,dead:false,mats,rep:0,skin:G_.mxName,wantSkin:want};
+ const hb=bones.mixamorigrighthand;if(hb){const hg=new T3.Group();hb.add(hg);wrap.updateMatrixWorld(true);const ws=new T3.Vector3();hb.getWorldScale(ws);hg.scale.setScalar(1/(ws.x||1));hg.position.set(0,.09/(ws.x||1),.03/(ws.x||1));ud.hand=hg}
+ addBlob(wrap,kind==='brute'||kind==='tank'?1.3:.95,kind==='brute'||kind==='tank'?1.3:.95);wrap.userData=ud;return wrap}
+function animMX(ud,dt,speed,o){const A=ud.act;let base;
+ if(ud.zombie){base=o.pile||o.climb?'climb':o.crawl&&A.crawl?'crawl':speed>2.2?'run':speed>.12?'walk':'idle'}
+ else{const gun=o.gun&&A.idle_gun;base=o.climb?'climb':o.block&&!gun&&A.block?'block':speed>3?(gun?'run_gun':'run'):speed>.15?(gun?'walk_gun':'walk'):o.crouch&&A.crouch&&!o.roll?'crouch':gun?'idle_gun':'idle'}
+ if(!A[base])base='idle';
+ if(o.dead){if(!ud.dead){ud.dead=true;playOnce(ud,'death')}}
+ else if(o.down>0){if(!(ud.one&&ud.one.name==='death'))playOnce(ud,'death',1.6);if(ud.one)ud.one.t=Math.max(ud.one.t,.1)}
+ else if(ud.one&&ud.one.name==='death'&&!ud.dead){ud.one.t=0}
+ else if(o.grab){ud.rep-=dt;if(ud.rep<=0){ud.rep=1.1;ud.one=null;playOnce(ud,A.idle_attack?'idle_attack':'punch',1.6)}}
+ else if(o.grabbed){ud.rep-=dt;if(ud.rep<=0){ud.rep=.55;ud.one=null;playOnce(ud,'hitreact',1.2)}}
+ else if(o.thr!=null){if(!ud.thrOn){ud.thrOn=1;ud.one=null;playOnce(ud,'throw',2.6)}}
+ else if(o.shove){if(!(ud.one&&ud.one.t>0))playOnce(ud,A.shove?'shove':'punch',1.9)}
+ else if(o.attack){if(!(ud.one&&ud.one.t>0)){const k=ud.zombie?'punch':(A[o.atk]?o.atk:'punch');playOnce(ud,k,ud.zombie?2:k==='stab'?2.1:2.3)}}
+ else if(o.hit&&!(ud.one&&ud.one.t>0))playOnce(ud,'hitreact',1.3);
+ if(o.thr==null)ud.thrOn=0;
+ let ow=0;if(ud.one){ud.one.t-=dt;const a=A[ud.one.name];if(ud.one.t<=0&&!ud.dead){a.setEffectiveWeight(Math.max(0,a.getEffectiveWeight()-dt*8));if(a.getEffectiveWeight()<=0){a.stop();ud.one=null}}if(ud.one)ow=a.getEffectiveWeight()}
+ if(ud.dead)ow=1;
+ for(const k of MX_LOOP){const a=A[k];if(!a)continue;const tgt=(k===base?1:0)*(1-ow);const w=a.getEffectiveWeight();a.setEffectiveWeight(w+(tgt-w)*Math.min(1,dt*9))}
+ const N=MX.nat[base];if(N&&A[base])A[base].timeScale=clamp(speed/(ud.zombie?N[1]:N[0]),.55,ud.zombie&&base==='walk'?2.6:1.8);else if(A[base])A[base].timeScale=1;
+ ud.mixer.update(dt);
+ const L=ud.lean;const mvc=o.crouch&&speed>.15&&!ud.zombie?1:0;ud.crk=(ud.crk||0)+(mvc-(ud.crk||0))*Math.min(1,dt*10);
+ if(o.roll!=null){const th=o.roll*Math.PI*2,h=.75;L.rotation.x=th;L.position.set(0,h-h*Math.cos(th),-h*Math.sin(th));L.scale.y=.8}
+ else{L.rotation.x=.18*ud.crk;L.position.set(0,-.28*ud.crk,0);L.scale.y=1}
+ if(ud.mats){const f=o.flash?1:0;if(ud.fl!==f){ud.fl=f;for(const m of ud.mats){m.emissive&&m.emissive.setHex(f?0x6a0a04:0)}}}}
 
 
 // ================= 更大的城市：核心城区（手工）+ 外围街区（按难度程序生成，每局不同） =================
@@ -2981,7 +3040,8 @@ function netRender(dt){if(!NET.on||!NET.started)return;const RM=MODELS.state==='
  for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.sc!==sc||q.ov&&!q.zp||q.es)continue;
   if(q.ht&&!q.htP)fx3('spray',q.rx,q.ry+1.3,q.rz,{t:.4,dx:0,dz:0});q.htP=q.ht;
   const key=(sc==='out'?'np':'Inp')+(q.zp?'z':'')+(RM?'r':'')+id;
-  const e=ent(key,()=>RM?realModel(q.zp?'walker':'player',{s:1,t:.82+hashf(id)*.36}):(q.zp?zombieModel({kind:'walker',id:hashf(id)*1e3|0}):playerModel()));const m=e.m,ud=m.userData;
+  const e0=ENT.get(key);if(e0&&e0.m.userData.mx&&e0.m.userData.wantSkin!==e0.m.userData.skin&&MODELS.g['mx:'+e0.m.userData.wantSkin]){e0.parent.remove(e0.m);ENT.delete(key)}
+  const e=ent(key,()=>RM?realModel(q.zp?'walker':'player',{s:1,t:.82+hashf(id)*.36,id}):(q.zp?zombieModel({kind:'walker',id:hashf(id)*1e3|0}):playerModel()));const m=e.m,ud=m.userData;
   const sp=dt>0?dd(q.rx,q.rz,ud.lx??q.rx,ud.lz??q.rz)/dt:0;ud.lx=q.rx;ud.lz=q.rz;m.position.set(q.rx,q.ry,q.rz);m.rotation.y=q.ra;m.visible=!q.hd&&!(q.car>=0);
   const wp=q.zp?null:(q.wp||null);if(ud.wk!==wp&&ud.hand){ud.wk=wp;ud.hand.clear();if(!(ud.real&&setWeapon(ud,wp))){const wm=weaponMesh(wp);if(ud.real)wm.rotation.set(Math.PI/2,0,0);ud.hand.add(wm)}}
   const gun=!!(wp&&IT[wp]&&IT[wp].kind==='gun');
@@ -3716,7 +3776,7 @@ function sanity(){if(!G)return;if(G.inside&&!G.interiors[G.inside]){G.inside=nul
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){last=performance.now();audInit()}else if(NET.on&&NET.started&&NET.host)netSend({k:'bg'})});
 let diff=1,len=1;
 document.querySelectorAll('#qSeg button').forEach(b=>{b.classList.toggle('sel',+b.dataset.v===QUAL.lv);b.onclick=()=>{document.querySelectorAll('#qSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');QUAL.lv=+b.dataset.v;try{localStorage.setItem('scwr-q',QUAL.lv)}catch(e){}applyQuality()}});
-document.querySelectorAll('#mdlSeg button').forEach(b=>{b.classList.toggle('sel',(+b.dataset.v===1)===MODELS.want);b.onclick=()=>{document.querySelectorAll('#mdlSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');MODELS.want=b.dataset.v==='1';try{localStorage.setItem('scwr-real',MODELS.want?'1':'0')}catch(e){}if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';}});
+document.querySelectorAll('#mdlSeg button').forEach(b=>{b.classList.toggle('sel',b.dataset.v===(!MODELS.want?'0':MODELS.hd?'2':'1'));b.onclick=()=>{document.querySelectorAll('#mdlSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');MODELS.want=b.dataset.v!=='0';if(MODELS.want)MODELS.hd=b.dataset.v==='2';try{localStorage.setItem('scwr-real',MODELS.want?'1':'0');localStorage.setItem('scwr-hd',MODELS.hd?'1':'0')}catch(e){}if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';}});
 document.querySelectorAll('#diffSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#diffSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');diff=+b.dataset.v});
 document.querySelectorAll('#lenSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#lenSeg button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');len=+b.dataset.v});
 let loadingNow=false;
@@ -3733,6 +3793,7 @@ function fsCheck(){const coarse=matchMedia('(pointer:coarse)').matches;const inG
 ['fullscreenchange','webkitfullscreenchange','orientationchange','resize'].forEach(ev=>addEventListener(ev,()=>setTimeout(fsCheck,300)));setInterval(fsCheck,2000);
 addEventListener('pointerdown',()=>{if(G&&!$('hud').hidden&&!isFull()&&matchMedia('(pointer:coarse)').matches&&innerWidth>innerHeight)goFull()},true);
 function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)load=null;else if(load===true)load=readSave();else if(load&&!load.v)load=null;if(load){diff=load.diff;len=load.len}WALL.on=load?load.mode==='wall':mp?!!WALL.netMode:WALL.want;audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
+ if(MODELS.state==='ready'&&MODELS.pack!==(MODELS.hd?'hd':'classic')){MODELS.state='off';MODELS.g={}}if(MODELS.state==='fail'&&MODELS.pack!==(MODELS.hd?'hd':'classic'))MODELS.state='off';
  if(MODELS.want&&MODELS.state!=='ready'&&MODELS.state!=='fail'){loadingNow=true;const btn=$('go');const t0=btn.textContent;btn.textContent='载入素材 0%';btn.disabled=true;
   loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin(load)},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
