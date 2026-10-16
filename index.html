@@ -1289,7 +1289,7 @@ function hurtPlayer(dm,inf,src){const p=G.p;if(G.over)return;if(p.downT>0){p.dow
  if(p.busy){p.busy=null;$('prog').hidden=true}
  if(p.hp<=0)endGame(false,'dead');else if(p.inf>=100)endGame(false,'turned')}
 function hitZombie(z,dm,src){if(z.dead)return;if(z.net){netHitZ(z,dm,src);return}dm=G._raw?dm:zDmgMod(z,dm,src);z.hp-=dm;dmgNum(z,dm,src);z.hitT=.15;if(src==='melee'||src==='throw'){z.state='chase'}fx3('blood',z.x,z.y+1,z.z);
- if(z.hp<=0){z.dead=true;z.deadT=40;G.stats.kills++;if(z.kind==='cop')copDrop(z);if(src!=='fall'){if(G._by&&G._by!==NET.me){netSend({k:'kill',to:G._by,kind:z.kind,src,x:z.x,z:z.z,y:z.y})}else{sysEv('kill');onKill(z,src)}}bloodPool(z);sfx('zdie',z.x,z.z)}else if(Math.random()<.4)sfx('zhit',z.x,z.z)}
+ if(z.hp<=0){z.dead=true;z.deadT=40;G.stats.kills++;if(G.mode==='wall')wallLoot(z);if(z.kind==='cop')copDrop(z);if(src!=='fall'){if(G._by&&G._by!==NET.me){netSend({k:'kill',to:G._by,kind:z.kind,src,x:z.x,z:z.z,y:z.y})}else{sysEv('kill');onKill(z,src)}}bloodPool(z);sfx('zdie',z.x,z.z)}else if(Math.random()<.4)sfx('zhit',z.x,z.z)}
 function fx3(k,x,y,z,o={}){G.fx.push({k,x,y,z,t:o.t||.5,m:o.t||.5,sc:G._zsc||(G.p&&G.p.remote?'out':(G.inside||'out')),...o})}
 
 function tickZombie(z,dt,sc){
@@ -3612,6 +3612,9 @@ function wallHost(dt){const W=G.wall,b=WALL.b,R=W.radio;if(!W||!b)return;
 function wallRecv(m){if(!isWall()||NET.host)return;const W=G.wall;if(W.radio&&fin(m.hp)){W.radio.hp=m.hp;W.radio.mhp=m.mhp||W.radio.mhp}W.ev=WEV[m.ev]?m.ev:null;W.pl=Array.isArray(m.pl)?m.pl.slice(0,4).map(v=>clamp(+v||0,0,100)):[];W.fa=+m.fa||0;if(m.cs&&m.cs!==W.chSd2){W.chSd2=m.cs;W.chSd=m.cs;W.chAt=G.t}if(!m.cs)W.chSd2=''}
 function wallPzK(){return (1+.12*(G.day-1))*(1+.08*(wallHum()-1))*(wallEvK('king')?1.5:1)}
 function wallDawn(){const R=G.wall&&G.wall.radio;if(R)R.hp=Math.min(R.mhp,R.hp+R.mhp*.25);G.wall.ev=null;G.wall.ch=null;return true}
+// zombies killed up on the roof sometimes leave a bandage (or a bit of scrap) behind
+function wallLoot(z){const b=WALL.b;if(!b||z.y<b.h-3||z.y>b.h+1)return;const k=1/(1+.15*(wallHum()-1));const r=Math.random();const it=r<.06*k?'bandage':r<.08*k?'scrap':null;if(!it||!IT[it])return;
+ const x=clamp(z.x,b.x0+.4,b.x1-.4),zz=clamp(z.z,b.z0+.4,b.z1-.4);dropItem(it,x,zz,b.h,null);fx3('spark',x,b.h+.4,zz,{t:.3})}
 
 
 // ================= audio (synthesized) =================
