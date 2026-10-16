@@ -291,6 +291,7 @@ body.undercar #fpHud .br{display:none}
 #pcHint{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:11;background:rgba(10,14,18,.78);border:1px solid rgba(240,178,74,.5);color:#f0e6d0;font-size:13px;padding:6px 14px;border-radius:14px;cursor:pointer}#pcHint[hidden],#pcX[hidden],#pcHelp[hidden]{display:none}
 #pcX{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.45);z-index:8;pointer-events:none}
 #pcHelp{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}#pcHelp .wbox{max-width:520px;width:92vw;max-height:88vh;overflow:auto}.pckeys{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:13px;margin-top:8px}.pckeys b{color:#f0b24a;white-space:nowrap}
+#modeSeg .dev{opacity:.55;border-style:dashed}#modeSeg .dev.pk{opacity:1}
 </style>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -368,7 +369,7 @@ body.undercar #fpHud .br{display:none}
       <li><b>尸王：</b>第 3 晚和第 5 晚会出现尸王，击杀有悬赏和稀有装备（比如夜视头盔）。</li>
       <li><b>目标：</b>撑过 5 晚，第 6 天黎明登上东南边办公楼楼顶的直升机。每天天亮自动存档。</li>
     </ul>
-    <div><div class="lab">玩法</div><div class="seg" id="modeSeg"><button data-v="surv" class="sel">生存 · 撑 5 天等直升机</button><button data-v="wall">🧱 尸墙防线 · 守住楼顶 5 夜</button></div><div id="modeHint"></div></div>
+    <div><div class="lab">玩法</div><div class="seg" id="modeSeg"><button data-v="surv" class="sel">生存 · 撑 5 天等直升机</button><button data-v="wall">🧱 尸墙防线 · 守住楼顶 5 夜</button><button data-v="maze" class="dev">🌀 迷宫 · 开发中</button></div><div id="modeHint"></div></div>
     <div><div class="lab">难度</div><div class="seg" id="diffSeg"><button data-v="0">简单 · 小城</button><button data-v="1" class="sel">普通 · 大城</button><button data-v="2">困难 · 巨城 · 随机空投</button></div></div>
     <div><div class="lab">一天的长度</div><div class="seg" id="lenSeg"><button data-v="0.55">短 · 约 22 分钟</button><button data-v="1" class="sel">标准 · 约 40 分钟</button></div></div>
     <div><div class="lab">画质（手机卡就选低）</div><div class="seg" id="qSeg"><button data-v="0">低</button><button data-v="1" class="sel">中</button><button data-v="2">高</button></div></div>
@@ -3548,7 +3549,7 @@ function wallModeUI(){const seg=$('modeSeg');if(!seg)return;seg.querySelectorAll
  const h=$('modeHint');if(h){let R={};try{R=JSON.parse(localStorage.getItem('scwr-wallrec')||'{}')}catch(e){}const best=['d0','d1','d2'].map((k,i)=>R[k]?['简单','普通','困难'][i]+' '+R[k].n+' 夜':'').filter(Boolean).join(' · ');
   h.innerHTML=WALL.want?`从一栋高楼的天台开局，每局楼的位置、层数、天台大小和布置、周围环境都不一样（难度越高天台越大、要守的墙越多）。白天下楼搜刮，夜里尸潮从几面墙同时叠尸墙爬上来。撑过 5 夜获胜。${best?'<br>最佳纪录：'+best:''}`:'原版：在整座城里求生，撑过 5 晚，第 6 天黎明登上直升机。'}
  const go=$('go');if(go&&!/覆盖/.test(go.textContent))go.textContent=WALL.want?'开始守楼':'开始求生'}
-document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>{WALL.want=b.dataset.v==='wall';try{localStorage.setItem('scwr-mode',WALL.want?'wall':'surv')}catch(e){}wallModeUI()});
+document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>{if(b.dataset.v==='maze'){const h=$('modeHint');if(h)h.innerHTML='🌀 <b>迷宫模式 · 开发中</b>：从巨型环形迷宫的中心出发，白天石门打开去探路，天黑前石门轰隆隆合上；被关在外面就要熬过有巨兽巡逻的一夜，找到每局位置都不同的出口才能逃出去。敬请期待！';b.classList.add('pk');setTimeout(()=>b.classList.remove('pk'),600);return}WALL.want=b.dataset.v==='wall';try{localStorage.setItem('scwr-mode',WALL.want?'wall':'surv')}catch(e){}wallModeUI()});
 wallModeUI();
 // ================= 挑战：人数加量 · 冲锋波 · 求救电台 · 倒地救援 · 夜间突发事件 =================
 function wallHum(){return NET.on&&NET.started?Math.max(1,netHumans().length):1}
