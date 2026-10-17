@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.5 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.6 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -458,8 +458,12 @@ function groundTex(kind){
 function texSet(kind,rx,ry){if(typeof hdOn==='function'&&hdOn()){const H=hdSet(kind,rx,ry);if(H)return H}const k=kind+'|'+rx+'|'+ry;if(TEX[k])return TEX[k];const src=TEX['src_'+kind]||(TEX['src_'+kind]=(['brick','plaster','concrete','metal','glass'].includes(kind)?facadeTex(kind):groundTex(kind)));
  return TEX[k]={map:mkTex(src.map,rx,ry),bump:mkBump(src.bump,rx,ry)}}
 const MAT={};
-function std(c,o={}){const k=c+JSON.stringify(o);if(MAT[k])return MAT[k];return MAT[k]=new T3.MeshStandardMaterial({envMapIntensity:o.env??.4,color:c,roughness:o.r??.85,metalness:o.m??0,emissive:o.e??0,emissiveIntensity:o.ei??1,transparent:!!o.t,opacity:o.o??1,flatShading:!!o.flat,side:o.ds?T3.DoubleSide:T3.FrontSide})}
-function texMat(kind,rx,ry,o={}){const t=texSet(kind,rx,ry);return new T3.MeshStandardMaterial({envMapIntensity:o.env??(o.m?.8:.35),map:t.map,bumpMap:t.bump,bumpScale:o.bs??.04,roughness:o.r??.9,metalness:o.m??0,color:o.c??0xffffff})}
+// phones on low quality: cheap Lambert lighting instead of physically based materials
+function lowMat(lv){try{return matchMedia('(pointer:coarse)').matches&&QUAL.lv<=(lv??0)}catch(e){return false}}
+function lambertOf(m){const L=new T3.MeshLambertMaterial({color:m.color,map:m.map||null,emissive:m.emissive||0x000000,emissiveIntensity:m.emissiveIntensity??1,transparent:m.transparent,opacity:m.opacity,side:m.side,alphaTest:m.alphaTest||0,vertexColors:!!m.vertexColors});L.userData=m.userData||{};return L}
+function lowify(root){const C=new Map();root.traverse(o=>{if(!o.isMesh||o.userData.lw)return;o.userData.lw=1;const f=m=>{if(!m||!m.isMeshStandardMaterial)return m;let L=C.get(m);if(!L){L=lambertOf(m);C.set(m,L)}return L};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
+function std(c,o={}){const lo=lowMat();const k=c+JSON.stringify(o)+(lo?'L':'');if(MAT[k])return MAT[k];if(lo)return MAT[k]=new T3.MeshLambertMaterial({color:c,emissive:o.e??0,emissiveIntensity:o.ei??1,transparent:!!o.t,opacity:o.o??1,side:o.ds?T3.DoubleSide:T3.FrontSide});return MAT[k]=new T3.MeshStandardMaterial({envMapIntensity:o.env??.4,color:c,roughness:o.r??.85,metalness:o.m??0,emissive:o.e??0,emissiveIntensity:o.ei??1,transparent:!!o.t,opacity:o.o??1,flatShading:!!o.flat,side:o.ds?T3.DoubleSide:T3.FrontSide})}
+function texMat(kind,rx,ry,o={}){const t=texSet(kind,rx,ry);if(lowMat())return new T3.MeshLambertMaterial({map:t.map,color:o.c??0xffffff});return new T3.MeshStandardMaterial({envMapIntensity:o.env??(o.m?.8:.35),map:t.map,bumpMap:t.bump,bumpScale:o.bs??.04,roughness:o.r??.9,metalness:o.m??0,color:o.c??0xffffff})}
 const GEO={box:new T3.BoxGeometry(1,1,1),cyl:new T3.CylinderGeometry(.5,.5,1,12),sph:new T3.SphereGeometry(.5,14,10),cone:new T3.ConeGeometry(.5,1,10),plane:new T3.PlaneGeometry(1,1),cap:new T3.CylinderGeometry(.5,.5,1,8)};
 function M(geo,mat,sx,sy,sz,x,y,z,parent,shadow=true){const m=new T3.Mesh(GEO[geo]||geo,mat);m.scale.set(sx,sy,sz);m.position.set(x,y,z);m.castShadow=shadow;m.receiveShadow=true;if(parent)parent.add(m);return m}
 // box placed by min corner-ish helper: centered xz, bottom y
@@ -733,7 +737,7 @@ function realModelMX(kind,v){const z=kind!=='player';const want=mxSkin(kind,v);l
  root.scale.setScalar((ZH[kind]||ZH[KMODEL[kind]]||1.8)/G_.h*(v&&v.s?v.s:1));
  const bones={},mats=[];const tint=z&&v&&v.t!=null?.86+.14*Math.min(1.2,v.t):1;
  root.traverse(o=>{if(o.isMesh||o.isSkinnedMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;
-   const ms=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{const c=m.clone();c.envMapIntensity=.35;c.roughness=Math.max(c.roughness??.8,.62);c.metalness=Math.min(c.metalness??0,.25);if(tint!==1)c.color.multiplyScalar(tint);mats.push(c);return c});o.material=Array.isArray(o.material)?ms:ms[0]}
+   const lo=lowMat(1);const ms=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{let c=m.clone();if(lo)c=lambertOf(c);else{c.envMapIntensity=.35;c.roughness=Math.max(c.roughness??.8,.62);c.metalness=Math.min(c.metalness??0,.25)}if(tint!==1)c.color.multiplyScalar(tint);mats.push(c);return c});o.material=Array.isArray(o.material)?ms:ms[0]}
   if(o.isBone)bones[o.name.toLowerCase()]=o});
  const mixer=new T3.AnimationMixer(root);const act={};const C=mxClips(G_);const pre=z?'z_':'h_';
  for(const k in C){if(!k.startsWith(pre))continue;const nm=k.slice(2);act[nm]=mixer.clipAction(C[k]);act[nm].setEffectiveWeight(0)}
@@ -2160,7 +2164,7 @@ function syncScene(dt){meltPools(dt);fruUpd();
    if((z.kind==='bomber'||z.kind==='spitter')&&!z.dead){if(!u.kg){u.kg=glowSprite(z.kind==='bomber'?0xff3010:0x80ff30,z.kind==='bomber'?.9:.7,.9);u.kg.position.set(0,z.kind==='bomber'?1.1:1.65,.18);m.add(u.kg)}u.kg.material.opacity=z.kind==='bomber'?(z.flashT>0?(Math.sin(G.t*30)>0?1:.2):.55+.35*Math.sin(G.t*5)):.6}else if(u.kg&&z.dead)u.kg.visible=false;
    if(!sc){const want=!cam.fp&&!z.dead&&zd<32;if(want&&!u.zr){u.zr=zRing(z,m);m.add(u.zr)}if(u.zr&&u.zr.visible!==want)u.zr.visible=want}}
   z.lunge=(z.lunge||0)-dt;
-  if(u.real){if(z.dead?((u.dT=(u.dT??2.5)-dt)>0):near)animReal(u,dt,z.climb?1:(z.kv||z.stun>0?0:Math.min(zsp,5)),{zombie:1,t:G.t,climb:!!z.climb,crawl:z.kind==='crawler',attack:z.lunge>.22,hit:z.hitT>0||(z.stun>0&&!z.down),dead:!!z.dead,down:z.down,grab:z.grabbing,flash:z.flashT>0,pile:!!z.pz});if(z.dead)meltTick(z,m,u,dt,sc);continue}
+  if(u.real){u.ac=(u.ac||0)+dt;const step=z.dead||zd<9?0:zd<16?.05:.1;if(u.ac>=step&&(z.dead?((u.dT=(u.dT??2.5)-u.ac)>0):near)){const adt=u.ac;u.ac=0;animReal(u,adt,z.climb?1:(z.kv||z.stun>0?0:Math.min(zsp,5)),{zombie:1,t:G.t,climb:!!z.climb,crawl:z.kind==='crawler',attack:z.lunge>.22,hit:z.hitT>0||(z.stun>0&&!z.down),dead:!!z.dead,down:z.down,grab:z.grabbing,flash:z.flashT>0,pile:!!z.pz})}if(z.dead)meltTick(z,m,u,dt,sc);continue}
   if(z.dead||z.down>0){const k=z.dead?Math.min(1,(40-z.deadT)*3):1;u.body.rotation.x=-1.45*k;u.body.position.y=.15*k;m.position.y=z.y;if(z.dead)meltTick(z,m,u,dt,sc);continue}else if(u.body.rotation.x<-1)u.body.rotation.x=0
   pose(u,z.anim,z.climb?0:(z.mv?1:.06),{zombie:1,t:G.t+z.id,lunge:z.lunge>0,climb:!!z.climb,limp:u.look.limp});
   u.body.position.y=z.hitT>0?-.06:0;if(z.stun>0)u.head.rotation.z=Math.sin(T*10)*.35}
@@ -4366,7 +4370,7 @@ let last=performance.now(),ctxT=0,hudT=0,miniT=0;
 function frame(now){const raw=(now-last)/1000;let dt=Math.min(.05,raw);last=now;try{perfTick(raw)}catch(e){}if(G&&G.hs>0){G.hs-=dt;dt*=.06}
  if(G&&renderer)tickAll(dt,true);
  requestAnimationFrame(frame)}
-function tickAll(dt,draw){sanity();safe('sg',sgRefresh);safe('unstick',()=>{const p=G.p;if(!G.over&&!p.climb&&!p.inCar&&!p.hide&&!p.para)unstick(p)});
+let lowT=0;function tickAll(dt,draw){sanity();if(G.inside&&(lowT-=dt)<=0){lowT=1;if(lowMat())safe('low',()=>lowify(inGroup))}safe('sg',sgRefresh);safe('unstick',()=>{const p=G.p;if(!G.over&&!p.climb&&!p.inCar&&!p.hide&&!p.para)unstick(p)});
   safe('world',()=>{if(NET.on&&NET.started?!NET.ended&&(!G.over||NET.host):!G.over&&!G.pause)tickWorld(dt)});
   safe('player',()=>{if(!G.over&&!G.pause)tickPlayer(dt)});safe('net',()=>netTick(dt));
   safe('fx',()=>{fxTick(dt);smokeTick(dt);musicTick(dt)});safe('sys',()=>{sysTick(dt);rpgTick(dt)});safe('base',()=>{if(!G.over||NET.zp)baseTick(dt)});safe('wall',()=>wallTick(dt));safe('maze',()=>mazeTick(dt));safe('wood',()=>woodTick(dt));safe('zsk',()=>{if(!G.over||NET.host)zSkillTick(dt)});safe('pc',pcTick);safe('visor',()=>visorTick(dt));safe('steps',()=>{if(!G.over)footstep(dt)});
@@ -4407,7 +4411,7 @@ function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)loa
  if(!load&&!mp)clearSave();const R0=Math.random;if(mp)Math.random=mulberry('scwr'+NET.seed);const seed=mp?NET.seed:load&&load.mapSeed?load.mapSeed:Math.floor(R0()*1e9);newState(diff,len,seed);WOOD.spk=[];WOOD.g=null;SKZ.proj=[];SKZ.acid=[];pInit(G.p);survInit(G.p);rpgInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
  if(!MAZE.on)for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);for(const [k,x,z] of CITY.items)if(!G.solids.some(s=>inRect(s,x,z,.3)))dropItem(k,x,z,0,null);if(!MAZE.on){initZombies();spawnCops();makeCorpses();makeBikes()}G.mode='surv';WALL.b=null;if(WALL.on)wallSetup();if(MAZE.on)mazeSetup();Math.random=R0;if(mp)netSetup();else{G.lp=G.p;document.body.classList.remove('mp')}
  if((WALL.on&&isWall())||isMaze()){}else if(mp&&NET.late&&!NET.rejoinSys)hardDrop(true);else if(!load&&G.diff>=2&&!NET.rejoinSys)hardDrop();
- if(!G.p.inv)G.p.inv={};G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);if(mp&&NET.late&&!NET.rejoinSys){invAdd('bandage',2);invAdd('can',1);invAdd('water',1);invAdd('bat',1);G.p.weapon='bat';NET.late=false}if(isWall()){if(mp&&NET.late&&!NET.rejoinSys){invAdd('bandage',2);invAdd('bat',1);G.p.weapon='bat';NET.late=false}wallSpawn(load)}if(isMaze())mazeSpawn(load);G.king=null;if(load)applySave(load);if(NET.rejoin)netRestore(NET.rejoin);if(!G.sgrid)sgBuild();renderThrow();
+ if(!G.p.inv)G.p.inv={};G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);if(mp&&NET.late&&!NET.rejoinSys){invAdd('bandage',2);invAdd('can',1);invAdd('water',1);invAdd('bat',1);G.p.weapon='bat';NET.late=false}if(isWall()){if(mp&&NET.late&&!NET.rejoinSys){invAdd('bandage',2);invAdd('bat',1);G.p.weapon='bat';NET.late=false}wallSpawn(load)}if(isMaze())mazeSpawn(load);G.king=null;if(load)applySave(load);if(NET.rejoin)netRestore(NET.rejoin);if(!G.sgrid)sgBuild();if(lowMat())try{lowify(outGroup)}catch(e){}renderThrow();
  if(!isMaze())cam.yaw=0;if(!load){cam.tx=G.p.x;cam.tz=G.p.z}
  $('start').hidden=true;$('end').hidden=true;['hud','mini','side','joy','acts','hand'].forEach(i=>$(i).hidden=false);joyHome();
  hotSig='';renderHot();$('qTrack').hidden=false;sysStart(load||(NET.rejoinSys?{sys:NET.rejoinSys}:null));NET.rejoinSys=null;
