@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.8 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.9 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1407,8 +1407,8 @@ function bagSpill(p,from){const ks=Object.keys(p.inv).filter(k=>k!==p.weapon&&!I
 function hurtPlayer(dm,inf,src){const p=G.p;if(G.over||p.ghost)return;if(G.mode==='wall'){inf=0;p.inf=0}if(p.downT>0){p.downT=Math.max(.05,p.downT-dm*.12);p.hp=1;p.hurtT=.4;return}if(src&&src.kind){p.hitN=(p.hitN||0)+1;if(G.t-(p.hitNT||0)>12)p.hitN=1;p.hitNT=G.t;if(p.hitN>=3){p.hitN=0;setTimeout(()=>{if(G&&!G.over)bagSpill(p,src)},0)}}const k=[.7,1,1.3][G.diff];const dmk=dm*k*defK();p.hp-=dmk;p.lastHurt=G.t;if(G.night)p.nightDmg=(p.nightDmg||0)+dmk;if(!NET.zp)p.inf=Math.min(100,p.inf+inf*k*infK()*(G.night?1.25:1));p.hurtT=.4;G.stats.dmgTaken+=dm*k;if(inf&&!G.biteTip){G.biteTip=1;toast('被咬了！<b style="color:#8bd14a">感染值</b>满 100 就会变成丧尸 · 抗生素可以降低（医院 2 楼有）','bad')}sfx('hurt');buzz(40);
  if(p.busy&&src&&(ZK[src.kind]||src.zb)){p.busy=null;$('prog').hidden=true;busyCut()}
  if(p.hp<=0)endGame(false,'dead');else if(p.inf>=100)endGame(false,'turned')}
-function hitZombie(z,dm,src){if(z.dead)return;if(z.net){netHitZ(z,dm,src);return}dm=G._raw?dm:zDmgMod(z,dm,src);z.hp-=dm;dmgNum(z,dm,src);z.hitT=.15;if(src==='melee'||src==='throw'){z.state='chase'}fx3('blood',z.x,z.y+1,z.z);
- if(z.hp<=0){z.dead=true;z.deadT=40;G.stats.kills++;if(z.kind==='bomber'&&!z.boomed)zBomberDie(z);if(G.mode==='wall')wallLoot(z);if(z.kind==='cop')copDrop(z);if(src!=='fall'){if(G._by&&G._by!==NET.me){netSend({k:'kill',to:G._by,kind:z.kind,src,x:z.x,z:z.z,y:z.y})}else{sysEv('kill');onKill(z,src)}}bloodPool(z);sfx('zdie',z.x,z.z)}else if(Math.random()<.4)sfx('zhit',z.x,z.z)}
+function hitZombie(z,dm,src){if(z.dead)return;if(z.net){netHitZ(z,dm,src);return}dm=G._raw?dm:zDmgMod(z,dm,src);z.hp-=dm;dmgNum(z,dm,src);z.hitT=.15;if(src==='melee'||src==='throw'){z.state='chase'}if(src!=='fire'||Math.random()<.04)fx3('blood',z.x,z.y+1,z.z);
+ if(z.hp<=0){z.dead=true;z.deadT=40;G.stats.kills++;if(z.kind==='bomber'&&!z.boomed)zBomberDie(z);if(G.mode==='wall')wallLoot(z);if(z.kind==='cop')copDrop(z);if(src!=='fall'){if(G._by&&G._by!==NET.me){netSend({k:'kill',to:G._by,kind:z.kind,src,x:z.x,z:z.z,y:z.y})}else{sysEv('kill');onKill(z,src)}}bloodPool(z);sfx('zdie',z.x,z.z)}else if(src!=='fire'&&Math.random()<.4)sfx('zhit',z.x,z.z)}
 function fx3(k,x,y,z,o={}){G.fx.push({k,x,y,z,t:o.t||.5,m:o.t||.5,sc:G._zsc||(G.p&&G.p.remote?'out':(G.inside||'out')),...o})}
 
 function tickZombie(z,dt,sc){
@@ -2213,11 +2213,12 @@ function syncFx(dt){for(const k in FXP)for(const o of FXP[k].list)o.visible=fals
  G.fx=G.fx.filter(f=>f.t>0);
  // fires: flames + lights
  let li=0;for(const fi of G.fires){if(fi.sc!==sc)continue;for(let i=0;i<5;i++){const o=fxObj('flame',()=>glowSprite(0xff6a18,2.2,.95));const a=i*1.26+G.t*.5;o.position.set(fi.x+Math.cos(a)*fi.r*.45,fi.y+.5+Math.sin(G.t*9+i)*.15,fi.z+Math.sin(a)*fi.r*.45);o.scale.setScalar(2.2+Math.sin(G.t*13+i*2)*.6)}
-  if(li<3){const L=fireLights[li++];L.visible=true;L.position.set(fi.x,fi.y+1.4,fi.z);L.intensity=2.2+Math.sin(G.t*17)*.6}}
- for(;li<3;li++)fireLights[li].visible=false;
+  if(li<fireLights.length){const L=fireLights[li++];L.position.set(fi.x,fi.y+1.4,fi.z);L.intensity=2.2+Math.sin(G.t*17)*.6}}
+ for(;li<fireLights.length;li++)fireLights[li].intensity=0;
 }
 let fireLights=[];
-function initLights(){fireLights=[0,1,2].map(()=>{const l=new T3.PointLight(0xff7a30,0,12,2);l.visible=false;scene.add(l);return l})}
+// fire lights stay in the scene at all times (switching a light on/off makes every material recompile = a big freeze)
+function initLights(){const n=matchMedia('(pointer:coarse)').matches?1:2;fireLights=Array.from({length:n},()=>{const l=new T3.PointLight(0xff7a30,0,12,2);scene.add(l);return l})}
 
 // ================= camera & lighting =================
 function updateCamera(dt){const p=G.p;const k=Math.min(1,dt*8);cam.shk=Math.max(0,(cam.shk||0)-dt*1.6);cam.tx=lerp(cam.tx,p.x,k);cam.ty=lerp(cam.ty,p.y,k);cam.tz=lerp(cam.tz,p.z,k);
@@ -4229,10 +4230,10 @@ function wallRadioZ(z,dt,K,sc){const R=G.wall&&G.wall.radio;const b=WALL.b;if(!R
   if(!G.wall.radioTip||G.t-G.wall.radioTip>14){G.wall.radioTip=G.t;wallSay(`📻 <b>丧尸在砸求救电台！</b> 剩 ${Math.max(0,Math.round(R.hp))}/${R.mhp}`)}}
  return true}
 function wallFixCtx(o){const R=G.wall&&G.wall.radio,p=G.p;if(!R||R.hp>=R.mhp||p.carry||dd(p.x,p.z,R.x,R.z)>1.9)return;
- const k=p.inv.scrap?'scrap':p.inv.nails?'nails':p.inv.cloth?'cloth':null;const n=k==='scrap'?90:k==='nails'?50:30;
+ const k=p.inv.scrap?'scrap':p.inv.nails?'nails':p.inv.cloth?'cloth':null;const n=k==='scrap'?180:k==='nails'?100:60;
  o.unshift({l:k?`🔧 修电台（${IT[k].ic}${IT[k].n} +${n}）· ${Math.round(R.hp)}/${R.mhp}`:`📻 电台 ${Math.round(R.hp)}/${R.mhp}（要零件/钉子/布条才能修）`,pulse:R.hp<R.mhp*.4,fn:()=>{if(!k){toast('去楼下找零件、钉子或布条');return}
   setBusy('修电台…',2.2,()=>{if(!p.inv[k])return;invUse(k);sfx('craft');if(NET.on&&NET.started&&!NET.host)netSend({k:'wallFix',n});else wallFix(n);toast('📻 电台修好一点了','good')})}})}
-function wallFix(n){const R=G.wall&&G.wall.radio;if(!R)return;R.hp=Math.min(R.mhp,R.hp+clamp(+n||0,0,90));G.wall.stT=0}
+function wallFix(n){const R=G.wall&&G.wall.radio;if(!R)return;R.hp=Math.min(R.mhp,R.hp+clamp(+n||0,0,180));G.wall.stT=0}
 // ---- downed & revive (multiplayer) ----
 function wallDown(){const p=G.p;if(p.ghost)return true;if(!(isWall()||isMaze())||!(NET.on&&NET.started)||NET.zp||p.downOut||p.downT>0)return false;
  p.downT=30;p.hp=1;p.block=false;p.busy=null;$('prog').hidden=true;if(p.grab)for(const z of p.grab.zs.slice())releaseGrab(z);p.crouch=true;
