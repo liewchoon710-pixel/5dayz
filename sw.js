@@ -1,10 +1,12 @@
 // 尸城五日 · offline cache. The game page is network-first (you always get the newest version when online);
 // models, textures and libraries are cached so the app starts fast and works with a weak signal.
-const V='scwr-v18';
+const V='scwr-v19';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).catch(()=>{}));self.skipWaiting()});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('scwr-')&&k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);
+ // 木屋求生 lives in /cabin/ with its own service worker
+ if(u.origin===location.origin&&u.pathname.includes('/cabin/'))return;
  // never cache the multiplayer server
  if(/supabase\.co$/.test(u.hostname)||u.protocol==='ws:'||u.protocol==='wss:')return;
  const page=r.mode==='navigate'||u.pathname.endsWith('/')||u.pathname.endsWith('index.html');

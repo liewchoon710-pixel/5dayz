@@ -1,0 +1,2 @@
+{"id":"./","name":"木屋求生","short_name":"木屋求生","description":"从一间小木屋开始，在天灾和怪物里活下去的像素生存游戏，可以多人联机。","lang":"zh-CN","start_url":"./?app=1","scope":"./","display":"fullscreen","display_override":["fullscreen","standalone"],"orientation":"landscape","background_color":"#1a1410","theme_color":"#1a1410","categories":["games"],
+"icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
