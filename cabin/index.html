@@ -57,7 +57,8 @@ input[type=text],input[type=number],select{background:#1a140e;color:var(--tx);bo
 #menuBtns button{padding:6px 8px;font-size:12px;min-width:44px}
 #menuBtns button.alert{animation:pulse 1s infinite}
 @keyframes pulse{50%{background:#c08a30}}
-#hot{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:4px}
+#hot{position:absolute;left:calc(6px + env(safe-area-inset-left));top:50%;transform:translateY(-35%);display:flex;flex-direction:column;gap:4px}
+#hot div.pin{border-color:#a08050;box-shadow:inset 0 0 0 1px #ffc85055}#hot div.zero img{opacity:.35}#hot div.emp{border-style:dashed;opacity:.5}
 #hot div{width:38px;height:38px;background:#0009;border:2px solid #5a4630;border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center}
 #hot div.on{border-color:var(--acc)}#hot img{width:26px;height:26px;image-rendering:pixelated}#hot span{position:absolute;right:2px;bottom:0;font-size:10px;text-shadow:0 1px 1px #000}
 #disB{position:absolute;left:50%;top:44px;transform:translateX(-50%);background:#a02a1acc;border:1px solid #ff8060;border-radius:6px;padding:3px 10px;font-size:12px;pointer-events:none;white-space:nowrap}
@@ -86,10 +87,10 @@ table.rk{width:100%;border-collapse:collapse;font-size:13px}table.rk td{padding:
 #talP .opt{width:150px;background:#2a2018;border:2px solid #a08048;border-radius:8px;padding:10px;cursor:pointer;text-align:center}
 #talP .opt b{display:block;color:var(--acc);font-size:16px;margin-bottom:4px}
 #mapC{width:100%;image-rendering:pixelated;border-radius:6px;background:#000}
-#chat{position:absolute;left:calc(8px + env(safe-area-inset-left));top:96px;width:min(36vw,260px);font-size:11px;line-height:1.35;pointer-events:none!important;transition:opacity .6s}
+#chat{position:absolute;left:calc(54px + env(safe-area-inset-left));top:96px;width:min(36vw,260px);font-size:11px;line-height:1.35;pointer-events:none!important;transition:opacity .6s}
 #chat div{background:#0007;border-radius:4px;padding:1px 5px;margin-bottom:2px;text-shadow:0 1px 1px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #chat.dim{opacity:.35}#chat .c-npc b{color:#9ad0ff}#chat .c-pl b{color:#ffe070}#chat .c-good{color:#a0ffa0}#chat .c-bad{color:#ffb0a0}#chat .c-me{color:#e0b0ff}
-#bSnd{position:absolute;right:calc(110px + env(safe-area-inset-right));top:62px;padding:2px 6px;font-size:13px;background:#0007;border-color:#fff3}
+#bSnd,#bFull{position:absolute;right:calc(110px + env(safe-area-inset-right));top:62px;padding:2px 6px;font-size:13px;background:#0007;border-color:#fff3}#bFull{right:calc(146px + env(safe-area-inset-right))}
 #chestP,#awP,#shopP{position:fixed;inset:0;z-index:55;display:flex;align-items:center;justify-content:center;background:#000a}
 .chest{--rc:#fff;width:84px;height:70px;margin:8px auto;position:relative}
 .chest .box{position:absolute;left:6px;right:6px;bottom:0;height:40px;background:linear-gradient(#8a5a2a,#5a3a1a);border:3px solid var(--rc);border-radius:4px}
@@ -102,13 +103,27 @@ table.rk{width:100%;border-collapse:collapse;font-size:13px}table.rk td{padding:
 .awc.flip .back{transform:rotateY(180deg)}.awc.flip .front{transform:rotateY(360deg);box-shadow:0 0 24px var(--gc)}
 .awg{font-size:30px;font-weight:900;color:var(--gc)}.awn{font-size:18px;font-weight:700;margin:2px 0}.awd{font-size:12px;color:var(--dim)}
 #chatIn{flex:1;min-width:120px}
+@media (orientation:portrait){
+ #stats{width:146px}#mats{top:60px;width:150px}
+ #clock{left:158px;right:96px;top:6px;transform:none;font-size:10px;padding:2px 6px;white-space:normal;border-radius:8px}
+ #clock small{font-size:9px}
+ #rank{display:none}
+ #mini{width:84px;height:84px}#bSnd{right:calc(8px + env(safe-area-inset-right));top:98px}#bFull{right:calc(44px + env(safe-area-inset-right));top:98px}
+ #chat{top:104px;width:min(58vw,250px)}
+ #disB,#specB{top:150px;white-space:normal;max-width:80vw;text-align:center}
+ #menuBtns{right:calc(6px + env(safe-area-inset-right));top:136px;bottom:auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px;max-width:none}
+ #menuBtns button{min-width:0;font-size:11px;padding:5px 7px}
+ #acts{bottom:calc(16px + env(safe-area-inset-bottom))}
+ #toasts{top:auto;bottom:42%}
+ #joyZone{width:60%;height:42%}
+}
 @media (max-height:420px){#bAtk{width:68px;height:68px}#mini{width:80px;height:80px}#rank{right:calc(96px + env(safe-area-inset-right))}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
 <div id="menu"><div class="card">
- <h1>木屋求生</h1><div class="sub">从一间小木屋开始，在天灾和怪物里活下去 · 一局最多 20 分钟 · 试玩版 <span id="ver">0.2</span></div>
+ <h1>木屋求生</h1><div class="sub">从一间小木屋开始，在天灾和怪物里活下去 · 一局最多 20 分钟 · 试玩版 <span id="ver">0.3</span></div>
  <div class="row"><label>名字</label><input type="text" id="nm" maxlength="8" placeholder="你的名字"></div>
  <div class="row"><label>NPC 数量</label><div class="seg" id="npcSeg"></div></div>
  <div class="row"><label>安全期</label><div class="seg" id="safeSeg"><button data-v="1">1 天</button><button data-v="2">2 天</button><button data-v="3">3 天</button></div></div>
@@ -116,7 +131,7 @@ table.rk{width:100%;border-collapse:collapse;font-size:13px}table.rk td{padding:
  <div class="howto">
  <b>玩法</b>：砍树、敲石头采集材料，回到木屋旁升级木屋（1→5 级），解锁工作台、箭塔、治疗光环等功能。白天采集，夜里怪物来袭；第 3 天起会有天灾降临某些区域。<br>
  <b>输赢</b>：自己死了就出局（木屋被打坏只会降级）。20 分钟结束时按公会实力排名，同一公会一起赢。<br>
- <b>公会</b>：魅力比 NPC 高就能招降他；加入别人的公会会成为附属，失去自己的木屋和天赋。<br>
+ <b>公会</b>：魅力比 NPC 高就能招降他；加入别人的公会会成为附属：失去自己的木屋、不能自己做装备（天赋保留），靠做任务、采集、守家攒贡献值换装备。<br><b>围墙</b>：自己公会的人能穿过自己的墙，怪物和敌人不行；放墙时可以转向，也可以直接点地上的格子。<br>
  <b>操作</b>：手机左边摇杆走路、右边 ⚔ 攻击/采集。电脑 WASD 走路，空格攻击，E 互动，B 背包，C 制作，G 公会，T 交易，M 地图，1-5 快捷栏。
  </div>
 </div></div>
@@ -131,7 +146,7 @@ table.rk{width:100%;border-collapse:collapse;font-size:13px}table.rk td{padding:
  <div id="stats"><div id="who"></div><div class="bar" id="hpB"><i></i><b></b></div><div class="bar" id="fdB"><i></i><b></b></div><div class="bar" id="xpB"><i></i><b></b></div></div>
  <div id="mats"></div>
  <div id="chat"></div>
- <button id="bSnd">🔊</button>
+ <button id="bSnd">🔊</button><button id="bFull">⛶</button>
  <div id="clock"></div>
  <div id="disB" class="hide"></div><div id="specB" class="hide"></div>
  <div id="rank"></div>
@@ -385,6 +400,8 @@ function artCabins(){ART.cab=[null];
  ART.ruin=mkC(32,20,x=>{P_(x,3,10,'#5a4a3a',26,9);P_(x,5,7,'#4a3a2a',6,4);P_(x,20,5,'#4a3a2a',5,6);for(let i=0;i<10;i++)P_(x,4+i*2.5,16-(i%3),'#3a2a1a',2,1)});
  ART.wall=mkC(16,16,x=>{P_(x,1,4,'#8a5a30',14,11);for(let i=0;i<4;i++){P_(x,1+i*4,2,'#9a6a3a',3,13);P_(x,1+i*4,2,'#b08050',1,13)}P_(x,0,8,'#5a3a1a',16,2)});
  ART.swall=mkC(16,16,x=>{P_(x,0,3,'#8a8a90',16,12);for(let r_=0;r_<3;r_++)for(let i=0;i<3;i++)P_(x,(r_%2?3:0)+i*6,4+r_*4,'#a0a0a8',5,3);P_(x,0,14,'#5a5a60',16,1)});
+ ART.wallV=mkC(16,16,x=>{P_(x,5,0,'#7a4a24',6,16);for(let i=0;i<4;i++){P_(x,4,i*4,'#9a6a3a',8,3);P_(x,4,i*4,'#b08050',8,1)}P_(x,7,0,'#5a3a1a',2,16)});
+ ART.swallV=mkC(16,16,x=>{P_(x,3,0,'#8a8a90',10,16);for(let r_=0;r_<4;r_++)P_(x,(r_%2?3:5),r_*4,'#a0a0a8',6,3);P_(x,3,15,'#5a5a60',10,1)});
  ART.flag=c=>mkC(10,16,x=>{P_(x,1,0,'#5a3a1a',1,16);P_(x,2,1,c,7,5);P_(x,2,5,shade(c,-.3),7,1)})}
 // ---- item icons (12x12) ----
 function artIcons(){ART.ic={};const I=ART.ic;const mk=(k,fn)=>I[k]=mkC(12,12,fn);
@@ -458,9 +475,9 @@ function genWorld(seed,n){const r=RNG(seed),W=Math.round(84+n*13),H=W,nz=noise2(
 function mkRes(i,k,x,y,r){const hp={tree:5,rock:6,ore:8,bush:1,herb:1,crystal:4}[k];return{i,k,x,y,hp,mhp:hp,v:r?r.int(0,1):0,dead:0,grow:0}}
 function blocksRes(k){return k==='tree'||k==='rock'||k==='ore'||k==='crystal'}
 // ---------- collision ----------
-function solidAt(tx,ty,ign){const M=G.map;if(tx<0||ty<0||tx>=M.W||ty>=M.H)return true;const i=ty*M.W+tx;if(M.tile[i]===WATER)return true;const o=M.occ[i];if(o&&!M.res[o-1].dead)return true;const b=M.bld[i];if(b&&b!==ign){const B=G.blds[b];if(B&&!B.dead)return true}return false}
+function solidAt(tx,ty,ign,gid){const M=G.map;if(tx<0||ty<0||tx>=M.W||ty>=M.H)return true;const i=ty*M.W+tx;if(M.tile[i]===WATER)return true;const o=M.occ[i];if(o&&!M.res[o-1].dead)return true;const b=M.bld[i];if(b&&b!==ign){const B=G.blds[b];if(B&&!B.dead&&!(gid&&B.k!=='cabin'&&B.guild===gid))return true}return false}
 function moveEnt(e,dx,dy,rad=.3,ign){// positions in tiles
- const tryAx=(nx,ny)=>{const x0=Math.floor(nx-rad),x1=Math.floor(nx+rad),y0=Math.floor(ny-rad),y1=Math.floor(ny+rad);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(solidAt(x,y,ign))return false;return true};
+ const gid=e.guild||(e.pet&&G.ps[e.pet]?G.ps[e.pet].guild:null);const tryAx=(nx,ny)=>{const x0=Math.floor(nx-rad),x1=Math.floor(nx+rad),y0=Math.floor(ny-rad),y1=Math.floor(ny+rad);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(solidAt(x,y,ign,gid))return false;return true};
  if(dx&&tryAx(e.x+dx,e.y))e.x+=dx;else if(dx){e.bump=1}
  if(dy&&tryAx(e.x,e.y+dy))e.y+=dy;else if(dy){e.bump=1}}
 function tileBiome(x,y){const M=G.map;const t=M.tile[clamp(Math.floor(y),0,M.H-1)*M.W+clamp(Math.floor(x),0,M.W-1)];return t===WATER?-1:t}
@@ -478,7 +495,7 @@ function newGame(cfg){// cfg:{seed,humans:[{id,name}],npcs,safe,me,host}
  parts.forEach((o,i)=>{const s=map.spawns[i];const p=mkPlayer(o,i,s);G.ps[p.id]=p;G.order.push(p.id);G.guilds[p.id]={id:p.id,leader:p.id,name:o.name+'的公会',col:p.col};applyLook(p,o.lk);p.cab=buildCabin(p,s.x,s.y,1)});
  setupRelics(cfg.seed);if(G.host)setupAwaken();
  return G}
-function mkPlayer(o,i,s){return{id:o.id,name:o.name,human:!!o.human,npc:!!o.npc,x:s.x+.5,y:s.y+2.2,dir:0,mv:0,hp:100,mhp:100,food:100,inv:{wood:4,berry:4},gold:5,wpn:null,arm:null,lvl:1,xp:0,tal:[],talPend:null,guild:o.id,cab:0,alive:true,kills:0,chests:[],aw:null,atkCd:0,hurtT:0,col:COLORS[i%COLORS.length],idx:i,aim:{x:0,y:1},atk:false,regT:0,bio:s.b,pers:o.npc?['builder','warrior','trader','warrior','builder'][i%5]:null}}
+function mkPlayer(o,i,s){return{id:o.id,name:o.name,human:!!o.human,npc:!!o.npc,x:s.x+.5,y:s.y+2.2,dir:0,mv:0,hp:100,mhp:100,food:100,inv:{wood:4,berry:4},gold:5,wpn:null,arm:null,lvl:1,xp:0,tal:[],talPend:null,guild:o.id,cab:0,alive:true,kills:0,chests:[],aw:null,contrib:0,tasks:null,atkCd:0,hurtT:0,col:COLORS[i%COLORS.length],idx:i,aim:{x:0,y:1},atk:false,regT:0,bio:s.b,pers:o.npc?['builder','warrior','trader','warrior','builder'][i%5]:null}}
 // ---------- time ----------
 const CYCLE=DAY_LEN+NIGHT_LEN,TOTAL=CYCLE*DAYS;
 function phaseOf(t){const day=Math.floor(t/CYCLE)+1,inC=t%CYCLE;return{day:Math.min(day,DAYS),night:inC>=DAY_LEN,left:inC>=DAY_LEN?CYCLE-inC:DAY_LEN-inC}}
@@ -488,7 +505,9 @@ const pvpOn=()=>!isSafe();
 function guildOf(p){return G.guilds[p.guild]}
 function sameTeam(a,b){return a.guild===b.guild}
 function hasHome(p){const B=G.blds[p.cab];return !!(B&&!B.dead&&B.k==='cabin'&&B.owner===p.id)}
-function talOn(p,k){return p.tal.includes(k)&&hasHome(p)}
+function isVassal(p){const g=G.guilds[p.guild];return!!(g&&g.leader!==p.id)}
+function talentsLive(p){return hasHome(p)||isVassal(p)}
+function talOn(p,k){return p.tal.includes(k)&&talentsLive(p)}
 function invAdd(p,k,n=1){if(!n)return;p.inv[k]=(p.inv[k]||0)+n;if(p.inv[k]<=0)delete p.inv[k];G.dirty[p.id]=1}
 function has(p,cost,mul=1){for(const k in cost)if((p.inv[k]||0)<Math.ceil(cost[k]*mul))return false;return true}
 function pay(p,cost,mul=1){for(const k in cost)invAdd(p,k,-Math.ceil(cost[k]*mul))}
@@ -526,14 +545,19 @@ function newCabinHere(p){if(hasHome(p))return false;if(G.guilds[p.guild]&&G.guil
  const T=anyTerritory(sx,sy);if(T&&T.guild!==p.guild){say(p.id,'不能建在别人的领地里','bad');return false}
  if(!has(p,REBUILD)){say(p.id,'建木屋需要 20 木头、10 石头','bad');return false}
  pay(p,REBUILD);const old=G.blds[p.cab];if(old&&old.dead)delete G.blds[old.id];p.cab=buildCabin(p,sx,sy,1);say(p.id,'🏠 新木屋建好了','good');return true}
-function placeWall(p,k,tx,ty){const W_=RECIPE.find(r=>r.k===k);if(!W_)return false;const home=inTerritory(p.guild,tx+.5,ty+.5);if(!home){say(p.id,'墙只能建在自己公会的领地里','bad');return false}
+function placeWall(p,k,tx,ty,r){const W_=RECIPE.find(r=>r.k===k);if(!W_)return false;const home=inTerritory(p.guild,tx+.5,ty+.5);if(!home){say(p.id,'墙只能建在自己公会的领地里','bad');return false}
  if(maxCabLv(p.guild)<W_.lv){say(p.id,`需要 ${W_.lv} 级木屋`,'bad');return false}
+ if(Object.values(G.blds).some(B=>B.k==='cabin'&&!B.dead&&tx>=B.x-1&&tx<=B.x+B.w&&ty>=B.y-1&&ty<=B.y+B.h)){say(p.id,'木屋四周要留一圈空地，不能贴着木屋放墙','bad');return false}
+ if(dd(p.x,p.y,tx+.5,ty+.5)>3.6){say(p.id,'太远了，走近一点','bad');return false}
  if(solidAt(tx,ty)||Object.values(G.ps).some(q=>q.alive&&Math.floor(q.x)===tx&&Math.floor(q.y)===ty)||G.mons.some(m=>Math.floor(m.x)===tx&&Math.floor(m.y)===ty)){say(p.id,'这里放不了','bad');return false}
  const wm=awOn(p,'wallm')?.5:1;if(!has(p,W_.cost,wm)){say(p.id,'材料不够','bad');return false}pay(p,W_.cost,wm);
- const id=G.nb++;const B={id,k,owner:p.id,guild:p.guild,x:tx,y:ty,w:1,h:1,cx:tx+.5,cy:ty+.5,hp:WALLS[k].hp*(awOn(p,'wallm')?2:1),mhp:WALLS[k].hp*(awOn(p,'wallm')?2:1),dead:false};G.blds[id]=B;bldOcc(B,id);G.bDirty=true;evSfx('chop',tx,ty);return true}
+ const id=G.nb++;const B={id,k,r:r?1:0,owner:p.id,guild:p.guild,x:tx,y:ty,w:1,h:1,cx:tx+.5,cy:ty+.5,hp:WALLS[k].hp*(awOn(p,'wallm')?2:1),mhp:WALLS[k].hp*(awOn(p,'wallm')?2:1),dead:false};G.blds[id]=B;bldOcc(B,id);G.bDirty=true;evSfx('chop',tx,ty);return true}
+function unWall(p,id){const B=G.blds[id];if(!B||B.k==='cabin'||B.guild!==p.guild||dd(p.x,p.y,B.cx,B.cy)>2.6)return false;const Rc=RECIPE.find(r=>r.k===B.k);if(Rc)for(const k in Rc.cost)invAdd(p,k,Math.floor(Rc.cost[k]/2));B.dead=true;bldOcc(B,0);delete G.blds[id];G.bDirty=true;evSfx('chop',B.cx,B.cy);say(p.id,'拆掉了，退回一半材料');return true}
+function wallCheck(p,tx,ty){// for the placement preview (client side too)
+ if(!inTerritory(p.guild,tx+.5,ty+.5))return false;if(solidAt(tx,ty))return false;if(Object.values(G.blds).some(B=>B.k==='cabin'&&!B.dead&&tx>=B.x-1&&tx<=B.x+B.w&&ty>=B.y-1&&ty<=B.y+B.h))return false;return dd(p.x,p.y,tx+.5,ty+.5)<3.6}
 function maxCabLv(gid){let m=0;for(const B of guildCabins(gid))m=Math.max(m,B.lv);return m}
 // ---------- crafting / items ----------
-function craft(p,k){const Rc=RECIPE.find(r=>r.k===k);if(!Rc||Rc.place)return false;const near=nearOwnCabin(p);if(!near){say(p.id,'要在自己公会的木屋旁边才能做','bad');return false}
+function craft(p,k){const Rc=RECIPE.find(r=>r.k===k);if(!Rc||Rc.place)return false;const T0=IT[k];if(isVassal(p)&&T0&&(T0.tool||T0.wpn||T0.arm)){say(p.id,'附属成员不能自己做工具、武器、装备，用<b>贡献值</b>在公会兑换','bad');return false}const near=nearOwnCabin(p);if(!near){say(p.id,'要在自己公会的木屋旁边才能做','bad');return false}
  if(near.lv<Rc.lv){say(p.id,`需要 ${Rc.lv} 级木屋`,'bad');return false}if(!has(p,Rc.cost)){say(p.id,'材料不够','bad');return false}
  pay(p,Rc.cost);invAdd(p,k,1);const T=IT[k];if(T.wpn&&(!p.wpn||IT[p.wpn].dmg<T.dmg))p.wpn=k;if(T.arm&&(!p.arm||IT[p.arm].arm<T.arm))p.arm=k;evSfx('pick',p.x,p.y);say(p.id,`做好了 <b>${T.n}</b>`,'good');gainXp(p,4);G.dirty[p.id]=1;return true}
 function nearOwnCabin(p,ext=1.8){let best=null;for(const B of guildCabins(p.guild)){const d=dd(p.x,p.y,B.cx,B.cy);if(d<2.4+ext&&(!best||B.lv>best.lv))best=B}return best}
@@ -595,7 +619,7 @@ function hitRes(p,o){const M=G.map;if(o.dead)return;let kind=o.k,yieldK=null,pow
  else if(kind==='bush'){if(o.v===1){say(p.id,'浆果还没长出来');return}const n=2+Math.floor(R()*2);invAdd(p,'berry',n);floatTxt(o.x+.5,o.y,'+'+n+' 浆果','#ff8090');o.v=1;o.grow=G.t+70;G.resDirty.add(o.i);evSfx('pick',o.x,o.y);gainXp(p,1);return}
  else if(kind==='herb'){invAdd(p,'herb',1);floatTxt(o.x+.5,o.y,'+1 草药','#80ff80');o.dead=1;o.grow=G.t+100;G.resDirty.add(o.i);evSfx('pick',o.x,o.y);gainXp(p,1);return}
  const n=Math.min(pow,o.hp);o.hp-=n;evSfx(kind==='tree'?'chop':'rock',o.x+.5,o.y+.5);fxAdd(kind==='tree'?'chip':'spark',o.x+.5,o.y+.3,{t:.3});
- if(yieldK){let got=n;if((yieldK==='wood'&&talOn(p,'lumber'))||((yieldK==='stone'||yieldK==='iron')&&talOn(p,'miner')))got=Math.round(n*1.5+R()*.5);if(awOn(p,'gather'))got=Math.floor(got*1.3+R());invAdd(p,yieldK,got);floatTxt(o.x+.5,o.y,'+'+got+' '+IT[yieldK].n,IT[yieldK].c);gainXp(p,yieldK==='iron'?got:got*.5)}
+ if(yieldK){let got=n;if((yieldK==='wood'&&talOn(p,'lumber'))||((yieldK==='stone'||yieldK==='iron')&&talOn(p,'miner')))got=Math.round(n*1.5+R()*.5);if(awOn(p,'gather'))got=Math.floor(got*1.3+R());invAdd(p,yieldK,got);contribGather(p,yieldK,got);floatTxt(o.x+.5,o.y,'+'+got+' '+IT[yieldK].n,IT[yieldK].c);gainXp(p,yieldK==='iron'?got:got*.5)}
  if(o.hp<=0){o.dead=1;o.grow=G.t+(kind==='tree'?150:kind==='crystal'?1e9:200);if(kind==='crystal'){invAdd(p,'crystal',awOn(p,'diswalk')?2:1);floatTxt(o.x+.5,o.y-.4,'+1 天灾结晶','#60f0ff');gainXp(p,15);say(p.id,'💎 拿到了 <b>天灾结晶</b>','good')}if(kind==='tree'){const b=1+(talOn(p,'lumber')?1:0);invAdd(p,'wood',b)}}
  G.resDirty.add(o.i)}
 function resTick(){const M=G.map;if(!G.host)return;if(!G._rt||G.t-G._rt>1){G._rt=G.t;for(const o of M.res){if(o.grow&&G.t>o.grow){if(o.k==='bush'&&o.v===1){o.v=0;o.grow=0;G.resDirty.add(o.i);continue}if(!o.dead)continue;
@@ -606,7 +630,7 @@ function playerTick(p,dt){if(!p.alive)return;p.atkCd-=dt;p.hurtT-=dt;
  p.food=Math.max(0,p.food-dt*.27);if(p.food<=0){p.starveT=(p.starveT||0)+dt;if(p.starveT>1.5){p.starveT=0;hurtPlayer(p,2,null,'dis');if(p.id===G.me&&R()<.2)toast('🍖 太饿了，在掉血！快吃东西','bad')}}
  let reg=0;if(talOn(p,'regen'))reg+=.6;const home=inTerritory(p.guild,p.x,p.y);if(home){if(G.night&&dd(p.x,p.y,home.cx,home.cy)<3.5)reg+=1.2;if(home.lv>=4)reg+=1.5}
  if(reg&&p.hp<p.mhp){p.hp=Math.min(p.mhp,p.hp+reg*dt);p.regT=(p.regT||0)+dt;if(p.regT>2){p.regT=0;G.dirty[p.id]=1}}
- if(p.atk)playerAttack(p);
+ if(p.atk)playerAttack(p);contribTick(p,dt);
  if(!G._dt||1){p.dirtT=(p.dirtT||0)+dt;if(p.dirtT>2){p.dirtT=0;G.dirty[p.id]=1}}}
 // ---------- the main host step ----------
 function simStep(dt){if(!G||G.over)return;G.t+=dt;const ph=phaseOf(G.t);const wasNight=G.night,oldDay=G.day;G.day=ph.day;G.night=ph.night;
@@ -617,7 +641,7 @@ function simStep(dt){if(!G||G.over)return;G.t+=dt;const ph=phaseOf(G.t);const wa
  if(G.t>=TOTAL)endMatch('time')}
 function onNewDay(){if(G.day===G.safe+1)say('*','⚠ <b>安全期结束了！</b> 怪物会出现，其他公会的人也能攻击你了','bad');else say('*',`☀ 第 ${G.day} 天`)}
 function onNight(){evSfx('bell');say('*',isSafe()?`🌙 第 ${G.day} 夜（安全期，夜里不会有怪）`:`🌙 <b>第 ${G.day} 夜</b> · 怪物来袭，守住木屋！`,isSafe()?'':'bad');if(!isSafe())nightWaves();intelNight()}
-function onDawn(){say('*','☀ 天亮了','good');for(const id of G.order){const p=G.ps[id];if(!p.alive)continue;grantChest(p,0,'天亮了，');if(awOn(p,'chestm'))grantChest(p,0,'宝箱大师：')}intelDawn();for(const m of G.mons)if(m.wave&&!MON[m.k].boss)m.flee=1}
+function onDawn(){say('*','☀ 天亮了','good');for(const id of G.order){const p=G.ps[id];if(!p.alive)continue;grantChest(p,0,'天亮了，');if(awOn(p,'chestm'))grantChest(p,0,'宝箱大师：')}intelDawn();for(const id of G.order){const p=G.ps[id];if(p.alive&&isVassal(p))genTasks(p)}for(const m of G.mons)if(m.wave&&!MON[m.k].boss)m.flee=1}
 
 // ================= 宠物：用生肉驯服兔子 / 鹿 / 狼 =================
 function petsOf(p){return G.mons.filter(m=>!m.dead&&m.pet===p.id)}
@@ -707,7 +731,7 @@ function spit(m,K,p){const d=dd(p.x,p.y,m.x,m.y)||1;G.projs.push({x:m.x,y:m.y-.4
 function hurtMon(m,dm,p,crit){if(m.dead)return;dm=Math.round(dm);m.hp-=dm;if(p&&MON[m.k].animal&&!m.pet){m.aggro=p.id;m.aggroT=G.t+8;m.scared=G.t+5}m.hurtT=.2;floatTxt(m.x,m.y-1,(crit?'暴击 ':'')+dm,crit?'#ffe040':'#ffffff');if(p&&!MON[m.k].animal&&m.state!=='raid'){m.state='chase'}
  if(m.hp<=0)killMon(m,p)}
 function killMon(m,p){const K=MON[m.k];m.dead=true;m.deadT=.6;if(m.pet){const o=G.ps[m.pet];if(o)say(o.id,`💔 你的${K.n}死了`,'bad');m.pet=null}evSfx(K.animal?'hit':'die',m.x,m.y);fxAdd('dust',m.x,m.y,{t:.5,r:K.big?1.5:.7});if(!p||!p.alive)return;
- gainXp(p,K.xp*(1+.1*(G.day-1)));if(!K.animal)p.kills++;let g=K.gold[0]+Math.floor(R()*(K.gold[1]-K.gold[0]+1));if(awOn(p,'hunterB'))g=Math.round(g*1.5+(K.animal?1:0));if(g){p.gold+=g;G.dirty[p.id]=1}
+ gainXp(p,K.xp*(1+.1*(G.day-1)));contribKill(p,m);if(!K.animal)p.kills++;let g=K.gold[0]+Math.floor(R()*(K.gold[1]-K.gold[0]+1));if(awOn(p,'hunterB'))g=Math.round(g*1.5+(K.animal?1:0));if(g){p.gold+=g;G.dirty[p.id]=1}
  if(K.meat){const mt=K.meat+(awOn(p,'hunterB')?1:0);invAdd(p,'meat',mt);floatTxt(m.x,m.y-1.5,'+'+mt+' 生肉','#ff9090')}
  if(m.k==='tboss'){invAdd(p,'crystal',3);invAdd(p,'core',2);grantChest(p,5,'打倒天灾之王，');worldMsg(`👑 <b>${esc(p.name)}</b> 打倒了天灾之王「${esc(m.name||K.n)}」！`,'good');firstMsg('tboss',`${esc(p.name)} 第一个打倒了天灾之王`)}
  if(m.k==='brute'&&R()<.15)grantChest(p,2,'打倒巨像，');
@@ -807,7 +831,7 @@ function addRes(k,x,y){const M=G.map;if(x<2||y<2||x>=M.W-2||y>=M.H-2)return fals
  const o=mkRes(M.res.length,k,x,y,null);M.res.push(o);if(blocksRes(k))M.occ[i]=o.i+1;else M.rIdx.set(i,o.i);G.resDirty.add(o.i);(G.newRes=G.newRes||[]).push(o.i);return true}
 
 // ================= 每日宝箱 · 觉醒天赋 =================
-function awOn(p,k){return p.aw===k&&hasHome(p)}
+function awOn(p,k){return p.aw===k&&talentsLive(p)}
 function rollAwaken(){const tot=Object.values(AWG).reduce((a,g)=>a+g.w,0);let r=R()*tot,g='B';for(const k in AWG){r-=AWG[k].w;if(r<=0){g=k;break}}return pick(AW.filter(a=>a.g===g)).k}
 function awOf(p){return AW.find(a=>a.k===p.aw)}
 function setupAwaken(){for(const id of G.order){const p=G.ps[id];p.aw=rollAwaken();if(p.aw==='rich')p.gold+=60;if(p.aw==='beast')G.startPets=(G.startPets||[]).concat([p.id])}
@@ -878,6 +902,27 @@ function chatSend(p,s){s=String(s||'').replace(/[<>]/g,'').trim().slice(0,40);if
  for(const id of G.order){const n=G.ps[id];if(n.npc&&n.alive&&s.includes(n.name)){setTimeout(()=>{if(G&&!G.over)npcSay(n,'reply')},900+Math.random()*1200);break}}}
 const QUICK=['救命！','来交易吗？','一起组公会？','小心天灾！','我要升级木屋了','哈哈'];
 
+// ================= 贡献值：附属成员做公会任务、采集、守家、上交材料攒贡献，用来换装备 =================
+const EXCH={saxe:20,spick:20,spear:25,bow:30,leather:30,potion:12,iaxe:55,ipick:55,isword:75,iarmor:85,cbow:150,carmor:200};
+const DONV={wood:1,stone:1,berry:1,meat:1,herb:2,iron:3,core:20,crystal:30};
+const TASKT=[
+ {k:'wood',t:'采集 {n} 木头',n:d=>18+d*4,rw:20},{k:'stone',t:'采集 {n} 石头',n:d=>14+d*3,rw:20},{k:'iron',t:'采集 {n} 铁矿',n:d=>5+d,rw:30},
+ {k:'kill',t:'击杀 {n} 只怪物',n:d=>3+d,rw:30},{k:'donate',t:'给会长上交 {n} 份材料',n:d=>10+d*2,rw:25},{k:'guard',t:'夜里在公会领地守家 {n} 秒',n:()=>30,rw:35}];
+function genTasks(p){if(!isVassal(p))return;const d=G.day;p.tasks=TASKT.slice().sort(()=>R()-.5).slice(0,3).map(T=>{const n=Math.round(T.n(d));return{k:T.k,need:n,have:0,rw:T.rw+d*3,txt:T.t.replace('{n}',n),done:0}});G.dirty[p.id]=1}
+function addContrib(p,v){if(!isVassal(p)||!v)return;p.contrib=(p.contrib||0)+v;G.dirty[p.id]=1}
+function taskProg(p,k,n){if(!isVassal(p)||!p.tasks)return;for(const T of p.tasks){if(T.done||T.k!==k)continue;T.have=Math.min(T.need,T.have+n);if(T.have>=T.need){T.done=1;addContrib(p,T.rw);say(p.id,`📜 公会任务完成：${T.txt}（贡献 +${T.rw}）`,'good');evSfx('coin',p.x,p.y)}G.dirty[p.id]=1}}
+function contribGather(p,k,n){if(!isVassal(p))return;addContrib(p,n*.1);taskProg(p,k,n)}
+function contribKill(p,m){if(!isVassal(p)||MON[m.k].animal)return;const home=inTerritory(p.guild,m.x,m.y);addContrib(p,home?(G.night?4:2):.5);taskProg(p,'kill',1)}
+function contribTick(p,dt){if(!isVassal(p)||!G.night||isSafe())return;if(inTerritory(p.guild,p.x,p.y)){p.gT=(p.gT||0)+dt;if(p.gT>=1){p.gT-=1;taskProg(p,'guard',1);addContrib(p,.15)}}}
+function donate(p,k,q){q=Math.floor(q);if(!isVassal(p)||!DONV[k]||!(q>0)||(p.inv[k]||0)<q)return false;const g=G.guilds[p.guild];const L=G.ps[g.leader];if(!L||!L.alive){say(p.id,'会长不在了，没法上交','bad');return false}
+ invAdd(p,k,-q);invAdd(L,k,q);const v=q*DONV[k];addContrib(p,v);taskProg(p,'donate',q);say(p.id,`上交了 ${q} ${IT[k].n}（贡献 +${v}）`,'good');say(L.id,`📦 ${esc(p.name)} 上交了 ${q} ${IT[k].n}`,'good');evSfx('coin',p.x,p.y);return true}
+function exchange(p,k){if(!isVassal(p))return false;const c=EXCH[k];const Rc=RECIPE.find(r=>r.k===k);if(!c||!Rc)return false;if(maxCabLv(p.guild)<Rc.lv){say(p.id,`公会木屋要 ${Rc.lv} 级才能换`,'bad');return false}
+ if((p.contrib||0)<c){say(p.id,'贡献值不够','bad');return false}p.contrib-=c;invAdd(p,k,1);const T=IT[k];if(T.wpn&&(!p.wpn||IT[p.wpn].dmg<T.dmg))p.wpn=k;if(T.arm&&(!p.arm||IT[p.arm].arm<T.arm))p.arm=k;say(p.id,`用 ${c} 贡献换到 <b>${T.n}</b>`,'good');evSfx('pick',p.x,p.y);G.dirty[p.id]=1;return true}
+// NPC vassals: buy gear with contribution, hand surplus to the leader
+function npcVassalTick(p){if(!isVassal(p))return false;const lv=maxCabLv(p.guild);
+ const want=npcGearWant(p,{lv});if(want&&EXCH[want]&&(p.contrib||0)>=EXCH[want]){exchange(p,want);return true}
+ for(const k of ['wood','stone','iron','core','crystal']){const keep=k==='wood'?25:k==='stone'?15:k==='iron'?8:0;if((p.inv[k]||0)>keep+10){donate(p,k,(p.inv[k]||0)-keep);return true}}return false}
+
 // ================= 公会 · 魅力 · 附属 · 交易行 · 计分 =================
 function gearScore(p){const W=wpnOf(p);return (W?W.dmg:5)/2+(p.arm?IT[p.arm].arm*40:0)}
 function members(gid){return Object.values(G.ps).filter(q=>q.guild===gid)}
@@ -891,7 +936,8 @@ function joinGuild(p,gid){const og=p.guild;if(og===gid)return;const g=G.guilds[g
  for(const B of Object.values(G.blds))if(B.guild===og)B.guild=gid;// walls change hands
  delete G.guilds[og];G.reqs=G.reqs.filter(r=>r.from!==p.id&&r.to!==p.id);G.gDirty=true;G.bDirty=true;
  say('*',`🤝 <b>${esc(p.name)}</b>${movers.length>1?'带着 '+(movers.length-1)+' 名成员':''}加入了 ${esc(g.name)}`,'good');
- for(const q of movers)say(q.id,`你成了 <b>${esc(g.name)}</b> 的附属：失去了自己的木屋，天赋暂时失效；公会赢了你也一起赢`,'');checkEnd()}
+ for(const q of movers){q.contrib=q.contrib||0;genTasks(q)}
+ for(const q of movers)say(q.id,`你成了 <b>${esc(g.name)}</b> 的附属：失去了自己的木屋，也不能再自己做工具、武器、装备（天赋保留）。做公会任务、采集、守家攒<b>贡献值</b>，在公会面板换装备；公会赢了你也一起赢`,'');checkEnd()}
 function leaveGuild(p){const g=G.guilds[p.guild];if(!g||g.leader===p.id)return false;const nid=p.id;G.guilds[nid]={id:nid,leader:nid,name:p.name+'的公会',col:COLORS[p.idx%COLORS.length]};p.guild=nid;p.col=G.guilds[nid].col;G.dirty[p.id]=1;G.gDirty=true;
  say(p.id,'你退出了公会，现在是独立的。花 20 木头 10 石头可以就地建木屋（按 E / 点「建木屋」）','');say('*',`${esc(p.name)} 退出了 ${esc(g.name)}`);return true}
 // actions between two people (pid → target)
@@ -936,7 +982,7 @@ function npcHomeCab(p){const B=G.blds[p.cab];if(B&&!B.dead)return B;const g=G.gu
 function npcNeeds(p,cab){// what materials am I short of, most-short first
  const need={};const add=(c,m=1)=>{for(const k in c)need[k]=(need[k]||0)+Math.ceil(c[k]*m)};
  if(cab&&cab.lv<5)add(CAB[cab.lv+1].cost,upMul(p));else if(!cab&&G.guilds[p.guild].leader===p.id)add(REBUILD);
- const g=npcGearWant(p,cab);if(g)add(RECIPE.find(r=>r.k===g).cost);
+ const g=isVassal(p)?null:npcGearWant(p,cab);if(g)add(RECIPE.find(r=>r.k===g).cost);
  const out=[];for(const k in need){const lack=need[k]-(p.inv[k]||0);if(lack>0)out.push([k,lack/need[k]])}out.sort((a,b)=>b[1]-a[1]);return out.map(o=>o[0])}
 function npcGearWant(p,cab){const lv=cab?cab.lv:0;const own=k=>(p.inv[k]||0)>0;
  const order=lv>=3?['ipick','isword','iaxe','iarmor','spick','saxe']:lv>=2?['spick','saxe','spear','leather']:[];if(lv>=4&&(p.inv.crystal||0)>=1&&!own('cbow'))order.unshift('cbow');if(lv>=5)order.unshift('carmor');
@@ -949,13 +995,13 @@ function npcTick(p,dt){if(!p.alive)return;const A=p.ai||(p.ai={t:0,st:'idle',bl:
  if(A.hit){const o=A.hit.o;if(o.dead||o.alive===false){A.hit=null;A.path=null;return}const isR=A.hit.tt==='res';const tx=isR?o.x+.5:A.hit.tt==='b'?clamp(p.x,o.x,o.x+o.w):o.x,ty=isR?o.y+.5:A.hit.tt==='b'?clamp(p.y,o.y,o.y+o.h):o.y;const d=dd(tx,ty,p.x,p.y);const W=wpnOf(p);const reach=W?W.rg:1.05;
   if(d>reach+.3){if(d<3.5&&!isR&&A.hit.tt!=='b'){npcMove(p,tx,ty,dt)}else npcNav(p,tx,ty,reach+.2,dt,A.hit.tt+(o.i??o.id))}else{A.path=null;p.aim={x:(tx-p.x)/(d||1),y:(ty-p.y)/(d||1)};p.dir=dirOf(p.aim.x,p.aim.y);p.atk=true}}}
 // BFS over tiles near the NPC: returns tile-centre waypoints to a tile within `near` of (gx,gy)
-function findPath(sx,sy,gx,gy,near,maxR){const M=G.map;const x0=Math.max(0,Math.floor(Math.min(sx,gx))-maxR),y0=Math.max(0,Math.floor(Math.min(sy,gy))-maxR),x1=Math.min(M.W-1,Math.floor(Math.max(sx,gx))+maxR),y1=Math.min(M.H-1,Math.floor(Math.max(sy,gy))+maxR);
+function findPath(sx,sy,gx,gy,near,maxR,gid){const M=G.map;const x0=Math.max(0,Math.floor(Math.min(sx,gx))-maxR),y0=Math.max(0,Math.floor(Math.min(sy,gy))-maxR),x1=Math.min(M.W-1,Math.floor(Math.max(sx,gx))+maxR),y1=Math.min(M.H-1,Math.floor(Math.max(sy,gy))+maxR);
  const W=x1-x0+1,H=y1-y0+1;if(W*H>14000)return null;const prev=new Int32Array(W*H).fill(-2);const q=new Int32Array(W*H);let h=0,t=0;const st=(Math.floor(sy)-y0)*W+(Math.floor(sx)-x0);if(st<0||st>=W*H)return null;prev[st]=-1;q[t++]=st;let goal=-1;
  while(h<t){const c=q[h++];const cx=c%W+x0,cy=Math.floor(c/W)+y0;if(dd(cx+.5,cy+.5,gx,gy)<=near){goal=c;break}
-  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy+dy;if(nx<x0||ny<y0||nx>x1||ny>y1)continue;const n=(ny-y0)*W+(nx-x0);if(prev[n]!==-2)continue;if(solidAt(nx,ny))continue;prev[n]=c;q[t++]=n}}
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy+dy;if(nx<x0||ny<y0||nx>x1||ny>y1)continue;const n=(ny-y0)*W+(nx-x0);if(prev[n]!==-2)continue;if(solidAt(nx,ny,0,gid))continue;prev[n]=c;q[t++]=n}}
  if(goal<0)return null;const path=[];for(let c=goal;c!==-1&&c!==st;c=prev[c])path.push({x:c%W+x0+.5,y:Math.floor(c/W)+y0+.5});path.reverse();return path}
 function npcNav(p,gx,gy,near,dt,key){const A=p.ai;
- if(A.pk!==key||!A.path||(A.stk||0)>.6){A.pk=key;A.stk=0;A.path=findPath(p.x,p.y,gx,gy,near,dd(p.x,p.y,gx,gy)>30?48:24);
+ if(A.pk!==key||!A.path||(A.stk||0)>.6){A.pk=key;A.stk=0;A.path=findPath(p.x,p.y,gx,gy,near,dd(p.x,p.y,gx,gy)>30?48:24,p.guild);
   if(!A.path){A.fail=(A.fail||0)+1;if(A.hit&&A.hit.tt==='res')A.bl[A.hit.o.i]=G.t+60;A.hit=null;A.go=false;return}}
  while(A.path.length&&dd(A.path[0].x,A.path[0].y,p.x,p.y)<.35)A.path.shift();
  const w=A.path[0];if(!w){npcMove(p,gx,gy,dt);return}npcMove(p,w.x,w.y,dt)}
@@ -978,6 +1024,7 @@ function npcDecide(p,A){const cab=npcHomeCab(p);const g=G.guilds[p.guild];const 
    if(A.flee.x!=null){A.hit=null;goTo(p,A.flee.x,A.flee.y,1);return}}}
  // homeless leader with materials: rebuilding comes first unless something is right on top of us
  if(!vassal&&!hasHome(p)&&has(p,REBUILD)){const close=npcFoe(p,2.5);const ruin=G.blds[p.cab];if(!close){A.hit=null;if(ruin&&ruin.dead){if(dd(p.x,p.y,ruin.cx,ruin.cy+1.6)<1.5){rebuildCabin(p)||newCabinHere(p)}else goTo(p,ruin.cx,ruin.cy+1.6,1)}else newCabinHere(p);return}}
+ if(vassal&&R()<.35&&npcVassalTick(p))return;
  // fight or flee
  const foe=npcFoe(p,G.night?6:5.5);
  if(foe){if(p.hp<p.mhp*.3&&anchor&&dd(p.x,p.y,anchor.x,anchor.y)>2.5){A.hit=null;goTo(p,anchor.x,anchor.y,1.2);return}A.hit={o:foe,tt:'mon',x:foe.x,y:foe.y};Object.defineProperty(A.hit,'x',{get:()=>foe.x});Object.defineProperty(A.hit,'y',{get:()=>foe.y});if(foe.dead||!(foe.alive??true))A.hit=null;return}
@@ -991,7 +1038,7 @@ function npcDecide(p,A){const cab=npcHomeCab(p);const g=G.guilds[p.guild];const 
  // upgrade the cabin
  if(cab&&cab.lv<5&&has(p,CAB[cab.lv+1].cost,upMul(p))){if(dd(p.x,p.y,cab.cx,cab.cy)<3.2)upgradeCabin(p,cab);else goTo(p,cab.cx,cab.cy+1.6,1.2);return}
  // craft gear
- const gw=npcGearWant(p,cab);if(gw&&cab){const Rc=RECIPE.find(r=>r.k===gw);if(has(p,Rc.cost)){if(dd(p.x,p.y,cab.cx,cab.cy)<3.4)craft(p,gw);else goTo(p,cab.cx,cab.cy+1.6,1.2);return}}
+ const gw=vassal?null:npcGearWant(p,cab);if(gw&&cab){const Rc=RECIPE.find(r=>r.k===gw);if(has(p,Rc.cost)){if(dd(p.x,p.y,cab.cx,cab.cy)<3.4)craft(p,gw);else goTo(p,cab.cx,cab.cy+1.6,1.2);return}}
  // walls around the cabin for builders
  if(cab&&cab.lv>=2&&p.pers==='builder'&&(p.inv.wood||0)>40&&G.day>G.safe-1&&R()<.3){const n=Object.values(G.blds).filter(B=>B.k==='wall'&&B.guild===p.guild).length;if(n<10){const a=rnd(0,6.28),r_=CAB[cab.lv].rad-1;const tx=Math.floor(cab.cx+Math.cos(a)*r_),ty=Math.floor(cab.cy+Math.sin(a)*r_);if(dd(p.x,p.y,tx,ty)<3)placeWall(p,'wall',tx,ty);else{goTo(p,tx+.5,ty+1.5,1.5)}return}}
  // late-game raids by strong warriors
@@ -1065,8 +1112,8 @@ function sendSnap(){const ps=[],ms=[],pr=[];for(const id of G.order){const p=G.p
  for(const q of G.projs)pr.push([r1(q.x),r1(q.y),r1(q.vx),r1(q.vy),PK.indexOf(q.k),r1(q.life)]);
  const rs=[];for(const i of G.resDirty){const o=G.map.res[i];rs.push(G.newRes&&G.newRes.includes(i)?[i,o.hp,o.dead,o.v,o.k,o.x,o.y]:[i,o.hp,o.dead,o.v])}G.resDirty.clear();G.newRes=[];
  send('snap',{t:r1(G.t),p:ps,m:ms,pr,r:rs,e:G.ev.splice(0)})}
-function pvOf(p){return{inv:p.inv,gold:p.gold,food:Math.round(p.food),xp:Math.round(p.xp),tal:p.tal,tp:p.talPend,wpn:p.wpn,arm:p.arm,cab:p.cab,kills:p.kills,ch:p.chests,aw:p.aw}}
-function blPack(){return Object.values(G.blds).map(B=>[B.id,B.k,B.owner,B.guild,B.x,B.y,B.w,B.h,B.lv||0,Math.round(B.hp),B.mhp,B.dead?1:0])}
+function pvOf(p){return{inv:p.inv,gold:p.gold,food:Math.round(p.food),xp:Math.round(p.xp),tal:p.tal,tp:p.talPend,wpn:p.wpn,arm:p.arm,cab:p.cab,kills:p.kills,ch:p.chests,aw:p.aw,cb:Math.floor(p.contrib||0),tk:p.tasks}}
+function blPack(){return Object.values(G.blds).map(B=>[B.id,B.k,B.owner,B.guild,B.x,B.y,B.w,B.h,B.lv||0,Math.round(B.hp),B.mhp,B.dead?1:0,B.r||0])}
 function guPack(){return{g:G.guilds,mk:G.market,rq:G.reqs,iv:G.invites,ov:G.over||null,rl:(G.relics||[]).map(r=>[r.owner,r.cg,r1(r.cp)])}}
 // ---------- client applies ----------
 function applySnap(m){G.t=m.t;const ph=phaseOf(G.t);G.day=ph.day;G.night=ph.night;
@@ -1079,8 +1126,8 @@ function applySnap(m){G.t=m.t;const ph=phaseOf(G.t);G.day=ph.day;G.night=ph.nigh
  for(const e of m.e)applyEv(e);NET.lastSnap=performance.now()}
 function applyEv(e){const k=e[0];if(k==='f')G.floats.push({x:e[1],y:e[2],s:e[3],c:e[4],t:1});else if(k==='x')G.fx.push({k:e[1],x:e[2],y:e[3],t:e[4],m:e[4],r:e[5],c:e[6]||undefined});else if(k==='s')sfx(e[1],e[2],e[3]);
  else if(k==='t'){if(e[1]==='*'||e[1]===G.me)toast(e[2],e[3])}else if(k==='c'){if(e[1]===G.me)showChest(e[2],e[3])}else if(k==='w'){chatRecv(e)}else if(k==='h'){if(e[1]===G.me){sfx('hurt');buzz(30);G.flash=.25}}else if(k==='k'){if(e[1]===G.me){const p=meP();moveEnt(p,e[2]*.5,e[3]*.5,.3);moveEnt(p,e[2]*.5,e[3]*.5,.3)}}}
-function applyPv(m){const o=m[G.me];if(!o)return;const p=meP();const firstAw=!UI.awShown&&o.aw;if(firstAw)UI.awShown=1;Object.assign(p,{inv:o.inv,gold:o.gold,food:o.food,xp:o.xp,tal:o.tal,talPend:o.tp,wpn:o.wpn,arm:o.arm,cab:o.cab,kills:o.kills,chests:o.ch||[],aw:o.aw});if(firstAw)setTimeout(showAwaken,600);uiDirty()}
-function applyBl(list){const M=G.map;const keep=new Set();for(const a of list){keep.add(a[0]);let B=G.blds[a[0]];const nb={id:a[0],k:a[1],owner:a[2],guild:a[3],x:a[4],y:a[5],w:a[6],h:a[7],lv:a[8],hp:a[9],mhp:a[10],dead:!!a[11],cx:a[4]+a[6]/2,cy:a[5]+a[7]/2};
+function applyPv(m){const o=m[G.me];if(!o)return;const p=meP();const firstAw=!UI.awShown&&o.aw;if(firstAw)UI.awShown=1;Object.assign(p,{inv:o.inv,gold:o.gold,food:o.food,xp:o.xp,tal:o.tal,talPend:o.tp,wpn:o.wpn,arm:o.arm,cab:o.cab,kills:o.kills,chests:o.ch||[],aw:o.aw,contrib:o.cb||0,tasks:o.tk||null});if(firstAw)setTimeout(showAwaken,600);uiDirty()}
+function applyBl(list){const M=G.map;const keep=new Set();for(const a of list){keep.add(a[0]);let B=G.blds[a[0]];const nb={r:a[12]||0,id:a[0],k:a[1],owner:a[2],guild:a[3],x:a[4],y:a[5],w:a[6],h:a[7],lv:a[8],hp:a[9],mhp:a[10],dead:!!a[11],cx:a[4]+a[6]/2,cy:a[5]+a[7]/2};
   if(B&&B.hp>nb.hp)nb.hitT=.25;if(B&&!B.dead)bldOcc(B,0);G.blds[a[0]]=Object.assign(B||{},nb);if(!nb.dead)bldOcc(G.blds[a[0]],a[0])}
  for(const id in G.blds)if(!keep.has(+id)){bldOcc(G.blds[id],0);delete G.blds[id]}uiDirty()}
 function applyGu(m){G.guilds=m.g;G.market=m.mk;G.reqs=m.rq;G.invites=m.iv;if(m.rl&&G.relics)m.rl.forEach((a,i)=>{const r=G.relics[i];if(r){r.owner=a[0];r.cg=a[1];r.cp=a[2]}});for(const id in G.guilds){const g=G.guilds[id];g.flag=null}if(m.ov&&!G.over){G.over=m.ov;onMatchOver()}uiDirty()}
@@ -1095,11 +1142,11 @@ function doAct(p,m){if(G.over)return;const a=m.a;
  if(a==='craft')return craft(p,m.k);
  if(a==='fix')return repairCabin(p,G.blds[m.b]);
  if(a==='use')return useItem(p,m.k);
- if(a==='wall')return placeWall(p,m.k,m.x|0,m.y|0);
+ if(a==='wall')return placeWall(p,m.k,m.x|0,m.y|0,m.r);
  if(a==='rebuild')return rebuildCabin(p);if(a==='newcab')return newCabinHere(p);
  if(a==='g'){if(m.g==='leave')return leaveGuild(p);if(m.g==='answer')return answerReq(p,m.from,!!m.yes,!!m.inv);if(m.g==='name')return renameGuild(p,m.name);return guildAct(p,m.g,m.t)}
  if(a==='tr')return tradeAct(p,m.t,m);
- if(a==='chest')return openChest(p);if(a==='tame')return tryTame(p,G.mons.find(q=>q.id===m.m));if(a==='chat')return chatSend(p,m.s)}
+ if(a==='chest')return openChest(p);if(a==='donate')return donate(p,m.k,m.q);if(a==='exch')return exchange(p,m.k);if(a==='unwall')return unWall(p,m.b);if(a==='tame')return tryTame(p,G.mons.find(q=>q.id===m.m));if(a==='chat')return chatSend(p,m.s)}
 
 // ================= 背景音乐（代码合成的 8-bit 小曲）· 打击感 =================
 const MUS={on:true,t:0,step:0,mode:null,g:null};
@@ -1128,7 +1175,7 @@ function pillar(x,y,c){G.fx.push({k:'pillar',x,y,t:1.2,m:1.2,c})}
 // ================= 渲染：低分辨率画布放大（省电），地形分块缓存，按 y 排序画物体，夜晚光照，天灾效果 =================
 const RD={cv:null,x:null,LW:400,LH:216,chunks:new Map(),CH:16,light:null,lx:null,last:0};
 function rdInit(){RD.cv=$('cv');RD.x=RD.cv.getContext('2d',{alpha:false});rdResize();addEventListener('resize',rdResize);RD.light=document.createElement('canvas');RD.lx=RD.light.getContext('2d')}
-function rdResize(){const h=innerHeight,w=innerWidth;RD.LH=isTouch?(h<500?208:240):Math.min(300,Math.max(224,Math.round(h/3.2)));RD.LW=Math.round(RD.LH*w/h);RD.cv.width=RD.LW;RD.cv.height=RD.LH;RD.x.imageSmoothingEnabled=false;if(RD.light){RD.light.width=Math.ceil(RD.LW/2);RD.light.height=Math.ceil(RD.LH/2)}}
+function rdResize(){const h=innerHeight,w=innerWidth;const short=isTouch?(Math.min(w,h)<500?216:240):Math.min(300,Math.max(224,Math.round(Math.min(w,h)/3.2)));if(w>=h){RD.LH=short;RD.LW=Math.round(short*w/h)}else{RD.LW=short;RD.LH=Math.round(short*h/w)}RD.cv.width=RD.LW;RD.cv.height=RD.LH;RD.x.imageSmoothingEnabled=false;if(RD.light){RD.light.width=Math.ceil(RD.LW/2);RD.light.height=Math.ceil(RD.LH/2)}}
 function chunkKey(cx,cy){return cy*1000+cx}
 function getChunk(cx,cy){const k=chunkKey(cx,cy);let c=RD.chunks.get(k);if(c&&!c.dirty)return c.cv;const M=G.map,CH=RD.CH;const cv=c?c.cv:mkC(CH*TS,CH*TS);const x=cv.getContext('2d');
  for(let ty=0;ty<CH;ty++)for(let tx=0;tx<CH;tx++){const X=cx*CH+tx,Y=cy*CH+ty;if(X>=M.W||Y>=M.H){x.fillStyle='#000';x.fillRect(tx*TS,ty*TS,TS,TS);continue}const i=Y*M.W+X,t=M.tile[i];
@@ -1162,6 +1209,9 @@ function render(dt){const x=RD.x,M=G.map,LW=RD.LW,LH=RD.LH;const T=performance.n
  for(const d of D){if(d.rl){drawRelic(x,d.rl,cx,cy,T);continue}if(d.r)drawRes(x,d.o,cx,cy);else if(d.b)drawBld(x,d.b,cx,cy,T);else if(d.p)drawPlayer(x,d.p,cx,cy,T);else drawMon(x,d.m,cx,cy,T)}
  // projectiles
  for(const q of G.projs){const sx=q.x*TS-cx,sy=q.y*TS-cy;if(q.k==='acid'){x.fillStyle='#a0ff40';x.fillRect(sx-2,sy-2,4,4)}else if(q.k==='ice'){x.fillStyle='#c0f0ff';x.fillRect(sx-2,sy-2,4,4);x.fillStyle='#fff';x.fillRect(sx-1,sy-1,2,2)}else if(q.k==='bolt'){x.fillStyle='#ff40c0';x.fillRect(sx-2,sy-2,4,4);x.fillStyle='#ffc0f0';x.fillRect(sx-1,sy-1,2,2)}else{const a=Math.atan2(q.vy,q.vx);x.strokeStyle=q.k==='cbolt'?'#80f0ff':'#e8d8b0';x.lineWidth=1;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx-Math.cos(a)*6,sy-Math.sin(a)*6);x.stroke()}}
+ if(UI.place){const me=meP();if(me&&me.alive){const t=frontTile(me);const ok=wallCheck(me,t[0],t[1]);const sx=t[0]*TS-cx,sy=t[1]*TS-cy;x.globalAlpha=.55;x.drawImage(UI.rot?(UI.place==='swall'?ART.swallV:ART.wallV):(UI.place==='swall'?ART.swall:ART.wall),sx,sy);x.globalAlpha=.35;x.fillStyle=ok?'#40ff60':'#ff3030';x.fillRect(sx,sy,TS,TS);x.globalAlpha=1;x.strokeStyle=ok?'#80ff90':'#ff6060';x.strokeRect(sx+.5,sy+.5,TS-1,TS-1);
+  // valid spots nearby, faint
+  x.globalAlpha=.18;x.fillStyle='#80ff90';for(let yy=-3;yy<=3;yy++)for(let xx=-3;xx<=3;xx++){const tx=Math.floor(me.x)+xx,ty=Math.floor(me.y)+yy;if((tx!==t[0]||ty!==t[1])&&wallCheck(me,tx,ty))x.fillRect(tx*TS-cx+3,ty*TS-cy+3,TS-6,TS-6)}x.globalAlpha=1}}
  drawDisasters(x,cx,cy,T,dt);drawFx(x,cx,cy,dt);
  drawNight(x,cx,cy,T);
  // floating text
@@ -1179,7 +1229,7 @@ function drawBld(x,B,cx,cy,T){const sx=B.x*TS-cx,sy=B.y*TS-cy;
   // hp bar when hurt
   if(B.hp<B.mhp){const w=B.w*TS;x.fillStyle='#000a';x.fillRect(sx,dy-5,w,3);x.fillStyle=B.hp/B.mhp>.4?'#60e060':'#ff5040';x.fillRect(sx,dy-5,w*B.hp/B.mhp,3)}
   x.font='7px sans-serif';x.textAlign='center';const o=G.ps[B.owner];x.fillStyle='#000a';const nm=(o?o.name:'')+' Lv'+B.lv;x.fillText(nm,sx+B.w*TS/2+1,dy-7);x.fillStyle='#fff';x.fillText(nm,sx+B.w*TS/2,dy-8);return}
- x.drawImage(B.k==='swall'?ART.swall:ART.wall,sx,sy);if(B.hp<B.mhp){x.fillStyle='#000a';x.fillRect(sx+1,sy,14,2);x.fillStyle='#e0c060';x.fillRect(sx+1,sy,14*B.hp/B.mhp,2)}}
+ x.drawImage(B.r?(B.k==='swall'?ART.swallV:ART.wallV):(B.k==='swall'?ART.swall:ART.wall),sx,sy);if(B.hp<B.mhp){x.fillStyle='#000a';x.fillRect(sx+1,sy,14,2);x.fillStyle='#e0c060';x.fillRect(sx+1,sy,14*B.hp/B.mhp,2)}}
 function drawPlayer(x,p,cx,cy,T){const px=(p.rx??p.x),py=(p.ry??p.y);const sx=Math.round(px*TS-cx),sy=Math.round(py*TS-cy);const fr=charArt(p.id,p.col);
  x.fillStyle='#0004';x.fillRect(sx-5,sy-1,10,2);
  if(!p.alive){x.globalAlpha=.6;x.save();x.translate(sx,sy-4);x.rotate(1.57);x.drawImage(fr[0][0],-8,-8);x.restore();x.globalAlpha=1;return}
@@ -1305,10 +1355,11 @@ function hudTick(dt){UI.t-=dt;if(UI.t>0&&!UI.dirty)return;UI.t=.15;const p=meP()
  const sp=$('specB');if(!p.alive&&!G.over){sp.classList.remove('hide');const t=camTarget();sp.innerHTML=`💀 你出局了 · 观战 ${t&&t!==p?esc(t.name):''}${aliveMembers(p.guild).length?' · 你的公会还有人活着，公会赢了你也算赢':''} <button class="sm" id="bSpec">换人</button>`;$('bSpec').onclick=()=>{const a=Object.values(G.ps).filter(q=>q.alive);const i=a.findIndex(q=>q.id===G.spec);G.spec=a[(i+1)%a.length]&&a[(i+1)%a.length].id}}else sp.classList.add('hide');
  ctxUpdate();hotRender();chestUI();chatRender(false);if(UI.tab&&UI.dirty)panelRender();UI.dirty=false;
  MINI.t-=.15;if(MINI.t<=0){MINI.t=.5;drawMap($('mini'),false)}
- if(p.talPend&&p.talPend.length&&p.alive&&!UI.talShown&&hasHome(p)){UI.talShown=1;showTalents()}}
+ if(p.talPend&&p.talPend.length&&p.alive&&!UI.talShown&&talentsLive(p)){UI.talShown=1;showTalents()}}
 // ---------- context button ----------
 function ctxList(){const p=meP();if(!p||!p.alive)return[];const o=[];
- if(UI.place){const k=UI.place;const n=RECIPE.find(r=>r.k===k);o.push({l:`🧱 放${n.n}（${costHTMLplain(n.cost)}）`,fn:()=>{const t=frontTile(p);act('wall',{k,x:t[0],y:t[1]})}});o.push({l:'✕ 不放了',fn:()=>{UI.place=null}});return o}
+ if(UI.place){const k=UI.place;const n=RECIPE.find(r=>r.k===k);o.push({l:`🧱 放${n.n}（${costHTMLplain(n.cost)}）`,fn:()=>{const t=UI.pt||frontTile(p);act('wall',{k,x:t[0],y:t[1],r:UI.rot?1:0});UI.pt=null}});o.push({l:'↻ 转向',fn:()=>{UI.rot=!UI.rot}});o.push({l:'✕ 不放了',fn:()=>{UI.place=null;UI.pt=null}});return o}
+ {const t=frontTile(p);const W_=Object.values(G.blds).find(B=>B.k!=='cabin'&&B.guild===p.guild&&dd(B.cx,B.cy,p.x,p.y)<1.6);if(W_)o.push({l:`🔨 拆${WALLS[W_.k].n}（退一半材料）`,fn:()=>act('unwall',{b:W_.id})})}
  const cab=nearOwnCabin(p,1.2);if(cab)o.push({l:`🏠 木屋 Lv${cab.lv}`,fn:()=>openPanel('craft')});
  const ruin=G.blds[p.cab];if(ruin&&ruin.dead&&dd(p.x,p.y,ruin.cx,ruin.cy)<3.5)o.push({l:'🔨 重建木屋（20木 10石）',fn:()=>act('rebuild')});
  else if(!hasHome(p)&&G.guilds[p.guild]&&G.guilds[p.guild].leader===p.id&&!cab)o.push({l:'🏠 在这里建木屋（20木 10石）',fn:()=>act('newcab')});
@@ -1320,14 +1371,21 @@ function ctxList(){const p=meP();if(!p||!p.alive)return[];const o=[];
 function costHTMLplain(c){return Object.keys(c).map(k=>IT[k].n+c[k]).join(' ')}
 function frontTile(p){return[Math.floor(p.x+p.aim.x*1.1),Math.floor(p.y-.2+p.aim.y*1.1)]}
 function ctxUpdate(){const o=ctxList();const b=$('bUse');UI.ctx=o;if(!o.length){b.classList.add('hide');return}b.classList.remove('hide');b.innerHTML=o[0].l;b.onclick=()=>{auInit();o[0].fn();uiDirty()}
- if(o[1]&&UI.place){let c=$('bUse2');if(!c){c=document.createElement('button');c.id='bUse2';c.className='sm';$('acts').insertBefore(c,b)}c.textContent=o[1].l;c.onclick=()=>{o[1].fn();uiDirty()};c.classList.remove('hide')}else if($('bUse2'))$('bUse2').classList.add('hide')}
+ for(const n of [1,2]){const id='bUse'+(n+1);let c=$(id);if(o[n]&&(UI.place||n===1&&o[n].l.startsWith('🔨'))){if(!c){c=document.createElement('button');c.id=id;c.className='sm';$('acts').insertBefore(c,b)}c.textContent=o[n].l;c.onclick=()=>{auInit();o[n].fn();uiDirty()};c.classList.remove('hide')}else if(c)c.classList.add('hide')}}
 function uiInteract(){const o=UI.ctx||ctxList();if(o[0]){o[0].fn();uiDirty()}}
 // ---------- hotbar ----------
-function hotItems(p){const o=[];for(const k of ['potion','meat','berry','herb'])if(p.inv[k]>0)o.push(k);for(const k of Object.keys(p.inv))if(IT[k]&&IT[k].wpn&&p.inv[k]>0)o.push(k);return o.slice(0,5)}
-function hotRender(){const p=meP();const its=hotItems(p);const h=$('hot');const key=its.map(k=>k+(p.inv[k]||0)+(p.wpn===k?'*':'')).join();if(h._k===key)return;h._k=key;
- h.innerHTML=its.map((k,i)=>`<div data-i="${i}" class="${p.wpn===k?'on':''}">${imgTag(k,26)}<span>${IT[k].wpn?'':p.inv[k]}</span></div>`).join('');h.querySelectorAll('div').forEach(d=>d.onclick=()=>hotUse(+d.dataset.i))}
-function hotUse(i){const p=meP();if(!p)return;const k=hotItems(p)[i];if(k){act('use',{k});if(!G.host){useItemLocal(p,k)}}}
-function useItemLocal(p,k){const T=IT[k];if(T.wpn){p.wpn=p.wpn===k?null:k;uiDirty()}}
+let HOT=[null,null,null,null,null];try{const v=JSON.parse(localStorage.getItem('mwq-hot')||'null');if(Array.isArray(v)&&v.length===5)HOT=v}catch(e){}
+function hotOk(k){const T=IT[k];return!!(T&&(T.food||T.heal||T.wpn||T.arm))}
+function hotSave(){try{localStorage.setItem('mwq-hot',JSON.stringify(HOT))}catch(e){}}
+function hotItems(p){// pinned slots stay put; empty slots auto-fill with other usable things
+ const out=HOT.map(k=>k&&hotOk(k)?k:null);const used=new Set(out.filter(Boolean));const auto=[];for(const k of ['potion','meat','berry','herb'])if(p.inv[k]>0)auto.push(k);for(const k of Object.keys(p.inv))if(IT[k]&&(IT[k].wpn)&&p.inv[k]>0)auto.push(k);
+ for(let i=0;i<5;i++)if(!out[i]){const k=auto.find(k=>!used.has(k));if(k){out[i]=k;used.add(k)}}return out}
+function hotPin(k){const i=HOT.indexOf(k);if(i>=0){HOT[i]=null}else{let j=HOT.indexOf(null);if(j<0)j=4;HOT[j]=k}hotSave();$('hot')._k=null;uiDirty()}
+function hotRender(){const p=meP();const its=hotItems(p);const h=$('hot');const key=its.map((k,i)=>(k||'-')+(k?p.inv[k]||0:'')+(p.wpn===k||p.arm===k?'*':'')+(HOT[i]?'p':'')).join();if(h._k===key)return;h._k=key;
+ h.innerHTML=its.map((k,i)=>k?`<div data-i="${i}" class="${p.wpn===k||p.arm===k?'on':''} ${HOT[i]?'pin':''} ${(p.inv[k]||0)>0?'':'zero'}">${imgTag(k,26)}<span>${IT[k].wpn||IT[k].arm?'':p.inv[k]||0}</span></div>`:`<div data-i="${i}" class="emp"></div>`).join('');
+ h.querySelectorAll('div').forEach(d=>{let lp=null;d.onpointerdown=()=>{lp=setTimeout(()=>{lp='x';const i=+d.dataset.i;if(HOT[i]){HOT[i]=null;hotSave();h._k=null;toast('从快捷栏拿掉了')}},500)};d.onpointerup=()=>{if(lp==='x'){lp=null;return}clearTimeout(lp);lp=null;hotUse(+d.dataset.i)};d.onpointerleave=()=>{if(lp&&lp!=='x')clearTimeout(lp);lp=null}})}
+function hotUse(i){const p=meP();if(!p)return;const k=hotItems(p)[i];if(!k){toast('在背包里点物品的 📌 把它放进快捷栏');return}if(!(p.inv[k]>0))return;act('use',{k});if(!G.host){useItemLocal(p,k)}}
+function useItemLocal(p,k){const T=IT[k];if(T.wpn){p.wpn=p.wpn===k?null:k;uiDirty()}if(T.arm){p.arm=p.arm===k?null:k;uiDirty()}}
 // ---------- panels ----------
 function openPanel(t){UI.tab=t;$('pan').classList.remove('hide');panelRender()}
 function closePanels(){UI.tab=null;$('pan').classList.add('hide');$('talP').classList.add('hide')}
@@ -1336,6 +1394,7 @@ function panelRender(){const t=UI.tab;document.querySelectorAll('#panTabs button
  const ci=$('chatIn'),cv=ci?ci.value:null,cf=ci&&document.activeElement===ci;if(t==='chat'&&$('chatLog')&&cf)return;const sc=B.scrollTop;B.innerHTML=({bag:panBag,craft:panCraft,guild:panGuild,trade:panTrade,map:panMap,chat:panChat}[t]||(()=>''))(p);B.scrollTop=sc;
  B.querySelectorAll('[data-a]').forEach(el=>el.onclick=()=>{auInit();sfx('click');const d=el.dataset;const o=JSON.parse(d.o||'{}');if(d.a==='place'){UI.place=o.k;closePanels();toast('站在要放墙的位置前面，点「放木墙」','');return}if(d.a==='focus'){UI.focus=o.id;panelRender();return}if(d.a==='trtab'){UI.trTab=o.t;panelRender();return}
   if(d.a==='list'){const k=$('slK').value,q=+$('slQ').value,pr=+$('slP').value;act('tr',{t:'list',k,q,pr});return}if(d.a==='sysS'){const q=+$('ssQ').value;act('tr',{t:'sell',k:$('ssK').value,q});return}
+  if(d.a==='donateIn'){act('donate',{k:$('dnK').value,q:+$('dnQ').value});return}
   if(d.a==='say'){act('chat',{s:o.s});return}if(d.a==='sayIn'){const v=$('chatIn').value;$('chatIn').value='';if(v)act('chat',{s:v});return}
   if(d.a==='rename'){const v=prompt('公会名字（最多 10 个字）',G.guilds[p.guild].name);if(v)act('g',{g:'name',name:v});return}
   act(d.a,o);setTimeout(uiDirty,150)});
@@ -1345,11 +1404,11 @@ function panChat(p){return`<div id="chatLog" style="max-height:46vh;overflow:aut
 function btn(a,o,l,cls='sm',dis){return`<button class="${cls}" data-a="${a}" data-o='${JSON.stringify(o).replace(/'/g,'&#39;')}' ${dis?'disabled':''}>${l}</button>`}
 function panBag(p){const its=Object.keys(p.inv).filter(k=>p.inv[k]>0&&IT[k]);const cm=charmOf(p);
  let h=`<div class="row" style="margin-top:0"><b>${esc(p.name)}</b> Lv${p.lvl} · 💰 ${p.gold} 金币 · 魅力 ${cm} · 击杀 ${p.kills}${p.wpn?' · 武器 '+IT[p.wpn].n:''}${p.arm?' · 护甲 '+IT[p.arm].n:''}</div>`;
- h+='<div class="grid">'+its.map(k=>{const T=IT[k];const eq=p.wpn===k||p.arm===k;let b='';if(T.food||T.heal)b=btn('use',{k},T.heal&&!T.food?'用':'吃');else if(T.wpn||T.arm)b=btn('use',{k},eq?'卸下':'装备');else if(T.tool)b='<small>自动使用</small>';
+ h+='<div class="grid">'+its.map(k=>{const T=IT[k];const eq=p.wpn===k||p.arm===k;let b='';if(T.food||T.heal)b=btn('use',{k},T.heal&&!T.food?'用':'吃');else if(T.wpn||T.arm)b=btn('use',{k},eq?'卸下':'装备');else if(T.tool)b='<small>自动使用</small>';if(hotOk(k))b+=` <button class="sm" onclick="hotPin('${k}')">${HOT.includes(k)?'📌✓':'📌'}</button>`;
   return`<div class="it ${eq?'eq':''}">${imgTag(k)}<div class="nm">${T.n} ×${p.inv[k]}<small>${T.food?'饱食 +'+T.food:T.heal?'回血 +'+T.heal:T.dmg?'伤害 '+T.dmg+(T.tool?' · '+(T.tool==='axe'?'砍树':'挖矿')+'力 '+T.pow:''):T.arm?'减伤 '+Math.round(T.arm*100)+'%':T.rare?'稀有材料':'材料'}</small></div>${b}</div>`}).join('')+'</div>';
- const A=p.aw&&AW.find(a=>a.k===p.aw);if(A)h+=`<div class="sec">觉醒天赋</div><div class="it" style="border-color:${AWG[A.g].c}"><b style="color:${AWG[A.g].c};font-size:18px;width:24px;text-align:center">${A.g}</b><div class="nm">${A.n}${hasHome(p)?'':' <small style="display:inline;color:var(--bad)">（失效）</small>'}<small>${A.d}</small></div></div>`;
+ const A=p.aw&&AW.find(a=>a.k===p.aw);if(A)h+=`<div class="sec">觉醒天赋</div><div class="it" style="border-color:${AWG[A.g].c}"><b style="color:${AWG[A.g].c};font-size:18px;width:24px;text-align:center">${A.g}</b><div class="nm">${A.n}${talentsLive(p)?'':' <small style="display:inline;color:var(--bad)">（失效）</small>'}<small>${A.d}</small></div></div>`;
  const pets=G.mons.filter(m=>!m.dead&&m.pet===p.id);if(pets.length)h+=`<div class="sec">宠物</div><div class="grid">${pets.map(m=>`<div class="it">❤<div class="nm">${MON[m.k].n}<small>${PETS[m.k].d} · 血 ${Math.round(m.hp)}/${m.mhp}</small></div></div>`).join('')}</div>`;
- h+=`<div class="sec">天赋 ${hasHome(p)?'':'<span style="color:var(--bad)">（没有自己的木屋，全部失效）</span>'}</div>`;
+ h+=`<div class="sec">天赋 ${talentsLive(p)?'':'<span style="color:var(--bad)">（没有自己的木屋，全部失效）</span>'}</div>`;
  h+=p.tal.length?'<div class="grid">'+p.tal.map(k=>{const T=TALENTS.find(t=>t.k===k);return`<div class="it">⭐<div class="nm">${T.n}<small>${T.d}</small></div></div>`}).join('')+'</div>':'<div class="sub">升级就能选天赋</div>';
  if(p.talPend&&p.talPend.length)h+=`<div class="row"><button class="sm pri" onclick="showTalents()">⭐ 选天赋</button></div>`;
  return h}
@@ -1361,10 +1420,11 @@ function panCraft(p){const cab=nearOwnCabin(p,1.2);const mine=G.blds[p.cab];cons
   h+=`<div class="sec">升到 ${L+1} 级</div><div class="cost">${costHTML(p,C,mul)}</div><div class="row">${btn('up',{b:home.id},cab===home?'⬆ 升级木屋':'走到木屋旁边才能升级','pri',!ok||cab!==home)}</div>`}else h+='<div class="sec">木屋已经满级</div>'}
  const lv=maxCabLv(p.guild);h+=`<div class="sec">制作${cab?'':'（要站在自己公会的木屋旁边）'}</div><div class="grid">`;
  for(const Rc of RECIPE){const T=IT[Rc.k]||{n:Rc.n};const okLv=lv>=Rc.lv,okM=has(p,Rc.cost);
-  h+=`<div class="it">${imgTag(Rc.k)}<div class="nm">${T.n||Rc.n}<small>${okLv?costHTML(p,Rc.cost):'需要 '+Rc.lv+' 级木屋'}</small></div>${Rc.place?btn('place',{k:Rc.k},'放置','sm',!okLv||!okM):btn('craft',{k:Rc.k},'做','sm',!okLv||!okM||!cab)}</div>`}
+  h+=`<div class="it">${imgTag(Rc.k)}<div class="nm">${T.n||Rc.n}<small>${okLv?costHTML(p,Rc.cost):'需要 '+Rc.lv+' 级木屋'}</small></div>${Rc.place?btn('place',{k:Rc.k},'放置','sm',!okLv||!okM):(isVassal(p)&&T.potion!==1&&(T.tool||T.wpn||T.arm))?'<small>附属用贡献换</small>':btn('craft',{k:Rc.k},'做','sm',!okLv||!okM||!cab)}</div>`}
  return h+'</div>'}
 function panGuild(p){const g=G.guilds[p.guild];const lead=g&&g.leader===p.id;const ms=members(p.guild);let h=`<div class="row" style="margin-top:0"><span class="dot" style="background:${g.col}"></span><b>${esc(g.name)}</b> · 会长 ${esc((G.ps[g.leader]||{}).name||'')} · 魅力 ${charmOf(p)} · 实力分 ${guildScore(p.guild)} ${lead?btn('rename',{},'改名'):btn('g',{g:'leave'},'退出公会')}</div>`;
- h+='<div class="grid">'+ms.map(q=>`<div class="it"><span class="dot" style="background:${q.col}"></span><div class="nm">${esc(q.name)}${q.id===g.leader?' 👑':''}${q.npc?' <small style="display:inline">NPC</small>':''}<small>${q.alive?'Lv'+q.lvl+' · 击杀 '+q.kills:'💀 已出局'}</small></div></div>`).join('')+'</div>';
+ if(isVassal(p))h+=panContrib(p);
+ h+='<div class="grid">'+ms.map(q=>`<div class="it"><span class="dot" style="background:${q.col}"></span><div class="nm">${esc(q.name)}${q.id===g.leader?' 👑':''}${q.npc?' <small style="display:inline">NPC</small>':''}<small>${q.alive?'Lv'+q.lvl+' · 击杀 '+q.kills+(q.id!==g.leader&&G.host?' · 贡献 '+Math.floor(q.contrib||0):''):'💀 已出局'}</small></div></div>`).join('')+'</div>';
  const rq=G.reqs.filter(r=>r.to===p.id),iv=G.invites.filter(v=>v.to===p.id);
  if(rq.length||iv.length){h+='<div class="sec">📨 待回复</div>';for(const r of rq){const f=G.ps[r.from];if(f)h+=`<div class="it"><div class="nm">${esc(f.name)} 申请加入你的公会<small>魅力 ${charmOf(f)}，他会失去自己的木屋，成为你的附属</small></div>${btn('g',{g:'answer',from:r.from,yes:1},'同意')} ${btn('g',{g:'answer',from:r.from,yes:0},'拒绝')}</div>`}
   for(const v of iv){const f=G.ps[v.from];if(f)h+=`<div class="it"><div class="nm">${esc(f.name)} 邀请你加入 ${esc((G.guilds[f.guild]||{}).name||'')}<small>你会失去自己的木屋和天赋，成为附属；他们赢了你也赢</small></div>${btn('g',{g:'answer',from:v.from,yes:1,inv:1},'加入')} ${btn('g',{g:'answer',from:v.from,yes:0,inv:1},'拒绝')}</div>`}}
@@ -1382,7 +1442,7 @@ function panTrade(p){let h=`<div class="row" style="margin-top:0">${['mk','sell'
   h+='<div class="sec">从商人那里买（贵）</div><div class="grid">'+['wood','stone','iron','berry','meat'].map(k=>`<div class="it">${imgTag(k)}<div class="nm">${IT[k].n} ×5<small>${sysPrice(k,true)*5} 金币</small></div>${btn('tr',{t:'buy',k,q:5},'买','sm',p.gold<sysPrice(k,true)*5)}</div>`).join('')+'</div><div class="sub">稀有材料（怪物核心、天灾结晶）商人不卖，只能打怪、去天灾区或者在交易行跟人买。</div>'}
  return h}
 function panMap(p){return`<canvas id="mapC" width="${Math.min(600,G.map.W*3)}" height="${Math.min(600,G.map.H*3)}"></canvas><div class="sub">方块 = 木屋（圈 = 领地），圆点 = 人，彩色圆 = 正在发生的天灾。</div>`}
-function showTalents(){const p=meP();if(!p||!p.talPend||!p.talPend.length)return;const o=p.talPend[0];$('talNote').textContent=hasHome(p)?'':'（你现在没有自己的木屋，选了也要有木屋才生效）';
+function showTalents(){const p=meP();if(!p||!p.talPend||!p.talPend.length)return;const o=p.talPend[0];$('talNote').textContent=talentsLive(p)?'':'（你现在没有自己的木屋，选了也要有木屋才生效）';
  $('talOpts').innerHTML=o.map(k=>{const T=TALENTS.find(t=>t.k===k);return`<div class="opt" data-k="${k}"><b>${T.n}</b>${T.d}</div>`}).join('');$('talP').classList.remove('hide');
  $('talOpts').querySelectorAll('.opt').forEach(d=>d.onclick=()=>{act('talent',{k:d.dataset.k});if(!G.host){p.talPend.shift();if(!p.talPend.length)p.talPend=null;p.tal.push(d.dataset.k)}$('talP').classList.add('hide');UI.talShown=0;sfx('up');setTimeout(()=>{const q=meP();if(q.talPend&&q.talPend.length)showTalents()},300)})}
 function onMeDied(){toast('💀 <b>你死了</b>，出局。可以继续观战','bad');sfx('die');closePanels()}
@@ -1390,6 +1450,11 @@ function onMatchOver(){const O=G.over;if(!O)return;const p=meP();const rk=O.rk||
  $('endT').textContent=O.why==='host'?'房主离开了':win?'🏆 你的公会赢了！':'这局输了';$('endD').textContent=O.why==='time'?'20 分钟到了，按公会实力排名':O.why==='last'?'只剩一个公会还有人活着':O.why==='host'?'':'';
  const fame=awardFame();if(fame)$('endD').textContent+=` · 获得 ${fame} 声望（共 ${PROF.fame}）`;
  $('endRk').innerHTML='<tr><td>名次</td><td>公会</td><td>人数</td><td>实力分</td></tr>'+rk.map((g,i)=>`<tr style="${p&&g.id===p.guild?'background:#ffc85022':''}"><td>${i+1}</td><td><span class="dot" style="background:${g.col}"></span>${esc(g.name)}</td><td>${g.alive}/${g.n}</td><td>${g.score}</td></tr>`).join('');sfx(win?'up':'die')},600)}
+
+function panContrib(p){const lv=maxCabLv(p.guild);let h=`<div class="sec">⭐ 贡献值 <b style="color:var(--acc)">${Math.floor(p.contrib||0)}</b> <span class="sub">（做任务、采集、在公会领地杀怪/守夜、上交材料都能攒）</span></div>`;
+ if(p.tasks&&p.tasks.length)h+='<div class="grid">'+p.tasks.map(T=>`<div class="it ${T.done?'eq':''}">📜<div class="nm">${T.txt}<small>${T.done?'✅ 完成':T.have+'/'+T.need} · 贡献 +${T.rw}</small></div></div>`).join('')+'</div>';else h+='<div class="sub">今天的任务天亮时发</div>';
+ const ds=Object.keys(DONV).filter(k=>(p.inv[k]||0)>0);if(ds.length)h+=`<div class="row"><b>上交给会长</b> <select id="dnK">${ds.map(k=>`<option value="${k}">${IT[k].n}（有 ${p.inv[k]}）· 每个 +${DONV[k]}</option>`).join('')}</select> 数量 <input type="number" id="dnQ" value="10" min="1" style="width:60px"> ${btn('donateIn',{},'上交','sm pri')}</div>`;
+ h+='<div class="sec">🏪 公会兑换（用贡献值）</div><div class="grid">'+Object.keys(EXCH).map(k=>{const Rc=RECIPE.find(r=>r.k===k);const ok=lv>=Rc.lv;return`<div class="it">${imgTag(k)}<div class="nm">${IT[k].n}<small>${ok?EXCH[k]+' 贡献':'公会木屋要 '+Rc.lv+' 级'}</small></div>${btn('exch',{k},'换','sm',!ok||(p.contrib||0)<EXCH[k])}</div>`}).join('')+'</div><div class="sec">成员</div>';return h}
 
 // ================= 主流程：菜单、开局、主循环 =================
 const MENU={npcs:5,safe:2};
@@ -1403,9 +1468,9 @@ function lobbyUI(){if(!NET.on)return;$('lbCode').textContent=NET.room;const ps=O
  if(!NET.host)$('lbMsg').textContent=NET.cfg?`NPC ${NET.cfg.npcs} 个 · 安全期 ${NET.cfg.safe} 天 · 等房主开始`:'等房主开始';segUI()}
 function randCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s}
 function menuInit(){segUI();
- $('bSolo').onclick=()=>{auInit();saveMenu();NET.on=false;startGame({seed:(Math.random()*1e9)|0,humans:[{id:NET.me,name:myName(),lk:myLook()}],npcs:Math.max(1,MENU.npcs),safe:MENU.safe,me:NET.me,host:true})};
- $('bHost').onclick=()=>{auInit();saveMenu();const c=randCode();$('menu').classList.add('hide');$('lobby').classList.remove('hide');netOpen(c,true);lobbyUI()};
- $('bJoin').onclick=()=>{auInit();saveMenu();const c=($('code').value||'').trim().toUpperCase();if(c.length!==4){toast('输入 4 位房间码','bad');return}$('menu').classList.add('hide');$('lobby').classList.remove('hide');netOpen(c,false);lobbyUI()};
+ $('bSolo').onclick=()=>{auInit();if(isTouch)goFull();saveMenu();NET.on=false;startGame({seed:(Math.random()*1e9)|0,humans:[{id:NET.me,name:myName(),lk:myLook()}],npcs:Math.max(1,MENU.npcs),safe:MENU.safe,me:NET.me,host:true})};
+ $('bHost').onclick=()=>{auInit();if(isTouch)goFull();saveMenu();const c=randCode();$('menu').classList.add('hide');$('lobby').classList.remove('hide');netOpen(c,true);lobbyUI()};
+ $('bJoin').onclick=()=>{auInit();if(isTouch)goFull();saveMenu();const c=($('code').value||'').trim().toUpperCase();if(c.length!==4){toast('输入 4 位房间码','bad');return}$('menu').classList.add('hide');$('lobby').classList.remove('hide');netOpen(c,false);lobbyUI()};
  $('bStart').onclick=()=>{if(NET.host)hostStart()};$('bLeave').onclick=()=>{netLeave();$('lobby').classList.add('hide');$('menu').classList.remove('hide')};
  $('bAgain').onclick=()=>{netLeave();location.reload()};
  document.querySelectorAll('#panTabs button[data-t]').forEach(b=>b.onclick=()=>openPanel(b.dataset.t));$('panX').onclick=closePanels;$('pan').addEventListener('pointerdown',e=>{if(e.target.id==='pan')closePanels()});
@@ -1413,8 +1478,11 @@ function menuInit(){segUI();
  $('mini').onclick=()=>togglePanel('map');
  $('bShop').onclick=()=>{$('shopP').classList.remove('hide');shopRender()};$('shopX').onclick=()=>{$('shopP').classList.add('hide');$('fameN').textContent=PROF.fame};$('fameN').textContent=PROF.fame;
  $('mChest').onclick=()=>{auInit();act('chest')};$('chestOk').onclick=()=>{$('chestP').classList.add('hide');uiDirty()};$('awOk').onclick=()=>{$('awP').classList.add('hide')};$('mChat').onclick=()=>togglePanel('chat');
+ $('bFull').onclick=()=>{goFull(!document.fullscreenElement)};
  $('bSnd').onclick=()=>{auInit();sndToggle()};sndBtn();
+ RD.cv.addEventListener('pointerdown',e=>{if(!G||!G.on||!UI.place)return;const p=meP();if(!p)return;const lx=e.clientX/innerWidth*RD.LW+RD.cx,ly=e.clientY/innerHeight*RD.LH+RD.cy;const tx=Math.floor(lx/TS),ty=Math.floor(ly/TS);if(dd(p.x,p.y,tx+.5,ty+.5)>3.6){toast('太远了，点近一点的格子');return}const k=UI.place;p.aim={x:(tx+.5-p.x),y:(ty+.5-p.y)};const m=Math.hypot(p.aim.x,p.aim.y)||1;p.aim.x/=m;p.aim.y/=m;act('wall',{k,x:tx,y:ty,r:UI.rot?1:0})});
  holdBtn($('bAtk'),()=>{auInit();IN.atk=true},()=>{IN.atk=false});setupJoy()}
+function goFull(on=true){try{if(on){const el=document.documentElement;const rq=el.requestFullscreen||el.webkitRequestFullscreen;if(rq&&!document.fullscreenElement){const pr=rq.call(el,{navigationUI:'hide'});(pr&&pr.then?pr:Promise.resolve()).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}else{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}}else{try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}}catch(e){}}
 function startGame(cfg){if(!ART.tile)artAll();newGame(cfg);const M=G.map;M.rIdx=new Map();for(const o of M.res)if(!blocksRes(o.k))M.rIdx.set(o.y*M.W+o.x,o.i);
  RD.chunks.clear();MINI.base=null;$('menu').classList.add('hide');$('lobby').classList.add('hide');$('hud').classList.remove('hide');const p=meP();G.camX=p.x;G.camY=p.y;
  toast(`你出生在<b>${BIOMES[p.bio].n}</b>。前 ${G.safe} 天是安全期，抓紧砍树敲石头升级木屋！`,'good');setTimeout(()=>toast('靠近树、石头按 ⚔ 采集 · 回到木屋旁点「木屋」升级'),3500);uiDirty();CHAT.log=[];UI.awShown=0;if(G.host){UI.awShown=1;setTimeout(showAwaken,700)}}
