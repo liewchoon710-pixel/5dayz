@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.7 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.8 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -684,6 +684,7 @@ function animReal(ud,dt,speed,o={}){// speed in m/s
  else{const gun=(o.gun||o.block)&&A.idle_gun;base=o.climb?'walk':speed>3?(gun?'run_gun':'run'):speed>.15?(gun?'walk_gun':'walk'):(gun?'idle_gun':'idle');}
  if(!A[base])base='idle';
  // one-shot triggers
+ if(!o.dead&&ud.dead){ud.dead=false;const da=ud.act.death;if(da){da.stop();da.setEffectiveWeight(0)}ud.one=null}
  if(o.dead){if(!ud.dead){ud.dead=true;playOnce(ud,'death')}}
  else if(o.down>0){if(!(ud.one&&ud.one.name==='death'))playOnce(ud,'death',1.6);if(ud.one)ud.one.t=Math.max(ud.one.t,.1)}
  else if(ud.one&&ud.one.name==='death'&&!ud.dead){ud.one.t=0}
@@ -751,6 +752,7 @@ function animMX(ud,dt,speed,o){const A=ud.act;let base;
  if(ud.zombie){base=o.pile||o.climb?'climb':o.crawl&&A.crawl?'crawl':speed>2.2?'run':speed>.12?'walk':'idle'}
  else{const gun=o.gun&&A.idle_gun;base=o.climb?'climb':o.block&&!gun&&A.block?'block':speed>3?(gun?'run_gun':'run'):speed>.15?(gun?'walk_gun':'walk'):o.crouch&&A.crouch&&!o.roll?'crouch':gun?'idle_gun':'idle'}
  if(!A[base])base='idle';
+ if(!o.dead&&ud.dead){ud.dead=false;const da=ud.act.death;if(da){da.stop();da.setEffectiveWeight(0)}ud.one=null}
  if(o.dead){if(!ud.dead){ud.dead=true;playOnce(ud,'death')}}
  else if(o.down>0){if(!(ud.one&&ud.one.name==='death'))playOnce(ud,'death',1.6);if(ud.one)ud.one.t=Math.max(ud.one.t,.1)}
  else if(ud.one&&ud.one.name==='death'&&!ud.dead){ud.one.t=0}
