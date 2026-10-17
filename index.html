@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.2 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.3 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1939,9 +1939,9 @@ function renderHand(){if(G.over)return;const p=G.p,el=$('hand');const parts=[];i
 const QUAL={lv:1,names:['低','中','高']};try{const v=+localStorage.getItem('scwr-q');if(v>=0&&v<=2)QUAL.lv=v}catch(e){}
 // ---- performance: adaptive resolution, cheaper shadows on phones ----
 const PERF={s:1,acc:0,n:0,f:0,coarse:matchMedia('(pointer:coarse)').matches};
-function perfRes(){const q=QUAL.lv;const cap=Math.min([1,1.5,2][q],devicePixelRatio||1);renderer.setPixelRatio(Math.max(.5,cap*PERF.s))}
+function perfRes(){const q=QUAL.lv;const dpr=devicePixelRatio||1;const cap=Math.min([1.25,1.6,2][q],dpr);renderer.setPixelRatio(Math.max(Math.min(dpr,.9),cap*PERF.s))}
 function perfTick(raw){if(!renderer||!G||G.pause||$('hud').hidden||raw>.25)return;PERF.acc+=raw;PERF.n++;if(PERF.acc<1.5)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;
- let s=PERF.s;if(avg>1/38)s=Math.max(.5,s-.12);else if(avg<1/55)s=Math.min(1,s+.05);if(Math.abs(s-PERF.s)>.001){PERF.s=s;perfRes();resize()}}
+ let s=PERF.s;if(avg>1/34)s=Math.max(.72,s-.08);else if(avg<1/55)s=Math.min(1,s+.05);if(Math.abs(s-PERF.s)>.001){PERF.s=s;perfRes();resize()}}
 function perfShadow(){PERF.f++;if(!PERF.coarse){renderer.shadowMap.autoUpdate=true;return}renderer.shadowMap.autoUpdate=false;if(PERF.f%2===0)renderer.shadowMap.needsUpdate=true}
 const FRU=new T3.Frustum(),FRM=new T3.Matrix4(),FRS=new T3.Sphere();
 function fruUpd(){camera.updateMatrixWorld();FRM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);FRU.setFromProjectionMatrix(FRM)}
@@ -2197,7 +2197,13 @@ function updateCamera(dt){const p=G.p;const k=Math.min(1,dt*8);cam.shk=Math.max(
   if(joy.x||joy.y||keys.w||keys.s||keys.a||keys.d){}return}
  if(isMaze()||cam.sh){mazeCam(dt);return}
  if(camera.fov!==50){camera.fov=50;camera.updateProjectionMatrix()}
- const D=G.inside?Math.min(cam.dist,11):cam.dist,ph=cam.pitch;const h=Math.sin(ph)*D,r=Math.cos(ph)*D;
+ let D=G.inside?Math.min(cam.dist,11):cam.dist;let ph=cam.pitch;
+ // keep the camera out of buildings: first tilt up over the obstacle, only pull in if that is not enough
+ {const II=G.inside&&G.interiors[G.inside];const ox=cam.tx,oy=cam.ty+.8,oz=cam.tz;
+  const clear=(pp,dist)=>{const sx=Math.sin(cam.yaw)*Math.cos(pp),sy=Math.sin(pp),sz=Math.cos(cam.yaw)*Math.cos(pp);for(let s=.6;s<=dist;s+=.35){const x=ox+sx*s,y=oy+sy*s,z=oz+sz*s;if(camHit(x,z,y)||(II&&(Math.abs(x)>II.w/2-.25||Math.abs(z)>II.d/2-.25)))return Math.max(1.6,s-.45)}return dist};
+  let wp=ph,wd=clear(ph,D);if(wd<D-.01){for(let pp=ph+.12;pp<=1.42;pp+=.12){const d2=clear(pp,D);if(d2>=D-.01){wp=pp;wd=D;break}if(d2>wd){wd=d2;wp=pp}}}
+  cam.oP=lerp(cam.oP??ph,wp,Math.min(1,dt*(wp>(cam.oP??ph)?6:2)));cam.oD=wd<(cam.oD??D)?wd:lerp(cam.oD??D,wd,Math.min(1,dt*2.5));ph=Math.max(ph,cam.oP);D=Math.min(D,cam.oD)}
+ const h=Math.sin(ph)*D,r=Math.cos(ph)*D;
  const sk=cam.shk*cam.shk*1.6,jx=(Math.random()-.5)*sk,jy=(Math.random()-.5)*sk;camera.position.set(cam.tx+Math.sin(cam.yaw)*r+jx,cam.ty+h+.8+jy,cam.tz+Math.cos(cam.yaw)*r);camera.lookAt(cam.tx+jx*.5,cam.ty+.8+jy*.5,cam.tz)}
 function dayLight(){// returns 0..1 brightness, and sun angle
  const len=G.night?G.nightLen:G.dayLen,t=G.phaseT/len;
@@ -4374,7 +4380,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 // ---------- installable app (PWA): offline cache + 'install' button on the start screen ----------
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$|vercel\.app$|netlify\.app$/.test(location.hostname))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
 const APP={evt:null};
