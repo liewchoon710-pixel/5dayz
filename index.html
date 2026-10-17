@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.3 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.4 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -416,7 +416,7 @@ function cvs(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;
 function speckle(g,w,h,n,a,dark){for(let i=0;i<n;i++){const v=Math.random();g.fillStyle=dark?`rgba(0,0,0,${a*v})`:`rgba(255,255,255,${a*v})`;g.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2)}}
 function grime(g,w,h,a){const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(.7,`rgba(20,16,10,${a*.4})`);gr.addColorStop(1,`rgba(20,14,8,${a})`);g.fillStyle=gr;g.fillRect(0,0,w,h);
  for(let i=0;i<14;i++){const x=Math.random()*w,l=h*rnd(.2,.9);const s=g.createLinearGradient(x,0,x,l);s.addColorStop(0,`rgba(10,8,6,${a*.5})`);s.addColorStop(1,'rgba(10,8,6,0)');g.fillStyle=s;g.fillRect(x,0,rnd(2,7),l)}}
-function mkTex(c,rx=1,ry=1){const t=new T3.CanvasTexture(c);t.wrapS=t.wrapT=T3.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=4;t.encoding=T3.sRGBEncoding;return t}
+function mkTex(c,rx=1,ry=1){const t=new T3.CanvasTexture(c);t.wrapS=t.wrapT=T3.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=matchMedia('(pointer:coarse)').matches?2:4;t.encoding=T3.sRGBEncoding;return t}
 function mkBump(c,rx=1,ry=1){const t=new T3.CanvasTexture(c);t.wrapS=t.wrapT=T3.RepeatWrapping;t.repeat.set(rx,ry);return t}
 // facade: one window bay (4m wide x 3m tall) tiled
 function facadeTex(style){
@@ -611,12 +611,12 @@ function loadModels(onDone,onProg){if(MODELS.state==='loading'||MODELS.state==='
  const glb=(path,ok)=>jobs.push(new Promise(res=>{L.load(ASSET_BASE+path,g=>{try{ok(g)}catch(e){console.warn(path,e)}tick();res()},undefined,e=>{console.warn('asset fail',path);tick();res()})}));
  const tex=(name,ok)=>jobs.push(new Promise(res=>{TL.load(ASSET_BASE+'tex/'+name+'.jpg',t=>{ok(t);tick();res()},undefined,()=>{tick();res()})}));
  MODELS.pack=MODELS.hd?'hd':'classic';if(MODELS.hd){glb(MX.dir+'anims.glb',g=>{MX.anims=g.animations;if(g.userData&&g.userData.rest&&g.userData.rest.h_idle)MX.rest=g.userData.rest.h_idle;MX.clipC=new Map()});
-  MODELS.ptex=MODELS.ptex||{};for(const n of HDENV)if(!MODELS.ptex[n])jobs.push(new Promise(res=>{TL.load(ASSET_BASE+MX.dir+'env/'+n+'.webp',t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=8;t.encoding=T3.sRGBEncoding;MODELS.ptex[n]=t;tick();res()},undefined,()=>{tick();res()})}));
+  MODELS.ptex=MODELS.ptex||{};for(const n of HDENV)if(!MODELS.ptex[n])jobs.push(new Promise(res=>{TL.load(ASSET_BASE+MX.dir+'env/'+n+'.webp',t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=(matchMedia('(pointer:coarse)').matches?2:8);t.encoding=T3.sRGBEncoding;MODELS.ptex[n]=t;tick();res()},undefined,()=>{tick();res()})}));
   const me=mxMyHum();const need=new Set([me,...Object.values(MX.kind).flat()]);for(const n of need)glb(MX.dir+n+'.glb',g=>{mxPrep(g,n);if(n===me)MODELS.g.player=g;if(MX.kind.walker.includes(n)&&!MODELS.g.walker)MODELS.g.walker=g})}
  else for(const k in CHAR_SRC)glb(CHAR_SRC[k],g=>{g.h=skinHeight(g.scene);g.clips={};for(const c of g.animations)g.clips[c.name.toLowerCase()]=c;if(g.h>.2&&g.animations.length)MODELS.g[k]=g});
  for(const k in PROP_SRC)glb('props/'+k+'.glb',g=>{g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms){m.envMapIntensity=.45;if(m.map)m.map.anisotropy=4}}});const bx=new T3.Box3().setFromObject(g.scene),w=new T3.Group();g.scene.position.set(-(bx.min.x+bx.max.x)/2,-bx.min.y,-(bx.min.z+bx.max.z)/2);w.add(g.scene);MODELS.props[k]=w});
  const tn=new Set();for(const k in FACADE){tn.add(FACADE[k][0]);if(FACADE[k][3])tn.add(FACADE[k][3])}
- for(const n of tn)tex(n,t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=8;if(!/_n$/.test(n))t.encoding=T3.sRGBEncoding;MODELS.tex[n]=t});
+ for(const n of tn)tex(n,t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=(matchMedia('(pointer:coarse)').matches?2:8);if(!/_n$/.test(n))t.encoding=T3.sRGBEncoding;MODELS.tex[n]=t});
  MODELS.total=jobs.length;MODELS.done=0;let fin=false;
  const end=()=>{if(fin)return;fin=true;MODELS.state=(MODELS.g.player&&MODELS.g.walker&&(!MODELS.hd||MX.anims))?'ready':'fail';if(MODELS.state==='ready'&&MODELS.hd&&NET.on)for(const n of MX.hum)mxLoad(n);if(MODELS.state==='fail')MODELS.why=MODELS.done<MODELS.total?'超时':'加载出错';onDone&&onDone(MODELS.state==='ready')};
  setTimeout(end,35000);Promise.all(jobs).then(end)}
@@ -718,7 +718,7 @@ function skinUI(){const seg=$('skinSeg');if(!seg)return;let cur=0;try{const v=lo
 setTimeout(()=>{skinUI();document.querySelectorAll('#mdlSeg button').forEach(b=>b.addEventListener('click',()=>setTimeout(skinUI,0)))},0);
 function mxSkin(kind,v){if(kind==='player'){if(!(v&&v.id))return mxMyHum();const q=NET.peers&&NET.peers[v.id];if(q&&q.sk!=null&&MX.hum[q.sk])return MX.hum[q.sk];const i=NET.list?Math.max(0,NET.list.findIndex(o=>o.id===v.id)):0;return MX.hum[i%MX.hum.length]}
  const L=MX.kind[kind]||MX.kind[KMODEL[kind]]||MX.kind.walker;return L[Math.floor(Math.random()*L.length)]}
-function mxPrep(g,n){g.mxName=n;g.h=skinHeight(g.scene);g.hipsY=MX.rest;g.scene.traverse(o=>{if(o.isBone&&/Hips$/.test(o.name)&&g.hipsY===MX.rest)g.hipsY=o.position.y});MODELS.g['mx:'+n]=g}
+function mxPrep(g,n){g.mxName=n;{const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});for(const o of rm)o.parent&&o.parent.remove(o)}g.h=skinHeight(g.scene);g.hipsY=MX.rest;g.scene.traverse(o=>{if(o.isBone&&/Hips$/.test(o.name)&&g.hipsY===MX.rest)g.hipsY=o.position.y});MODELS.g['mx:'+n]=g}
 function mxLoad(n){if(MODELS.g['mx:'+n]||MX.pend[n]||!T3.GLTFLoader)return;MX.pend[n]=1;new T3.GLTFLoader().load(ASSET_BASE+MX.dir+n+'.glb',g=>{try{mxPrep(g,n)}catch(e){console.warn(e)}},undefined,()=>{})}
 // same clips for every body; the hips height track is rescaled to each body so nobody floats or sinks
 function mxClips(g){let C=MX.clipC.get(g);if(C)return C;C={};const k=g.hipsY/MX.rest;
@@ -782,6 +782,14 @@ function hdFacade(b,u,v){if(!hdOn())return null;const h=hdHash(b.id),s=b.style;l
 // graffiti + rusty shutter across the ground floor of shops
 function hdShopfront(g,b){if(!hdOn()||!MODELS.ptex.shopfront||!['shop','bar','pharmacy','hardware','gunshop','mall','ware','garage','motel'].includes(b.type))return;const D=b.door;const along=D.nz?b.x1-b.x0:b.z1-b.z0;const L=along-.3;
  const fx=D.nz?(b.x0+b.x1)/2:D.x+D.nx*.025,fz=D.nz?D.z+D.nz*.025:(b.z0+b.z1)/2;const m=M('plane',hdMat('shopfront',L,3.2,{bs:.03}),L,3.2,1,fx,1.6,fz,g,false);m.rotation.y=Math.atan2(D.nx,D.nz)}
+
+// riding a bike: sit, lean forward, hands on the bars, legs pedalling (procedural, on top of the idle clip)
+const BIKEP={th:-1.5,thA:.38,sh:1.4,shA:.45,sp:.18,ua:[-1.1,.3,.7],fa:[0,-.5,0],ph:0};
+function bikePose(ud,dt,speed){const B=ud.bones;if(!B)return;BIKEP.ph+=dt*(2+speed*2.2);const ph=BIKEP.ph,P=BIKEP;const g=n=>B['mixamorig'+n];
+ const sp=g('spine');if(sp)sp.rotation.x+=P.sp;const sp1=g('spine1');if(sp1)sp1.rotation.x+=P.sp*.4;
+ for(const [s,o] of [['left',0],['right',Math.PI]]){const ul=g(s+'upleg'),lg=g(s+'leg'),ft=g(s+'foot');
+  if(ul){ul.rotation.set(0,0,ul.rotation.z);ul.rotateX(P.th+P.thA*Math.sin(ph+o))}if(lg){lg.rotation.set(P.sh+P.shA*Math.cos(ph+o),0,0)}if(ft)ft.rotation.x=-.3;
+  const ua=g(s+'arm'),fa=g(s+'forearm');const k=s==='left'?1:-1;if(ua){ua.rotation.set(P.ua[0],P.ua[1]*k,P.ua[2]*k)}if(fa){fa.rotation.set(P.fa[0],P.fa[1]*k,P.fa[2]*k)}}}
 
 
 // ================= 更大的城市：核心城区（手工）+ 外围街区（按难度程序生成，每局不同） =================
@@ -943,7 +951,7 @@ function unstick(e,r=.3){for(const s of solidsOf(e.x,e.z)){if(!(s.top>e.y+STEP&&
 
 // ================= renderer / scene =================
 function gl(){
- renderer=new T3.WebGLRenderer({canvas:$('gl'),antialias:true,powerPreference:'high-performance'});
+ renderer=new T3.WebGLRenderer({canvas:$('gl'),antialias:!matchMedia('(pointer:coarse)').matches,powerPreference:'high-performance'});
  renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T3.PCFSoftShadowMap;
  renderer.outputEncoding=T3.sRGBEncoding;renderer.toneMapping=T3.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
  scene=new T3.Scene();camera=new T3.PerspectiveCamera(50,1,.1,220);
@@ -1939,15 +1947,15 @@ function renderHand(){if(G.over)return;const p=G.p,el=$('hand');const parts=[];i
 const QUAL={lv:1,names:['低','中','高']};try{const v=+localStorage.getItem('scwr-q');if(v>=0&&v<=2)QUAL.lv=v}catch(e){}
 // ---- performance: adaptive resolution, cheaper shadows on phones ----
 const PERF={s:1,acc:0,n:0,f:0,coarse:matchMedia('(pointer:coarse)').matches};
-function perfRes(){const q=QUAL.lv;const dpr=devicePixelRatio||1;const cap=Math.min([1.25,1.6,2][q],dpr);renderer.setPixelRatio(Math.max(Math.min(dpr,.9),cap*PERF.s))}
-function perfTick(raw){if(!renderer||!G||G.pause||$('hud').hidden||raw>.25)return;PERF.acc+=raw;PERF.n++;if(PERF.acc<1.5)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;
+function perfRes(){const q=QUAL.lv;const dpr=devicePixelRatio||1;const cap=Math.min(PERF.coarse?[1.6,2,2.4][q]:[1.25,1.6,2][q],dpr);renderer.setPixelRatio(cap)}
+function perfTick(raw){return;if(!renderer||!G||G.pause||$('hud').hidden||raw>.25)return;PERF.acc+=raw;PERF.n++;if(PERF.acc<1.5)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;
  let s=PERF.s;if(avg>1/34)s=Math.max(.72,s-.08);else if(avg<1/55)s=Math.min(1,s+.05);if(Math.abs(s-PERF.s)>.001){PERF.s=s;perfRes();resize()}}
 function perfShadow(){PERF.f++;if(!PERF.coarse){renderer.shadowMap.autoUpdate=true;return}renderer.shadowMap.autoUpdate=false;if(PERF.f%2===0)renderer.shadowMap.needsUpdate=true}
 const FRU=new T3.Frustum(),FRM=new T3.Matrix4(),FRS=new T3.Sphere();
 function fruUpd(){camera.updateMatrixWorld();FRM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);FRU.setFromProjectionMatrix(FRM)}
 function inFru(x,y,z,r){FRS.center.set(x,y,z);FRS.radius=r;return FRU.intersectsSphere(FRS)}
-function applyQuality(){if(!renderer)return;const q=QUAL.lv;perfRes();const ms=PERF.coarse?[512,1024,2048][q]:[1024,2048,2048][q];if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}
- renderer.shadowMap.type=q===0?T3.PCFShadowMap:T3.PCFSoftShadowMap;flash.castShadow=q>1;resize()}
+function applyQuality(){if(!renderer)return;const q=QUAL.lv;perfRes();renderer.shadowMap.enabled=!(PERF.coarse&&q===0);if(camera){camera.far=PERF.coarse&&q===0?130:220;camera.updateProjectionMatrix()}const ms=PERF.coarse?[512,1024,2048][q]:[1024,2048,2048][q];if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}
+ renderer.shadowMap.type=q===0||PERF.coarse&&q<2?T3.PCFShadowMap:T3.PCFSoftShadowMap;flash.castShadow=q>1;resize()}
 // ---- CSS colour grading + film grain (cheap, GPU-friendly) ----
 let grainEl=null;
 function initGrade(){if(grainEl)return;const [c,g]=cvs(128,128);const id=g.createImageData(128,128);for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}g.putImageData(id,0,0);
@@ -2126,6 +2134,7 @@ function syncScene(dt){meltPools(dt);fruUpd();
  const RM=MODELS.state==='ready';const ZP=NET.zp;const pe=ent(RM?(ZP?'playerZR':'playerR'):(ZP?'playerZ':'player'),()=>RM?realModel(ZP?'walker':'player'):ZP?zombieModel({kind:'walker',id:7}):playerModel());const pm=pe.m;const pvx=(p.x-(pm.userData.lx??p.x)),pvz=(p.z-(pm.userData.lz??p.z));const psp=dt>0?Math.hypot(pvx,pvz)/dt:0;pm.userData.lx=p.x;pm.userData.lz=p.z;pm.position.set(p.x,p.y,p.z);pm.rotation.y=p.ang;const ud=pm.userData;
  const isGun=!!(p.weapon&&IT[p.weapon].kind==='gun');if(ud.real)animReal(ud,dt,p.climb?1:(p.roll||p.bike?0:psp),{zombie:ZP?1:0,climb:!!p.climb,t:G.t,gun:isGun,aim:isGun&&!p.climb&&!p.roll&&!p.grab&&(p.aimT>0||!!gunTarget(IT[p.weapon])),recoil:p.recoil||0,block:p.block,crouch:p.crouch||!!p.bike,roll:p.roll?Math.min(1,p.roll.t/.48):null,grabbed:!!p.grab,shove:p.shoveT>0,thr:p.throwT>0?1-p.throwT/.45:null,attack:p.swing>.85&&!(p.shoveT>0)&&!isGun&&!(p.throwT>0),atk:!p.weapon?'punch':p.weapon==='knife'?'stab':'slash',hit:p.hurtT>.3&&!p.grab,dead:p.hp<=0});else{pose(ud,p.anim,p.climb?0:(p.mv?(p.mv>1?1:.7):0),{climb:!!p.climb,t:G.t,carry:!!p.carry,swing:p.swing,aim:p.aimT>0});pm.scale.y=p.crouch?.72:1;if(p.roll){const th=Math.min(1,p.roll.t/.48)*Math.PI*2;pm.rotation.x=0;ud.body&&(ud.body.rotation.x=th)}else if(ud.body&&!p.climb)ud.body.rotation.x=0}if(p.hide){pm.visible=false}
  if(ud.wk!==p.weapon&&ud.hand){ud.wk=p.weapon;ud.hand.clear();if(!(ud.real&&setWeapon(ud,p.weapon))){const wm=weaponMesh(p.weapon);if(ud.real){wm.rotation.set(Math.PI/2,0,0)}ud.hand.add(wm)}}
+ if(ud.real&&p.bike)bikePose(ud,dt,psp);
  PLAYER_UD=ud;
  if(p.carry){if(!ud.carry||ud.carryK!==p.carry.k){if(ud.carry)pm.remove(ud.carry);ud.carry=itemModel(p.carry.k);ud.carry.userData.ring.visible=false;ud.carryK=p.carry.k;pm.add(ud.carry);if(p.carry.k==='gascan')ud.carry.position.set(0,.6,.35);else{ud.carry.position.set(0,1.25,.1);ud.carry.rotation.z=.12}}}else if(ud.carry){pm.remove(ud.carry);ud.carry=null}
  pm.visible=!cam.fp&&!p.hide&&!p.inCar&&!p.ghost;
@@ -4380,7 +4389,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={BIKEP,bikeOn,get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 // ---------- installable app (PWA): offline cache + 'install' button on the start screen ----------
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$|vercel\.app$|netlify\.app$/.test(location.hostname))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
 const APP={evt:null};
