@@ -1,5 +1,5 @@
 // 木屋求生 · offline cache. The page is network-first so you always get the newest version when online.
-const V='mwq-v4';
+const V='mwq-v5';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).catch(()=>{}));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('mwq-')&&k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

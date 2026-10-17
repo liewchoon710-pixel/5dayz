@@ -123,7 +123,7 @@ table.rk{width:100%;border-collapse:collapse;font-size:13px}table.rk td{padding:
 <body>
 <canvas id="cv"></canvas>
 <div id="menu"><div class="card">
- <h1>木屋求生</h1><div class="sub">从一间小木屋开始，在天灾和怪物里活下去 · 一局最多 20 分钟 · 试玩版 <span id="ver">0.3.1</span></div>
+ <h1>木屋求生</h1><div class="sub">从一间小木屋开始，在天灾和怪物里活下去 · 一局最多 20 分钟 · 试玩版 <span id="ver">0.3.2</span></div>
  <div class="row"><label>名字</label><input type="text" id="nm" maxlength="8" placeholder="你的名字"></div>
  <div class="row"><label>NPC 数量</label><div class="seg" id="npcSeg"></div></div>
  <div class="row"><label>安全期</label><div class="seg" id="safeSeg"><button data-v="1">1 天</button><button data-v="2">2 天</button><button data-v="3">3 天</button></div></div>
@@ -746,12 +746,19 @@ function projTick(dt){for(let i=G.projs.length-1;i>=0;i--){const q=G.projs[i];q.
     if(!hit&&pvpOn()&&q.pid)for(const id in G.ps){const p=G.ps[id];if(p.alive&&p.guild!==q.guild&&dd(p.x,p.y-.3,q.x,q.y)<.5){hurtPlayer(p,q.dmg*.75,{pid:q.pid});hit=true;break}}}}
   if(hit||q.life<=0){if(q.k==='acid'&&G.host)fxAdd('acid',q.x,q.y,{t:.6});G.projs.splice(i,1)}}}
 // ---------- cabin towers ----------
-function towerTick(dt){if(!G.host)return;G._rg=(G._rg||0)+dt;const regen=G._rg>=1;if(regen)G._rg-=1;for(const B of Object.values(G.blds)){if(regen&&!B.dead&&!G.night&&B.hp<B.mhp&&G.t-(B.lastHit||-99)>6){B.hp=Math.min(B.mhp,B.hp+B.mhp*.004);if(Math.random()<.2)G.bDirty=true}if(B.dead||B.k!=='cabin'||B.lv<3)continue;B.tw-=dt;if(B.tw>0)continue;const o=G.ps[B.owner];B.tw=o&&talOn(o,'guard')?.8:1.15;
+function towerTick(dt){if(!G.host)return;if(isSafe())safeGuard(dt);G._rg=(G._rg||0)+dt;const regen=G._rg>=1;if(regen)G._rg-=1;for(const B of Object.values(G.blds)){if(regen&&!B.dead&&!G.night&&B.hp<B.mhp&&G.t-(B.lastHit||-99)>6){B.hp=Math.min(B.mhp,B.hp+B.mhp*.004);if(Math.random()<.2)G.bDirty=true}if(B.dead||B.k!=='cabin'||B.lv<3)continue;B.tw-=dt;if(B.tw>0)continue;const o=G.ps[B.owner];B.tw=o&&talOn(o,'guard')?.8:1.15;
   const rad=CAB[B.lv].rad+1,shots=B.lv>=4?2:1;const ts=[];
   for(const m of G.mons)if(!m.dead&&!MON[m.k].animal&&dd(m.x,m.y,B.cx,B.cy)<rad)ts.push(m);
   if(pvpOn())for(const id in G.ps){const p=G.ps[id];if(p.alive&&p.guild!==B.guild&&dd(p.x,p.y,B.cx,B.cy)<rad)ts.push(p)}
   ts.sort((a,b)=>dd(a.x,a.y,B.cx,B.cy)-dd(b.x,b.y,B.cx,B.cy));
   for(let s=0;s<Math.min(shots,ts.length);s++){const t=ts[s];const sx=B.cx-.8+s*1.6,sy=B.cy-1.6;const d=dd(t.x,t.y,sx,sy)||1;G.projs.push({x:sx,y:sy,vx:(t.x-sx)/d*12,vy:(t.y-.3-sy)/d*12,dmg:(10+B.lv*3)*(B.lv>=5?2:1),pid:B.owner,guild:B.guild,life:d/12+.15,k:'arrow',tw:1})}if(ts.length)evSfx('shoot',B.cx,B.cy)}}
+
+// safe days: towers only warn outsiders and push them out of the territory, no damage
+function safeGuard(dt){G._sg=(G._sg||0)+dt;if(G._sg<.25)return;G._sg=0;
+ for(const B of Object.values(G.blds)){if(B.dead||B.k!=='cabin')continue;const rad=CAB[B.lv].rad;
+  for(const id in G.ps){const p=G.ps[id];if(!p.alive||p.guild===B.guild)continue;const d=dd(p.x,p.y,B.cx,B.cy);if(d>rad)continue;
+   const vx=(p.x-B.cx)/(d||1),vy=(p.y-B.cy)/(d||1);knock(p,vx,vy,1.1);
+   if(!(p.warnT>G.t)){p.warnT=G.t+4;const o=G.ps[B.owner];say(p.id,`⚠ 这里是 <b>${esc(o?o.name:'别人')}</b> 的领地（安全期），箭塔把你赶了出去。安全期结束后再闯进来会被射`,'bad');fxAdd('ring',B.cx,B.cy,{t:.6,r:rad,c:'#ffb040'})}}}}
 
 // ================= 遗迹（可以占领的资源点）· 天灾之王 =================
 function setupRelics(seed){const M=G.map,r=RNG(seed+55),n=clamp(2+Math.floor(G.order.length/2),3,7),kinds=['altar','mine','tower','spring'];G.relics=[];
