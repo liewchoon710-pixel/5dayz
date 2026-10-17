@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.6 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.7 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -4113,7 +4113,7 @@ function wallSetup(){const b=BID.wallT;WALL.b=b||null;WALL.lights=null;WALL.side
 function wallSpawn(load){const b=WALL.b;if(!b||load||NET.rejoin)return;const p=G.p;const i=NET.on&&NET.started?netSpawnIdx():0;const cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;const off=[[1.7,0],[-1.7,0],[0,1.6],[0,-1.6],[1.6,1.5],[-1.6,-1.5],[1.6,-1.5],[-1.6,1.5]][i%8];
  let x=cx+off[0],z=cz+off[1];for(let t=0;t<30&&G.solids.some(s=>s.kind!=='bld'&&s.top>b.h&&inRect(s,x,z,.4));t++){x=cx+rnd(-2,2);z=cz+rnd(-2,2)}
  p.x=x;p.z=z;p.y=b.h;p.vy=0;p.fallFrom=null;cam.tx=x;cam.tz=z;invAdd('lighter',1);invAdd('bandage',2);invAdd('bat',1);invAdd('knife',1);p.weapon='bat';invAdd('jacket',1);try{wearGear('jacket')}catch(e){}
- if(!NET.on||!NET.started||NET.host)wallCache(['pipe','machete','axe','nailbat','molotov','molotov','molotov','shield','helmet','vest','bandage','bandage','plank','plank','nails','nails']);
+ if(!NET.on||!NET.started||NET.host)wallCache(['pipe','machete','axe','nailbat','molotov','molotov','molotov','shield','helmet','vest','bandage','bandage','plank','plank','nails','nails','scrap','scrap','scrap','scrap','scrap','scrap']);
  const T=WALL_TH[b.theme]||WALL_TH.street;
  setTimeout(()=>{if(!G||G.over||!isWall())return;sysWorld('尸墙防线',`${b.floors} 层 · 天台约 ${Math.round(b.x1-b.x0)}×${Math.round(b.z1-b.z0)} 米 · ${T.ic} ${T.n}`);
   toast('🧱 <b>尸墙防线</b>：白天下楼搜<b>木板、家具、汽油桶、瓶子</b>（堵楼梯门、做燃烧瓶），<b>天黑前回到楼顶</b>。夜里尸潮会从几面墙同时叠尸墙爬上来——打掉最下面的整堆就塌，燃烧瓶烧墙脚，把爬上来的推下去。撑过 <b>5 夜</b>就赢！','good')},2600)}
@@ -4282,9 +4282,11 @@ function wallRecv(m){if(!isWall()||NET.host)return;const W=G.wall;if(W.radio&&fi
 function wallPzK(){return (1+.12*(G.day-1))*(1+.08*(wallHum()-1))*(wallEvK('king')?1.5:1)}
 // weapons & gear left on the roof (start of the game, and a small drop every morning)
 function wallCache(list){const b=WALL.b;if(!b)return;for(const k of list){if(!IT[k])continue;let x=0,z=0;for(let t=0;t<20;t++){x=rnd(b.x0+.8,b.x1-.8);z=rnd(b.z0+.8,b.z1-.8);if(!G.solids.some(s=>s.kind!=='bld'&&s.top>b.h&&inRect(s,x,z,.3)))break}dropItem(k,x,z,b.h,null)}}
-function wallDawn(){wallCache([pick(['machete','pipe','nailbat','axe','crowbar']),pick(['molotov','molotov','bandage','helmet','vest','shield']),pick(['bandage','molotov','antibio','can','water']),...(G.day>=3&&Math.random()<.5?['pistol','ammo','ammo']:[])]);if(!WALL.drpTip){WALL.drpTip=1}toast('📦 天亮了 · 天台上多了一些武器和补给','good');const R=G.wall&&G.wall.radio;if(R)R.hp=Math.min(R.mhp,R.hp+R.mhp*.25);G.wall.ev=null;G.wall.ch=null;return true}
+function wallDawn(){wallCache([pick(['machete','pipe','nailbat','axe','crowbar']),pick(['molotov','molotov','bandage','helmet','vest','shield']),pick(['bandage','molotov','antibio','can','water']),'scrap','scrap','scrap','scrap',...(G.day>=3&&Math.random()<.5?['pistol','ammo','ammo']:[])]);if(!WALL.drpTip){WALL.drpTip=1}toast('📦 天亮了 · 天台上多了一些武器和补给','good');const R=G.wall&&G.wall.radio;if(R)R.hp=Math.min(R.mhp,R.hp+R.mhp*.25);G.wall.ev=null;G.wall.ch=null;return true}
 // zombies killed up on the roof sometimes leave a bandage (or a bit of scrap) behind
-function wallLoot(z){const b=WALL.b;if(!b||z.y<b.h-3||z.y>b.h+1)return;const k=1/(1+.15*(wallHum()-1));const r=Math.random();const it=r<.06*k?'bandage':r<.08*k?'scrap':null;if(!it||!IT[it])return;
+function wallLoot(z){const b=WALL.b;if(!b)return;const k=1/(1+.12*(wallHum()-1));const r=Math.random();
+ if(z.y<b.h-3||z.y>b.h+1){if(z.y<1&&r<.12*k&&IT.scrap){dropItem('scrap',z.x,z.z,0,null);fx3('spark',z.x,.4,z.z,{t:.3})}return}
+ const it=r<.07*k?'bandage':r<.27*k?'scrap':null;if(!it||!IT[it])return;
  const x=clamp(z.x,b.x0+.4,b.x1-.4),zz=clamp(z.z,b.z0+.4,b.z1-.4);dropItem(it,x,zz,b.h,null);fx3('spark',x,b.h+.4,zz,{t:.3})}
 
 
