@@ -139,7 +139,7 @@ body.zp #rpgQ,#rpgQ:empty{display:none}
 .qh{font-size:11px;letter-spacing:.08em;color:#7fe6ff;margin:12px 0 5px}.qi{font-size:13px;line-height:1.45;background:rgba(255,255,255,.04);border:1px solid rgba(110,225,255,.18);border-radius:7px;padding:7px 9px;margin-bottom:5px}.qi small{display:block;color:var(--mute);font-size:11px}.qi.done{opacity:.5}.qi.tmp{border-color:rgba(255,208,112,.5)}
 #hot{position:fixed;left:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:6}
 #hot button{width:42px;height:42px;border-radius:10px;background:rgba(14,17,18,.78);border:1px solid var(--line);font-size:20px;position:relative;padding:0;display:grid;place-items:center;touch-action:none}
-#hot button.on{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}#hot button small{position:absolute;right:3px;bottom:1px;font-size:10px;color:var(--fg);font-weight:800}
+#hot button.on{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}#hot button.empty{visibility:hidden}#hot button.empty.ed{visibility:visible;border-style:dashed;color:var(--mute);font-size:18px}#hot button.ed{animation:hotw .6s ease-in-out infinite alternate}#hot button.sel{border-color:#7ad0ff;box-shadow:0 0 0 2px #7ad0ff;animation:none}@keyframes hotw{to{border-color:#7ad0ff}}#hot button small{position:absolute;right:3px;bottom:1px;font-size:10px;color:var(--fg);font-weight:800}
 .ov2{position:fixed;inset:0;background:rgba(2,8,10,.78);z-index:25;display:grid;place-items:center;overflow:auto;padding:6px}
 .wbox{width:min(330px,90vw);background:linear-gradient(180deg,rgba(8,30,38,.97),rgba(6,18,24,.97));border:1px solid rgba(110,225,255,.6);border-radius:12px;padding:16px;text-align:center;box-shadow:0 0 30px rgba(80,200,255,.25)}
 .wbox .st{color:#7fe6ff;font-weight:800}.wbox p{margin:4px 0 10px;font-size:13px;color:#bfe8f2}#whc{width:260px;height:260px}#whR{min-height:36px;font-size:13.5px;color:#e8fbff;margin:6px 0}#whR b{color:#ffd070}
@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 6.9 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.0 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1946,9 +1946,9 @@ function renderBag(){const p=G.p;const ks=Object.keys(p.inv);
  $('slots').innerHTML=(ks.length?ks:[]).map(k=>`<button class="slot ${p.weapon===k||p.throwSel===k?'eq':''}" data-k="${k}"><span class="ic">${IT[k].ic}</span>${IT[k].n}<small>×${p.inv[k]}${p.weapon===k?' · 武器':p.throwSel===k?' · 投掷':''}</small></button>`).join('')+Object.entries(p.gear||{}).map(([s,k])=>`<button class="slot eq" data-off="${s}"><span class="ic">${IT[k].ic}</span>${IT[k].n}<small>穿着 · 点击脱下</small></button>`).join('')+(p.carry?`<div class="slot eq"><span class="ic">${IT[p.carry.k].ic}</span>${IT[p.carry.k].n}<small>搬在手上</small></div>`:'')+(!ks.length&&!p.carry?'<div class="slot" style="grid-column:span 4">背包是空的 · 去废墟和屋子里搜</div>':'');
  $('slots').querySelectorAll('[data-off]').forEach(b=>b.onclick=()=>{takeOff(b.dataset.off);renderBag()});
  $('slots').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;bagSel=k;const T=IT[k];let html=`<b>${T.ic} ${T.n}</b> · ${T.d}`;
-  const acts=[];if(T.use)acts.push(`<button data-u="${k}">使用</button>`);if(T.wpn)acts.push(`<button data-w="${k}">装备</button>`);if(T.thr)acts.push(`<button data-t="${k}">设为投掷</button>`);if(T.gear)acts.push(`<button data-g="${k}">穿戴</button>`);acts.push(`<button data-d="${k}">丢掉一个</button>`);
+  const acts=[];if(T.use)acts.push(`<button data-u="${k}">使用</button>`);if(T.wpn)acts.push(`<button data-w="${k}">装备</button>`);if(T.thr)acts.push(`<button data-t="${k}">设为投掷</button>`);if(T.gear)acts.push(`<button data-g="${k}">穿戴</button>`);if(HOT.sel!=null)acts.push(`<button data-hp="${k}">📌 放进快捷栏第 ${HOT.sel+1} 格</button>`);else acts.push(`<button data-hk="${k}">📌 放进快捷栏</button>`);if(p.hot&&p.hot.includes(k))acts.push(`<button data-hx="${k}">从快捷栏拿掉</button>`);acts.push(`<button data-d="${k}">丢掉一个</button>`);
   $('idesc').innerHTML=html+'<div class="rcp" style="margin-top:8px;gap:6px;justify-content:flex-start">'+acts.join('')+'</div>';
-  $('idesc').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(x.dataset.u)useItem(x.dataset.u);if(x.dataset.w){p.weapon=x.dataset.w}if(x.dataset.g){wearGear(x.dataset.g)}if(x.dataset.t){p.throwSel=x.dataset.t}if(x.dataset.d){invUse(x.dataset.d);dropItem(x.dataset.d,p.x,p.z,p.y)}renderBag();renderThrow()})});
+  $('idesc').querySelectorAll('button').forEach(x=>x.onclick=()=>{if(x.dataset.u)useItem(x.dataset.u);if(x.dataset.w){p.weapon=x.dataset.w}if(x.dataset.g){wearGear(x.dataset.g)}if(x.dataset.t){p.throwSel=x.dataset.t}if(x.dataset.d){invUse(x.dataset.d);dropItem(x.dataset.d,p.x,p.z,p.y)}if(x.dataset.hp){hotPlace(HOT.sel,x.dataset.hp);$('bag').hidden=true}if(x.dataset.hk){HOT.pick=x.dataset.hk;HOT.sel=null;hotSig='';renderHot();$('bag').hidden=true;toast('点快捷栏的一格，把 '+IT[x.dataset.hk].n+' 放进去')}if(x.dataset.hx){const kk=x.dataset.hx;hotSync();const j=p.hot.indexOf(kk);if(j>=0)p.hot[j]=null;p.hotX=(p.hotX||[]).concat([kk]);hotSig='';renderHot()}renderBag();renderThrow()})});
  $('rcps').innerHTML=RECIPES.map((r,i)=>{const ok=Object.keys(r.use).every(k=>(p.inv[k]||0)>=r.use[k]);return`<div class="rcp"><span>${IT[r.out].ic} ${r.n} = ${Object.keys(r.use).map(k=>IT[k].n+(r.use[k]>1?'×'+r.use[k]:'')).join(' + ')}</span><button data-r="${i}" ${ok?'':'disabled'}>合成</button></div>`}).join('');
  $('rcps').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const r=RECIPES[+b.dataset.r];for(const k in r.use)invUse(k,r.use[k]);invAdd(r.out);toast(`合成了 ${IT[r.out].ic} ${IT[r.out].n}`,'good');sfx('craft');renderBag();renderThrow()})}
 function useItem(k){const p=G.p;if(k==='bandage'){if(p.hp>=maxHp()){toast('血是满的');return}$('bag').hidden=true;setBusy('包扎中…',1.4,()=>{invUse('bandage');p.hp=Math.min(maxHp(),p.hp+35);toast('包扎好了 +35 血','good')})}
@@ -2377,11 +2377,23 @@ function renderQuests(){renderQuestTracker();const el=$('qList');if(!el||$('qLog
 function openQuests(){if(!G)return;$('qLog').hidden=false;renderQuests()}
 // ---------- quick bar: picked-up things sit in the bag; tap here to hold / use / wear ----------
 let hotSig='';
-function renderHot(){const el=$('hot');if(!el||!G)return;const p=G.p;const order=k=>IT[k].kind==='gun'?0:IT[k].wpn?1:(k==='bandage'||k==='antibio'||k==='battery')?2:FOOD[k]?3:IT[k].thr?4:IT[k].gear?5:9;
- const ks=Object.keys(p.inv).filter(k=>order(k)<9).sort((a,b)=>order(a)-order(b)).slice(0,6);
- const sig=ks.map(k=>k+p.inv[k]).join()+p.weapon+p.throwSel;if(sig===hotSig)return;hotSig=sig;
- el.innerHTML=ks.map(k=>{const on=p.weapon===k||p.throwSel===k&&IT[k].thr;return`<button data-k="${k}" class="${on?'on':''}" aria-label="${IT[k].n}">${IT[k].ic}<small>${p.inv[k]>1?p.inv[k]:''}</small></button>`}).join('');el.hidden=!ks.length;
- el.querySelectorAll('button').forEach(b=>b.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();hotUse(b.dataset.k)}))}
+// hotbar: 6 slots the player arranges freely (hold a slot to move it, or 📌 from the bag); new items fill empty slots
+const HOT={sel:null,pick:null,hold:null};
+function hotOrderK(k){return IT[k].kind==='gun'?0:IT[k].wpn?1:(k==='bandage'||k==='antibio'||k==='battery')?2:FOOD[k]?3:IT[k].thr?4:IT[k].gear?5:IT[k].use?6:9}
+function hotSync(){const p=G.p;if(!p.hot)p.hot=[null,null,null,null,null,null];p.hotX=p.hotX||[];for(let i=0;i<6;i++)if(p.hot[i]&&!p.inv[p.hot[i]])p.hot[i]=null;
+ const el=Object.keys(p.inv).filter(k=>hotOrderK(k)<9&&!p.hot.includes(k)&&!p.hotX.includes(k)).sort((a,b)=>hotOrderK(a)-hotOrderK(b));for(const k of el){const i=p.hot.indexOf(null);if(i<0)break;p.hot[i]=k}}
+function hotPlace(i,k){const p=G.p;hotSync();const j=p.hot.indexOf(k);p.hotX=(p.hotX||[]).filter(x=>x!==k);if(j>=0)p.hot[j]=p.hot[i];p.hot[i]=k;HOT.pick=null;HOT.sel=null;hotSig='';renderHot();sfx('click');toast(`${IT[k].ic} ${IT[k].n} 放到快捷栏第 ${i+1} 格`)}
+function hotTap(i){const p=G.p;const k=p.hot[i];
+ if(HOT.pick){hotPlace(i,HOT.pick);return}
+ if(HOT.sel!=null){const a=HOT.sel;if(a!==i){const t=p.hot[a];p.hot[a]=p.hot[i];p.hot[i]=t;sfx('click')}HOT.sel=null;hotSig='';renderHot();return}
+ if(k)hotUse(k)}
+function renderHot(){const el=$('hot');if(!el||!G)return;const p=G.p;hotSync();const edit=HOT.sel!=null||!!HOT.pick;
+ const sig=p.hot.map(k=>k?k+p.inv[k]:'-').join()+p.weapon+p.throwSel+edit+HOT.sel+HOT.pick;if(sig===hotSig)return;hotSig=sig;
+ el.innerHTML=p.hot.map((k,i)=>{if(!k)return`<button data-i="${i}" class="empty ${edit?'ed':''}" aria-label="空格">${edit?'＋':''}</button>`;const on=p.weapon===k||p.throwSel===k&&IT[k].thr;return`<button data-i="${i}" data-k="${k}" class="${on?'on':''} ${HOT.sel===i?'sel':''} ${edit?'ed':''}" aria-label="${IT[k].n}">${IT[k].ic}<small>${p.inv[k]>1?p.inv[k]:''}</small></button>`}).join('');el.hidden=!p.hot.some(Boolean)&&!edit;
+ el.querySelectorAll('button').forEach(b=>{const i=+b.dataset.i;
+  b.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();clearTimeout(HOT.hold);HOT.fired=false;if(p.hot[i]&&!edit)HOT.hold=setTimeout(()=>{HOT.fired=true;HOT.sel=i;hotSig='';renderHot();buzz&&buzz(30);toast('移动快捷栏：点另一格交换位置 · 或打开背包点物品 → 📌 放进这格 · 再点一次自己取消')},450)});
+  b.addEventListener('pointerup',e=>{e.stopPropagation();clearTimeout(HOT.hold);if(HOT.fired){HOT.fired=false;return}hotTap(i)});
+  b.addEventListener('pointercancel',()=>clearTimeout(HOT.hold))})}
 function hotUse(k){const p=G.p;const T=IT[k];if(!T)return;
  if(T.wpn){p.weapon=p.weapon===k?null:k;sfx('click');toast(p.weapon?`拿在手上：${T.ic} ${T.n}${T.kind==='gun'?' · 【攻击】开枪':''}`:'收起武器，空手');renderHand()}
  else if(T.gear)wearGear(k);else if(T.thr){p.throwSel=k;toast(`投掷改成：${T.ic} ${T.n}`);sfx('click')}else if(T.use)useItem(k);
@@ -3424,7 +3436,7 @@ addEventListener('keydown',e=>{if(!G||G.over||$('hud').hidden)return;if(e.target
  if(k==='tab'){e.preventDefault();if(e.repeat)return;if($('bag').hidden){pcUnlock();openBag()}else $('bag').hidden=true;return}
  if(e.repeat)return;
  if(k in PC_CTX&&k!=='e'){const o=ctxOpts[PC_CTX[k]];if(o){o.fn();computeCtx();renderCtx()}return}
- if(k>='1'&&k<='9'){const b=$('hot').querySelectorAll('button')[+k-1];if(b)hotUse(b.dataset.k);return}
+ if(k>='1'&&k<='6'){hotSync();const kk=G.p.hot[+k-1];if(kk)hotUse(kk);return}
  if(k==='b'){if($('bag').hidden){pcUnlock();openBag()}else $('bag').hidden=true}
  else if(k==='x')doShove();
  else if(k==='z')cycleWeapon();
