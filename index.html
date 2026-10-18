@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.2.1 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.2.2 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -605,6 +605,10 @@ function deadTree(g,x,z){const tm=std(0x3a2e24,{r:1});const t=mesh(new T3.Cylind
 // ================= external 3D assets (rigged characters, realistic props, photo textures) =================
 // GitHub Pages: same-origin assets/ ; elsewhere (claude artifact): jsDelivr mirror of the repo's cdn branch
 const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@0614e26d28c75290e999d2d535d0b2b2e5b9f74e/'})();
+// if the CDN is blocked or down (e.g. inside an app's built-in viewer), try the website copy next
+const ASSET_BASES=ASSET_BASE==='assets/'?['assets/']:[ASSET_BASE,'https://liewchoon710-pixel.github.io/5dayz/assets/'];
+function aLoad(L,path,ok,_p,fail,i=ASSET_I){L.load(ASSET_BASES[i]+path,g=>{if(i>ASSET_I)ASSET_I=i;ok(g)},undefined,e=>{if(i+1<ASSET_BASES.length){ASSET_BAD++;aLoad(L,path,ok,_p,fail,i+1)}else fail&&fail(e)})}
+let ASSET_BAD=0,ASSET_I=0;
 const CHAR_SRC={player:'chars/Characters_Matt.glb',walker:'chars/Zombie_Basic.glb',runner:'chars/Zombie_Arm.glb',climber:'chars/Zombie_Ribcage.glb',brute:'chars/Zombie_Chubby.glb'};
 const KMODEL={crawler:'climber',screamer:'walker',stalker:'runner'};
 const PROP_SRC={container:1,sofa:1,couch:1,vending:1,forklift:1,bus:1,tvstand:1,door:1,bike:1,laptop:1,chair:1};
@@ -616,13 +620,13 @@ function loadModels(onDone,onProg){if(MODELS.state==='loading'||MODELS.state==='
  if(!MODELS.want||!T3.GLTFLoader||!T3.SkeletonUtils){MODELS.state='fail';MODELS.pack=MODELS.hd?'hd':'classic';MODELS.why='加载器缺失';onDone&&onDone(false);return}
  MODELS.state='loading';const L=new T3.GLTFLoader(),TL=new T3.TextureLoader();TL.setCrossOrigin('anonymous');
  const jobs=[];const tick=()=>{MODELS.done++;onProg&&onProg(MODELS.done/MODELS.total)};
- const glb=(path,ok)=>jobs.push(new Promise(res=>{L.load(ASSET_BASE+path,g=>{try{ok(g)}catch(e){console.warn(path,e)}tick();res()},undefined,e=>{console.warn('asset fail',path);tick();res()})}));
- const tex=(name,ok)=>jobs.push(new Promise(res=>{TL.load(ASSET_BASE+'tex/'+name+'.jpg',t=>{ok(t);tick();res()},undefined,()=>{tick();res()})}));
+ const glb=(path,ok)=>jobs.push(new Promise(res=>{aLoad(L,path,g=>{try{ok(g)}catch(e){console.warn(path,e)}tick();res()},undefined,e=>{console.warn('asset fail',path);tick();res()})}));
+ const tex=(name,ok)=>jobs.push(new Promise(res=>{aLoad(TL,'tex/'+name+'.jpg',t=>{ok(t);tick();res()},undefined,()=>{tick();res()})}));
  MODELS.pack=MODELS.hd?'hd':'classic';if(MODELS.hd){glb(MX.dir+'anims.glb',g=>{MX.anims=g.animations;if(g.userData&&g.userData.rest&&g.userData.rest.h_idle)MX.rest=g.userData.rest.h_idle;MX.clipC=new Map()});
-  MODELS.ptex=MODELS.ptex||{};for(const n of HDENV)if(!MODELS.ptex[n])jobs.push(new Promise(res=>{TL.load(ASSET_BASE+MX.dir+'env/'+n+'.webp',t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=(matchMedia('(pointer:coarse)').matches?2:8);t.encoding=T3.sRGBEncoding;MODELS.ptex[n]=t;tick();res()},undefined,()=>{tick();res()})}));
+  MODELS.ptex=MODELS.ptex||{};for(const n of HDENV)if(!MODELS.ptex[n])jobs.push(new Promise(res=>{aLoad(TL,MX.dir+'env/'+n+'.webp',t=>{t.wrapS=t.wrapT=T3.RepeatWrapping;t.anisotropy=(matchMedia('(pointer:coarse)').matches?2:8);t.encoding=T3.sRGBEncoding;MODELS.ptex[n]=t;tick();res()},undefined,()=>{tick();res()})}));
   const me=mxMyHum(),w0=MX.kind.walker[0];const reg=n=>g=>{mxPrep(g,n);if(n===me)MODELS.g.player=g;if(MX.kind.walker.includes(n)&&!MODELS.g.walker)MODELS.g.walker=g};for(const n of new Set([me,w0]))glb(MX.dir+n+'.glb',reg(n));
   // everything else waits until the essentials (animations, my character, one zombie) are in, so a slow connection gets those first
-  const essP=Promise.all(jobs.slice());for(const n of new Set(Object.values(MX.kind).flat()))if(n!==me&&n!==w0)jobs.push(essP.then(()=>new Promise(res=>{L.load(ASSET_BASE+MX.dir+n+'.glb',g=>{try{reg(n)(g)}catch(e){console.warn(n,e)}tick();res()},undefined,()=>{tick();res()})})));
+  const essP=Promise.all(jobs.slice());for(const n of new Set(Object.values(MX.kind).flat()))if(n!==me&&n!==w0)jobs.push(essP.then(()=>new Promise(res=>{aLoad(L,MX.dir+n+'.glb',g=>{try{reg(n)(g)}catch(e){console.warn(n,e)}tick();res()},undefined,()=>{tick();res()})})));
   }
  else for(const k in CHAR_SRC)glb(CHAR_SRC[k],g=>{g.h=skinHeight(g.scene);g.clips={};for(const c of g.animations)g.clips[c.name.toLowerCase()]=c;if(g.h>.2&&g.animations.length)MODELS.g[k]=g});
  for(const k in PROP_SRC)glb('props/'+k+'.glb',g=>{g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms){m.envMapIntensity=.45;if(m.map)m.map.anisotropy=4}}});const bx=new T3.Box3().setFromObject(g.scene),w=new T3.Group();g.scene.position.set(-(bx.min.x+bx.max.x)/2,-bx.min.y,-(bx.min.z+bx.max.z)/2);w.add(g.scene);MODELS.props[k]=w});
@@ -731,7 +735,7 @@ setTimeout(()=>{skinUI();document.querySelectorAll('#mdlSeg button').forEach(b=>
 function mxSkin(kind,v){if(kind==='player'){if(!(v&&v.id))return mxMyHum();const q=NET.peers&&NET.peers[v.id];if(q&&q.sk!=null&&MX.hum[q.sk])return MX.hum[q.sk];const i=NET.list?Math.max(0,NET.list.findIndex(o=>o.id===v.id)):0;return MX.hum[i%MX.hum.length]}
  const L=MX.kind[kind]||MX.kind[KMODEL[kind]]||MX.kind.walker;return L[Math.floor(Math.random()*L.length)]}
 function mxPrep(g,n){g.mxName=n;{const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});for(const o of rm)o.parent&&o.parent.remove(o)}g.h=skinHeight(g.scene);g.hipsY=MX.rest;g.scene.traverse(o=>{if(o.isBone&&/Hips$/.test(o.name)&&g.hipsY===MX.rest)g.hipsY=o.position.y});MODELS.g['mx:'+n]=g}
-function mxLoad(n){if(MODELS.g['mx:'+n]||MX.pend[n]||!T3.GLTFLoader)return;MX.pend[n]=1;new T3.GLTFLoader().load(ASSET_BASE+MX.dir+n+'.glb',g=>{try{mxPrep(g,n)}catch(e){console.warn(e)}},undefined,()=>{})}
+function mxLoad(n){if(MODELS.g['mx:'+n]||MX.pend[n]||!T3.GLTFLoader)return;MX.pend[n]=1;aLoad(new T3.GLTFLoader(),MX.dir+n+'.glb',g=>{try{mxPrep(g,n)}catch(e){console.warn(e)}},undefined,()=>{})}
 // same clips for every body; the hips height track is rescaled to each body so nobody floats or sinks
 function mxClips(g){let C=MX.clipC.get(g);if(C)return C;C={};const k=g.hipsY/MX.rest;
  for(const c of MX.anims||[]){const cl=c.clone();if(Math.abs(k-1)>.01)for(const t of cl.tracks)if(/Hips\.position$/.test(t.name)){t.values=t.values.slice();for(let i=0;i<t.values.length;i++)t.values[i]*=k}C[c.name]=cl}
@@ -4451,7 +4455,7 @@ function buzz(ms){try{if(!AUD.mute&&navigator.vibrate)navigator.vibrate(ms)}catc
 addEventListener('pointerdown',()=>audInit(),{capture:true});
 
 // ================= HUD =================
-function toast(h,cls=''){if(G&&G.p&&G.p.remote)return;const el=document.createElement('div');el.className='toast '+cls;el.innerHTML=h;$('msg').appendChild(el);setTimeout(()=>el.remove(),3600);while($('msg').children.length>4)$('msg').firstChild.remove()}
+function toast(h,cls='',ms=3600){if(G&&G.p&&G.p.remote)return;const el=document.createElement('div');el.className='toast '+cls;el.innerHTML=h;$('msg').appendChild(el);setTimeout(()=>el.remove(),ms);while($('msg').children.length>4)$('msg').firstChild.remove()}
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function renderHUD(){{const q=$("rpgQ");if(q)q.hidden=$("hud").hidden||!!G.over||!!NET.zp}const p=G.p;if($('fdB')){$('fdB').style.width=(p.food||0)+'%';$('fdB').parentNode.classList.toggle('low',p.food<25);$('scB').style.width=(p.scent||0)+'%';$('scB').parentNode.classList.toggle('hot',p.scent>=60)}$('hpB').style.width=Math.max(0,p.hp/maxHp()*100)+'%';$('hpT').textContent=Math.max(0,Math.ceil(p.hp));$('infB').style.width=p.inf+'%';$('infT').textContent=Math.floor(p.inf);
  const len=G.night?G.nightLen:G.dayLen;$('dayT').textContent=G.heli?`第 ${G.day} 天 · 黎明`:`第 ${G.day} ${G.night?'晚':'天'}`;
@@ -4500,7 +4504,7 @@ addEventListener('pointerdown',()=>{if(G&&!$('hud').hidden&&!isFull()&&matchMedi
 function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)load=null;else if(load===true)load=readSave();else if(load&&!load.v)load=null;if(load){diff=load.diff;len=load.len}WALL.on=load?load.mode==='wall':mp?!!WALL.netMode:WALL.want;MAZE.on=load?false:mp?!!MAZE.netMode:MAZE.want;if(MAZE.on)WALL.on=false;mxSetMaze(MAZE.on);audInit();voiceUnlock();if(!renderer){gl();initLights()}applyQuality();
  if(MODELS.state==='ready'&&MODELS.pack!==(MODELS.hd?'hd':'classic')){MODELS.state='off';MODELS.g={}}if(MODELS.state==='ready'&&MODELS.pack==='hd'&&(!MODELS.g['mx:'+mxMyHum()]||(MAZE.on&&!MODELS.g['mx:maw']))){MODELS.state='off'}if(MODELS.state==='fail'&&MODELS.pack!==(MODELS.hd?'hd':'classic'))MODELS.state='off';
  if(MODELS.want&&MODELS.state!=='ready'&&MODELS.state!=='fail'){loadingNow=true;const btn=$('go');const t0=btn.textContent;btn.textContent='载入素材 0%';btn.disabled=true;
-  loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型');begin(load)},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
+  loadModels(ok=>{loadingNow=false;btn.textContent=t0;btn.disabled=false;if(!ok)toast('素材载入不了（'+(MODELS.why||'')+'），改用简易模型'+(ASSET_BASE!=='assets/'?'。<br>App 里的内置浏览器可能拦了下载，请用手机浏览器打开 liewchoon710-pixel.github.io/5dayz':''),'',9000);begin(load)},p=>{btn.textContent='载入素材 '+Math.round(p*100)+'%'});return}
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
  for(const [,e] of ENT)e.parent.remove(e.m);ENT.clear();
  if(!load&&!mp)clearSave();const R0=Math.random;if(mp)Math.random=mulberry('scwr'+NET.seed);const seed=mp?NET.seed:load&&load.mapSeed?load.mapSeed:Math.floor(R0()*1e9);newState(diff,len,seed);WOOD.spk=[];WOOD.g=null;SKZ.proj=[];SKZ.acid=[];pInit(G.p);survInit(G.p);rpgInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
@@ -4551,4 +4555,3 @@ addEventListener('load',()=>setTimeout(installBtn,600));
 })();
 
 </script>
-</html>
