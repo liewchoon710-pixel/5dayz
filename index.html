@@ -384,7 +384,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.1 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.2 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -468,8 +468,8 @@ const GEO={box:new T3.BoxGeometry(1,1,1),cyl:new T3.CylinderGeometry(.5,.5,1,12)
 function M(geo,mat,sx,sy,sz,x,y,z,parent,shadow=true){const m=new T3.Mesh(GEO[geo]||geo,mat);m.scale.set(sx,sy,sz);m.position.set(x,y,z);m.castShadow=shadow;m.receiveShadow=true;if(parent)parent.add(m);return m}
 // box placed by min corner-ish helper: centered xz, bottom y
 function BX(mat,sx,sy,sz,x,y,z,parent,shadow=true){return M('box',mat,sx,sy,sz,x,y+sy/2,z,parent,shadow)}
-function glowSprite(col,size,op=.8){const [c,g]=cvs(64,64);const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.5)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
- const s=new T3.Sprite(new T3.SpriteMaterial({map:new T3.CanvasTexture(c),color:col,transparent:true,opacity:op,blending:T3.AdditiveBlending,depthWrite:false}));s.scale.set(size,size,1);return s}
+let GLOWTEX=null;function glowSprite(col,size,op=.8){if(!GLOWTEX){const [c,g]=cvs(64,64);const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.5)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);GLOWTEX=new T3.CanvasTexture(c)}
+ const s=new T3.Sprite(new T3.SpriteMaterial({map:GLOWTEX,color:col,transparent:true,opacity:op,blending:T3.AdditiveBlending,depthWrite:false}));s.scale.set(size,size,1);return s}
 
 
 // ================= realistic-ish procedural models (rounded, jointed) =================
@@ -604,7 +604,7 @@ function deadTree(g,x,z){const tm=std(0x3a2e24,{r:1});const t=mesh(new T3.Cylind
 
 // ================= external 3D assets (rigged characters, realistic props, photo textures) =================
 // GitHub Pages: same-origin assets/ ; elsewhere (claude artifact): jsDelivr mirror of the repo's cdn branch
-const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@c22c6cb4c7978ef3e86ee5510412f2a3478107d6/'})();
+const ASSET_BASE=(()=>{try{if(/github\.io$/.test(location.hostname))return 'assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@0614e26d28c75290e999d2d535d0b2b2e5b9f74e/'})();
 const CHAR_SRC={player:'chars/Characters_Matt.glb',walker:'chars/Zombie_Basic.glb',runner:'chars/Zombie_Arm.glb',climber:'chars/Zombie_Ribcage.glb',brute:'chars/Zombie_Chubby.glb'};
 const KMODEL={crawler:'climber',screamer:'walker',stalker:'runner'};
 const PROP_SRC={container:1,sofa:1,couch:1,vending:1,forklift:1,bus:1,tvstand:1,door:1,bike:1,laptop:1,chair:1};
@@ -870,7 +870,58 @@ function roadSpot(far,minD){for(let t=0;t<80;t++){const l=pick(CITY.lines);const
   if(G.solids.some(s=>inRect(s,x,z,.8)))continue;if(far&&far.some(p=>dd(p.x,p.z,x,z)<minD))continue;return{x,z}}return{x:SPAWN.x,z:SPAWN.z}}
 // distance culling for big maps: hide far building groups
 let cullT=0;function cullTick(dt){if(!G||G.inside||!outGroup)return;cullT-=dt;if(cullT>0)return;cullT=.4;const cx=cam.tx,cz=cam.tz;const R=cam.fp?85:Math.max(70,cam.dist*3.5);
- for(const b of BLD){if(!b.grp)continue;const d=Math.max(0,Math.abs((b.x0+b.x1)/2-cx)-(b.x1-b.x0)/2,Math.abs((b.z0+b.z1)/2-cz)-(b.z1-b.z0)/2);b.grp.visible=d<R}}
+ batchCull(cx,cz,R);for(const b of BLD){if(!b.grp)continue;const d=Math.max(0,Math.abs((b.x0+b.x1)/2-cx)-(b.x1-b.x0)/2,Math.abs((b.z0+b.z1)/2-cz)-(b.z1-b.z0)/2);b.grp.visible=d<R}}
+
+// ================= 静态合批：把城市里不会动的物件按区域、按材质合并，大幅减少每帧绘制调用 =================
+// Doors, windows, cars, lit windows, lights, sprites, skinned/animated things and anything the game keeps a handle on stay separate.
+const BATCH={list:[],cell:24};
+function batchSkip(){const s=new Set();const add=o=>{if(o&&o.isObject3D)o.traverse(c=>s.add(c))};
+ for(const b of BLD){add(b.doorMesh);for(const W of b.wins||[])if(W.mesh){add(W.mesh.glass);add(W.mesh.shards);add(W.mesh.boards)}}
+ for(const c of G.cars||[])add(c.mesh);for(const k of G.bikes||[])add(k.mesh||k.m);for(const w of SC.lit||[])add(w);for(const L of SC.lamps||[]){add(L.mesh);add(L.light)}
+ if(WALL.lights)add(WALL.lights.g);if(WALL.b&&WALL.b.radioLamp)add(WALL.b.radioLamp);if(SMK.group)add(SMK.group);for(const [k,e] of ENT)add(e.m);if(WOOD.g)add(WOOD.g);return s}
+function matSig(m){if(!m||Array.isArray(m))return null;if(m.userData&&m.userData.dryR)return 'u'+m.uuid;// rain-wet materials stay unique
+ const c=m.color?m.color.getHex():0,e=m.emissive?m.emissive.getHex():0;const ts=t=>t?(t.source?t.source.uuid:t.uuid)+'/'+t.wrapS+t.wrapT+'/'+t.rotation+(t===m.map||!m.map||(t.repeat.equals(m.map.repeat)&&t.offset.equals(m.map.offset))?'':'x'+t.uuid):'';return[m.type,c,e,ts(m.map),ts(m.normalMap),ts(m.bumpMap),ts(m.roughnessMap),m.bumpScale,m.roughness,m.metalness,m.transparent?1:0,m.opacity,m.side,m.alphaTest,m.vertexColors?1:0,m.flatShading?1:0,m.polygonOffset?m.polygonOffsetFactor+'/'+m.polygonOffsetUnits:0,m.depthWrite?1:0,m.emissiveIntensity,m.envMapIntensity,m.blending,m.userData&&m.userData.lw?1:0].join('|')}
+function staticBatch(root){if(!root||MAZE.on)return;const t0=performance.now();for(const c of G.cars||[])if(c.mesh&&c.mesh.isObject3D)try{localMerge(c.mesh)}catch(e){}root.updateMatrixWorld(true);const skip=batchSkip();const groups=new Map();const take=[];
+ root.traverse(o=>{if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||skip.has(o)||o.userData.nobatch||!o.visible)return;let p=o.parent,ok=true;while(p&&p!==root){if(!p.visible||p.userData.nobatch||p.userData.real){ok=false;break}p=p.parent}if(!ok)return;
+  const g=o.geometry;if(!g||!g.attributes||!g.attributes.position||g.morphAttributes&&Object.keys(g.morphAttributes).length)return;const ms=matSig(o.material);if(!ms)return;
+  const at=Object.keys(g.attributes).filter(k=>['position','normal','uv'].includes(k)).sort().join(',');if(!g.attributes.normal)return;
+  const w=new T3.Vector3().setFromMatrixPosition(o.matrixWorld);const cx=Math.floor(w.x/BATCH.cell),cz=Math.floor(w.z/BATCH.cell);
+  const key=cx+','+cz+'#'+ms+'#'+at+'#'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'#'+o.renderOrder;let G_=groups.get(key);if(!G_){G_={cx,cz,mat:o.material,list:[],cs:o.castShadow,rs:o.receiveShadow,ro:o.renderOrder,at:at.split(',')};groups.set(key,G_)}G_.list.push(o)});
+ let merged=0,removed=0;const nm=new T3.Matrix3();const v=new T3.Vector3();
+ for(const G_ of groups.values()){if(G_.list.length<2)continue;let nv=0,ni=0;for(const o of G_.list){const g=o.geometry;nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
+  if(nv>65000*8)continue;const pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),uv=G_.at.includes('uv')?new Float32Array(nv*2):null;const idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let vo=0,io=0;
+  for(const o of G_.list){const g=o.geometry,P=g.attributes.position,N=g.attributes.normal,U=g.attributes.uv,n=P.count;nm.getNormalMatrix(o.matrixWorld);
+   for(let i=0;i<n;i++){v.fromBufferAttribute(P,i).applyMatrix4(o.matrixWorld);pos[(vo+i)*3]=v.x;pos[(vo+i)*3+1]=v.y;pos[(vo+i)*3+2]=v.z;v.fromBufferAttribute(N,i).applyMatrix3(nm).normalize();nor[(vo+i)*3]=v.x;nor[(vo+i)*3+1]=v.y;nor[(vo+i)*3+2]=v.z;if(uv){const T=o.material.map;const rx=T?T.repeat.x:1,ry=T?T.repeat.y:1,ox=T?T.offset.x:0,oy=T?T.offset.y:0;uv[(vo+i)*2]=(U?U.getX(i):0)*rx+ox;uv[(vo+i)*2+1]=(U?U.getY(i):0)*ry+oy}}
+   if(g.index){const I=g.index.array;const det=o.matrixWorld.determinant();for(let i=0;i<I.length;i+=3){if(det<0){idx[io++]=I[i]+vo;idx[io++]=I[i+2]+vo;idx[io++]=I[i+1]+vo}else{idx[io++]=I[i]+vo;idx[io++]=I[i+1]+vo;idx[io++]=I[i+2]+vo}}}
+   else{const det=o.matrixWorld.determinant();for(let i=0;i<n;i+=3){if(det<0){idx[io++]=vo+i;idx[io++]=vo+i+2;idx[io++]=vo+i+1}else{idx[io++]=vo+i;idx[io++]=vo+i+1;idx[io++]=vo+i+2}}}
+   vo+=n}
+  const geo=new T3.BufferGeometry();geo.setAttribute('position',new T3.BufferAttribute(pos,3));geo.setAttribute('normal',new T3.BufferAttribute(nor,3));if(uv)geo.setAttribute('uv',new T3.BufferAttribute(uv,2));geo.setIndex(new T3.BufferAttribute(idx,1));geo.computeBoundingSphere();geo.computeBoundingBox();
+  const m=new T3.Mesh(geo,repMat(G_.mat));m.castShadow=G_.cs;m.receiveShadow=G_.rs;m.renderOrder=G_.ro;m.matrixAutoUpdate=false;m.userData.batch={cx:(G_.cx+.5)*BATCH.cell,cz:(G_.cz+.5)*BATCH.cell};root.add(m);BATCH.list.push(m);merged++;
+  for(const o of G_.list){o.parent&&o.parent.remove(o);removed++}}
+ const pts=spritesToPoints(root,skip);BATCH.stat={merged,removed,pts,ms:Math.round(performance.now()-t0)};return BATCH.stat}
+function batchCull(cx,cz,R){for(const m of BATCH.list){const b=m.userData.batch;const d=Math.max(0,Math.abs(b.cx-cx)-BATCH.cell/2,Math.abs(b.cz-cz)-BATCH.cell/2);m.visible=d<R}}
+
+// merge a rigid object's own parts by material (keeps it movable/hideable as one group): cars, dropped items
+function localMerge(grp){grp.updateMatrixWorld(true);const inv=new T3.Matrix4().copy(grp.matrixWorld).invert();const groups=new Map();
+ grp.traverse(o=>{if(o===grp||!o.isMesh||o.isSkinnedMesh||o.userData.ring||o.userData.nobatch)return;const g=o.geometry;if(!g||!g.attributes.position||!g.attributes.normal)return;const ms=matSig(o.material);if(!ms)return;
+  let p=o.parent;while(p&&p!==grp){if(p.userData.ring||p.userData.nobatch)return;p=p.parent}const at=g.attributes.uv?'uv':'';const k=ms+'#'+at+(o.castShadow?1:0);let L=groups.get(k);if(!L){L=[];groups.set(k,L)}L.push(o)});
+ const M_=new T3.Matrix4(),nm=new T3.Matrix3(),v=new T3.Vector3();
+ for(const L of groups.values()){if(L.length<2)continue;let nv=0,ni=0;for(const o of L){const g=o.geometry;nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
+  const pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),uv=L[0].geometry.attributes.uv?new Float32Array(nv*2):null,idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let vo=0,io=0;
+  for(const o of L){M_.multiplyMatrices(inv,o.matrixWorld);nm.getNormalMatrix(M_);const g=o.geometry,P=g.attributes.position,N=g.attributes.normal,U=g.attributes.uv,n=P.count,flip=M_.determinant()<0;
+   for(let i=0;i<n;i++){v.fromBufferAttribute(P,i).applyMatrix4(M_);pos.set([v.x,v.y,v.z],(vo+i)*3);v.fromBufferAttribute(N,i).applyMatrix3(nm).normalize();nor.set([v.x,v.y,v.z],(vo+i)*3);if(uv){uv[(vo+i)*2]=U?U.getX(i):0;uv[(vo+i)*2+1]=U?U.getY(i):0}}
+   const I=g.index?g.index.array:null;const cnt=I?I.length:n;for(let i=0;i<cnt;i+=3){const a=I?I[i]:i,b=I?I[i+1]:i+1,c=I?I[i+2]:i+2;idx[io++]=a+vo;idx[io++]=(flip?c:b)+vo;idx[io++]=(flip?b:c)+vo}vo+=n}
+  const geo=new T3.BufferGeometry();geo.setAttribute('position',new T3.BufferAttribute(pos,3));geo.setAttribute('normal',new T3.BufferAttribute(nor,3));if(uv)geo.setAttribute('uv',new T3.BufferAttribute(uv,2));geo.setIndex(new T3.BufferAttribute(idx,1));geo.computeBoundingSphere();
+  const m=new T3.Mesh(geo,L[0].material);m.castShadow=L[0].castShadow;m.receiveShadow=L.some(o=>o.receiveShadow);grp.add(m);for(const o of L)o.parent&&o.parent.remove(o)}}
+// static glow sprites (door lamps, roof beacons…) → a few Points objects instead of one draw call each
+function spritesToPoints(root,skip){const groups=new Map();const fov=Math.tan(((camera&&camera.fov)||65)*Math.PI/360);
+ root.traverse(o=>{if(!o.isSprite||skip.has(o)||!o.visible||o.material.map!==GLOWTEX)return;let p=o.parent;while(p&&p!==root){if(!p.visible||skip.has(p))return;p=p.parent}const m=o.material;const k=m.color.getHex()+'|'+m.opacity.toFixed(2)+'|'+o.scale.x.toFixed(1);let L=groups.get(k);if(!L){L={m,s:o.scale.x,list:[]};groups.set(k,L)}L.list.push(o)});
+ let n=0;const v=new T3.Vector3();for(const L of groups.values()){if(L.list.length<3)continue;const pos=new Float32Array(L.list.length*3);L.list.forEach((o,i)=>{o.getWorldPosition(v);pos.set([v.x,v.y,v.z],i*3)});
+  const geo=new T3.BufferGeometry();geo.setAttribute('position',new T3.BufferAttribute(pos,3));geo.computeBoundingSphere();const mat=new T3.PointsMaterial({map:GLOWTEX,color:L.m.color,size:L.s/fov,sizeAttenuation:true,transparent:true,opacity:L.m.opacity,blending:T3.AdditiveBlending,depthWrite:false});
+  const P=new T3.Points(geo,mat);P.frustumCulled=false;root.add(P);for(const o of L.list){o.parent&&o.parent.remove(o);n++}}return n}
+
+// one material per merged batch; textures get repeat baked into the UVs so meshes with different tiling can share it
+const REPM=new Map();function repMat(m){if(!m.map)return m;const k=matSig(m);let r=REPM.get(k);if(r)return r;r=m.clone();for(const key of ['map','bumpMap','normalMap','roughnessMap']){const t=m[key];if(!t)continue;const t2=t.clone();t2.repeat.set(1,1);t2.offset.set(0,0);t2.needsUpdate=true;r[key]=t2}if(m.userData)r.userData=Object.assign({},m.userData);REPM.set(k,r);return r}
 
 
 // ================= world layout =================
@@ -1968,16 +2019,23 @@ function renderHand(){if(G.over)return;const p=G.p,el=$('hand');const parts=[];i
 // ================= graphics layer 1: quality presets, grading, weather, details =================
 const QUAL={lv:1,names:['低','中','高']};try{const v=+localStorage.getItem('scwr-q');if(v>=0&&v<=2)QUAL.lv=v}catch(e){}
 // ---- performance: adaptive resolution, cheaper shadows on phones ----
-const PERF={s:1,acc:0,n:0,f:0,coarse:matchMedia('(pointer:coarse)').matches};
+const PERF={s:1,acc:0,n:0,f:0,fx:3,bad:0,good:0,told:0,coarse:matchMedia('(pointer:coarse)').matches};
 function perfRes(){const q=QUAL.lv;const dpr=devicePixelRatio||1;const cap=Math.min(PERF.coarse?[1.6,2,2.4][q]:[1.25,1.6,2][q],dpr);renderer.setPixelRatio(cap)}
-function perfTick(raw){return;if(!renderer||!G||G.pause||$('hud').hidden||raw>.25)return;PERF.acc+=raw;PERF.n++;if(PERF.acc<1.5)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;
- let s=PERF.s;if(avg>1/34)s=Math.max(.72,s-.08);else if(avg<1/55)s=Math.min(1,s+.05);if(Math.abs(s-PERF.s)>.001){PERF.s=s;perfRes();resize()}}
+// auto effects: if frames stay slow, switch off the costly extras step by step (shadows, smoke, far view) — never the resolution
+function perfTick(raw){if(!renderer||!G||G.pause||$('hud').hidden||raw>.25||raw<=0)return;PERF.acc+=raw;PERF.n++;if(PERF.acc<3)return;const avg=PERF.acc/PERF.n;PERF.acc=0;PERF.n=0;PERF.last=avg;
+ if(avg>1/26){PERF.bad++;PERF.good=0}else if(avg<1/48){PERF.good++;PERF.bad=0}else{PERF.bad=0;PERF.good=0}
+ if(PERF.bad>=2&&PERF.fx>0){PERF.fx--;PERF.bad=0;fxApply();if(!PERF.told){PERF.told=1;try{toast('画面有点卡，已自动关掉一些特效（阴影、烟雾等），清晰度不变','')}catch(e){}}}
+ else if(PERF.good>=5&&PERF.fx<3){PERF.fx++;PERF.good=0;fxApply()}}
+function fxApply(){const f=PERF.fx;if(renderer){const want=!(PERF.coarse&&QUAL.lv===0)&&f>=1;if(renderer.shadowMap.enabled!==want){renderer.shadowMap.enabled=want;if(scene)scene.traverse(o=>{if(o.material&&!Array.isArray(o.material))o.material.needsUpdate=true})}}
+ if(camera){const far=(PERF.coarse&&QUAL.lv===0?130:220)*(f===0?.6:1);if(camera.far!==far){camera.far=far;camera.updateProjectionMatrix()}}
+ if(typeof SMK!=='undefined'&&SMK.group){for(const s of SMK.puffs||[])s.userData.off=f<2;for(const s of SMK.cols||[])s.userData.off=f<1}}
+function zShadowDist(){return PERF.fx>=3?(QUAL.lv>=2?26:16):PERF.fx===2?8:0}
 function perfShadow(){PERF.f++;if(!PERF.coarse){renderer.shadowMap.autoUpdate=true;return}renderer.shadowMap.autoUpdate=false;if(PERF.f%2===0)renderer.shadowMap.needsUpdate=true}
 const FRU=new T3.Frustum(),FRM=new T3.Matrix4(),FRS=new T3.Sphere();
 function fruUpd(){camera.updateMatrixWorld();FRM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);FRU.setFromProjectionMatrix(FRM)}
 function inFru(x,y,z,r){FRS.center.set(x,y,z);FRS.radius=r;return FRU.intersectsSphere(FRS)}
 function applyQuality(){if(!renderer)return;const q=QUAL.lv;perfRes();renderer.shadowMap.enabled=!(PERF.coarse&&q===0);if(camera){camera.far=PERF.coarse&&q===0?130:220;camera.updateProjectionMatrix()}const ms=PERF.coarse?[512,1024,2048][q]:[1024,2048,2048][q];if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}
- renderer.shadowMap.type=q===0||PERF.coarse&&q<2?T3.PCFShadowMap:T3.PCFSoftShadowMap;flash.castShadow=q>1;resize()}
+ renderer.shadowMap.type=q===0||PERF.coarse&&q<2?T3.PCFShadowMap:T3.PCFSoftShadowMap;flash.castShadow=q>1;PERF.fx=3;PERF.bad=0;PERF.good=0;resize()}
 // ---- CSS colour grading + film grain (cheap, GPU-friendly) ----
 let grainEl=null;
 function initGrade(){if(grainEl)return;const [c,g]=cvs(128,128);const id=g.createImageData(128,128);for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}g.putImageData(id,0,0);
@@ -2117,18 +2175,18 @@ function buildSmoke(){const g=new T3.Group();SMK.group=g;SMK.mats=[];SMK.puffs=[
  // smoke over the ground beyond the edge (4 strips, so nothing outside reads as empty)
  const gm=smokeMat(0,1,true);for(const [x,z,sx,sz] of [[0,-(HALF+42),300,96],[0,HALF+42,300,96],[-(HALF+42),0,96,300],[HALF+42,0,96,300]]){const p=new T3.Mesh(new T3.PlaneGeometry(sx,sz),gm);p.rotation.x=-Math.PI/2;p.position.set(x,.07,z);p.renderOrder=4;g.add(p)}
  // low rolling puffs creeping in over the border
- const tx=puffTex();const np=lv===0?18:lv===1?34:48;
+ const tx=puffTex();const np=lv===0?18:lv===1?(matchMedia('(pointer:coarse)').matches?20:34):48;
  for(let i=0;i<np;i++){const s=new T3.Sprite(new T3.SpriteMaterial({map:tx,color:0x2a2622,transparent:true,depthWrite:false,opacity:.8,fog:false}));const u=SMK.puffs.length;s.userData={side:i%4,t:rnd(-HALF,HALF),y0:rnd(.5,3),ph:rnd(0,7),sp:rnd(.15,.5),sz:rnd(7,13)};s.renderOrder=6;g.add(s);SMK.puffs.push(s)}
  for(let i=0;i<(lv===0?6:14);i++){const e=glowSprite(0xff5a20,rnd(.6,1.4),.0);e.userData={side:i%4,t:rnd(-HALF,HALF),y:rnd(.3,4),ph:rnd(0,7)};e.material.fog=false;g.add(e);SMK.embers.push(e)}
  // black smoke columns rising from burnt wrecks
  SMK.cols=[];for(const [cx,cz] of [[-28,-2.2],[30,-1.6]])for(let i=0;i<(lv===0?5:9);i++){const s=new T3.Sprite(new T3.SpriteMaterial({map:tx,color:0x121010,transparent:true,depthWrite:false,opacity:.7}));s.userData={cx,cz,k:i/9};g.add(s);SMK.cols.push(s)}
  placeSmoke(0)}
 function edgePos(side,t,off){return side===0?[t,-(HALF+off)]:side===1?[t,HALF+off]:side===2?[-(HALF+off),t]:[HALF+off,t]}
-function placeSmoke(dt){const T=G?G.t:0;const night=G&&(G.night||dayLight().b<.5)?1:0;
+function placeSmoke(dt){const T=G?G.t:0;const ccx=typeof cam!=='undefined'?cam.tx:0,ccz=typeof cam!=='undefined'?cam.tz:0;const near=(s,r=48)=>{const v=!s.userData.off&&Math.abs(s.position.x-ccx)<r&&Math.abs(s.position.z-ccz)<r;if(s.visible!==v)s.visible=v;return v};const night=G&&(G.night||dayLight().b<.5)?1:0;
  for(const m of SMK.mats){m.uniforms.uT.value=T;m.uniforms.uNight.value+=(night-m.uniforms.uNight.value)*Math.min(1,dt*.5)}
- for(const s of SMK.puffs){const u=s.userData;u.t+=u.sp*dt*(u.side%2?1:-1);if(u.t>HALF+4)u.t=-HALF-4;if(u.t<-HALF-4)u.t=HALF+4;const br=Math.sin(T*.35+u.ph);const [x,z]=edgePos(u.side,u.t,-.6-br*1.6);s.position.set(x,u.y0+Math.sin(T*.5+u.ph)*.4,z);s.scale.setScalar(u.sz*(1+br*.15));s.material.opacity=.55+br*.25;s.material.rotation=T*.05+u.ph}
- for(const s of SMK.cols||[]){const u=s.userData;u.k=(u.k+dt*.06)%1;const k=u.k;s.position.set(u.cx+Math.sin(T*.3+k*5)*k*2+k*3,1+k*16,u.cz+Math.cos(T*.2+k*4)*k*1.5);s.scale.setScalar(1.5+k*9);s.material.opacity=.75*(1-k)*Math.min(1,k*8);s.material.rotation=k*3}
- for(const e of SMK.embers){const u=e.userData;const [x,z]=edgePos(u.side,u.t,1.5);e.position.set(x,u.y+Math.sin(T+u.ph)*.3,z);e.material.opacity=Math.max(0,Math.sin(T*1.7+u.ph))*(.35+night*.5)}}
+ for(const s of SMK.puffs){const u=s.userData;u.t+=u.sp*dt*(u.side%2?1:-1);if(u.t>HALF+4)u.t=-HALF-4;if(u.t<-HALF-4)u.t=HALF+4;const br=Math.sin(T*.35+u.ph);const [x,z]=edgePos(u.side,u.t,-.6-br*1.6);s.position.set(x,u.y0+Math.sin(T*.5+u.ph)*.4,z);if(!near(s))continue;s.scale.setScalar(u.sz*(1+br*.15));s.material.opacity=.55+br*.25;s.material.rotation=T*.05+u.ph}
+ for(const s of SMK.cols||[]){const u=s.userData;u.k=(u.k+dt*.06)%1;const k=u.k;s.position.set(u.cx+Math.sin(T*.3+k*5)*k*2+k*3,1+k*16,u.cz+Math.cos(T*.2+k*4)*k*1.5);if(!near(s,60))continue;s.scale.setScalar(1.5+k*9);s.material.opacity=.75*(1-k)*Math.min(1,k*8);s.material.rotation=k*3}
+ for(const e of SMK.embers){const u=e.userData;const [x,z]=edgePos(u.side,u.t,1.5);e.position.set(x,u.y+Math.sin(T+u.ph)*.3,z);if(!near(e))continue;e.material.opacity=Math.max(0,Math.sin(T*1.7+u.ph))*(.35+night*.5)}}
 // per-frame: animate + proximity dread
 function smokeTick(dt){if(!G||!SMK.group)return;placeSmoke(dt);const p=G.p;const el=$('edgeV');
  if(G.inside||G.over){if(el)el.style.opacity=0;return}
@@ -2149,7 +2207,7 @@ function plankMesh(pl){const g=new T3.Group();const L=Math.hypot(pl.bx-pl.ax,pl.
  g.position.set((pl.ax+pl.bx)/2,(pl.ya+pl.yb)/2,(pl.az+pl.bz)/2);g.rotation.y=Math.atan2(pl.bx-pl.ax,pl.bz-pl.az);m.rotation.x=-Math.atan2(dy,L);return g}
 
 // ================= sync scene =================
-function ent(key,make){let e=ENT.get(key);if(!e){const m=make();const parent=key.startsWith('player')?scene:key.startsWith('I')||key.startsWith('zi')?inGroup:outGroup;parent.add(m);e={m,parent};ENT.set(key,e)}e.live=1;return e}
+function ent(key,make){let e=ENT.get(key);if(!e){const m=make();if(key[0]==='i'||key.startsWith('Ii'))try{localMerge(m)}catch(er){}const parent=key.startsWith('player')?scene:key.startsWith('I')||key.startsWith('zi')?inGroup:outGroup;parent.add(m);e={m,parent};ENT.set(key,e)}e.live=1;return e}
 function syncScene(dt){meltPools(dt);fruUpd();
  for(const e of ENT.values())e.live=0;const p=G.p,T=G.t;
  // player
@@ -2165,7 +2223,7 @@ function syncScene(dt){meltPools(dt);fruUpd();
  for(const it of G.items){if(it.inside!==sc||!sc&&dd(it.x,it.z,p.x,p.z)>48)continue;const e=ent((sc?'Ii':'i')+it.id,()=>itemModel(it.k));e.m.position.set(it.x,it.y+.04,it.z);if(it.k==='ladder'||it.k==='plank')e.m.rotation.y=it.id%3;e.m.userData.ring.material.opacity=.35+Math.sin(T*4+it.id)*.2}
  if(!sc){for(const L of G.ladders)ent('l'+L.id,()=>ladderMesh(L));for(const pl of G.planks)ent('pl'+pl.id,()=>plankMesh(pl))}
  // zombies
- const zs=zList();for(const z of zs){const zd=dd(z.x,z.z,p.x,p.z);if(!sc&&zd>55&&!(cam.fp&&zd<85))continue;const near=zd<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>{const m=RM?realModel(z.kind,z.v):zombieModel(z);if(!RM&&ZK[z.kind]&&ZK[z.kind].scl)m.scale.setScalar(ZK[z.kind].scl);return m});const m=e.m,u=m.userData;const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;{const vt=(z.climb||z.pz)&&!(z.gup>G.t)?z.vlt||0:0;u.vl=vt?(u.vl||0)+(vt-(u.vl||0))*Math.min(1,dt*12):0;if(u.vl>.01||m.rotation.x){m.rotation.order='YXZ';m.rotation.x=u.vl>.01?u.vl:0}}{const K_=ZK[z.kind];const vis=!u.melted&&(sc||zd<scene.fog.far+4)&&inFru(z.x,z.y+1,z.z,K_&&(K_.big||K_.scl)?4:1.8);if(m.visible!==vis)m.visible=vis;if(!vis){z.lunge=(z.lunge||0)-dt;continue}const sh=zd<(QUAL.lv>=2?26:16)&&!z.dead;if(u.sh!==sh){u.sh=sh;m.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&!o.userData.zring)o.castShadow=sh})}
+ const zs=zList();for(const z of zs){const zd=dd(z.x,z.z,p.x,p.z);if(!sc&&zd>55&&!(cam.fp&&zd<85))continue;const near=zd<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>{const m=RM?realModel(z.kind,z.v):zombieModel(z);if(!RM&&ZK[z.kind]&&ZK[z.kind].scl)m.scale.setScalar(ZK[z.kind].scl);return m});const m=e.m,u=m.userData;const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;{const vt=(z.climb||z.pz)&&!(z.gup>G.t)?z.vlt||0:0;u.vl=vt?(u.vl||0)+(vt-(u.vl||0))*Math.min(1,dt*12):0;if(u.vl>.01||m.rotation.x){m.rotation.order='YXZ';m.rotation.x=u.vl>.01?u.vl:0}}{const K_=ZK[z.kind];const vis=!u.melted&&(sc||zd<scene.fog.far+4)&&inFru(z.x,z.y+1,z.z,K_&&(K_.big||K_.scl)?4:1.8);if(m.visible!==vis)m.visible=vis;if(!vis){z.lunge=(z.lunge||0)-dt;continue}const sh=zd<zShadowDist()&&!z.dead;if(u.sh!==sh){u.sh=sh;m.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&!o.userData.zring)o.castShadow=sh})}
    if((z.kind==='bomber'||z.kind==='spitter')&&!z.dead){if(!u.kg){u.kg=glowSprite(z.kind==='bomber'?0xff3010:0x80ff30,z.kind==='bomber'?.9:.7,.9);u.kg.position.set(0,z.kind==='bomber'?1.1:1.65,.18);m.add(u.kg)}u.kg.material.opacity=z.kind==='bomber'?(z.flashT>0?(Math.sin(G.t*30)>0?1:.2):.55+.35*Math.sin(G.t*5)):.6}else if(u.kg&&z.dead)u.kg.visible=false;
    if(!sc){const want=!cam.fp&&!z.dead&&zd<32;if(want&&!u.zr){u.zr=zRing(z,m);m.add(u.zr)}if(u.zr&&u.zr.visible!==want)u.zr.visible=want}}
   z.lunge=(z.lunge||0)-dt;
@@ -4443,7 +4501,7 @@ function begin(load){if(loadingNow)return;const mp=NET.on&&NET.started;if(mp)loa
  if(!MODELS.want&&MODELS.state==='ready')MODELS.state='off';if(MODELS.want&&MODELS.g.player&&MODELS.g.walker)MODELS.state='ready';
  for(const [,e] of ENT)e.parent.remove(e.m);ENT.clear();
  if(!load&&!mp)clearSave();const R0=Math.random;if(mp)Math.random=mulberry('scwr'+NET.seed);const seed=mp?NET.seed:load&&load.mapSeed?load.mapSeed:Math.floor(R0()*1e9);newState(diff,len,seed);WOOD.spk=[];WOOD.g=null;SKZ.proj=[];SKZ.acid=[];pInit(G.p);survInit(G.p);rpgInit(G.p);G.drop=null;G.pendZ=[];buildExterior();carInit();inGroup.clear();outGroup.visible=true;inGroup.visible=false;
- if(!MAZE.on)for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);for(const [k,x,z] of CITY.items)if(!G.solids.some(s=>inRect(s,x,z,.3)))dropItem(k,x,z,0,null);if(!MAZE.on){initZombies();spawnCops();makeCorpses();makeBikes()}G.mode='surv';WALL.b=null;if(WALL.on)wallSetup();if(MAZE.on)mazeSetup();Math.random=R0;if(mp)netSetup();else{G.lp=G.p;document.body.classList.remove('mp')}
+ if(!MAZE.on)for(const [k,x,z,y] of START_ITEMS)dropItem(k,x,z,y||0,null);for(const [k,x,z] of CITY.items)if(!G.solids.some(s=>inRect(s,x,z,.3)))dropItem(k,x,z,0,null);if(!MAZE.on){initZombies();spawnCops();makeCorpses();makeBikes()}G.mode='surv';WALL.b=null;if(WALL.on)wallSetup();if(MAZE.on)mazeSetup();BATCH.list=[];REPM.clear();if(!MAZE.on&&BATCH.on!==false)try{staticBatch(outGroup)}catch(e){console.warn('batch',e)};Math.random=R0;if(mp)netSetup();else{G.lp=G.p;document.body.classList.remove('mp')}
  if((WALL.on&&isWall())||isMaze()){}else if(mp&&NET.late&&!NET.rejoinSys)hardDrop(true);else if(!load&&G.diff>=2&&!NET.rejoinSys)hardDrop();
  if(!G.p.inv)G.p.inv={};G.p.inv={};invAdd('brick',1);invAdd('can',1);invAdd('water',1);if(mp&&NET.late&&!NET.rejoinSys){invAdd('bandage',2);invAdd('can',1);invAdd('water',1);invAdd('bat',1);G.p.weapon='bat';NET.late=false}if(isWall()){if(mp&&NET.late&&!NET.rejoinSys){invAdd('bandage',2);invAdd('bat',1);G.p.weapon='bat';NET.late=false}wallSpawn(load)}if(isMaze())mazeSpawn(load);G.king=null;if(load)applySave(load);if(NET.rejoin)netRestore(NET.rejoin);if(!G.sgrid)sgBuild();if(lowMat())try{lowify(outGroup)}catch(e){}renderThrow();
  if(!isMaze())cam.yaw=0;if(!load){cam.tx=G.p.x;cam.tz=G.p.z}
@@ -4473,7 +4531,7 @@ $('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={zLedgeG,zLedge,hitBlocked,mzShuffle,mzPassPlan,BIKEP,bikeOn,get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={BATCH,ENT,PERF,fxApply,perfTick,get renderer(){return renderer},get outGroup(){return outGroup},get BLDS(){return BLD},zLedgeG,zLedge,hitBlocked,mzShuffle,mzPassPlan,BIKEP,bikeOn,get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 // ---------- installable app (PWA): offline cache + 'install' button on the start screen ----------
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$|vercel\.app$|netlify\.app$/.test(location.hostname))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
 const APP={evt:null};
