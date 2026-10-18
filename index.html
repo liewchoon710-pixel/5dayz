@@ -395,7 +395,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.3.1 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.3.2 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -2429,7 +2429,7 @@ function finishTemp(ok){const T=SYS.temp;if(!T)return;SYS.temp=null;SYS.tempT=rn
  if(ok){sysMsg('临时任务完成',`<b>${T.n}</b><br>奖励：${giveRewards(T.rw())} · 经验 +25 · 积分 +5`,{kind:'ok'});gainXP(25);gainCr(5)}
  else{let pen='没有惩罚，算你运气好';if(T.pen==='food'){G.p.food=Math.max(0,G.p.food-20);pen='饱食 -20'}else if(T.pen==='scent'){G.p.scent=Math.min(100,G.p.scent+35);pen='系统暴露了你的气味（气味 +35）'}
   sysMsg('临时任务失败',`<b>${T.n}</b><br>惩罚：${pen}`,{kind:'bad'})}renderQuests()}
-function sysTick(dt){if(!G||G.over||G.pause)return;const p=G.p;if(isMaze()){mazeSysTick(dt);return}
+function sysTick(dt){if(!G||G.over)return;if(G.pause){if(NET.on&&NET.started&&!isMaze())runTick(dt);return}const p=G.p;if(isMaze()){mazeSysTick(dt);return}
  checkStory(null);runTick(dt);
  // temporary quests
  if(SYS.temp){const T=SYS.temp;T.t-=dt;if(T.silent&&T.t<=0)finishTemp(true);else if(T.t<=0)finishTemp(false)}
@@ -4338,7 +4338,7 @@ function zBomberDie(z){if(z.boomed)return;z.boomed=1;const x=z.x,zz=z.z,y=z.y;se
 // active skills, projectiles, acid (host), deafness (everyone)
 function zSkillTick(dt){
  const p=G.p;if(p.deafT>0){p.deafT-=dt;if(AUD.mg&&!AUD.mute)AUD.mg.gain.value=p.deafT>0?.28:1}
- if(!zHost()||G.pause)return;
+ if(!zHost()||G.pause&&!(NET.on&&NET.started))return;
  for(const z of G.zs){if(z.kind==='griever'&&!z.dead&&!z.rage&&z.hp<z.mhp*.35){z.rage=1;sfx('roar',z.x,z.z);const P=G.lp||G.p;if(dd(P.x,P.z,z.x,z.z)<40){shake(.3);toast('<b>巨人狂暴了！</b> 速度和力量都变强了','bad')}if(NET.on&&NET.started)netSend({k:'mzMsg',t:'巨人狂暴了！速度和力量都变强了',x:r1(z.x),z:r1(z.z)})}
   if(z.dead){if(z.sk&&z.sk.q&&z.sk.q.fly)z.sk.q.fly=null;z.sk=null;continue}const S=z.sk;if(!S)continue;S.t-=dt;
   if(S.k==='stomp'){if(S.t<=0){z.sk=null;zfx({k:'kring',x:z.x,y:z.y,z:z.z,r:6.8,t:.35,m:.35});zfx({k:'boom',x:z.x,y:.4,z:z.z,t:.5,m:.5,big:1},'thud');shake(.45);
@@ -4384,14 +4384,14 @@ function woodApply(m){const W=G.wall;if(!W)return;
  else if(m.a==='arm'){const R=W.radio;if(R)R.arm=Math.min(360,(R.arm||0)+120)}}
 function woodCtx(o){const p=G.p;if(!p.carry||p.carry.k!=='plank'||p.busy||p.downT>0||p.ghost||NET.zp)return;
  if(isWall()&&onTowerRoof(p)){const W=G.wall,R=W&&W.radio;
-  if(R&&dd(R.x,R.z,p.x,p.z)<2.2){const a=R.arm||0;if(a<360)o.unshift({l:`🪵 给电台钉挡板（挡板 ${Math.round(a)}/360）`,pulse:1,fn:()=>setBusy('钉电台挡板…',1.5,()=>{if(!p.carry||p.carry.k!=='plank')return;p.carry=null;sfx('ladder',p.x,p.z);noise(p.x,p.z,5);woodSend({a:'arm'});toast('电台挡板 +120 · 丧尸会先砸挡板','good')})})}
-  const E=edgeOf(p);if(E.d<1.4){const sd=WSIDE[E.nx+','+E.nz];const n=(W.rf&&W.rf[sd])||0;if(n<3)o.unshift({l:`🪵 加固${WSN[sd]}面矮墙（${n}/3）`,pulse:1,fn:()=>setBusy('钉木板加固矮墙…',1.8,()=>{if(!p.carry||p.carry.k!=='plank')return;p.carry=null;sfx('ladder',p.x,p.z);noise(p.x,p.z,5);woodSend({a:'rf',s:sd});toast(`${WSN[sd]}面矮墙加固了（${n+1}/3）· 这面的尸墙叠得更慢`,'good')})})}}
- if(p.inv.nails&&!G.inside&&!o.some(x=>/拒马/.test(x.l)))o.splice(Math.min(1,o.length),0,{l:'🪵 用木板+钉子做尖刺拒马',alt:o.length>0,fn:()=>setBusy('钉尖刺拒马…',2,()=>{if(!p.carry||p.carry.k!=='plank'||!p.inv.nails)return;p.carry=null;invUse('nails');sfx('craft');noise(p.x,p.z,6);
+  if(R&&dd(R.x,R.z,p.x,p.z)<2.2){const a=R.arm||0;if(a<360)o.unshift({l:`🪵 给电台钉挡板（挡板 ${Math.round(a)}/360）`,pulse:1,fn:()=>setBusy('钉电台挡板…',1.5,()=>{if(!p.carry||p.carry.k!=='plank'){toast('手上的木板不见了，没钉上','bad');return}if((R.arm||0)>=360){toast('电台挡板已经满了');return}p.carry=null;sfx('ladder',p.x,p.z);noise(p.x,p.z,5);woodSend({a:'arm'});toast(`电台挡板 +120（现在 ${Math.round(R.arm||0)}/360）· 丧尸会先砸挡板`,'good')})})}
+  const E=edgeOf(p);if(E.d<1.4){const sd=WSIDE[E.nx+','+E.nz];const n=(W.rf&&W.rf[sd])||0;if(n<3)o.unshift({l:`🪵 加固${WSN[sd]}面矮墙（${n}/3）`,pulse:1,fn:()=>setBusy('钉木板加固矮墙…',1.8,()=>{if(!p.carry||p.carry.k!=='plank'){toast('手上的木板不见了，没钉上','bad');return}if(((W.rf&&W.rf[sd])||0)>=3){toast(`${WSN[sd]}面矮墙已经加固满了`);return}p.carry=null;sfx('ladder',p.x,p.z);noise(p.x,p.z,5);woodSend({a:'rf',s:sd});toast(`${WSN[sd]}面矮墙加固了（${(W.rf&&W.rf[sd])||n+1}/3）· 这面的尸墙叠得更慢`,'good')})})}}
+ if(p.inv.nails&&!G.inside&&!o.some(x=>/拒马/.test(x.l)))o.splice(Math.min(1,o.length),0,{l:'🪵 用木板+钉子做尖刺拒马',alt:o.length>0,fn:()=>setBusy('钉尖刺拒马…',2,()=>{if(!p.carry||p.carry.k!=='plank'){toast('手上的木板不见了，没做成','bad');return}if(!p.inv.nails){toast('钉子用完了，没做成','bad');return}p.carry=null;invUse('nails');sfx('craft');noise(p.x,p.z,6);
   const S={id:(NET.me||'me')+'s'+(G.uid++),x:+(p.x+Math.sin(p.ang)*1.1).toFixed(2),z:+(p.z+Math.cos(p.ang)*1.1).toFixed(2),y:+p.y.toFixed(2),a:+p.ang.toFixed(2),hp:24};
   if(woodHost())WOOD.spk.push(S);else{netSend({k:'wdSpk',s:S});S.ghost=1;WOOD.spk.push(S)}toast('尖刺拒马放好了 · 丧尸经过会受伤、被绊住（能用 24 下）','good')})})}
-function woodSend(m){if(NET.on&&NET.started&&!NET.host)netSend(Object.assign({k:'wdAct'},m));else woodApply(m)}
+function woodSend(m){if(NET.on&&NET.started&&!NET.host)netSend(Object.assign({k:'wdAct'},m));woodApply(m)}// guests apply it right away too; the host's sync then keeps everyone exact
 // host: spikes hurt and trip zombies; worn spikes break
-function woodTick(dt){woodMeshes();if(!G||!woodHost()||G.pause)return;
+function woodTick(dt){woodMeshes();if(!G||!woodHost()||G.pause&&!(NET.on&&NET.started))return;
  for(let i=WOOD.spk.length-1;i>=0;i--){const S=WOOD.spk[i];for(const z of G.zs){if(z.dead||z.fly||Math.abs(z.y-S.y)>.8)continue;const K=ZK[z.kind];if(dd(z.x,z.z,S.x,S.z)>(K.r||.35)+.75||(z.spkT>G.t))continue;
    z.spkT=G.t+1.1;G._zsc='out';try{hitZombie(z,14,'trap')}finally{G._zsc=null}z.stun=Math.max(z.stun,K.big||K.boss?.15:.55);S.hp-=K.big||K.boss?4:1;sfx('chop',S.x,S.z);if(S.hp<=0)break}
   if(S.hp<=0){WOOD.spk.splice(i,1);sfx('thud',S.x,S.z);dropItem('nails',S.x,S.z,S.y,null)}}
@@ -4620,7 +4620,7 @@ function wallRadioZ(z,dt,K,sc){const R=G.wall&&G.wall.radio;const b=WALL.b;if(!R
 function wallFixCtx(o){const R=G.wall&&G.wall.radio,p=G.p;if(!R||R.hp>=R.mhp||p.carry||dd(p.x,p.z,R.x,R.z)>1.9)return;
  const k=p.inv.scrap?'scrap':p.inv.nails?'nails':p.inv.cloth?'cloth':null;const n=k==='scrap'?180:k==='nails'?100:60;
  o.unshift({l:k?`🔧 修电台（${IT[k].ic}${IT[k].n} +${n}）· ${Math.round(R.hp)}/${R.mhp}`:`📻 电台 ${Math.round(R.hp)}/${R.mhp}（要零件/钉子/布条才能修）`,pulse:R.hp<R.mhp*.4,fn:()=>{if(!k){toast('去楼下找零件、钉子或布条');return}
-  setBusy('修电台…',2.2,()=>{if(!p.inv[k])return;invUse(k);sfx('craft');if(NET.on&&NET.started&&!NET.host)netSend({k:'wallFix',n});else wallFix(n);toast('📻 电台修好一点了','good')})}})}
+  setBusy('修电台…',2.2,()=>{if(!p.inv[k]){toast(`${IT[k].n}用完了，没修成`,'bad');return}invUse(k);sfx('craft');if(NET.on&&NET.started&&!NET.host)netSend({k:'wallFix',n});else wallFix(n);toast(`📻 电台 +${n}（现在约 ${Math.min(R.mhp,Math.round(R.hp+(NET.on&&NET.started&&!NET.host?n:0)))}/${R.mhp}）`,'good')})}})}
 function wallFix(n){const R=G.wall&&G.wall.radio;if(!R)return;R.hp=Math.min(R.mhp,R.hp+clamp(+n||0,0,180));G.wall.stT=0}
 // ---- downed & revive (multiplayer) ----
 function wallDown(){const p=G.p;if(p.ghost)return true;if(!(isWall()||isMaze())||!(NET.on&&NET.started)||NET.zp||p.downOut||p.downT>0)return false;
