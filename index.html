@@ -306,6 +306,12 @@ body.undercar #fpHud .br{display:none}
 #endR .rr-g{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 32px var(--disp);background:#333;color:#fff;flex:none}#endR .gS{background:linear-gradient(135deg,#f0c040,#e07020)}#endR .gA{background:#3a8a4a}#endR .gB{background:#3a6a9a}#endR .gC{background:#6a5a4a}#endR .gD{background:#5a3030}
 #endR .rr-ch,#endR .rr-st{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}#endR .rr-ch span,#endR .rr-st span{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 7px;font-size:11.5px}#endR .rr-ch .ok{border-color:#6ac070;color:#9ae09a}#endR .rr-ch .no{color:var(--mute)}#endR .rr-st b{color:#ffd070}
 #endR .rr-tl{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;line-height:1.6}#endR .rr-h{font-weight:700;color:#f0c060;margin-bottom:2px}#endR .rr-tl i{font-style:normal;color:var(--mute);display:inline-block;min-width:52px;font-size:11px}
+#combo{position:fixed;right:calc(env(safe-area-inset-right,0px) + 120px);top:38%;z-index:12;pointer-events:none;text-align:center;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+#combo b{display:block;font:800 34px var(--disp);line-height:1}#combo span{font-size:12px;letter-spacing:2px;color:#ffd8b0}
+#combo.pop{animation:cpop .35s ease-out}#combo.warm b{color:#ffb050}#combo.hot b{color:#ff4a2a}
+@keyframes cpop{0%{transform:scale(1.7);opacity:.3}60%{transform:scale(.92);opacity:1}100%{transform:scale(1)}}
+#jflash{position:fixed;inset:0;z-index:11;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(160,10,0,.75) 100%)}
+@media (orientation:portrait){#combo{right:16px;top:30%}}
 </style>
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
@@ -396,7 +402,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.3.3 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.4 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -1752,7 +1758,7 @@ function fireGun(W){const p=G.p;p.atkCd=W.cd*cdK();if(!p.inv[W.ammo]){sfx('click
  if(W.pellets){for(const z of zList()){if(z.dead)continue;const d=dd(z.x,z.z,p.x,p.z);if(d>W.rg||facingTo(p,z.x,z.z)>.5||Math.abs(z.y-p.y)>2||hitBlocked(p.x,p.z,z.x,z.z,p.y))continue;const k=1-d/W.rg;hitZombie(z,W.wpn*W.pellets*(.35+k*.65)*gunK(),'melee');flashZ(z);if(!z.dead)knock(z,p.x,p.z,.6+k*1.6,1,k>.5?.6:.15);fx3('spray',z.x,z.y+1.2,z.z,{t:.4,dx:(z.x-p.x)/d,dz:(z.z-p.z)/d})}
   gunFx(p.x+Math.sin(p.ang)*W.rg*.7,p.z+Math.cos(p.ang)*W.rg*.7,W,p.y+1.1)}
  else{const head=Math.random()<headCh();const tx=t?t.x:p.x+Math.sin(p.ang)*W.rg,tz=t?t.z:p.z+Math.cos(p.ang)*W.rg;gunFx(tx,tz,W,t?t.y+(head?1.6:1.15):undefined);
-  if(t){G._crit=head?'爆头':false;hitZombie(t,W.wpn*gunK()*(head?2.2:1),'melee');G._crit=false;if(head)hid('gunner');flashZ(t);if(!t.dead)knock(t,p.x,p.z,.5,.5,.1);const d=dd(t.x,t.z,p.x,p.z)||1;fx3('spray',t.x,t.y+(head?1.6:1.2),t.z,{t:.4,dx:(t.x-p.x)/d,dz:(t.z-p.z)/d})}}}
+  if(t){G._crit=head?'爆头':false;G._gun=1;try{hitZombie(t,W.wpn*gunK()*(head?2.2:1),'melee')}finally{G._gun=0}G._crit=false;if(head)hid('gunner');flashZ(t);if(!t.dead)knock(t,p.x,p.z,.5,.5,.1);const d=dd(t.x,t.z,p.x,p.z)||1;fx3('spray',t.x,t.y+(head?1.6:1.2),t.z,{t:.4,dx:(t.x-p.x)/d,dz:(t.z-p.z)/d})}}}
 let mzl=null;function muzzleLight(){if(!mzl){mzl=new T3.PointLight(0xffc070,0,9,2);scene.add(mzl)}const p=G.p;mzl.position.set(p.x+Math.sin(p.ang)*.8,p.y+1.3,p.z+Math.cos(p.ang)*.8);mzl.intensity=3.5;setTimeout(()=>{if(mzl)mzl.intensity=0},60)}
 function doShove(){const p=G.p;if(p.downT>0||p.ghost)return;if(p.bike){bikeOff();return}if(!G||G.over||p.climb||p.hide||p.inCar)return;if(p.grab){struggle();return}if(NET.zp){if(p.shoveCd>0)return;p.shoveCd=.8;p.swing=1;p.shoveT=.3;netShove();sfx('shove',p.x,p.z);return}
  if(p.shoveCd>0||p.roll)return;if(p.carry){toast('先放下手上的东西');return}if(!useSt(14)){toast('没力气了 · 先缓一缓');return}
@@ -2243,7 +2249,7 @@ function syncScene(dt){meltPools(dt);fruUpd();
  for(const it of G.items){if(it.inside!==sc||!sc&&dd(it.x,it.z,p.x,p.z)>48)continue;const e=ent((sc?'Ii':'i')+it.id,()=>itemModel(it.k));e.m.position.set(it.x,it.y+.04,it.z);if(it.k==='ladder'||it.k==='plank')e.m.rotation.y=it.id%3;e.m.userData.ring.material.opacity=.35+Math.sin(T*4+it.id)*.2}
  if(!sc){for(const L of G.ladders)ent('l'+L.id,()=>ladderMesh(L));for(const pl of G.planks)ent('pl'+pl.id,()=>plankMesh(pl))}
  // zombies
- const zs=zList();for(const z of zs){const zd=dd(z.x,z.z,p.x,p.z);if(!sc&&zd>55&&!(cam.fp&&zd<85))continue;const near=zd<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>{const m=RM?realModel(z.kind,z.v):zombieModel(z);if(!RM&&ZK[z.kind]&&ZK[z.kind].scl)m.scale.setScalar(ZK[z.kind].scl);return m});const m=e.m,u=m.userData;if(u.mx&&u.wantSkin&&u.skin!==u.wantSkin&&!z.dead&&MODELS.g['mx:'+u.wantSkin]){const key=(sc?'zi':'z')+(RM?'r':'')+z.id;m.parent&&m.parent.remove(m);ENT.delete(key);continue}const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;{const vt=(z.climb||z.pz)&&!(z.gup>G.t)?z.vlt||0:0;u.vl=vt?(u.vl||0)+(vt-(u.vl||0))*Math.min(1,dt*12):0;if(u.vl>.01||m.rotation.x){m.rotation.order='YXZ';m.rotation.x=u.vl>.01?u.vl:0}}{const K_=ZK[z.kind];const vis=!u.melted&&(sc||zd<scene.fog.far+4)&&inFru(z.x,z.y+1,z.z,K_&&(K_.big||K_.scl)?4:1.8);if(m.visible!==vis)m.visible=vis;if(!vis){z.lunge=(z.lunge||0)-dt;continue}const sh=zd<zShadowDist()&&!z.dead;if(u.sh!==sh){u.sh=sh;m.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&!o.userData.zring)o.castShadow=sh})}
+ const zs=zList();for(const z of zs){const zd=dd(z.x,z.z,p.x,p.z);if(!sc&&zd>55&&!(cam.fp&&zd<85))continue;const near=zd<24;const e=ent((sc?'zi':'z')+(RM?'r':'')+z.id,()=>{const m=RM?realModel(z.kind,z.v):zombieModel(z);if(!RM&&ZK[z.kind]&&ZK[z.kind].scl)m.scale.setScalar(ZK[z.kind].scl);return m});const m=e.m,u=m.userData;if(z.armor&&!u.helm&&!z.dead)u.helm=evoHelm(m);if(u.mx&&u.wantSkin&&u.skin!==u.wantSkin&&!z.dead&&MODELS.g['mx:'+u.wantSkin]){const key=(sc?'zi':'z')+(RM?'r':'')+z.id;m.parent&&m.parent.remove(m);ENT.delete(key);continue}const zsp=dt>0?dd(z.x,z.z,u.lx??z.x,u.lz??z.z)/dt:0;u.lx=z.x;u.lz=z.z;m.position.set(z.x,z.y,z.z);m.rotation.y=z.ang;{const vt=(z.climb||z.pz)&&!(z.gup>G.t)?z.vlt||0:0;u.vl=vt?(u.vl||0)+(vt-(u.vl||0))*Math.min(1,dt*12):0;if(u.vl>.01||m.rotation.x){m.rotation.order='YXZ';m.rotation.x=u.vl>.01?u.vl:0}}{const K_=ZK[z.kind];const vis=!u.melted&&(sc||zd<scene.fog.far+4)&&inFru(z.x,z.y+1,z.z,K_&&(K_.big||K_.scl)?4:1.8);if(m.visible!==vis)m.visible=vis;if(!vis){z.lunge=(z.lunge||0)-dt;continue}const sh=zd<zShadowDist()&&!z.dead;if(u.sh!==sh){u.sh=sh;m.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&!o.userData.zring)o.castShadow=sh})}
    if((z.kind==='bomber'||z.kind==='spitter')&&!z.dead){if(!u.kg){u.kg=glowSprite(z.kind==='bomber'?0xff3010:0x80ff30,z.kind==='bomber'?.9:.7,.9);u.kg.position.set(0,z.kind==='bomber'?1.1:1.65,.18);m.add(u.kg)}u.kg.material.opacity=z.kind==='bomber'?(z.flashT>0?(Math.sin(G.t*30)>0?1:.2):.55+.35*Math.sin(G.t*5)):.6}else if(u.kg&&z.dead)u.kg.visible=false;
    if(!sc){const want=!cam.fp&&!z.dead&&zd<32;if(want&&!u.zr){u.zr=zRing(z,m);m.add(u.zr)}if(u.zr&&u.zr.visible!==want)u.zr.visible=want}}
   z.lunge=(z.lunge||0)-dt;
@@ -2307,7 +2313,7 @@ function updateCamera(dt){const p=G.p;const k=Math.min(1,dt*8);cam.shk=Math.max(
   if(joy.x||joy.y||keys.w||keys.s||keys.a||keys.d){}return}
  if(isMaze()||cam.sh){mazeCam(dt);return}
  if(camera.fov!==50){camera.fov=50;camera.updateProjectionMatrix()}
- let D=G.inside?Math.min(cam.dist,11):cam.dist;let ph=cam.pitch;
+ let D=(G.inside?Math.min(cam.dist,11):cam.dist)*(1-(JC.zoom||0)*.2);let ph=cam.pitch;
  // keep the camera out of buildings: first tilt up over the obstacle, only pull in if that is not enough
  {const II=G.inside&&G.interiors[G.inside];const ox=cam.tx,oy=cam.ty+.8,oz=cam.tz;
   const clear=(pp,dist)=>{const sx=Math.sin(cam.yaw)*Math.cos(pp),sy=Math.sin(pp),sz=Math.cos(cam.yaw)*Math.cos(pp);for(let s=.6;s<=dist;s+=.35){const x=ox+sx*s,y=oy+sy*s,z=oz+sz*s;if(camHit(x,z,y)||(II&&(Math.abs(x)>II.w/2-.25||Math.abs(z)>II.d/2-.25)))return Math.max(1.6,s-.45)}return dist};
@@ -2341,7 +2347,7 @@ function drawOverlay(){const dpr=ovc.width/innerWidth;oc.setTransform(dpr,0,0,dp
  for(const z of zl){const d=dd(z.x,z.z,p.x,p.z);if(++nn>7)break;const s=proj(z.x,z.y+(ZK[z.kind].big?2.6:1.95),z.z);if(!s)continue;if(placed.some(q=>Math.abs(q[0]-s[0])<22&&Math.abs(q[1]-s[1])<16))continue;placed.push(s);oc.globalAlpha=(d<3?.18:d<6?.32:d<10?.6:.8)*(zl.length>5?.6:1);
   if(z.hp<z.mhp){oc.fillStyle='rgba(0,0,0,.6)';oc.fillRect(s[0]-13,s[1],26,4);oc.fillStyle='#c4342b';oc.fillRect(s[0]-12,s[1]+1,24*z.hp/z.mhp,2)}
   if(z.state==='chase'){oc.fillStyle='#ff5040';oc.font='800 14px Oswald,sans-serif';oc.textAlign='center';oc.fillText('!',s[0],s[1]-3)}else if(z.state==='investigate'){oc.fillStyle='#f0c060';oc.font='800 12px Oswald,sans-serif';oc.textAlign='center';oc.fillText('?',s[0],s[1]-3)}
-  if(z.kind!=='walker'&&d<10&&nn<=3){oc.fillStyle='rgba(255,200,180,.85)';oc.font='600 10px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(ZK[z.kind].n,s[0],s[1]-16)}}oc.globalAlpha=1}
+  if((z.kind!=='walker'||z.armor)&&d<10&&nn<=3){oc.fillStyle='rgba(255,200,180,.85)';oc.font='600 10px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(z.armor?'钢盔尸':ZK[z.kind].n,s[0],s[1]-16)}}oc.globalAlpha=1}
  if(G.heli&&!G.inside){const s=proj(G.heli.x,G.heli.y+1,G.heli.z);const W=innerWidth,H=innerHeight;let x,y,off=false;if(s){x=s[0];y=s[1];off=x<20||x>W-20||y<90||y>H-170}else off=true;
   if(off){const a=Math.atan2(G.heli.x-p.x,G.heli.z-p.z)-cam.yaw;x=W/2-Math.sin(a)*W*.42;y=H/2-Math.cos(a)*H*.33}
   oc.fillStyle='#f0c060';oc.font='800 18px sans-serif';oc.textAlign='center';oc.fillText('★',x,y);oc.font='700 11px "Noto Sans SC",sans-serif';oc.fillText(`直升机 ${Math.ceil(G.heli.t)}秒`,x,y+14)}
@@ -2715,7 +2721,7 @@ function onKill(z,src){const p=G.p;if(!p.lv)return;gainXP(ZXP[z.kind]||10);gainC
 // damage modifiers on a zombie (boss weakness etc.) + floating numbers
 function zDmgMod(z,dm,src){if(z.kind==='griever')dm=mazeGDmg(z,dm,src);if(z.pz&&hasTi('wallw'))dm*=1.5;if(z.kind==='tank'&&src==='fire')dm*=2.5;if(z.kind==='spider'&&z.down>0)dm*=2;if(z.kind==='king'){if(src==='fire')dm*=2;else if(src==='melee'||src==='throw'){const p=G.p;let a=Math.atan2(p.x-z.x,p.z-z.z)-z.ang;a=Math.abs(Math.atan2(Math.sin(a),Math.cos(a)));if(a>1.9){dm*=2;ftxt(z,'弱点！','#ffd070',1)}}}return dm}
 function ftxt(z,s,c,big){if(RPG.ftx.length>24)RPG.ftx.shift();RPG.ftx.push({x:z.x+rnd(-.3,.3),y:z.y+(ZK[z.kind]&&ZK[z.kind].big?2.7:2),z:z.z,s:String(s),c:c||'#fff',t:.9,big:!!big,sc:G._zsc||(G.inside||'out')})}
-function dmgNum(z,dm,src){if(src==='fire'||src==='fall'||dm<1)return;const crit=G._crit;ftxt(z,crit?'暴击 '+Math.round(dm):Math.round(dm),crit?'#ff6a3a':src==='car'?'#ffd070':'#f4efe4',crit)}
+function dmgNum(z,dm,src){if(src==='fire'||src==='fall'||dm<1)return;const crit=G._crit;ftxt(z,crit?(crit==='爆头'?'爆头 ':'暴击 ')+Math.round(dm):Math.round(dm),crit?'#ff6a3a':src==='car'?'#ffd070':'#f4efe4',crit)}
 
 // ---- shop ----
 function price(i){return Math.round(SHOP[i][1]*(i===RPG.disc?.5:1))}
@@ -2910,7 +2916,7 @@ const NET={on:false,host:false,me:null,name:'',room:null,tr:null,peers:{},list:[
 const ZKI=['walker','runner','climber','crawler','screamer','stalker','brute','king'];
 // find a zombie by id outside or in any interior
 function zFind(id){let z=G.zs.find(o=>o.id===id);if(z){G._fsc='out';return z}for(const k in G.interiors){z=G.interiors[k].zs.find(o=>o.id===id);if(z){G._fsc=k;return z}}return null}
-function zFlags(z){let f=0;if(z.state==='chase')f|=1;else if(z.state==='investigate'||z.door||z.entry)f|=2;if(z.dead)f|=4;if(z.down>0)f|=8;if(z.stun>0)f|=16;if(z.grabbing)f|=32;if(z.climb)f|=64;if(z.lunge>0)f|=128;if(z.hitT>0)f|=256;if(z.burn>0)f|=512;if(z.pz)f|=1024;if(z.vlt>0&&(z.climb||z.pz))f|=Math.min(15,Math.round(z.vlt*10))<<11;if(z.gup>G.t)f|=32768;return f}
+function zFlags(z){let f=0;if(z.state==='chase')f|=1;else if(z.state==='investigate'||z.door||z.entry)f|=2;if(z.dead)f|=4;if(z.down>0)f|=8;if(z.stun>0)f|=16;if(z.grabbing)f|=32;if(z.climb)f|=64;if(z.lunge>0)f|=128;if(z.hitT>0)f|=256;if(z.burn>0)f|=512;if(z.pz)f|=1024;if(z.vlt>0&&(z.climb||z.pz))f|=Math.min(15,Math.round(z.vlt*10))<<11;if(z.gup>G.t)f|=32768;if(z.armor)f|=65536;return f}
 function zPack(z){return[z.id,ZKI.indexOf(z.kind),Math.round(z.x*10),Math.round(z.z*10),Math.round(z.y*10),Math.round(z.ang*100),Math.round(z.hp),Math.round(z.mhp),zFlags(z)]}
 function netId(){return Math.random().toString(36).slice(2,8)}
 function netSend(o){if(NET.tr)try{NET.tr.send('e',o)}catch(e){}}
@@ -3109,7 +3115,7 @@ function netMirror(arr,list,home){const seen=new Set();NET.zm=NET.zm||new Map();
   // it walked through a door: move the mirror to the list it is in now
   if(m&&m.home!==home){const old=m.home==='out'?G.zs:G.interiors[m.home]&&G.interiors[m.home].zs;if(old){const i=old.indexOf(m);if(i>=0)old.splice(i,1)}m.home=home;m.dead=false;m.deadT=40;m.x=x/10;m.z=z/10;m.y=y/10;list.push(m)}
   if(!m){m={id,home,kind:ZKI[ki]||'walker',x:x/10,z:z/10,y:y/10,ang:an/100,hp,mhp:mh,net:true,state:'idle',dead:false,deadT:40,down:0,stun:0,grabbing:false,climb:null,lunge:0,hitT:0,flashT:0,kv:null,mv:0,anim:hashf(id)*6,cd:0,v:{s:ZKI[ki]==='king'?1.5:.92+hashf(id+'s')*.18,t:.85+hashf(id+'t')*.27}};NET.zm.set(id,m);list.push(m)}
-  m.tx=x/10;m.tz=z/10;m.ty=y/10;m.ta=an/100;m.hp=hp;m.mhp=mh;m.state=f&1?'chase':f&2?'investigate':'idle';if(f&4&&!m.dead){m.dead=true;m.deadT=40}m.down=f&8?1:0;m.stun=f&16?1:0;m.grabbing=(G.p.grab&&G.p.grab.zs.includes(m))?true:!!(f&32);m.climb=f&64?{}:null;m.vlt=((f>>11)&15)/10;if(f&32768){if(!(m.gup>G.t))m.gup=G.t+1.2}else if(m.gup>G.t+.3)m.gup=G.t+.3;if(f&128)m.lunge=.3;if(f&256)m.hitT=.15;m.burn=f&512?1:0;m.pz=f&1024?1:0}
+  m.tx=x/10;m.tz=z/10;m.ty=y/10;m.ta=an/100;m.hp=hp;m.mhp=mh;m.state=f&1?'chase':f&2?'investigate':'idle';if(f&4&&!m.dead){m.dead=true;m.deadT=40}m.down=f&8?1:0;m.stun=f&16?1:0;m.grabbing=(G.p.grab&&G.p.grab.zs.includes(m))?true:!!(f&32);m.climb=f&64?{}:null;m.vlt=((f>>11)&15)/10;m.armor=!!(f&65536);if(f&32768){if(!(m.gup>G.t))m.gup=G.t+1.2}else if(m.gup>G.t+.3)m.gup=G.t+.3;if(f&128)m.lunge=.3;if(f&256)m.hitT=.15;m.burn=f&512?1:0;m.pz=f&1024?1:0}
  // gone from the snapshot without dying (walked into a building, despawned): just vanish
  for(let i=list.length-1;i>=0;i--){const z=list[i];if(z.net&&!seen.has(z.id)&&!z.dead){list.splice(i,1);if(NET.zm.get(z.id)===z)NET.zm.delete(z.id);if(G.p.grab&&G.p.grab.zs.includes(z))releaseGrab(z)}}}
 function netInterp(dt){const k=Math.min(1,dt*8);const IL=G.inside&&G.interiors[G.inside]?G.interiors[G.inside].zs:[];for(const z of G.zs.concat(IL)){if(!z.net)continue;if(z.tx==null)continue;const ox=z.x,oz=z.z;z.x=lerp(z.x,z.tx,k);z.z=lerp(z.z,z.tz,k);z.y=lerp(z.y,z.ty,k);let da=z.ta-z.ang;da=Math.atan2(Math.sin(da),Math.cos(da));z.ang+=da*k;z.mv=dd(ox,oz,z.x,z.z)>.002?1:0;z.anim+=dt*(z.mv?2.4:1);z.hitT-=dt;z.flashT-=dt;z.lunge-=dt;if(z.dead)z.deadT-=dt}
@@ -3527,7 +3533,7 @@ function runQName(q){return (q.sz<0?'北':'南')+(q.sx>0?'东':'西')}
 function runQText(){return RUN.c&&RUN.c.q?(RUN.c.q.sz<0?'北':'南')+(RUN.c.q.sx>0?'东':'西')+'片区':''}
 // roll this run's conditions from the map seed, so everyone in a room (and a reload) gets the same ones
 function runPrep(){RUN.on=G.mode==='surv'&&!isMaze()&&!isWall();Object.assign(RUN,{heat:0,maxHeat:0,log:[],offer:null,offT:120,task:null,npcs:[],gen:null,dark:null,comms:0,convoy:null,hordeCd:60,hordeDay:{},block:0,shopAl:{},burnN:0,rainCd:0,lastNight:false,lastDay:1,hpLow:{},rc:0,cause:'',sendT:0,saved:[],kingSeen:0,pend:[],rnpc:{},npcT:0,npcSent:{}});
- RUN.st={tasks:0,fails:0,rescued:0,hidden:0,chains:0,shots:0,maxInf:0};runOfferHide();
+ RUN.st={tasks:0,fails:0,rescued:0,hidden:0,chains:0,shots:0,maxInf:0,bestCombo:0};evoReset();if(typeof JC!=='undefined'){JC.n=0;JC.t=-9;JC.slow=0;JC.zoom=0;if(JC.el)JC.el.hidden=true}runOfferHide();
  for(const k in LOOT_T0)LOOT_T[k]=LOOT_T0[k].slice();
  if(!RUN.on){RUN.c=null;return}
  const R=mulberry('run'+G.mapSeed),rp=a=>a[Math.floor(R()*a.length)];
@@ -3556,7 +3562,7 @@ function dir8(x,z){const p=G.p;const a=Math.atan2(x-p.x,-(z-p.z))*180/Math.PI;re
 {const _se=sysEv;sysEv=function(t,a){if(RUN.on&&G&&!G.over){if(t==='king')runLog('👑','击杀了尸王',3)}return _se(t,a)}}
 // ---------- chain banner ----------
 function runChain(parts,sub,send=true){RUN.st.chains++;runLog('⛓',parts.join(' → '),2);sysMsg('灾难连锁',`<b>${parts.join(' → ')}</b>${sub?'<br>'+sub:''}`,{kind:'bad',t:6500});sfx('alarmSys');if(send&&RMP()&&NET.host)netSend({k:'runEv',t:'chain',p:parts,s:sub||''})}
-function runRecvEv(m){if(!RUN.on||!G)return;const c=G.cars[m.ci|0];
+function runRecvEv(m){if(!RUN.on||!G)return;if(m.t==='evo'||m.t==='evoMsg'){evoRecv(m);return}const c=G.cars[m.ci|0];
  if(m.t==='burn'){if(fin(m.x)&&fin(m.z))runBurnWarn(m.x,m.z);if(c)c.burnT=7;return}
  if(m.t==='boom'){if(!fin(m.x)||!fin(m.z))return;if(c){c.burnT=null;c.wreck=1;c.smT=70;c.fuel=0;c.alarm=0}runBlastLocal(m.x,m.z);return}
  if(m.t==='spawn'){if(!NET.host||!Array.isArray(m.l))return;for(const a of m.l.slice(0,8)){const [x,z,k,chase]=a;if(!fin(x)||!fin(z)||Math.abs(x)>HALF||Math.abs(z)>HALF||!['walker','runner'].includes(k))continue;const q=mkZombie(k,x,z);if(chase){q.state='investigate';q.tx=x;q.tz=z}G.zs.push(q)}return}
@@ -3577,7 +3583,8 @@ function runTick(dt){if(!RUN.on||!G||G.over||!RUN.c)return;const p=G.p;const aut
  if(p.inf>=70&&!RUN.hpLow['i'+G.day]){RUN.hpLow['i'+G.day]=1;runLog('🦠','感染值超过 70%',2)}
  if(G.king&&!RUN.kingSeen){RUN.kingSeen=1;runLog('👑',`尸王出现（${runTL()}）`,1)}if(!G.king)RUN.kingSeen=0;
  // day / night transitions
- if(G.night&&!RUN.lastNight){RUN.lastNight=true;runDusk()}
+ evoTick(dt);
+ if(G.night&&!RUN.lastNight){RUN.lastNight=true;runDusk();try{evoDusk()}catch(e){console.warn('evo',e)}}
  if(!G.night&&RUN.lastNight){RUN.lastNight=false;runLog('🌅',`撑过了第 ${G.day-1} 晚`,G.day-1>=3?2:1)}
  if(auth)runChains(dt);
  runTaskTick(dt);runNpcTick(dt);runNpcNet(dt);runGenTick(dt);runConvoyTick(dt);
@@ -3776,9 +3783,32 @@ function runEnd(win,how){const el=$('endR');if(!el)return;if(!RUN.on||!RUN.c){el
  const why=win?(how==='convoy'?'搭上军方车队提前撤离':'第 6 天登上直升机'):how==='turned'?'感染值满了':how==='heli'?'没赶上直升机':how==='dead'?`致命伤：${RUN.cause||'重伤'}`:'';
  const key=RUN.log.slice().sort((a,b)=>b.imp-a.imp||a.t-b.t).slice(0,9).sort((a,b)=>a.t-b.t);
  el.innerHTML=`<div class="rr-top"><div class="rr-g g${grade}">${grade}</div><div><b>${score}</b> 分${rec?' <em>新纪录！</em>':''}<small>最高 ${best.best} · 第 ${best.runs} 局 · 已完成挑战 ${Object.keys(best.chal).length}/${Object.keys(RCH).length}</small>${why?`<small>${why}</small>`:''}</div></div>`+
-  `<div class="rr-ch">${[RCITY[c.city],RZB[c.zb],RWX[c.wx]].map(x=>`<span>${x.ic} ${x.n}</span>`).join('')}<span class="${chOk?'ok':'no'}">${Z.ic} 挑战「${Z.n}」${chOk?'完成':'未完成'}</span></div>`+
-  `<div class="rr-st"><span>委托 <b>${s.tasks}</b>${s.fails?`/失败 ${s.fails}`:''}</span><span>救援 <b>${s.rescued}</b></span><span>隐藏物资 <b>${s.hidden}</b></span><span>连锁事件 <b>${s.chains}</b></span><span>最高警戒 <b>${Math.round(RUN.maxHeat)}</b></span><span>开枪 <b>${s.shots}</b></span></div>`+
+  `<div class="rr-ch">${[RCITY[c.city],RZB[c.zb],RWX[c.wx]].map(x=>`<span>${x.ic} ${x.n}</span>`).join('')}<span class="${chOk?'ok':'no'}">${Z.ic} 挑战「${Z.n}」${chOk?'完成':'未完成'}</span>${EVO.list.map(k=>`<span class="no">${EVOT[k].ic} 进化：${EVOT[k].n}</span>`).join('')}</div>`+
+  `<div class="rr-st"><span>委托 <b>${s.tasks}</b>${s.fails?`/失败 ${s.fails}`:''}</span><span>救援 <b>${s.rescued}</b></span><span>隐藏物资 <b>${s.hidden}</b></span><span>连锁事件 <b>${s.chains}</b></span><span>最高警戒 <b>${Math.round(RUN.maxHeat)}</b></span><span>开枪 <b>${s.shots}</b></span><span>最高连杀 <b>${s.bestCombo||0}</b></span></div>`+
   (key.length?`<div class="rr-tl"><div class="rr-h">关键时刻</div>${key.map(e=>`<div><i>${e.w}</i>${e.ic} ${e.s}</div>`).join('')}</div>`:'')}
+
+// ================= 打击手感：连杀、终结慢动作、爆头特写、击杀音效 =================
+const JC={n:0,t:-9,best:0,slow:0,zoom:0,flash:0,el:null,fl:null};
+const JMS={5:['杀疯了',5],10:['屠夫',15],20:['尸山血海',30],35:['末日杀神',50]};
+function juiceDom(){if(JC.el)return;const c=document.createElement('div');c.id='combo';c.hidden=true;document.body.appendChild(c);JC.el=c;
+ const f=document.createElement('div');f.id='jflash';document.body.appendChild(f);JC.fl=f}
+function juiceKill(z,src){if(!G||G.over||NET.zp||(G.p&&G.p.remote))return;juiceDom();const K=ZK[z.kind]||{};const head=G._crit==='爆头';
+ // kill streak: kills less than 3.5 s apart keep it going
+ JC.n=G.t-JC.t<3.5?JC.n+1:1;JC.t=G.t;JC.best=Math.max(JC.best,JC.n);if(RUN.st)RUN.st.bestCombo=Math.max(RUN.st.bestCombo||0,JC.n);
+ if(JC.n>=2){const el=JC.el;el.innerHTML=`<b>×${JC.n}</b><span>连杀</span>`;el.hidden=false;el.className='';void el.offsetWidth;el.className='pop'+(JC.n>=10?' hot':JC.n>=5?' warm':'')}
+ const M=JMS[JC.n];if(M){gainCr(M[1]);sysMsg('连杀',`<b>${JC.n} 连杀 · ${M[0]}</b> · 积分 +${M[1]}`,{kind:'ok',t:2600,mute:JC.n<10});if(RUN.on)runLog('🔥',`${JC.n} 连杀「${M[0]}」`,JC.n>=10?2:1)}
+ // finishing a big one, or a streak milestone: slow motion + push in
+ const big=K.big||K.boss||K.king||z.kind==='brute';
+ if(big||JC.n===10||JC.n===20||JC.n===35){JC.slow=big?.9:.6;JC.zoom=1;sfx('kill',z.x,z.z);shake(.35);buzz(90)}
+ else if(head){JC.zoom=Math.max(JC.zoom,.7);JC.flash=1;sfx('headshot',z.x,z.z);hitStop(.08);buzz(45)}
+ else{sfx('kill',z.x,z.z);hitStop(src==='melee'?.06:.035);buzz(src==='melee'?30:18)}}
+{const _ok=onKill;onKill=function(z,src){_ok(z,src);try{juiceKill(z,src)}catch(e){console.warn('juice',e)}}}
+// called every frame with real (unscaled) time; returns the time scale for the world
+function juiceTick(raw){if(!G)return 1;let k=1;if(JC.slow>0){JC.slow-=raw;if(!(NET.on&&NET.started))k=.3}// in multiplayer the world can't slow down for one player: only the camera effect
+ JC.zoom=Math.max(0,JC.zoom-raw*1.6);JC.flash=Math.max(0,JC.flash-raw*3);
+ if(JC.fl)JC.fl.style.opacity=(JC.flash*.55+(JC.slow>0?.18:0)).toFixed(3);
+ if(JC.el&&!JC.el.hidden&&G.t-JC.t>3.5){JC.el.hidden=true;JC.n=0}
+ return k}
 
 
 // ================= 电脑版：键盘 + 鼠标（锁定鼠标转视角，第一/第三人称都能玩） =================
@@ -4285,6 +4315,52 @@ function doorStrikeFx(b,mat,big,dm){const D=b.door;strikeFx(D.x+D.nx*.25,1.2+Mat
  const I=G.interiors[interiorKey(b.id,0)];if(I&&I.door&&G.inside===I.key){strikeFx(I.door.x-D.nx*.3,1.2+Math.random()*.5,I.door.z-D.nz*.3,mat,big,-D.nx,-D.nz,I.key,dm);shake(big?.35:.1)}}
 function doorMat(b){return b.ds.barr>0?'barr':b.iron?'iron':'wood'}
 
+// ================= 尸群进化：白天怎么玩，晚上就来什么克制你的丧尸（城市生存模式） =================
+const EVO={d:{},peers:{},sendT:0,rc:0,list:[],told:0};
+const EVOT={
+ gun:{n:'钢盔尸',ic:'🪖',th:10,why:v=>`白天开了 ${Math.round(v)} 枪`,d:'戴着钢盔和护甲：子弹伤害减半，爆头也打不穿 · 用近战、燃烧瓶对付'},
+ roof:{n:'攀爬尸',ic:'🧗',th:80,why:v=>`在屋顶待了 ${Math.round(v)} 秒`,d:'会顺着墙爬上屋顶 · 屋顶不再绝对安全'},
+ car:{n:'路障尸群',ic:'🚧',th:45,why:v=>`开车开了 ${Math.round(v)} 秒`,d:'成群堵在马路上等车撞过来 · 开车要绕路'},
+ melee:{n:'自爆尸',ic:'💥',th:12,why:v=>`近战杀了 ${Math.round(v)} 只`,d:'被打死时会炸开 · 别贴身打它'},
+ sneak:{n:'潜伏尸 + 尖叫尸',ic:'👁',th:90,why:v=>`蹲着潜行了 ${Math.round(v)} 秒`,d:'潜伏尸会摸过来，尖叫尸一看到你就叫来一群'},
+ indoor:{n:'巨尸',ic:'🦍',th:0,why:v=>`白天大半时间躲在屋里`,d:'力气大，专门撞门 · 别只靠堵门'}};
+function evoReset(){EVO.d={gun:0,roof:0,car:0,melee:0,sneak:0,indoor:0};EVO.peers={};EVO.list=[];EVO.rc=0;EVO.told=0}
+function evoOn(){return RUN.on&&G&&G.mode==='surv'&&!isMaze()&&!isWall()&&!NET.zp}
+// local tracking of how this player spends the day
+function evoTick(dt){if(!evoOn()||G.over||G.night)return;const p=G.p,D=EVO.d;
+ if((p.recoil||0)>EVO.rc+.3)D.gun++;EVO.rc=p.recoil||0;
+ if(p.inCar)D.car+=dt;else if(G.inside)D.indoor+=dt;else if(p.y>2.5)D.roof+=dt;else if(p.crouch)D.sneak+=dt;
+ if(RCL()&&(EVO.sendT-=dt)<=0){EVO.sendT=12;netSend({k:'runEv',t:'evo',id:NET.me,d:EVO.d})}}
+{const _ok=onKill;onKill=function(z,src){_ok(z,src);if(evoOn()&&!G.night&&src==='melee'&&!(G.p.weapon&&IT[G.p.weapon]&&IT[G.p.weapon].kind==='gun'))EVO.d.melee++}}
+// armour: bullets do half (headshots too)
+{const _dm=zDmgMod;zDmgMod=function(z,dm,src){dm=_dm(z,dm,src);if(z.armor&&G._gun){dm*=G._crit==='爆头'?.35:.5;if(!EVO.told&&!(G.p&&G.p.remote)){EVO.told=1;ftxt(z,'钢盔挡住了！','#c8d0d8',true)}}return dm}}
+// host, at dusk: pick the one or two habits that stand out and send the counter into tonight's wave
+function evoDusk(){if(!evoOn()||RCL())return;const S={...EVO.d};let hum=1;for(const id in EVO.peers){hum++;for(const k in S)S[k]+=EVO.peers[id][k]||0}
+ const th={...Object.fromEntries(Object.entries(EVOT).map(([k,v])=>[k,v.th*hum]))};th.indoor=G.dayLen*.45*hum;
+ const pick2=Object.keys(EVOT).map(k=>[k,S[k]/th[k]]).filter(([,r])=>r>=1).sort((a,b)=>b[1]-a[1]).slice(0,2);
+ for(const [k] of pick2){const n=evoSpawn(k);if(!n)continue;if(!EVO.list.includes(k))EVO.list.push(k);const E=EVOT[k];const v=Math.round(S[k]/hum);evoMsg(k,v);if(RMP())netSend({k:'runEv',t:'evoMsg',e:k,v});runLog(E.ic,`尸群进化：${E.n}（${E.why(S[k]/hum)}）`,2)}
+ EVO.d={gun:0,roof:0,car:0,melee:0,sneak:0,indoor:0};EVO.peers={}}
+function evoMsg(k,v){const E=EVOT[k];if(!E)return;sysMsg('尸群进化',`${E.ic} <b>${E.n}</b> 出现了（因为你们${E.why(v)}）<br>${E.d}`,{kind:'bad',t:7500});sfx('roar')}
+function evoSpawn(k){const day=G.day,n0=G.zs.length;const add=(kind,x,z,inv=true)=>{const q=mkZombie(kind,x,z);if(inv){q.state='investigate';q.tx=G.p.x+rnd(-10,10);q.tz=G.p.z+rnd(-10,10)}G.zs.push(q);return q};
+ const n=zRoom(2+day,6);if(n<=0)return 0;
+ if(k==='gun'){for(let i=0;i<n;i++){const [x,z]=HALF>62?nearPoint():edgePoint();const q=add(day>=3&&i%3===2?'runner':'walker',x,z);q.armor=1;q.hp*=1.3;q.mhp*=1.3}}
+ else if(k==='roof'){for(let i=0;i<n;i++){const [x,z]=HALF>62?nearPoint():edgePoint();add('climber',x,z)}}
+ else if(k==='melee'){const kind=ZK.bomber?'bomber':'walker';for(let i=0;i<Math.max(2,n>>1);i++){const [x,z]=HALF>62?nearPoint():edgePoint();add(kind,x,z)}}
+ else if(k==='sneak'){for(let i=0;i<n;i++){const [x,z]=HALF>62?nearPoint():edgePoint();add(i%3===0&&ZK.screamer?'screamer':'stalker',x,z)}}
+ else if(k==='indoor'){for(let i=0;i<Math.min(2,1+(day>>2));i++){const [x,z]=HALF>62?nearPoint():edgePoint();add('brute',x,z)}}
+ else if(k==='car'){const L=CITY.lines.length?CITY.lines:[[0,4]];for(let g=0;g<2;g++){const [c]=pick(L);const along=rnd(-HALF+8,HALF-8);const hz=Math.random()<.5;const cx=hz?along:c,cz=hz?c:along;
+   for(let i=0;i<Math.ceil(n/2)+1;i++){const s=runOpen(cx,cz,0,3.5,.5);if(s)add('walker',s[0],s[1],false)}}if(day>=3){const [x,z]=nearPoint();add('brute',x,z)}}
+ return G.zs.length-n0}
+// helmet mesh for armoured zombies
+let EVO_HG=null,EVO_HM=null;const EVO_V=new T3.Vector3();
+// helmet follows the head bone (rigged models) or the head group (classic models)
+function evoHelm(m){if(!EVO_HG){EVO_HG=new T3.SphereGeometry(.13,10,6,0,Math.PI*2,0,Math.PI*.55);EVO_HM=new T3.MeshStandardMaterial({color:0x2f3a2a,roughness:.7,metalness:.25})}const h=new T3.Mesh(EVO_HG,EVO_HM);h.castShadow=false;
+ let bone=null;m.traverse(o=>{if(!bone&&o.isBone&&/head$/i.test(o.name))bone=o});const ud=m.userData;
+ if(bone){m.updateMatrixWorld(true);bone.getWorldScale(EVO_V);const k=1/(EVO_V.x||1);h.scale.set(k*1.12,k*.95,k*1.18);h.position.set(0,.1*k,.015*k);bone.add(h)}
+ else if(ud.head){ud.head.add(h);h.position.set(0,.13,0)}else{h.position.y=1.55;m.add(h)}return h}
+function evoRecv(m){if(m.t==='evo'&&NET.host&&m.d&&typeof m.d==='object'&&typeof m.id==='string'){const o={};for(const k of Object.keys(EVOT))o[k]=clamp(+m.d[k]||0,0,5000);EVO.peers[m.id.slice(0,20)]=o}
+ else if(m.t==='evoMsg'&&RUN.on&&EVOT[m.e]){evoMsg(m.e,clamp(+m.v||0,0,9999));if(!EVO.list.includes(m.e))EVO.list.push(m.e)}}
+
 
 // ================= 室内窗户：看得到外面的实时画面（同一时间只渲染离你最近的那扇窗） =================
 const WV={rt:null,cam:null,t:0,q:null,mat:null};
@@ -4714,6 +4790,8 @@ function sfx(n,x,z){if(!AUD.ctx||AUD.mute)return;const c=AUD.ctx,t=c.currentTime
   case 'groan':{const o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(),l=c.createOscillator(),lg=c.createGain();o.type='sawtooth';o.frequency.value=rnd(70,110);l.frequency.value=rnd(4,9);lg.gain.value=rnd(10,25);l.connect(lg);lg.connect(o.frequency);f.type='bandpass';f.frequency.value=rnd(350,600);f.Q.value=2;env(g,t,.15,.14*v,rnd(.6,1.2));o.connect(f);f.connect(g);g.connect(AUD.in);o.start(t);l.start(t);o.stop(t+1.6);l.stop(t+1.6);break}
   case 'zhit':nz(t,.12,'lowpass',900,1,.3*v,.1);break;
   case 'zdie':nz(t,.4,'lowpass',500,1,.3*v,.35);osc(t,'sawtooth',120,50,.4,.08*v);break;
+  case 'kill':osc(t,'sine',95,38,.22,.32*v);nz(t,.12,'lowpass',900,1,.35*v,.1);break;
+  case 'headshot':nz(t,.06,'highpass',2500,1,.5*v,.05);osc(t,'square',1400,300,.07,.08*v);osc(t+.02,'sine',110,40,.25,.3*v);break;
   case 'whack':nz(t,.1,'bandpass',1500,1.5,.4*v,.08);osc(t,'triangle',220,90,.08,.15*v);break;
   case 'punch':nz(t,.08,'lowpass',700,1,.3*v,.07);break;
   case 'swish':nz(t,.15,'highpass',2000,.7,.12,.12);break;
@@ -4773,7 +4851,7 @@ function renderHUD(){{const q=$("rpgQ");if(q)q.hidden=$("hud").hidden||!!G.over|
 
 // ================= main =================
 let last=performance.now(),ctxT=0,hudT=0,miniT=0;
-function frame(now){const raw=(now-last)/1000;let dt=Math.min(.05,raw);last=now;try{perfTick(raw)}catch(e){}if(G&&G.hs>0){G.hs-=dt;dt*=.06}
+function frame(now){const raw=(now-last)/1000;let dt=Math.min(.05,raw);last=now;try{perfTick(raw)}catch(e){}if(G&&G.hs>0){G.hs-=dt;dt*=.06}try{dt*=juiceTick(raw)}catch(e){}
  if(G&&renderer)tickAll(dt,true);
  requestAnimationFrame(frame)}
 let lowT=0;function tickAll(dt,draw){sanity();if(G.inside&&(lowT-=dt)<=0){lowT=1;if(lowMat())safe('low',()=>lowify(inGroup))}safe('sg',sgRefresh);safe('unstick',()=>{const p=G.p;if(!G.over&&!p.climb&&!p.inCar&&!p.hide&&!p.para)unstick(p)});
@@ -4845,7 +4923,7 @@ $('mini').onclick=()=>{if(!G||NET.zp)return;drawMini($('bmc'),640,true);$('map')
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
 requestAnimationFrame(frame);
-window.__sc={endGame:(w,h)=>endGame(w,h),RUN,runStart,runMakeOffer,runFixGen,runEnd,runCarBoom,get RTASK(){return RTASK},get MODELS(){return MODELS},BATCH,ENT,PERF,fxApply,perfTick,get renderer(){return renderer},get outGroup(){return outGroup},get BLDS(){return BLD},zLedgeG,zLedge,hitBlocked,mzShuffle,mzPassPlan,BIKEP,bikeOn,get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
+window.__sc={get EVO(){return EVO},evoDusk:()=>evoDusk(),get EVOT(){return EVOT},get JC(){return JC},juiceTick:r=>juiceTick(r),endGame:(w,h)=>endGame(w,h),RUN,runStart,runMakeOffer,runFixGen,runEnd,runCarBoom,get RTASK(){return RTASK},get MODELS(){return MODELS},BATCH,ENT,PERF,fxApply,perfTick,get renderer(){return renderer},get outGroup(){return outGroup},get BLDS(){return BLD},zLedgeG,zLedge,hitBlocked,mzShuffle,mzPassPlan,BIKEP,bikeOn,get camera(){return camera},hotUse,wearGear,SKZ,WOOD,zSkillTick,woodCtx,wallRfK,struggle,breakFree,startGrab,MAZE,isMaze,mazeLOS,mazeWay,mzPass,mzWallNear,mazeTrapPlace,mzCx,mzCell,mzInGlade,mzOutside,mazeNight,mazeDawn,mzSpawnFar,hurtPlayer,wallDown,PC,pcAttack,pcTick,WALL,isWall,wallCtx,wallShove,wallGasDrop,wallCap,wallTick,onTowerRoof,get BLD(){return BLD},furnTurn,furnLay,stairDoor,floorAlert,unstick,showWheel,WV,wx,bossHpK,structDm,zBdm,pileReach,ERRS,sim(n,dt){for(let i=0;i<n;i++)if(G&&renderer)tickAll(dt||.05,false)},baseApply,baseAct,openBuild,openBox,spawnBoss,bossTick,baseTick,BUP,netBecomeZombie,zFind,zpCtx,netGunPeer,get BID(){return BID},CITY,RADIO,radioStart,radioStop,audInit,bikeOn,bikeOff,enterCar,exitCar,canSee,copDrop,hitZombie,NET,netOnEvent,netOnWorld,netOnPlayer,netOnStart,netOnPresence,openMP,mpEnter,mpStart,sysMsg,sysWorld,RPG,TAL,TITLES,SHOP,gainXP,gainCr,hid,buy,spawnKing,scanBtn,scanAt,saveGame,readSave,applySave,toggleNVG,isNvg,openRpg,showTalent,onDawn,maxHp,useItem,hurt:hurtPlayer,doThrow,doAttack,AUD,MUS,placeFurn,liftFurn,nearFurn,zBreakIn,hitDoor,CRP,MODELS,realModel,prop,smokeTick,doShove,startGrab,setBlock,doRoll,doCrouch,doJump,zAttack,get G(){return G},begin,tickWorld,tickPlayer,computeCtx,get ctx(){return ctxOpts},cam,invAdd,dropItem,placeCarry,findLadderSpot,findPlankSpot,enterInterior,exitTo,interior,mkZombie,supportAt,doAttack,doThrow,useItem,climbLadder,keys,joy};
 // ---------- installable app (PWA): offline cache + 'install' button on the start screen ----------
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$|vercel\.app$|netlify\.app$/.test(location.hostname))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
 const APP={evt:null};
