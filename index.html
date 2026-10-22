@@ -4483,7 +4483,7 @@ function shareCard(){const c=document.createElement('canvas');c.width=720;c.heig
  g.textAlign='center';g.font='500 20px sans-serif';g.fillStyle='#8a8070';g.fillText('liewchoon710-pixel.github.io/5dayz',360,930);return c}
 function shareNow(){try{const c=shareCard();c.toBlob(async b=>{if(!b)return;const f=new File([b],'尸城五日战绩.png',{type:'image/png'});const txt=`我在《尸城五日》拿了 ${RUN.last&&RUN.last.score||0} 分（${RUN.last&&RUN.last.grade||''}）· ${RUN.last&&RUN.last.title||''} https://liewchoon710-pixel.github.io/5dayz/`;
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:txt});return}}catch(e){if(e&&e.name==='AbortError')return}
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='尸城五日战绩.png';document.body.appendChild(a);a.click();a.remove();toast('战绩图片已经下载 · 可以发到 WhatsApp','good')},'image/png')}catch(e){toast('生成战绩图失败','bad')}}
+  let el=$('cardP');if(!el){el=document.createElement('div');el.id='cardP';el.className='lore';document.body.appendChild(el)}el.innerHTML=`<div class="lp" style="text-align:center"><img src="${c.toDataURL('image/png')}" style="width:100%;border-radius:6px" alt="战绩"><div class="lf">长按图片保存，或截图分享到 WhatsApp</div><button class="big" id="cardX">关闭</button></div>`;el.hidden=false;$('cardX').onclick=()=>{el.hidden=true}},'image/png')}catch(e){toast('生成战绩图失败','bad')}}
 
 // ================= 尸群进化：白天怎么玩，晚上就来什么克制你的丧尸（城市生存模式） =================
 const EVO={d:{},peers:{},sendT:0,rc:0,list:[],told:0};
