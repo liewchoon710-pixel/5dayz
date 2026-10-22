@@ -274,6 +274,7 @@ body.incar #fpHud .br{display:none}
 /* walkie-talkie */
 #bRadio{display:none;position:fixed;right:calc(env(safe-area-inset-right,0px) + 14px);top:30%;width:64px;height:64px;border-radius:50%;background:rgba(20,40,30,.85);border:2px solid #7ad070;color:#d8ffd0;font-size:24px;flex-direction:column;align-items:center;justify-content:center;z-index:8;touch-action:none}
 #bRadio small{font-size:9px;line-height:1}body.mp #bRadio{display:flex}body.zp #bRadio{display:none!important}
+body.zp #mini,body.zp #map{display:none!important}
 #bRadio.on{background:rgba(160,30,20,.9);border-color:#ff8a70;box-shadow:0 0 18px rgba(255,80,60,.7);animation:pulse .5s ease-in-out infinite alternate}#bRadio.on small::after{content:'（讲话中）'}
 #radioRx{position:fixed;right:calc(env(safe-area-inset-right,0px) + 84px);top:30%;background:rgba(10,20,14,.85);border:1px solid rgba(122,208,112,.6);border-radius:8px;padding:5px 9px;font-size:12px;color:#d8ffd0;z-index:8;pointer-events:none}
 #radioRx .sig{color:#7ad070;letter-spacing:-1px}
@@ -395,7 +396,7 @@ body.undercar #fpHud .br{display:none}
     <button class="big mpb" id="mpBtn">👥 多人联机（开房间 / 输入房号）</button>
     <a href="https://liewchoon710-pixel.github.io/5dayz/v4/" style="text-align:center;color:var(--mute);font-size:13px;padding:6px">🕰 想玩回旧版？打开经典版 4.0</a>
     <button id="tutAgain" style="background:none;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--mute);font-size:13px">开局重新看新手教学</button>
-    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.3.2 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
+    <p class="lede" style="font-size:12px;color:var(--mute)">试玩版 7.3.3 · 建议横屏 · 单人 / 多人联机（最多 8 人） · 16 个街区 · 27 栋建筑全部可进入 · 人物模型：开源免费素材</p>
   </div>
 </div>
 <div class="ov" id="end" hidden>
@@ -2005,7 +2006,7 @@ function computeCtx(){const p=G.p,o=[];if(p.downT>0||p.ghost){ctxOpts=[];return}
  if(p.carry&&p.carry.k!=='furn'){const k=p.carry.k;let lab='放下 '+IT[k].n;if(k==='ladder'&&!G.inside&&findLadderSpot(p))lab='🪜 把梯子靠在墙上';if(k==='plank'&&!G.inside&&findPlankSpot(p))lab='🪵 搭木板到对面楼顶';o.push({l:lab,fn:placeCarry,pulse:1,alt:!/靠|搭/.test(lab)&&o.length>0})}
  wallCtx(o);mazeCtx(o);woodCtx(o);{const bo=[];baseCtx(bo);if(bo.length){if(o.length)bo.forEach(x=>x.alt=1);o.splice(Math.min(1,o.length),0,...bo)}}ctxOpts=o.slice(0,3)}
 function renderCtx(){const el=$('ctx');const sig=ctxOpts.map(o=>o.l+(o.alt?'1':'0')+(o.pulse?'p':'')).join('|');if(sig===ctxSig)return;ctxSig=sig;el.innerHTML='';el.hidden=!ctxOpts.length;
- ctxOpts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o.l;if(o.alt&&i>0)b.className='alt';if(o.pulse)b.classList.add('pulse');b.onclick=e=>{e.stopPropagation();o.fn();ctxSig='';computeCtx();renderCtx();renderHand()};el.appendChild(b)})}
+ ctxOpts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o.l;if(o.alt&&i>0)b.className='alt';if(o.pulse)b.classList.add('pulse');const go=e=>{e.stopPropagation();e.preventDefault();if(b._fired)return;b._fired=1;o.fn();ctxSig='';computeCtx();renderCtx();renderHand()};b.addEventListener('pointerdown',go);b.onclick=go;el.appendChild(b)})}
 function igniteGas(it){const p=G.p;G.items.splice(G.items.indexOf(it),1);toast('汽油桶点着了！快跑！','bad');const sc=G.inside||'out';const x=it.x,z=it.z,y=it.y;
  G.fx.push({k:'fuse',x,y:y+.6,z,t:1.6,m:1.6,sc});setTimeout(()=>{if(!G||G.over)return;const old=G.inside;G.inside=sc==='out'?null:sc;
   for(const q of zList())if(!q.dead&&dd(q.x,q.z,x,z)<3.6)hitZombie(q,85,'fire');if((old||'out')===sc&&dd(G.p.x,G.p.z,x,z)<3.2&&Math.abs(G.p.y-y)<2)hurtPlayer(35,0);
@@ -2344,7 +2345,7 @@ function drawOverlay(){const dpr=ovc.width/innerWidth;oc.setTransform(dpr,0,0,dp
  if(G.heli&&!G.inside){const s=proj(G.heli.x,G.heli.y+1,G.heli.z);const W=innerWidth,H=innerHeight;let x,y,off=false;if(s){x=s[0];y=s[1];off=x<20||x>W-20||y<90||y>H-170}else off=true;
   if(off){const a=Math.atan2(G.heli.x-p.x,G.heli.z-p.z)-cam.yaw;x=W/2-Math.sin(a)*W*.42;y=H/2-Math.cos(a)*H*.33}
   oc.fillStyle='#f0c060';oc.font='800 18px sans-serif';oc.textAlign='center';oc.fillText('★',x,y);oc.font='700 11px "Noto Sans SC",sans-serif';oc.fillText(`直升机 ${Math.ceil(G.heli.t)}秒`,x,y+14)}
- runOverlay();rpgOverlay()}
+ runOverlay();rpgOverlay();zpSense()}
 function drawMini(c,S,big){if(isMaze()){mazeMini(c,S,big);return}const g=c.getContext('2d');const k=S/(HALF*2);const X=x=>(x+HALF)*k,Z=z=>(z+HALF)*k;const p=G.p;
  g.fillStyle='#16191a';g.fillRect(0,0,S,S);g.fillStyle='#2a2c2e';for(const [c,hw] of (CITY.lines.length?CITY.lines:[[0,4]])){g.fillRect(0,Z(c-hw),S,2*hw*k);g.fillRect(X(c-hw),0,2*hw*k,S)}
  for(const b of BLD){const sh=Math.round(70+b.h*7);g.fillStyle=`rgb(${sh},${sh-4},${sh-10})`;g.fillRect(X(b.x0),Z(b.z0),(b.x1-b.x0)*k,(b.z1-b.z0)*k);if(big&&(HALF<=62||b.id[0]!=='o'||!['house','apt','office','ware','motel','garage'].includes(b.type))){g.fillStyle='#111';g.font=`${Math.round(S/38*Math.min(1,70/HALF))}px "Noto Sans SC",sans-serif`;g.textAlign='center';g.fillText(`${b.n} ${b.h}米`,X((b.x0+b.x1)/2),Z((b.z0+b.z1)/2)+4)}
@@ -3254,6 +3255,16 @@ function netRender(dt){if(!NET.on||!NET.started)return;const RM=MODELS.state==='
   const gun=!!(wp&&IT[wp]&&IT[wp].kind==='gun');
   if(ud.real)animReal(ud,dt,Math.min(sp,5),{zombie:q.zp?1:0,t:G.t,gun,aim:gun&&q.at,recoil:0,block:!!q.bl,crouch:!!q.cr,roll:q.rl?.5:null,crouch:!!q.cr||q.bk>=0,grabbed:(q.gb||[]).length>0,shove:!!q.sh,thr:q.th?.5:null,attack:!!q.at,atk:!wp?'punch':wp==='knife'?'stab':'slash',hit:!!q.ht,dead:q.hp<=0});
   else{q.an=(q.an||0)+dt*sp*2.2;pose(ud,q.an,sp>.2?(sp>3?1:.7):0,{zombie:q.zp?1:0,t:G.t,swing:q.at?1:0});m.scale.y=q.cr?.72:1}}}
+// zombie players have no map: only a fuzzy pull toward the nearest living person within 40 m
+function zpWorld(sc,x,z){if(!sc||sc==='out')return[x,z];const b=BID[String(sc).split('#')[0]];return b?[(b.x0+b.x1)/2,(b.z0+b.z1)/2]:[x,z]}
+function zpSense(){if(!NET.zp||!G||G.over&&!NET.zp)return;const p=G.p;const [mx,mz]=zpWorld(G.inside||'out',p.x,p.z);let best=null,bd=40;
+ for(const id in NET.peers){const q=NET.peers[id];if(q.gone||q.zp||q.es||q.ov||!q.st)continue;const [hx,hz]=zpWorld(q.sc,q.rx,q.rz);const d=dd(hx,hz,mx,mz);if(d<bd){bd=d;best=[hx,hz,id]}}
+ const W=innerWidth,H=innerHeight;if(!best){oc.globalAlpha=.55;oc.fillStyle='#d8a090';oc.font='600 11px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText('🧟 闻不到活人的气味……',W/2,H-118);oc.globalAlpha=1;return}
+ const wob=Math.sin(G.t*.37+best[2].length)*.45+Math.sin(G.t*.91)*.2;// the sense drifts, it is never exact
+ const a=Math.atan2(best[0]-mx,best[1]-mz)-cam.yaw+wob;const k=1-bd/40;const beat=.55+.45*Math.max(0,Math.sin(G.t*(3+k*7)));
+ const cx=W/2,cy=H/2,rx=W*.44,ry=H*.38;const sp=.55-k*.25;oc.save();oc.globalAlpha=(.18+k*.55)*beat;oc.strokeStyle='#ff2a10';oc.lineCap='round';
+ for(let i=0;i<3;i++){oc.lineWidth=(14-i*4)*(0.6+k);oc.beginPath();for(let t=-sp;t<=sp;t+=.05){const aa=a+t;const x=cx-Math.sin(aa)*rx,y=cy-Math.cos(aa)*ry;t===-sp?oc.moveTo(x,y):oc.lineTo(x,y)}oc.stroke()}
+ oc.globalAlpha=.75*beat;oc.fillStyle='#ffb0a0';oc.font='700 12px "Noto Sans SC",sans-serif';oc.textAlign='center';oc.fillText(bd<10?'🩸 活人就在附近！':bd<22?'🩸 闻到活人的气味':'🩸 远处好像有活人',cx-Math.sin(a)*(rx-34),cy-Math.cos(a)*(ry-26));oc.restore()}
 function netOverlay(){if(!NET.on||!NET.started)return;const p=G.p,sc=G.inside||'out';
  for(const id in NET.peers){const q=NET.peers[id];if(q.gone||!q.st||q.sc!==sc||q.hd||q.car>=0||q.es||q.ov&&!q.zp)continue;const d=dd(q.rx,q.rz,p.x,p.z);if(d>40)continue;const s=proj(q.rx,q.ry+2.15,q.rz);if(!s)continue;
   oc.globalAlpha=d<25?1:.6;oc.textAlign='center';oc.font='700 12px "Noto Sans SC",sans-serif';oc.lineWidth=3;oc.strokeStyle='rgba(0,0,0,.75)';const t=(q.zp?'尸化体 · ':'')+q.name+(q.zp?'':' · '+(q.lv||1)+'级');oc.strokeText(t,s[0],s[1]);oc.fillStyle=q.zp?'#ff6a50':'#9af0a0';oc.fillText(t,s[0],s[1]);
@@ -3622,7 +3633,7 @@ function runMakeOffer(){const ch=RUN.c.ch;let pool=Object.keys(RTASK).filter(k=>
  RUN.offer={opts,t:28};runOfferShow();sfx('sys')}
 function runOfferShow(){let el=$('runOffer');if(!el){el=document.createElement('div');el.id='runOffer';document.body.appendChild(el);el.addEventListener('pointerdown',e=>e.stopPropagation())}
  const O=RUN.offer;el.innerHTML=`<div class="ro-h"><span>📻 无线电 · 选一个委托</span><span id="roT">${Math.ceil(O.t)}秒</span></div><div class="ro-b">${O.opts.map(k=>{const T=RTASK[k];return `<button class="ro-o" data-k="${k}"><b>${T.ic} ${T.n}</b><small>${T.d}</small><i>奖励：${T.rw}</i></button>`}).join('')}</div><div style="text-align:right;margin-top:4px"><button class="ro-x">不理会</button></div>`;
- el.hidden=false;el.querySelectorAll('.ro-o').forEach(b=>b.onclick=e=>{e.stopPropagation();runOfferHide();runStart(b.dataset.k)});el.querySelector('.ro-x').onclick=e=>{e.stopPropagation();runOfferHide();RUN.offT=rnd(100,150)}}
+ el.hidden=false;const on=(b,fn)=>{let done=0;const h=e=>{e.stopPropagation();e.preventDefault();if(done)return;done=1;fn()};b.addEventListener('pointerdown',h);b.onclick=h};el.querySelectorAll('.ro-o').forEach(b=>on(b,()=>{runOfferHide();runStart(b.dataset.k)}));on(el.querySelector('.ro-x'),()=>{runOfferHide();RUN.offT=rnd(100,150)})}
 function runOfferHide(){RUN.offer=null;const el=$('runOffer');if(el)el.hidden=true}
 function runBldNear(cx,cz,dmin,dmax,types){const L=BLD.filter(b=>b.door&&b.id!=='office'&&(!types||types.includes(b.type))).map(b=>[b,dd(b.door.x,b.door.z,cx,cz)]).filter(([,d])=>d>=dmin&&d<=dmax);return L.length?pick(L)[0]:null}
 function runStart(k){const p=G.p;const T={k,id:++RUN.tid,t0:G.t};
@@ -4822,14 +4833,14 @@ function endGame(win,how){if(G.over)return;if(!win&&how==='dead'&&wallDown())ret
 $('go').onclick=()=>{goFull();begin()};$('cont').onclick=()=>{goFull();begin(true)};$('retry').onclick=()=>{goFull();$('end').hidden=true;begin(true)};$('clock').addEventListener('pointerdown',e=>{e.stopPropagation();toggleFull()});$('again').onclick=()=>{mpBackLabel();if(NET.on){mpLeave();document.body.classList.remove('mp','zp');NET.zp=false;NET.esc=false}$('end').hidden=true;$('start').hidden=false;contLabel()};$('mpBtn').onclick=()=>openMP();$('mpBack').onclick=()=>mpRejoin();mpBackLabel();contLabel();
 const tap=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();fn()});
 tap('bAtk',doAttack);$('rotX').onclick=()=>{$('rotHint').hidden=true};addEventListener('orientationchange',()=>setTimeout(()=>{resize();joyHome();if(innerWidth>innerHeight)$('rotHint').hidden=true},250));$('bQuest').onclick=openQuests;$('bVoice').onclick=toggleVoice;$('bVoice').classList.toggle('on',VOICE.on);$('qTrack').onclick=openQuests;$('qX').onclick=()=>{$('qLog').hidden=true};$('tutAgain').onclick=()=>{SYS.forceTut=1;begin()};tap('hand',cycleWeapon);tap('bThrow',doThrow);tap('bShove',doShove);tap('bDodge',doRoll);tap('bJump',doJump);tap('bCrouch',doCrouch);
-$('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));$('bBag').onclick=e=>{e.stopPropagation();openBag()};$('bagX').onclick=()=>{$('bag').hidden=true};
-$('bLight').onclick=()=>toggleFlash();$('bStat').onclick=openRpg;tap('bScan',scanBtn);
+$('bBlock').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();setBlock(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('bBlock').addEventListener(ev,()=>setBlock(false)));tap('bBag',openBag);$('bagX').onclick=()=>{$('bag').hidden=true};
+tap('bLight',()=>toggleFlash());$('bStat').onclick=openRpg;tap('bScan',scanBtn);
 $('bShoulder').onclick=()=>{if(!G)return;if(isMaze()){if(cam.fp){cam.fp=false;$('bView').classList.remove('on');cam.pitch=.95;toast('越肩视角')}else toast('迷宫里默认就是越肩视角 · 👁 切第一人称');return}if(cam.fp){cam.fp=false;$('bView').classList.remove('on')}cam.sh=!cam.sh;cam.pitch=cam.sh?.95:.95;$('bShoulder').classList.toggle('on',cam.sh);try{localStorage.setItem('scwr-sh',cam.sh?'1':'0')}catch(e){}toast(cam.sh?'斜肩视角 · 拖动屏幕转视角':'第三人称俯视角')};
 try{cam.sh=localStorage.getItem('scwr-sh')==='1'}catch(e){}$('bShoulder').classList.toggle('on',cam.sh);
 $('bView').onclick=()=>{cam.fp=!cam.fp;$('bView').classList.toggle('on',cam.fp);if(cam.fp){cam.yaw=G.p.ang+Math.PI;cam.fpPitch=-.1;toast('第一人称 · 拖动屏幕转头')}};
 $('bMusic').onclick=()=>toggleMusic();$('bMusic').classList.toggle('on',MUS.on);
 $('bMute').onclick=()=>{AUD.mute=!AUD.mute;if(AUD.mute&&window.speechSynthesis)speechSynthesis.cancel();try{localStorage.setItem('scwr-mute',AUD.mute?'1':'0')}catch(e){}if(AUD.mg)AUD.mg.gain.value=AUD.mute?0:1;$('bMute').textContent=AUD.mute?'🔇':'🔊'};$('bMute').textContent=AUD.mute?'🔇':'🔊';
-$('mini').onclick=()=>{if(!G)return;drawMini($('bmc'),640,true);$('map').hidden=false};$('map').onclick=()=>{$('map').hidden=true};
+$('mini').onclick=()=>{if(!G||NET.zp)return;drawMini($('bmc'),640,true);$('map').hidden=false};$('map').onclick=()=>{$('map').hidden=true};
 ['bBag','ctx','side','mini','qTrack','hot','qLog','tut','wheel','sysPop'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
 addEventListener('beforeunload',e=>{if(G&&!G.over){e.preventDefault();e.returnValue=''}});
 addEventListener('popstate',()=>{if(G&&!G.over){try{history.pushState({sc:1},'')}catch(e){}toast('对局进行中 · 要离开请直接关闭页面')}});
