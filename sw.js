@@ -1,12 +1,12 @@
 // 尸城五日 · offline cache. The game page is network-first (you always get the newest version when online);
 // models, textures and libraries are cached so the app starts fast and works with a weak signal.
-const V='scwr-v31';
+const V='scwr-v32';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).catch(()=>{}));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('scwr-')&&k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);
- // 木屋求生 lives in /cabin/ with its own service worker; 后方指挥 lives in /command/ (always from the network)
- if(u.origin===location.origin&&(u.pathname.includes('/cabin/')||u.pathname.includes('/command/')))return;
+ // 木屋求生 lives in /cabin/ with its own service worker; 后方指挥 lives in /command/, 尸土重生 in /civ/ (always from the network)
+ if(u.origin===location.origin&&(u.pathname.includes('/cabin/')||u.pathname.includes('/command/')||u.pathname.includes('/civ/')))return;
  // never cache the multiplayer server
  if(/supabase\.co$/.test(u.hostname)||u.protocol==='ws:'||u.protocol==='wss:')return;
  const page=r.mode==='navigate'||u.pathname.endsWith('/')||u.pathname.endsWith('index.html');

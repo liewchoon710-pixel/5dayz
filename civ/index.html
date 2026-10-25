@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#d8d2c6">
+<meta name="description" content="尸城五日 · 外传《尸土重生》：六边形回合制末日废土争霸，单人或 2–4 人联机。">
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<title>尸土重生</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+<style>
+/* 布局：全屏斜俯视六边形地图（画布）。顶部：天、蓝图、胜利进度；左下：选中单位/据点面板；右下：结束这天；右侧：消息。沿用末日花园的柔和白昼配色。 */
+:root{
+  --ground:#d8d2c6; --ink:#3a3a34; --sub:#7b776c; --card:rgba(255,253,248,.94); --line:#e7e0d2;
+  --me:#4f86c6; --rust:#c9654f; --oasis:#c49a2c; --z:#7d6a86; --gold:#e3a93b; --bad:#d9645a; --good:#5e8c55; --sci:#5a8fc0;
+  --f-title:"ZCOOL XiaoWei","Noto Serif SC","Songti SC",serif; --f-ui:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%;}
+[hidden]{display:none!important;}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-ui);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;}
+#cv{position:fixed;inset:0;display:block;}
+.ui{position:fixed;z-index:5;}
+button{font-family:var(--f-ui);}
+.b{font-size:14px;font-weight:700;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);padding:9px 14px;cursor:pointer;box-shadow:0 4px 14px rgba(80,70,50,.1);display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.b.main{background:var(--good);border-color:var(--good);color:#fff;}
+.b.warn{background:var(--bad);border-color:var(--bad);color:#fff;}
+.b:disabled{opacity:.4;cursor:default;}
+.b:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+.b.sm{font-size:12px;padding:6px 10px;box-shadow:none;}
+#top{top:calc(env(safe-area-inset-top,0px) + 8px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:8px;align-items:flex-start;pointer-events:none;flex-wrap:wrap;}
+.pane{background:var(--card);border-radius:14px;box-shadow:0 4px 14px rgba(80,70,50,.1);padding:7px 11px;}
+#brand{display:flex;flex-direction:column;}
+#brand h1{margin:0;font-family:var(--f-title);font-weight:400;font-size:21px;line-height:1.1;color:#4e5a3e;letter-spacing:.05em;}
+#brand span{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;}
+#sciP{pointer-events:auto;cursor:pointer;min-width:170px;border:0;text-align:left;font-size:12px;color:var(--sub);}
+#sciP b{color:var(--ink);font-size:14px;}
+.bar{height:5px;background:#eee7d8;border-radius:5px;overflow:hidden;margin-top:4px;}
+.bar i{display:block;height:100%;background:var(--sci);border-radius:5px;}
+#stats{display:flex;gap:10px;font-size:12px;color:var(--sub);align-items:center;font-variant-numeric:tabular-nums;}
+#stats b{color:var(--ink);font-size:14px;margin-left:2px;}
+#vic{margin-left:auto;font-size:12px;color:var(--sub);display:flex;flex-direction:column;gap:3px;min-width:150px;pointer-events:auto;cursor:pointer;}
+#vic div{display:flex;justify-content:space-between;gap:10px;}
+#vic b{color:var(--ink);font-variant-numeric:tabular-nums;}
+#tools{top:calc(env(safe-area-inset-top,0px) + 100px);right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:6px;}
+.rb{width:40px;height:40px;padding:0;font-size:17px;}
+#feed{right:max(16px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 148px);width:min(250px,44vw);display:flex;flex-direction:column;gap:4px;pointer-events:none;}
+#feed div{background:var(--card);border-radius:10px;padding:5px 9px;font-size:12px;line-height:1.45;box-shadow:0 3px 10px rgba(80,70,50,.08);border-left:4px solid #cfc7b6;animation:fd 9s forwards;}
+#feed div.bad{border-left-color:var(--bad);} #feed div.good{border-left-color:var(--good);} #feed div.sci{border-left-color:var(--sci);}
+@keyframes fd{0%,88%{opacity:1}100%{opacity:0}}
+#sel{left:max(16px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 12px);width:min(330px,calc(100vw - 32px));max-height:min(58vh,520px);overflow:auto;touch-action:pan-y;}
+#sel .hd{display:flex;align-items:center;gap:8px;}
+#sel .hd i{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-weight:900;font-size:14px;flex:none;}
+#sel .hd b{font-size:16px;}
+#sel .hd small{color:var(--sub);font-size:12px;}
+#sel .row{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--sub);margin:6px 0;}
+#sel .row b{color:var(--ink);}
+#sel .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+#sel p{font-size:12px;color:var(--sub);margin:6px 0;line-height:1.55;}
+.blist{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.blist button{display:grid;grid-template-columns:1fr auto;gap:0 8px;text-align:left;border:1px solid var(--line);background:#fffdf8;border-radius:10px;padding:6px 9px;cursor:pointer;font-size:13px;color:var(--ink);}
+.blist button small{grid-column:1/-1;color:var(--sub);font-size:11px;}
+.blist button span{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums;}
+.blist button.on{border-color:var(--good);background:#eef5e8;}
+.blist h5{margin:6px 0 0;font-size:11px;color:var(--sub);font-weight:700;letter-spacing:.1em;}
+.odds{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin:6px 0;font-size:12px;text-align:center;}
+.odds b{display:block;font-size:20px;font-variant-numeric:tabular-nums;}
+#endT{right:max(16px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+#bEnd{font-size:16px;padding:13px 20px;min-width:150px;}
+#bSkip{font-size:11px;color:var(--sub);background:none;border:0;cursor:pointer;text-decoration:underline;padding:2px 4px;}
+#toast{left:50%;top:34%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;font-family:var(--f-title);font-size:clamp(26px,6vw,42px);color:#4e5a3e;text-shadow:0 2px 0 #fff,0 0 18px rgba(255,255,255,.9);opacity:0;transition:opacity .5s,transform .5s;width:min(90vw,700px);}
+#toast.show{opacity:1;transform:translate(-50%,-60%);}
+#toast small{display:block;font-family:var(--f-ui);font-size:14px;color:var(--sub);margin-top:4px;}
+.ov{position:fixed;inset:0;z-index:20;background:rgba(216,210,198,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+.card{background:#fffdf8;border-radius:22px;box-shadow:0 20px 50px rgba(80,70,50,.18);padding:22px 22px 18px;width:100%;max-width:520px;max-height:calc(100% - 24px);overflow:auto;touch-action:pan-y;}
+.card h2{font-family:var(--f-title);font-weight:400;font-size:38px;margin:0;color:#4e5a3e;letter-spacing:.06em;}
+.card h3{font-family:var(--f-title);font-weight:400;font-size:26px;margin:0 0 6px;color:#4e5a3e;}
+.card .eb{font-size:12px;letter-spacing:.2em;color:var(--sub);}
+.card p{line-height:1.75;color:#57544a;font-size:14px;margin:8px 0;}
+.card ul{margin:6px 0 10px;padding-left:18px;line-height:1.8;font-size:13px;color:#57544a;}
+.seg{display:flex;gap:6px;margin:10px 0;}
+.seg button{flex:1;border:1px solid var(--line);background:#fffdf8;border-radius:10px;padding:9px 4px;font-weight:700;cursor:pointer;color:var(--ink);}
+.seg button.on{background:var(--good);border-color:var(--good);color:#fff;}
+.acts2{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.acts2 .b{box-shadow:none;padding:12px;}
+#techC{max-width:900px;}
+.tree{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:4px;touch-action:pan-x pan-y;}
+.tier{display:flex;flex-direction:column;gap:8px;}
+.tier h5{margin:0;font-size:11px;color:var(--sub);letter-spacing:.15em;}
+.tech{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fffdf8;text-align:left;cursor:pointer;color:var(--ink);font-size:13px;display:flex;flex-direction:column;gap:2px;}
+.tech b{font-size:15px;}
+.tech small{color:var(--sub);font-size:11px;line-height:1.45;}
+.tech .c{font-size:11px;color:var(--sci);font-variant-numeric:tabular-nums;}
+.tech.done{background:#eef5e8;border-color:#b9d4ac;cursor:default;}
+.tech.cur{border-color:var(--sci);box-shadow:0 0 0 2px rgba(90,143,192,.35);}
+.tech.lock{opacity:.5;cursor:default;}
+.civrow{display:grid;grid-template-columns:30px 1fr auto;gap:4px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:13px;}
+.civrow i{width:14px;height:14px;border-radius:50%;}
+.civrow small{grid-column:2;color:var(--sub);font-size:12px;}
+.civrow .b{grid-row:1/span 2;grid-column:3;}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;margin-left:6px;font-weight:700;}
+.tag.war{background:#fbe2dd;color:#b4473a;} .tag.peace{background:#e5f0de;color:#4c7a44;}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sub);margin:10px 0;}
+.fld input{font:600 16px var(--f-ui);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+.facs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0;}
+.facs div{background:#f6f1e6;border-radius:12px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;}
+.facs b{font-size:30px;line-height:1.2;font-weight:900;}
+.facs span{font-size:11px;color:var(--sub);}
+.story{text-align:center;}
+.story .big{font-size:84px;line-height:1.1;font-weight:900;margin:4px 0;}
+.story .py{font-size:13px;color:var(--sub);letter-spacing:.2em;}
+.story p{text-align:left;}
+.story .motto{font-family:var(--f-title);font-size:20px;color:#4e5a3e;text-align:center;}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.stats3 div{background:#f6f1e6;border-radius:12px;padding:8px 10px;font-size:12px;color:var(--sub);}
+.stats3 b{display:block;font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;}
+@media (max-width:700px){
+  #brand h1{font-size:18px;} #stats{display:none;} #sciP{min-width:0;flex:1;} #vic{margin-left:0;min-width:0;flex:1 1 100%;flex-direction:row;flex-wrap:wrap;gap:2px 12px;padding:5px 10px;}
+  #tools{top:calc(env(safe-area-inset-top,0px) + 140px);flex-direction:column;}
+  #feed{top:calc(env(safe-area-inset-top,0px) + 142px);left:max(16px,env(safe-area-inset-left,0px));right:calc(max(16px,env(safe-area-inset-right,0px)) + 50px);width:auto;}
+  #feed div:nth-child(n+3){display:none;}
+  #sel{bottom:calc(env(safe-area-inset-bottom,0px) + 72px);max-height:42vh;width:calc(100vw - 32px);}
+  #endT{left:max(16px,env(safe-area-inset-left,0px));flex-direction:row-reverse;justify-content:space-between;align-items:center;}
+  #bEnd{flex:1;max-width:230px;}
+  .tree{grid-template-columns:repeat(4,150px);}
+}
+@media (max-height:480px) and (min-width:701px){#feed{display:none;}#sel{max-height:calc(100vh - 90px);}}
+@media (prefers-reduced-motion:reduce){#toast{transition:none;}#feed div{animation:none;}}
+</style>
+</head>
+<body>
+<div id="boot" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font:15px/1.7 system-ui,sans-serif;color:#3a3a34;background:#d8d2c6;z-index:99">尸土重生加载中……</div>
+<script>window.addEventListener("error",function(e){var b=document.getElementById("boot");if(b){b.style.display="flex";b.textContent="出错了，请把这个画面截图发给我："+(e.message||e)+" @"+(e.lineno||"");}});</script>
+<canvas id="cv"></canvas>
+<div id="top" class="ui">
+  <div class="pane" id="brand"><h1>尸土重生</h1><span id="turnN">第 1 天</span></div>
+  <button class="pane" id="sciP"><span>蓝图 <b id="sciName">未选择</b></span><div class="bar"><i id="sciBar" style="width:0"></i></div><span id="sciSub"></span></button>
+  <div class="pane" id="stats"><span>据点<b id="stC">0</b></span><span>居民<b id="stP">0</b></span><span>蓝图<b id="stS">+0</b></span><span>军力<b id="stM">0</b></span></div>
+  <div class="pane" id="vic" title="胜利进度"><div><span>统一 主营</span><b id="vC">0/2</b></div><div><span>复苏 尸巢</span><b id="vN">0/4 座</b></div><div><span>方舟</span><b id="vA">未解锁</b></div><div><span>传奇点数</span><b id="vG">0/40</b></div></div>
+</div>
+<div id="tools" class="ui"><button class="b rb" id="bDip" aria-label="外交">🤝</button><button class="b rb" id="bMenu" aria-label="菜单">☰</button><button class="b rb" id="bSnd" aria-label="声音">🔊</button></div>
+<div id="feed" class="ui"></div>
+<div id="sel" class="ui pane" hidden></div>
+<div id="endT" class="ui"><button class="b main" id="bEnd">结束这天</button><button id="bSkip">直接结束这天</button></div>
+<div id="toast" class="ui"></div>
+
+<div class="ov" id="ovMenu"><div class="card">
+  <div class="eb">尸城五日 · 外传 · 末日废土争霸</div><h2>尸土重生</h2>
+  <p>大崩塌后的第十年。幸存者在一座塌了一半的图书馆里翻出一本《字海》，四个首领各挑了一个没人念得出的字当旗号：「旧世界的话已经没人听了，我们要自己的名字。」</p>
+  <div class="facs"><div><b style="color:#4f86c6">淼</b><span>miǎo · 净水营（你）</span></div><div><b style="color:#c9654f">燚</b><span>yì · 焰族</span></div><div><b style="color:#b8902a">垚</b><span>yáo · 守土之民</span></div><div><b style="color:#5b6fd6">靐</b><span>bìng · 雷庭</span></div></div>
+  <ul>
+    <li>按天推进：移动单位、建据点、生产、破解蓝图，点「结束这天」后轮到电脑</li>
+    <li>尸巢会孵出丧尸、扩散感染；军队和建设队可以净化，摧毁尸巢会长出绿洲</li>
+    <li><b>三种胜利</b>：统一废土（占领所有敌方主营）、大地复苏（最先摧毁 4 座尸巢）、方舟启航（破解方舟计划蓝图，在主营造好方舟）</li>
+    <li>建设队修设施，据点定方针，地标全世界只有一座，传奇幸存者会来投奔</li>
+  </ul>
+  <div class="seg" id="sizeSeg"><button data-n="3" class="on">3 个阵营</button><button data-n="4">4 个阵营（大地图）</button></div>
+  <div class="seg" id="diffSeg"><button data-d="0">简单</button><button data-d="1" class="on">普通</button><button data-d="2">困难</button></div>
+  <div class="acts2"><button class="b main" id="bCont" hidden>继续上一局</button><button class="b main" id="bNew">单人开始新的一局</button><button class="b" id="bMP">联机对战（2–4 人）</button></div>
+  <p style="font-size:12px;color:#9a9588;margin-bottom:0">点单位选中，再点地块移动或进攻。拖动移动视角，双指或滚轮缩放。电脑快捷键：空格 结束这天 / 下一个单位，B 建据点，F 驻守，P 净化，Esc 取消。<br><a href="../" style="color:inherit">← 返回尸城五日首页</a></p>
+</div></div>
+<div class="ov" id="ovLobby" hidden><div class="card">
+  <h3>联机对战</h3>
+  <div id="lbA"><p style="margin-top:0">2–4 人，同时行动：每个人做完这一天的事就点「准备好了」，全部准备好就进入第二天。</p>
+    <label class="fld">你的名字<input id="lbName" maxlength="8" autocomplete="off"></label>
+    <div class="acts2"><button class="b main" id="lbCreate">创建房间</button></div>
+    <label class="fld">或者输入房号加入<span style="display:flex;gap:6px"><input id="lbCode" maxlength="6" autocomplete="off" style="text-transform:uppercase;flex:1"><button class="b" id="lbJoin">加入</button></span></label></div>
+  <div id="lbB" hidden><p style="margin-top:0">房号 <b id="lbRoom" style="font-size:22px;letter-spacing:.15em"></b>　<button class="b sm" id="lbCopy">复制邀请链接</button></p>
+    <div id="lbList"></div>
+    <div id="lbHost"><h5 style="margin:10px 0 0;font-size:12px;color:var(--sub)">阵营数</h5><div class="seg" id="lbN"><button data-v="3">3 个（标准地图）</button><button data-v="4">4 个（大地图）</button></div>
+      <h5 style="margin:4px 0 0;font-size:12px;color:var(--sub)">电脑难度</h5><div class="seg" id="lbD"><button data-v="0">简单</button><button data-v="1">普通</button><button data-v="2">困难</button></div>
+      <h5 style="margin:4px 0 0;font-size:12px;color:var(--sub)">每天限时</h5><div class="seg" id="lbT"><button data-v="0">不限</button><button data-v="60">60 秒</button><button data-v="90">90 秒</button><button data-v="120">120 秒</button></div>
+      <div class="acts2"><button class="b main" id="lbGo">开始</button></div></div>
+    <p id="lbOpt" style="font-size:12px"></p><p id="lbWait">等房主开始……</p></div>
+  <p id="lbMsg" style="color:var(--bad)"></p>
+  <div class="acts2"><button class="b" id="lbBack">返回</button></div>
+</div></div>
+<div class="ov" id="ovStory" hidden><div class="card story" id="storyC" style="max-width:440px"></div></div>
+<div class="ov" id="ovTech" hidden><div class="card" id="techC"></div></div>
+<div class="ov" id="ovDip" hidden><div class="card" id="dipC"></div></div>
+<div class="ov" id="ovEnd" hidden><div class="card" id="endC"></div></div>
+<div class="ov" id="ovAsk" hidden><div class="card" id="askC" style="max-width:400px"></div></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+const SQ=0.62,TH=0.22,S3=Math.sqrt(3);
+const DIRS=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
+const key=(q,r)=>q+','+r;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let RNG=Math.random;const rnd=()=>RNG();
+function gRand(){let a=G.rs|0;a=a+0x6D2B79F5|0;G.rs=a;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+function hexDist(q1,r1,q2,r2){const dq=q1-q2,dr=r1-r2;return(Math.abs(dq)+Math.abs(dr)+Math.abs(dq+dr))/2;}
+let MW=24,MH=16;const MAXT=150;let ME=0,NETON=false;
+
+/* ---------- 数据表 ---------- */
+const TERR={
+  g:{n:'草地',f:2,p:0,s:0,mv:1,def:0,c:'#b7dc8f'},
+  p:{n:'平原',f:1,p:1,s:0,mv:1,def:0,c:'#ecd894'},
+  f:{n:'森林',f:1,p:2,s:0,mv:2,def:25,c:'#86bb7f'},
+  h:{n:'丘陵',f:0,p:2,s:0,mv:2,def:25,c:'#cdb88e'},
+  r:{n:'废墟',f:0,p:1,s:1,mv:1,def:10,c:'#d2c9b9'},
+  o:{n:'绿洲',f:3,p:1,s:2,mv:1,def:0,c:'#a6dd8c'},
+  w:{n:'湖泊',f:2,p:0,s:0,mv:99,def:0,c:'#86c6e4'},
+  m:{n:'山脉',f:0,p:0,s:0,mv:99,def:0,c:'#b3ada3'},
+};
+const RES={food:{n:'罐头仓',ch:'罐',f:2,c:'#e3a93b'},iron:{n:'废铁堆',ch:'铁',p:2,c:'#8a7f72'},chip:{n:'芯片残骸',ch:'芯',s:2,c:'#5a8fc0'}};
+const UN={
+  militia:{n:'民兵',ch:'民',str:8,mv:2,cost:25,d:'基础近战'},
+  scout:{n:'侦察兵',ch:'侦',str:4,mv:3,cost:18,vis:3,d:'走得快、看得远，能搜刮遗迹'},
+  settler:{n:'拓荒者',ch:'拓',str:0,mv:2,cost:35,civ:1,d:'建立新据点，消耗 1 居民'},
+  worker:{n:'建设队',ch:'建',str:0,mv:2,cost:30,civ:1,d:'在自己领土上修农场、矿场，也能净化感染'},
+  general:{n:'指挥官',ch:'指',str:0,mv:3,civ:1,gp:1,d:'传奇幸存者：2 格内的我方部队战斗力 +20%'},
+  bow:{n:'弩手',ch:'弩',str:6,rs:10,rng:2,mv:2,cost:35,tech:'bow',d:'远程 2 格，不会被反击'},
+  guard:{n:'防暴兵',ch:'盾',str:14,mv:2,cost:45,tech:'fort',d:'结实的近战'},
+  raider:{n:'摩托骑手',ch:'骑',str:12,mv:4,cost:45,tech:'moto',d:'移动 4，适合突袭'},
+  tank:{n:'装甲车',ch:'甲',str:24,mv:3,cost:80,tech:'armor',d:'最强近战'},
+  gun:{n:'火炮',ch:'炮',str:8,rs:24,rng:3,mv:2,cost:80,tech:'cannon',siege:1,d:'远程 3 格，攻打据点 +50%'},
+  walker:{n:'行尸',ch:'尸',str:7,mv:1,z:1},
+  runner:{n:'奔尸',ch:'奔',str:6,mv:2,z:1},
+  brute:{n:'巨尸',ch:'巨',str:18,mv:1,z:1},
+};
+const BLD={
+  granary:{n:'粮仓',cost:35,tech:'agri',d:'口粮 +2',f:2},
+  workshop:{n:'工坊',cost:40,tech:'scav',d:'物资 +2',p:2},
+  library:{n:'图书馆',cost:45,tech:'write',d:'蓝图 +3',s:3},
+  walls:{n:'围墙',cost:45,tech:'fort',d:'防御 +8，据点生命 +100'},
+  clinic:{n:'净化塔',cost:55,tech:'serum',d:'每天净化 2 格内 1 块感染地，口粮 +1',f:1},
+  plant:{n:'发电站',cost:70,tech:'power',d:'物资 +25%，蓝图 +2',s:2},
+  ark:{n:'方舟',cost:500,tech:'ark',d:'建成即获得方舟启航（只能在主营建）',cap:1},
+};
+const WON={
+  vault:{n:'种子库',cost:90,tech:'agri',d:'本城口粮 +3，所有据点口粮 +1'},
+  archive:{n:'旧时代档案馆',cost:110,tech:'write',d:'本城蓝图 +5，传奇点数 +2/天'},
+  wall:{n:'铁壁防线',cost:110,tech:'fort',d:'所有据点防御 +6'},
+  factory:{n:'机车总厂',cost:120,tech:'moto',d:'所有据点生产单位时物资 +25%'},
+  holy:{n:'圣光净化塔',cost:140,tech:'serum',d:'6 格内的尸巢每天 -6 生命；所有据点每天净化 1 块感染'},
+  radio:{n:'广播塔',cost:150,tech:'power',d:'所有据点蓝图 +3'},
+};
+const IMP={farm:{n:'农场',f:1,on:'gp',d:'口粮 +1'},mine:{n:'矿场',p:1,on:'h',d:'物资 +1'},lumber:{n:'伐木场',p:1,on:'f',d:'物资 +1'},lab:{n:'拾荒站',s:1,p:1,on:'r',d:'蓝图 +1，物资 +1'}};
+const FOCUS={bal:{n:'均衡',w:[1.25,1.05,0.95]},f:{n:'口粮',w:[2.2,0.8,0.7]},p:{n:'物资',w:[0.9,2.2,0.7]},s:{n:'蓝图',w:[0.9,0.8,2.4]}};
+const GPT={scientist:{n:'老教授',d:'立刻获得一大笔蓝图'},engineer:{n:'天才技师',d:'给正在建地标（或主营）的据点 +120 物资'},general:{n:'战地指挥官',d:'出现一个指挥官单位，2 格内我方部队 +20%'},saint:{n:'净化修女',d:'清除所有据点 3 格内的感染，附近尸巢 -40 生命'}};
+const wonderOf=k=>G.wonders&&G.wonders[k]&&G.cities[G.wonders[k]]?G.cities[G.wonders[k]]:null;
+const hasWon=(o,k)=>{const c=wonderOf(k);return !!c&&c.owner===o;};
+const cityWons=c=>Object.keys(WON).filter(k=>G.wonders&&G.wonders[k]===c.id);
+function gpNeed(o){return 40+25*(G.civs[o].gpN||0);}
+const TECH={
+  agri:{n:'农耕',cost:25,req:[],t:0},scav:{n:'拾荒',cost:25,req:[],t:0},bow:{n:'弓弩',cost:35,req:[],t:0},
+  write:{n:'文字',cost:55,req:['agri'],t:1},moto:{n:'机车',cost:60,req:['scav'],t:1},fort:{n:'筑城',cost:60,req:['bow'],t:1},
+  serum:{n:'血清',cost:100,req:['write'],t:2,x:'对丧尸和尸巢战斗力 +50%'},power:{n:'电力',cost:120,req:['write','moto'],t:2},cannon:{n:'火炮',cost:120,req:['fort'],t:2},
+  armor:{n:'装甲',cost:150,req:['moto','fort'],t:3},ark:{n:'方舟计划',cost:330,req:['power','serum','armor','cannon'],t:3},
+};
+const FAC=[
+  {ch:'淼',py:'miǎo',ep:'净水营',col:'#4f86c6',leader:'掌水人',motto:'水在哪里，人就在哪里。',lore:'三水成淼。大崩塌之后，他们守住了城北最后一座净水厂。每一滴干净的水都要用命去换，所以淼的人从不浪费，也从不原谅。',war:'「水只给自己人。」掌水人关上了闸门，淼的枪口转向了我们。',cities:['澜口','汐泉','沧井','渟渊','溟滩','潆洲','浔岸','沚湾','涟镇','澈池']},
+  {ch:'燚',py:'yì',ep:'焰族',col:'#c9654f',leader:'火主',motto:'灰烬是最干净的土地。',lore:'四火成燚。他们从焚城的火海里走出来，相信只有火能烧尽尸潮，也能烧尽挡路的人。燚的据点终年冒着黑烟。',war:'「烧。」火主的信是用炭写的，只有一个字。燚的车队已经出发了。',cities:['烬城','炽原','焱谷','燹关','灼岭','炎墟','煅坊','烽台','焚野','熇堡']},
+  {ch:'垚',py:'yáo',ep:'守土之民',col:'#b8902a',leader:'地母',motto:'土不会背叛人。',lore:'三土成垚。一群死也不肯离开田地的农人。他们在尸巢旁边种麦子，用犁和铁锹把感染一寸一寸翻回来。',war:'「你们踩坏了我们的麦子。」地母很少说话，但垚的锄头也能杀人。',cities:['墒田','垄上','埂村','堰塘','坳里','垣乡','圩场','埕坡','壤丘','塬上']},
+  {ch:'靐',py:'bìng',ep:'雷庭',col:'#5b6fd6',leader:'司雷',motto:'雷声响起的地方，就是新世界的方向。',lore:'三雷成靐。他们修好了旧电厂和半座发射场，认定这片大地已经没救了，唯一的出路是造一艘方舟离开。',war:'「方舟的位置不够。」司雷说得很平静，雷庭的炮口亮起了蓝光。',cities:['霆塔','霹坞','雳台','霰站','霄港','霁原','雩坛','霾城','磁峰','电冢']},
+];
+const CIVS=FAC.map(f=>({name:'「'+f.ch+'」',col:f.col,cities:f.cities}));
+const ZCOL='#7d6a86';
+const civCol=o=>o<0?ZCOL:CIVS[o].col;
+const civName=o=>o<0?'尸潮':CIVS[o].name+(G&&G.civs&&G.civs[o]&&G.civs[o].pn?'（'+G.civs[o].pn+'）':'');
+const CIV=()=>G.civs.map((_,i)=>i);
+const isHum=o=>o>=0&&!!G.civs[o]&&!G.civs[o].ai;
+
+/* ---------- 状态 ---------- */
+let G=null,diff=1,sel=null,pend=null,reach=null,VIS=new Set(),UAT={},CAT={},busy=false;
+const pops=[];
+function T(q,r){return G.tiles[key(q,r)];}
+function nbrs(q,r){const o=[];for(const d of DIRS){const t=T(q+d[0],r+d[1]);if(t)o.push(t);}return o;}
+function ring(q,r,R){const o=[];for(let dq=-R;dq<=R;dq++)for(let dr=Math.max(-R,-dq-R);dr<=Math.min(R,-dq+R);dr++){const t=T(q+dq,r+dr);if(t)o.push(t);}return o;}
+const pass=t=>t&&TERR[t.t].mv<50;
+function reidx(){UAT={};for(const id in G.units){const u=G.units[id];UAT[key(u.q,u.r)]=u;}CAT={};for(const id in G.cities){const c=G.cities[id];CAT[key(c.q,c.r)]=c;}}
+const unitAt=(q,r)=>UAT[key(q,r)];const cityAt=(q,r)=>CAT[key(q,r)];
+function nestAt(q,r){const t=T(q,r);if(!t||t.nest===undefined)return null;const n=G.nests[t.nest];return n&&n.alive?n:null;}
+const civCities=o=>Object.values(G.cities).filter(c=>c.owner===o);
+const civUnits=o=>Object.values(G.units).filter(u=>u.owner===o);
+const isMil=u=>!UN[u.k].civ&&!UN[u.k].z;
+const hasTech=(o,k)=>!k||!!G.civs[o].techs[k];
+function atWar(a,b){if(a===b)return false;if(a<0||b<0)return true;return G.rel[a][b]==='war';}
+
+/* ---------- 地图生成 ---------- */
+function genMap(seed,n){n=n||3;MW=n===4?30:24;MH=n===4?20:16;const NN=n===4?8:6;
+  for(let tries=0;tries<30;tries++){RNG=mulberry(seed+tries*7919);const tiles={};
+    const pickW=o=>{let s=0;for(const k in o)s+=o[k];let x=rnd()*s;for(const k in o){x-=o[k];if(x<=0)return k;}return 'g';};
+    for(let c=0;c<MW;c++)for(let row=0;row<MH;row++){const q=c,r=row-((c-(c&1))/2);tiles[key(q,r)]={q,r,c,row,t:pickW({g:4,p:3,f:2.6,h:1.3,r:1.1}),seed:Math.floor(rnd()*1e6),own:-1};}
+    G={tiles};
+    for(let it=0;it<2;it++){const nt={};for(const k in tiles){const t=tiles[k];const cnt={};for(const n of nbrs(t.q,t.r))cnt[n.t]=(cnt[n.t]||0)+1;let best=t.t,bc=1;for(const x in cnt)if(cnt[x]>bc+ (x===t.t?0:1)){bc=cnt[x];best=x;}nt[k]=rnd()<0.75?best:t.t;}for(const k in nt)tiles[k].t=nt[k];}
+    const all=Object.values(tiles);
+    const blob=(ter,n,sz)=>{for(let i=0;i<n;i++){let t=all[Math.floor(rnd()*all.length)];for(let s=0;s<sz;s++){t.t=ter;const ns=nbrs(t.q,t.r);t=ns[Math.floor(rnd()*ns.length)];}}};
+    const sc=n===4?1.6:1;blob('w',Math.round(4*sc),4);blob('m',Math.round(3*sc),4);blob('r',Math.round(4*sc),3);
+    const S=(n===4?[[5,4],[MW-6,4],[MW-6,MH-5],[5,MH-5]]:[[4,12],[12,3],[20,12]]).map(([c,row])=>{c+=Math.floor(rnd()*3)-1;row+=Math.floor(rnd()*3)-1;return all.find(t=>t.c===c&&t.row===row);});
+    for(const s of S){s.t=rnd()<0.5?'g':'p';for(const n of nbrs(s.q,s.r))if(!pass(n)||n.t==='r')n.t=pickW({g:3,p:3,f:2,h:1});}
+    // 连通性
+    const seen=new Set([key(S[0].q,S[0].r)]);const st=[S[0]];while(st.length){const t=st.pop();for(const n of nbrs(t.q,t.r)){const k=key(n.q,n.r);if(!seen.has(k)&&pass(n)){seen.add(k);st.push(n);}}}
+    if(!S.every(s=>seen.has(key(s.q,s.r))))continue;
+    const land=all.filter(t=>seen.has(key(t.q,t.r)));
+    // 尸巢
+    const nests=[];const cand=land.slice();for(let i=cand.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const tmp=cand[i];cand[i]=cand[j];cand[j]=tmp;}
+    for(const t of cand){if(nests.length>=NN)break;if(S.some(s=>hexDist(s.q,s.r,t.q,t.r)<6))continue;if(nests.some(n=>hexDist(n.q,n.r,t.q,t.r)<5))continue;nests.push(t);}
+    if(nests.length<NN)continue;
+    G.nests={};nests.forEach((t,i)=>{G.nests[i]={id:i,q:t.q,r:t.r,hp:80,alive:true,cd:3+i%3,spr:5+i};t.nest=i;t.t=rnd()<0.5?'r':'h';t.bl=i;for(const n of nbrs(t.q,t.r))if(pass(n)&&rnd()<0.5)n.bl=i;});
+    // 遗迹与资源
+    let gd=0;for(const t of cand){if(gd>=(n===4?16:11))break;if(t.nest!==undefined||t.bl!==undefined)continue;if(S.some(s=>hexDist(s.q,s.r,t.q,t.r)<3))continue;t.goody=1;gd++;}
+    for(const t of land){if(t.nest!==undefined||rnd()>0.13)continue;if(t.t==='g'||t.t==='p')t.res='food';else if(t.t==='h'||t.t==='f')t.res='iron';else if(t.t==='r')t.res=rnd()<0.6?'chip':'iron';}
+    return {tiles,nests:G.nests,starts:S.map(s=>[s.q,s.r])};}
+  return null;}
+
+/* ---------- 新游戏 ---------- */
+let SAVEK='feitu-civ-save-v2';
+function newGame(d,seed,opt){opt=opt||{};const n=opt.n||3;diff=d;seed=seed||Math.floor(Math.random()*1e9);const m=genMap(seed,n);
+  const z=()=>Array.from({length:n},()=>0);
+  G={seed,diff:d,n,mw:MW,mh:MH,turn:1,tiles:m.tiles,nests:m.nests,units:{},cities:{},uid:1,cid:1,civs:[],rel:[],relT:[],over:null,log:[],kills:z(),nestK:z(),wonders:{},asks:[],rs:(seed^0x5bd1e995)|0,seq:0,pur:n===4?5:4,timer:opt.timer||0,mp:!!opt.mp};RNG=gRand;ME=opt.me||0;
+  UAT={};CAT={};
+  const hum=opt.humans||[{name:''}];for(let i=0;i<n;i++){const h=opt.mp?hum.find(x=>x.civ===i):(i===0?hum[0]:null);G.civs.push({id:i,ai:!h,alive:true,techs:{},res:null,sci:0,cap:null,cn:0,lost:0,gp:0,gpN:0,gpPend:0,pn:h&&opt.mp?h.name:'',pid:h&&h.id||null});G.rel.push(z().map(()=>'peace'));G.relT.push(z());}
+  m.starts.forEach(([q,r],i)=>{addUnit(i,'settler',q,r);const ns=nbrs(q,r).filter(t=>pass(t)&&!unitAt(t.q,t.r));addUnit(i,'militia',ns[0].q,ns[0].r);addUnit(i,'scout',ns[1].q,ns[1].r);if(G.civs[i].ai&&d===2)addUnit(i,'militia',ns[2].q,ns[2].r);});
+  for(const id in G.units){const u=G.units[id];if(G.civs[u.owner].ai&&u.k==='settler')foundCity(u);}
+  sel=null;pend=null;reach=null;updVis();const s=civUnits(ME).find(u=>u.k==='settler');centerOn(s.q,s.r);cam.z=46;
+  STORY={};closeAll();save();select({u:s});feed('点拓荒者下方的「建据点」，或按 B。','good');updHUD();}
+function addUnit(o,k,q,r){const u={id:G.uid++,owner:o,k,q,r,hp:100,mv:UN[k].mv,fort:0,acted:0};G.units[u.id]=u;UAT[key(q,r)]=u;return u;}
+function removeUnit(u){delete G.units[u.id];if(UAT[key(u.q,u.r)]===u)delete UAT[key(u.q,u.r)];if(sel&&sel.u===u)select(null);}
+
+/* ---------- 据点 ---------- */
+function canFound(q,r,o){const t=T(q,r);if(!pass(t)||t.nest!==undefined||t.bl!==undefined)return false;if(t.own>=0&&t.own!==o)return false;for(const c of Object.values(G.cities))if(hexDist(c.q,c.r,q,r)<4)return false;return true;}
+function foundCity(u){const o=u.owner,cv=G.civs[o];const names=CIVS[o].cities;const name=names[cv.cn%names.length]+(cv.cn>=names.length?'二':'');cv.cn++;
+  const c={id:G.cid++,owner:o,q:u.q,r:u.r,name,pop:1,food:0,prod:0,hp:200,shot:0,build:null,blds:{},cap:!cv.cap,orig:o,origCap:!cv.cap};
+  if(!cv.cap)cv.cap=c.id;G.cities[c.id]=c;CAT[key(c.q,c.r)]=c;const t=T(c.q,c.r);delete t.goody;t.own=o;claim(c,1);removeUnit(u);
+  if(o===ME){feed(`建立了新据点「${name}」。`,'good');SFX.found();}else if(VIS.has(key(c.q,c.r)))feed(`${civName(o)}建立了「${name}」。`);
+  return c;}
+function claim(c,R){for(const t of ring(c.q,c.r,R))if(t.own<0)t.own=c.owner;}
+function cityRadius(c){return c.pop>=6?3:c.pop>=3?2:1;}
+function maxHP(c){return 200+(c.blds.walls?100:0);}
+function tileYield(t,o){if(t.bl!==undefined)return{f:0,p:0,s:0};const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
+function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);const y={f:Math.max(2,cy.f)+1,p:Math.max(1,cy.p)+1,s:1+cy.s};
+  const cand=ring(c.q,c.r,Math.max(2,cityRadius(c))).filter(t=>t.own===c.owner&&!(t.q===c.q&&t.r===c.r)&&!taken.has(key(t.q,t.r))&&!cityAt(t.q,t.r)&&t.nest===undefined);
+  const fw=FOCUS[c.focus||'bal'].w;const sc=t=>{const v=tileYield(t);return v.f*fw[0]+v.p*fw[1]+v.s*fw[2]+(c.pop<4?v.f*0.3:0);};
+  cand.sort((a,b)=>sc(b)-sc(a));const worked=[];for(const t of cand){if(worked.length>=c.pop)break;const v=tileYield(t);if(v.f+v.p+v.s<=0)continue;worked.push(t);taken.add(key(t.q,t.r));y.f+=v.f;y.p+=v.p;y.s+=v.s;}
+  for(let i=worked.length;i<c.pop;i++){y.p+=1;}// 没地可耕的居民当建设队
+  for(const b in c.blds){const B=BLD[b];y.f+=B.f||0;y.p+=B.p||0;y.s+=B.s||0;}
+  const o0=c.owner;if(G.wonders){if(hasWon(o0,'vault'))y.f+=1;if(hasWon(o0,'radio'))y.s+=3;for(const k of cityWons(c)){if(k==='vault')y.f+=3;if(k==='archive')y.s+=5;}}
+  y.s+=c.pop*0.4;if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
+  const k=G.civs[c.owner].ai?[0.85,1.0,1.18][G.diff]:1;y.p*=k;y.s*=k;y.f*=(G.civs[c.owner].ai&&G.diff===2?1.1:1);
+  y.need=c.pop*2;y.worked=worked;return y;}
+function growNeed(c){return 10+c.pop*6;}
+function buildCost(c,b){if(b.t==='u')return UN[b.k].cost;if(b.t==='w')return WON[b.k].cost;return BLD[b.k].cost;}
+const buildName=b=>b.t==='u'?UN[b.k].n:b.t==='w'?WON[b.k].n:BLD[b.k].n;
+function buildOptions(c){const o=c.owner,out=[];for(const k in UN){const U=UN[k];if(U.z||U.gp)continue;if(!hasTech(o,U.tech))continue;out.push({t:'u',k});}
+  for(const k in BLD){const B=BLD[k];if(c.blds[k]||!hasTech(o,B.tech))continue;if(B.cap&&!c.cap)continue;out.push({t:'b',k});}
+  for(const k in WON){if(G.wonders[k]!==undefined||!hasTech(o,WON[k].tech))continue;if(Object.values(G.cities).some(x=>x.owner===o&&x!==c&&x.build&&x.build.k===k))continue;out.push({t:'w',k});}return out;}
+function processCities(o){const taken=new Set();let sci=0;
+  for(const c of civCities(o)){const y=cityWork(c,taken);sci+=y.s;
+    c.food+=y.f-y.need;if(c.food>=growNeed(c)){c.food=c.blds.granary?Math.floor(growNeed(c)*0.3):0;c.pop++;claim(c,cityRadius(c));if(o===ME)feed(`「${c.name}」居民增长到 ${c.pop}。`);}
+    else if(c.food<0){if(c.pop>1){c.pop--;c.food=0;if(o===ME)feed(`「${c.name}」在挨饿，居民减少。`,'bad');}else c.food=0;}
+    if(c.build){c.prod+=y.p;const cost=buildCost(c,c.build);if(c.prod>=cost){if(completeBuild(c))c.prod-=cost;}}else c.prod+=y.p*0.5;
+    c.hp=Math.min(maxHP(c),c.hp+20);c.shot=0;
+    for(let n=(c.blds.clinic?1:0)+(hasWon(o,'holy')?1:0);n>0;n--){const bl=ring(c.q,c.r,2).filter(t=>t.bl!==undefined&&t.nest===undefined);if(bl.length){delete bl[0].bl;}}}
+  return sci;}
+function completeBuild(c){const b=c.build;const o=c.owner;
+  if(b.t==='w'){if(G.wonders[b.k]!==undefined){c.build=null;if(o===ME)feed(`${WON[b.k].n}已经被别人建成了，「${c.name}」的物资保留下来。`,'bad');return false;}
+    G.wonders[b.k]=c.id;c.build=null;G.civs[o].gp+=10;
+    if(o===ME){toast(`地标落成：${WON[b.k].n}`,WON[b.k].d);SFX.wonder();feed(`「${c.name}」建成了地标「${WON[b.k].n}」！`,'good');}else feed(`${civName(o)}建成了地标「${WON[b.k].n}」。`,'');
+    for(const x of Object.values(G.cities))if(x!==c&&x.build&&x.build.k===b.k){x.build=null;if(x.owner===ME)feed(`${civName(o)}抢先建成了${WON[b.k].n}，「${x.name}」需要换个项目（物资保留）。`,'bad');}
+    return true;}
+  if(b.t==='u'){if(b.k==='settler'&&c.pop<2)return false;let spot=null;if(!unitAt(c.q,c.r))spot=[c.q,c.r];else{const n=nbrs(c.q,c.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r)&&!nestAt(t.q,t.r));if(n)spot=[n.q,n.r];}
+    if(!spot)return false;if(b.k==='settler')c.pop--;const u=addUnit(o,b.k,spot[0],spot[1]);u.mv=0;if(o===ME)feed(`「${c.name}」训练出了${UN[b.k].n}。`,'good');
+    c.build=null;return true;}
+  c.blds[b.k]=1;c.build=null;if(b.k==='walls')c.hp+=100;
+  if(o===ME){feed(`「${c.name}」建成了${BLD[b.k].n}。`,'good');SFX.build();}
+  if(b.k==='ark'){endGame(o,'science');}
+  return true;}
+
+/* ---------- 移动与寻路 ---------- */
+function canEnter(u,t,final){if(!pass(t))return false;if(nestAt(t.q,t.r))return false;const c=cityAt(t.q,t.r);if(c&&c.owner!==u.owner)return false;
+  if(UN[u.k].z&&c)return false;const o=unitAt(t.q,t.r);if(o&&o!==u&&(final||o.owner!==u.owner))return false;return true;}
+function reachable(u){const res=new Map();const start=key(u.q,u.r);res.set(start,{mv:u.mv,prev:null});const q=[[u.q,u.r,u.mv]];
+  while(q.length){q.sort((a,b)=>b[2]-a[2]);const[cq,cr,mv]=q.shift();if(mv<=0)continue;
+    for(const d of DIRS){const t=T(cq+d[0],cr+d[1]);if(!t||!canEnter(u,t,false))continue;const k=key(t.q,t.r);const nm=Math.max(0,mv-TERR[t.t].mv);const ex=res.get(k);if(ex&&ex.mv>=nm)continue;res.set(k,{mv:nm,prev:key(cq,cr)});const o=unitAt(t.q,t.r);if(!(o&&o!==u))q.push([t.q,t.r,nm]);}}
+  for(const[k]of res){if(k===start)continue;const[a,b]=k.split(',').map(Number);const o=unitAt(a,b);if(o&&o!==u)res.delete(k);}
+  return res;}
+function findPath(u,tq,tr,adjOK){// A*，返回从下一步到终点的格子序列
+  const goal=key(tq,tr);const open=[[u.q,u.r,0,hexDist(u.q,u.r,tq,tr)]];const g={};g[key(u.q,u.r)]=0;const prev={};let n=0;
+  while(open.length&&n++<1500){let bi=0;for(let i=1;i<open.length;i++)if(open[i][3]<open[bi][3])bi=i;const[cq,cr,cg]=open.splice(bi,1)[0];const ck=key(cq,cr);
+    if(ck===goal||(adjOK&&hexDist(cq,cr,tq,tr)<=1&&ck!==key(u.q,u.r))){const p=[];let k=ck;while(k!==key(u.q,u.r)){p.unshift(k);k=prev[k];}return p.map(s=>s.split(',').map(Number));}
+    for(const d of DIRS){const t=T(cq+d[0],cr+d[1]);if(!t)continue;const k=key(t.q,t.r);const isGoal=k===goal;if(!canEnter(u,t,false)&&!(isGoal&&adjOK))continue;
+      const o=unitAt(t.q,t.r);let extra=0;if(o&&o.owner!==u.owner)continue;if(o)extra=1.5;if(t.bl!==undefined&&!UN[u.k].z)extra+=0.6;
+      const ng=cg+TERR[t.t].mv+extra;if(g[k]!==undefined&&g[k]<=ng)continue;g[k]=ng;prev[k]=ck;open.push([t.q,t.r,ng,ng+hexDist(t.q,t.r,tq,tr)]);}}
+  return null;}
+function stepTo(u,q,r){const t=T(q,r);u.work=null;delete UAT[key(u.q,u.r)];u.q=q;u.r=r;UAT[key(q,r)]=u;u.mv=Math.max(0,u.mv-TERR[t.t].mv);u.fort=0;u.acted=1;
+  if(t.goody&&!UN[u.k].z)popGoody(u,t);
+  if(u.owner>=0&&t.own>=0&&t.own!==u.owner&&G.rel[u.owner][t.own]==='peace'){}}
+function walkPath(u,path){for(const[q,r]of path){if(u.mv<=0)break;const t=T(q,r);if(!canEnter(u,t,true)){const o=unitAt(q,r);if(o&&o.owner===u.owner){/*穿过自己人*/if(u.mv>TERR[t.t].mv){continue;}}break;}stepTo(u,q,r);}}
+function moveUnitTo(u,q,r){// 玩家点击移动
+  const rc=reachable(u);const k=key(q,r);if(rc.has(k)&&k!==key(u.q,u.r)){const steps=[];let x=k;while(x&&x!==key(u.q,u.r)){steps.unshift(x);x=rc.get(x).prev;}
+    for(const s of steps){const[a,b]=s.split(',').map(Number);if(unitAt(a,b)&&unitAt(a,b)!==u){continue;}stepTo(u,a,b);}u.dest=null;if(u.owner===ME)SFX.step();return true;}
+  const p=findPath(u,q,r,false);if(!p){if(u.owner===ME)hint('走不到那里');return false;}u.dest=[q,r];walkPath(u,p);if(u.owner===ME)SFX.step();if(u.q===q&&u.r===r)u.dest=null;else if(u.owner===ME)feed(`${UN[u.k].n}出发前往目标，之后几天会自动行军。`);return true;}
+function popGoody(u,t){delete t.goody;const o=u.owner;const cv=G.civs[o];const roll=rnd();let msg;
+  if(roll<0.3){const s=25+Math.floor(rnd()*15);cv.sci+=s;msg=`在遗迹里找到旧时代的资料，蓝图 +${s}`;}
+  else if(roll<0.5){const n=nbrs(t.q,t.r).find(x=>pass(x)&&!unitAt(x.q,x.r)&&!cityAt(x.q,x.r)&&!nestAt(x.q,x.r));if(n){addUnit(o,'militia',n.q,n.r);msg='遗迹里躲着一群幸存者，他们加入成为民兵';}else{cv.sci+=20;msg='找到资料，蓝图 +20';}}
+  else if(roll<0.72){const cs=civCities(o);if(cs.length){const c=cs[0];c.prod+=30;msg=`拆回一批零件，「${c.name}」物资 +30`;}else{cv.sci+=20;msg='找到资料，蓝图 +20';}}
+  else if(roll<0.86){const cs=civCities(o);if(cs.length){cs[0].pop++;msg=`带回一户幸存者，「${cs[0].name}」居民 +1`;}else{cv.sci+=20;msg='找到资料，蓝图 +20';}}
+  else{u.hp=100;for(const x of ring(t.q,t.r,4))if(o===ME)x.ex=1;msg='找到旧地图和药品，单位回满血并探明周围';}
+  if(o===ME){feed(msg,'good');SFX.goody();pops.push({q:t.q,r:t.r,txt:'遗迹',col:'#c48a1c',t:0});}}
+
+/* ---------- 战斗 ---------- */
+function strMod(u,vsZ,def,tile){let m=1;if(def){m+=TERR[tile.t].def/100;if(u.fort)m+=0.25;if(cityAt(u.q,u.r))m+=0.25;}
+  if(vsZ&&u.owner>=0&&hasTech(u.owner,'serum'))m+=0.5;if(u.owner>=0&&Object.values(G.units).some(g=>g.k==='general'&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=2))m+=0.2;if(UN[u.k].z)m+=Math.min(0.6,G.turn/180)+[ -0.1,0,0.15][G.diff];return m;}
+const hpF=hp=>0.55+0.45*hp/100;
+function cityStr(c){let s=8+c.pop*1.6+(c.blds.walls?8:0);const g=unitAt(c.q,c.r);if(g&&isMil(g))s+=UN[g.k].str*0.3;const tl=Object.keys(G.civs[c.owner].techs).length;s+=tl*0.6;if(G.wonders&&hasWon(c.owner,'wall'))s+=6;return s;}
+function nestStr(n){return 10+G.turn*0.12+[ -2,0,3][G.diff];}
+function tgtAt(q,r){const c=cityAt(q,r);if(c)return{type:'city',o:c,owner:c.owner};const n=nestAt(q,r);if(n)return{type:'nest',o:n,owner:-1};const u=unitAt(q,r);if(u)return{type:'unit',o:u,owner:u.owner};return null;}
+function attackerStr(a,tg){if(a.type==='city')return cityStr(a.o);const u=a.o;const U=UN[u.k];const ranged=!!U.rs;let s=(ranged?U.rs:U.str)*strMod(u,tg.owner<0,false)*hpF(u.hp);if(U.siege&&tg.type==='city')s*=1.5;return s;}
+function defenderStr(tg,att){if(tg.type==='city')return cityStr(tg.o);if(tg.type==='nest')return nestStr(tg.o);const u=tg.o;const U=UN[u.k];if(U.civ)return 0.01;let s=U.str*strMod(u,att.owner<0,true,T(u.q,u.r))*hpF(u.hp);if(U.rs)s*=0.8;return s;}
+function predict(a,tg){const A=attackerStr(a,tg),D=defenderStr(tg,a);const r=A/Math.max(0.01,D);const ranged=a.type==='city'||!!UN[a.o.k].rs;
+  let toD=Math.round(clamp(30*Math.pow(r,0.85),1,100)),toA=ranged?0:Math.round(clamp(30*Math.pow(1/r,0.85),0,100));
+  if(tg.type==='unit'&&UN[tg.o.k].civ){toD=100;toA=0;}
+  const dhp=tg.o.hp;return{toD,toA,A,D,kill:toD>=dhp,die:!ranged&&toA>=(a.o.hp||200),ranged};}
+function inRange(a,q,r){if(a.type==='city')return hexDist(a.o.q,a.o.r,q,r)<=2;const U=UN[a.o.k];return hexDist(a.o.q,a.o.r,q,r)<=(U.rng||1);}
+function doAttack(a,tg){const p=predict(a,tg);const v=x=>Math.round(x*(0.82+rnd()*0.36));let toD=v(p.toD),toA=v(p.toA);if(tg.type==='unit'&&UN[tg.o.k].civ)toD=100;
+  const aO=a.type==='city'?a.o.owner:a.o.owner,dO=tg.owner;
+  if(aO>=0&&dO>=0&&!atWar(aO,dO))declareWar(aO,dO);
+  const vis=VIS.has(key(tg.o.q,tg.o.r))||aO===ME||dO===ME;
+  if(vis){pops.push({q:tg.o.q,r:tg.o.r,txt:'-'+toD,col:'#d9645a',t:0});if(toA)pops.push({q:a.o.q,r:a.o.r,txt:'-'+toA,col:'#d9645a',t:0});SFX.hit(p.ranged);}
+  if(a.type==='city'){a.o.shot=1;}else{a.o.mv=0;a.o.fort=0;a.o.acted=1;a.o.hp-=toA;}
+  tg.o.hp-=toD;let killed=false;
+  if(tg.type==='unit'&&tg.o.hp<=0){killed=true;const du=tg.o;if(UN[du.k].z){if(aO>=0){G.kills[aO]++;}}removeUnit(du);if(du.owner===ME&&!UN[du.k].z)feed(`我们的${UN[du.k].n}阵亡了。`,'bad');
+    if(a.type==='unit'&&!p.ranged&&a.o.hp>0&&canEnter(a.o,T(du.q,du.r),true))stepTo(a.o,du.q,du.r),a.o.mv=0;}
+  else if(tg.type==='nest'&&tg.o.hp<=0){killed=true;killNest(tg.o,aO);}
+  else if(tg.type==='city'){const c=tg.o;if(c.hp<=0){c.hp=0;if(a.type==='unit'&&!p.ranged&&a.o.hp>0){if(UN[a.o.k].z)zombieRaid(c);else captureCity(c,a.o);}else c.hp=0;}}
+  if(a.type==='unit'&&a.o.hp<=0){if(killed){a.o.hp=1;}else{const au=a.o;removeUnit(au);if(au.owner===ME)feed(`我们的${UN[au.k].n}在进攻中阵亡。`,'bad');}}
+  return killed;}
+function killNest(n,by){n.alive=false;n.hp=0;const t=T(n.q,n.r);delete t.nest;t.t='o';delete t.res;spriteCache.clear();if(by>=0)G.civs[by].gp+=15;for(const k in G.tiles){if(G.tiles[k].bl===n.id)delete G.tiles[k].bl;}
+  if(by>=0){G.nestK[by]++;G.civs[by].sci+=40;}
+  const left=Object.values(G.nests).filter(x=>x.alive).length;
+  if(by===ME){toast('尸巢被净化','蓝图 +40、传奇点数 +15，原地长出一片绿洲');SFX.purify();feed(`我们摧毁了一座尸巢！还剩 ${left} 座。`,'good');}else feed(`${civName(by)}摧毁了一座尸巢，还剩 ${left} 座。`,by>0?'':'');
+  if(by>=0&&G.nestK[by]>=(G.pur||4)){endGame(by,'purify');return;}
+  if(by!==ME&&by>=0&&G.nestK[by]===(G.pur||4)-1)toast(`${civName(by)}已摧毁 ${G.nestK[by]} 座尸巢`,'再摧毁 1 座就是他们的大地复苏');
+  if(!left){const best=G.nestK.indexOf(Math.max(...G.nestK));endGame(best,'purify');}}
+function zombieRaid(c){c.hp=60;if(c.pop>1){c.pop--;if(c.owner===ME)feed(`丧尸冲进了「${c.name}」，居民减少！`,'bad');}
+  else if(!c.cap){if(c.owner===ME)feed(`「${c.name}」被尸潮吞没了。`,'bad');destroyCity(c);}}
+function destroyCity(c){delete G.cities[c.id];delete CAT[key(c.q,c.r)];for(const t of Object.values(G.tiles))if(t.own===c.owner&&hexDist(t.q,t.r,c.q,c.r)<=1&&!civCities(c.owner).some(x=>hexDist(x.q,x.r,t.q,t.r)<=2))t.own=-1;checkAlive(c.owner);}
+function captureCity(c,u){const old=c.owner,o=u.owner;c.owner=o;c.pop=Math.max(1,Math.ceil(c.pop/2));c.hp=60;c.build=null;c.prod=0;delete c.blds.walls;delete c.blds.ark;
+  if(c.cap){c.cap=false;const rest=civCities(old);G.civs[old].cap=null;if(rest.length){rest[0].cap=true;G.civs[old].cap=rest[0].id;}}
+  for(const t of ring(c.q,c.r,cityRadius(c)))if(t.own===old||t.own<0)t.own=o;
+  delete UAT[key(u.q,u.r)];u.q=c.q;u.r=c.r;UAT[key(c.q,c.r)]=u;u.mv=0;
+  G.civs[old].lost++;if(o>=0){G.civs[o].sci+=30+c.pop*5;G.civs[o].gp+=15;const near=civCities(o).filter(x=>x!==c).sort((a,b)=>hexDist(a.q,a.r,c.q,c.r)-hexDist(b.q,b.r,c.q,c.r))[0];if(near)near.prod+=30;}
+  if(o===ME){toast(`占领「${c.name}」`,(c.origCap?`这是${civName(c.orig)}的主营！`:'')+`掠夺：蓝图 +${30+c.pop*5}，传奇点数 +15`+(cityWons(c).length?`，地标「${cityWons(c).map(k=>WON[k].n).join('、')}」归我们了`:''));SFX.capture();feed(`我们占领了「${c.name}」。`,'good');}
+  else if(old===ME){toast(`「${c.name}」失守`,`被${civName(o)}占领`);SFX.lose();feed(`「${c.name}」被${civName(o)}占领了！`,'bad');}
+  else feed(`${civName(o)}占领了${civName(old)}的「${c.name}」。`);
+  checkAlive(old);checkConquest();}
+function checkAlive(o){if(o<0)return;const cv=G.civs[o];if(!cv.alive)return;if(civCities(o).length===0&&!civUnits(o).some(u=>u.k==='settler')){cv.alive=false;for(const u of civUnits(o))removeUnit(u);
+  if(isHum(o)){const left=CIV().filter(x=>isHum(x)&&G.civs[x].alive);if(!left.length||!G.mp)endGame(-1,'dead');else{feed(o===ME?'我们的阵营覆灭了。你可以继续观战。':`${civName(o)}覆灭了。`,'bad');if(o===ME){toast('阵营覆灭','你可以继续观战');}}}else{feed(`${civName(o)}灭亡了。`,'good');}}}
+function checkConquest(){for(const o of CIV()){if(!G.civs[o].alive)continue;const caps=Object.values(G.cities).filter(c=>c.origCap&&c.orig!==o);const others=CIV().filter(x=>x!==o);
+  const ok=others.every(x=>{const cp=Object.values(G.cities).find(c=>c.origCap&&c.orig===x);return cp?cp.owner===o:!G.civs[x].alive;});if(ok){endGame(o,'conquest');return;}}}
+
+/* ---------- 外交 ---------- */
+function declareWar(a,b){if(a<0||b<0||atWar(a,b))return;G.rel[a][b]=G.rel[b][a]='war';G.relT[a][b]=G.relT[b][a]=G.turn;
+  if(a===ME||b===ME){const x=a===ME?b:a;toast(a===ME?`向${civName(x)}宣战`:`${civName(x)}向我们宣战！`,'');SFX.war();feed(a===ME?`我们向${civName(x)}宣战了。`:`${civName(x)}向我们宣战了！`,'bad');}
+  else feed(`${civName(a)}向${civName(b)}宣战了。`);}
+function makePeace(a,b){G.rel[a][b]=G.rel[b][a]='peace';G.relT[a][b]=G.relT[b][a]=G.turn;if(a===ME||b===ME){const x=a===ME?b:a;feed(`和${civName(x)}签订了停战协议。`,'good');SFX.peace();}else feed(`${civName(a)}和${civName(b)}停战了。`);}
+function power(o){let p=0;for(const u of civUnits(o))if(isMil(u))p+=(UN[u.k].rs?UN[u.k].rs*0.8:UN[u.k].str)*u.hp/100;for(const c of civCities(o))p+=cityStr(c)*0.4;return Math.round(p);}
+function aiAcceptPeace(ai,other){const t=G.turn-G.relT[ai][other];if(t<6)return false;const pa=power(ai),po=power(other);return pa<=po*1.15||G.civs[ai].lost>0&&pa<po*1.5;}
+function aiDiplomacy(o){const cv=G.civs[o];if(o===0&&BOT==='war'&&G.turn>=35){for(const x of CIV().filter(x=>x!==0))if(G.civs[x].alive&&!atWar(0,x)&&civCities(x).length){declareWar(0,x);break;}return;}const aggr=o===1?1.25:1.5;
+  for(const x of CIV()){if(x===o||!G.civs[x].alive)continue;const pa=power(o),px=power(x);
+    if(G.rel[o][x]==='peace'){if(G.turn<18+(2-G.diff)*6)continue;if(G.turn-G.relT[o][x]<10)continue;
+      const near=civCities(o).some(a=>civCities(x).some(b=>hexDist(a.q,a.r,b.q,b.r)<=10));
+      if(near&&pa>px*(aggr-(G.diff===2?0.15:0))&&rnd()<(o===1?0.18:0.1))declareWar(o,x);}
+    else{const t=G.turn-G.relT[o][x];if(t>=10&&(pa<px*0.85)&&rnd()<0.3){if(isHum(x)){if(!G.asks.some(a=>a.t==='peace'&&a.o===o&&a.to===x))G.asks.push({t:'peace',o,to:x});}else if(aiAcceptPeace(x,o))makePeace(o,x);}}}}
+let peaceAsk=null;
+function askPeace(o){peaceAsk=o;}
+
+/* ---------- 尸巢与丧尸 ---------- */
+function nestTurn(){const holy=wonderOf('holy');for(const n of Object.values(G.nests)){if(!n.alive)continue;n.hp=Math.min(80,n.hp+3);if(holy&&hexDist(holy.q,holy.r,n.q,n.r)<=6){n.hp-=6;if(n.hp<=0){killNest(n,holy.owner);continue;}}
+  n.cd--;const mine=Object.values(G.units).filter(u=>u.home===n.id).length;const cap=G.turn<35?2:G.turn<70?3:4;
+  if(n.cd<=0){n.cd=G.turn<30?7:G.turn<65?5:4;if(G.diff===0)n.cd++;
+    if(mine<cap){const spot=nbrs(n.q,n.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r));if(spot){const k=G.turn>40&&rnd()<0.28?'brute':G.turn>12&&rnd()<0.35?'runner':'walker';const z=addUnit(-1,k,spot.q,spot.r);z.home=n.id;}}}
+  n.spr--;if(n.spr<=0){n.spr=G.turn<50?8:6;const area=Object.values(G.tiles).filter(t=>t.bl===n.id);const cand=[];for(const a of area)for(const b of nbrs(a.q,a.r))if(pass(b)&&b.bl===undefined&&!cityAt(b.q,b.r)&&hexDist(b.q,b.r,n.q,n.r)<=3)cand.push(b);
+    if(cand.length){const t=cand[Math.floor(rnd()*cand.length)];t.bl=n.id;if(t.own===ME)feed('尸巢的感染蔓延进了我们的领土。','bad');}}}}
+function zombieTurn(){const zs=Object.values(G.units).filter(u=>u.owner<0);
+  for(const z of zs){if(!G.units[z.id])continue;z.mv=UN[z.k].mv;
+    let best=null,bd=1e9;for(const u of Object.values(G.units)){if(u.owner<0)continue;const d=hexDist(z.q,z.r,u.q,u.r);if(d<bd&&d<=5){bd=d;best={q:u.q,r:u.r};}}
+    for(const c of Object.values(G.cities)){const d=hexDist(z.q,z.r,c.q,c.r);if(d<bd&&d<=6){bd=d;best={q:c.q,r:c.r};}}
+    if(!best){const n=G.nests[z.home];if(n&&n.alive&&hexDist(z.q,z.r,n.q,n.r)>2)best={q:n.q,r:n.r,wander:1};else{const ns=nbrs(z.q,z.r).filter(t=>canEnter(z,t,true));if(ns.length&&rnd()<0.5){const w=ns[Math.floor(rnd()*ns.length)];stepTo(z,w.q,w.r);}continue;}}
+    let guard=0;while(z.mv>0&&guard++<6){if(!best.wander&&hexDist(z.q,z.r,best.q,best.r)<=1){const tg=tgtAt(best.q,best.r);if(tg&&tg.owner!==-1){doAttack({type:'unit',o:z},tg);}break;}
+      const ns=nbrs(z.q,z.r).filter(t=>canEnter(z,t,true)).sort((a,b)=>hexDist(a.q,a.r,best.q,best.r)-hexDist(b.q,b.r,best.q,best.r));
+      if(!ns.length||hexDist(ns[0].q,ns[0].r,best.q,best.r)>=hexDist(z.q,z.r,best.q,best.r)+ (best.wander?0:0.5))break;stepTo(z,ns[0].q,ns[0].r);if(best.wander&&hexDist(z.q,z.r,best.q,best.r)<=2)break;}}}
+
+/* ---------- 电脑阵营 ---------- */
+function bestUnit(o,ranged){const opts=Object.keys(UN).filter(k=>!UN[k].z&&!UN[k].civ&&k!=='scout'&&hasTech(o,UN[k].tech)&&(!!UN[k].rs===!!ranged));if(!opts.length)return 'militia';return opts.sort((a,b)=>((UN[b].rs||UN[b].str)/Math.pow(UN[b].cost,0.6))-((UN[a].rs||UN[a].str)/Math.pow(UN[a].cost,0.6)))[0];}
+function siteScore(o,t){if(!canFound(t.q,t.r,o))return -1;let s=0;for(const x of ring(t.q,t.r,2)){if(x.own>=0&&x.own!==o)continue;const y=tileYield(x);s+=y.f*1.2+y.p+y.s+(x.bl!==undefined?-2:0);if(x.nest!==undefined)s-=8;}return s;}
+function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);const has=k=>opts.some(b=>b.k===k);
+  const mil=civUnits(o).filter(isMil).length,nc=civCities(o).length;const war=CIV().some(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
+  const threat=Object.values(G.units).filter(u=>(u.owner<0||atWar(o,u.owner))&&u.owner!==o&&hexDist(u.q,u.r,c.q,c.r)<=4).length;
+  const gar=unitAt(c.q,c.r);if((threat&&!gar)||threat>=2)return{t:'u',k:bestUnit(o,rnd()<0.4)};
+  if(has('ark'))return{t:'b',k:'ark'};
+  const settlers=civUnits(o).filter(u=>u.k==='settler').length;const target=[4,5,6][G.diff]+(o===2?1:0);
+  if(settlers===0&&nc<target&&c.pop>=2&&G.turn<90)return{t:'u',k:'settler'};
+  if(civUnits(o).filter(u=>u.k==='scout').length===0&&G.turn<25&&rnd()<0.5)return{t:'u',k:'scout'};
+  if(civUnits(o).filter(u=>u.k==='worker').length<Math.ceil(nc/2)&&G.turn>5&&c.pop>=2&&!(o===0&&BOT==='noworker'))return{t:'u',k:'worker'};
+  if(mil<nc*(war?2.0:1.0)+1+(o===0&&BOT?nc:0))return{t:'u',k:bestUnit(o,rnd()<0.35)};
+  const wpref=o===3?['radio','archive','factory','vault','wall','holy']:o===1?['wall','factory','radio','vault','archive','holy']:o===2?['holy','archive','vault','radio','wall','factory']:['archive','vault','holy','radio','factory','wall'];
+  for(const k of ['granary','workshop'])if(has(k))return{t:'b',k};
+  if(rnd()<0.6){for(const k of wpref)if(has(k)&&!civCities(o).some(x=>x.build&&x.build.k===k))return{t:'w',k};}
+  for(const k of ['library',war||o===1?'walls':'clinic','clinic','plant','walls'])if(has(k))return{t:'b',k};
+  for(const k of wpref)if(has(k)&&!civCities(o).some(x=>x.build&&x.build.k===k))return{t:'w',k};
+  return{t:'u',k:bestUnit(o,rnd()<0.4)};}
+function aiResearch(o){const cv=G.civs[o];if(cv.res)return;const av=Object.keys(TECH).filter(k=>!cv.techs[k]&&TECH[k].req.every(r=>cv.techs[r]));if(!av.length)return;
+  const pref=o===3?['scav','agri','write','moto','power','serum','fort','bow','cannon','armor','ark']:o===0&&BOT==='purify'?['bow','agri','write','serum','fort','scav','moto','armor','cannon','power','ark']:o===0&&BOT==='war'?['bow','scav','fort','moto','armor','cannon','agri','write','serum','power','ark']:o===1?['bow','scav','fort','moto','agri','write','armor','cannon','power','serum','ark']:['agri','scav','write','bow','serum','power','fort','moto','ark','cannon','armor'];
+  av.sort((a,b)=>pref.indexOf(a)-pref.indexOf(b));cv.res=av[0];}
+function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);
+  for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);
+  // 据点射击
+  for(const c of civCities(o)){if(c.shot)continue;const tgts=Object.values(G.units).filter(u=>u.owner!==o&&atWar(o,u.owner)&&hexDist(u.q,u.r,c.q,c.r)<=2);if(tgts.length){tgts.sort((a,b)=>a.hp-b.hp);doAttack({type:'city',o:c},{type:'unit',o:tgts[0],owner:tgts[0].owner});}}
+  // 守城分配
+  const cities=civCities(o);const units=civUnits(o);
+  for(const u of units)if(u.gar&&(!G.cities[u.gar]||G.cities[u.gar].owner!==o))u.gar=null;
+  for(const c of cities){if(units.some(u=>u.gar===c.id))continue;let best=null,bd=1e9;for(const u of units){if(!isMil(u)||u.gar)continue;const d=hexDist(u.q,u.r,c.q,c.r);if(d<bd){bd=d;best=u;}}if(best&&(bd<=6||cities.length<=2))best.gar=c.id;}
+  const wars=CIV().filter(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
+  for(const u of units){if(!G.units[u.id])continue;try{aiUnit(u,wars);}catch(e){console.error(e);}}
+  aiDiplomacy(o);}
+function bestTarget(u,maxd){let best=null,bs=-1e9;const U=UN[u.k];
+  for(const t of ring(u.q,u.r,maxd)){const tg=tgtAt(t.q,t.r);if(!tg||tg.owner===u.owner)continue;if(tg.owner>=0&&!atWar(u.owner,tg.owner))continue;if(tg.type==='unit'&&UN[tg.o.k].civ&&!U.rs){}
+    const p=predict({type:'unit',o:u},tg);let s=p.toD-p.toA*1.2+(p.kill?40:0)-(hexDist(u.q,u.r,t.q,t.r))*3;if(tg.type==='city')s+=15-tg.o.hp/10;if(tg.type==='nest')s+=5;if(p.die||u.hp-p.toA<15)s-=200;if(s>bs){bs=s;best={tg,t,p,s};}}
+  return best&&best.s>-20?best:null;}
+function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
+  if(u.k==='settler'){let site=u.site&&T(u.site[0],u.site[1]);if(!site||!canFound(site.q,site.r,u.owner)){let best=null,bs=-1;for(const t of ring(u.q,u.r,9)){let s=siteScore(u.owner,t);if(s<0)continue;s-=hexDist(u.q,u.r,t.q,t.r)*1.4;if(Object.values(G.units).some(z=>z.owner<0&&hexDist(z.q,z.r,t.q,t.r)<=2))s-=10;if(s>bs){bs=s;best=t;}}if(!best)return;u.site=[best.q,best.r];site=best;}
+    if(u.q===site.q&&u.r===site.r){foundCity(u);return;}const p=findPath(u,site.q,site.r,false);if(!p){u.site=null;return;}walkPath(u,p);if(u.q===site.q&&u.r===site.r&&canFound(u.q,u.r,u.owner))foundCity(u);return;}
+  if(u.k==='worker'){if(u.work)return;const here=T(u.q,u.r);const want=t=>t.own===u.owner&&t.nest===undefined&&!cityAt(t.q,t.r)&&(t.bl!==undefined||(!t.imp&&impFor(t)));
+    if(want(here)&&civCities(u.owner).some(c=>hexDist(c.q,c.r,here.q,here.r)<=2)){startWork(u);return;}
+    let best=null,bd=1e9;for(const c of civCities(u.owner))for(const t of ring(c.q,c.r,2)){if(!want(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r)-(t.bl!==undefined?2:0)-(t.res?1:0);if(d<bd){bd=d;best=t;}}
+    if(best){const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);if(u.mv>0&&want(T(u.q,u.r)))startWork(u);}return;}
+  if(u.k==='general'){let best=null,bd=1e9;for(const v of civUnits(u.owner)){if(!isMil(v)||v.gar)continue;const d=hexDist(u.q,u.r,v.q,v.r);if(d<bd){bd=d;best=v;}}if(best&&bd>1){const p=findPath(u,best.q,best.r,true);if(p)walkPath(u,p);}return;}
+  if(u.k==='scout'){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(!t.goody)continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}
+    if(!best){const all=Object.values(G.tiles).filter(pass);best=all[Math.floor(rnd()*all.length)];}const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);return;}
+  // 先打能打的
+  const tryAtk=()=>{const bt=bestTarget(u,U.rs?U.rng:1);if(bt&&u.mv>0){doAttack({type:'unit',o:u},bt.tg);return true;}return false;};
+  if(tryAtk())return;
+  if(u.hp<45&&!cityAt(u.q,u.r)){const c=civCities(u.owner).sort((a,b)=>hexDist(a.q,a.r,u.q,u.r)-hexDist(b.q,b.r,u.q,u.r))[0];if(c&&!unitAt(c.q,c.r)){const p=findPath(u,c.q,c.r,false);if(p){walkPath(u,p);return;}}u.fort=1;return;}
+  let goal=null,adj=true;
+  if(u.gar){const c=G.cities[u.gar];if(c){if(u.q===c.q&&u.r===c.r){u.fort=1;return;}goal=[c.q,c.r];adj=false;}}
+  if(!goal&&wars.length){let best=null,bd=1e9;for(const x of wars)for(const c of civCities(x)){const d=hexDist(u.q,u.r,c.q,c.r);if(d<bd){bd=d;best=c;}}
+    if(best&&bd<=16){const near=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar&&hexDist(v.q,v.r,best.q,best.r)<=bd+1).length;if(near>=2||bd>4)goal=[best.q,best.r];}}
+  if(!goal){let best=null,bd=1e9;for(const z of Object.values(G.units)){if(z.owner>=0)continue;const d=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,z.q,z.r)),99);if(d<=4&&hexDist(u.q,u.r,z.q,z.r)<bd){bd=hexDist(u.q,u.r,z.q,z.r);best=z;}}if(best)goal=[best.q,best.r];}
+  if(!goal){const field=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar).length;let best=null,bd=1e9;for(const n of Object.values(G.nests)){if(!n.alive)continue;const d=hexDist(u.q,u.r,n.q,n.r);const dc=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,n.q,n.r)),99);if((dc<=8+G.turn/12||u.owner===2&&G.turn>30||u.owner===0&&BOT==='purify')&&d<bd&&(field>=2||nestStr(n)<U.str*1.3)){bd=d;best=n;}}if(best)goal=[best.q,best.r];}
+  if(!goal&&T(u.q,u.r).bl!==undefined&&T(u.q,u.r).own===u.owner){purge(u);return;}
+  if(!goal){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(t.bl===undefined||t.own!==u.owner||t.nest!==undefined||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}if(best&&bd<=6){goal=[best.q,best.r];adj=false;}}
+  if(!goal){const c=civCities(u.owner).sort((a,b)=>hexDist(a.q,a.r,u.q,u.r)-hexDist(b.q,b.r,u.q,u.r))[0];if(c&&hexDist(c.q,c.r,u.q,u.r)>2){goal=[c.q,c.r];}else{u.fort=1;return;}}
+  const p=findPath(u,goal[0],goal[1],adj);if(p){const stopAt=U.rs?U.rng:1;const trimmed=[];for(const s of p){trimmed.push(s);if(U.rs&&hexDist(s[0],s[1],goal[0],goal[1])<=stopAt&&tgtAt(goal[0],goal[1]))break;}walkPath(u,trimmed);}
+  if(u.mv>0)tryAtk();
+  if(u.mv>0&&!goal)u.fort=1;}
+
+/* ---------- 建设队 ---------- */
+function impFor(t){if(t.bl!==undefined)return null;for(const k in IMP)if(IMP[k].on.includes(t.t))return k;return null;}
+function startWork(u){const t=T(u.q,u.r);if(t.bl!==undefined&&t.nest===undefined){u.work={k:'purge',left:1};}else{const k=impFor(t);if(!k||t.imp||t.own!==u.owner)return false;u.work={k,left:3};}u.mv=0;u.acted=1;return true;}
+/* ---------- 天流程 ---------- */
+function purge(u){const t=T(u.q,u.r);if(t.bl===undefined)return false;if(t.nest!==undefined)return false;delete t.bl;u.mv=0;u.acted=1;if(u.owner===ME){feed('净化了一块感染地。','good');SFX.purge();pops.push({q:t.q,r:t.r,txt:'净化',col:'#5e8c55',t:0});}return true;}
+function research(o,sci){const cv=G.civs[o];cv.sci+=sci;cv.lastSci=sci;if(!cv.res){if(cv.ai)aiResearch(o);if(!cv.res)return;}
+  const k=cv.res;if(cv.sci>=TECH[k].cost){cv.sci-=TECH[k].cost;cv.techs[k]=1;cv.res=null;if(o===ME){toast(`蓝图破解：${TECH[k].n}`,unlocksText(k));SFX.tech();feed(`蓝图破解：${TECH[k].n}。${unlocksText(k)}`,'sci');}
+    else if(k==='ark'){feed(`${civName(o)}完成了方舟计划，正在建造方舟！`,'bad');toast(`${civName(o)}开始建造方舟`,'阻止他们：占领他们的主营，或者抢先建成');}
+    if(cv.ai)aiResearch(o);}}
+function unlocksText(k){const u=Object.keys(UN).filter(x=>UN[x].tech===k).map(x=>UN[x].n),b=Object.keys(BLD).filter(x=>BLD[x].tech===k).map(x=>BLD[x].n);const all=u.concat(b);let s=all.length?'解锁：'+all.join('、'):'';if(TECH[k].x)s+=(s?'；':'')+TECH[k].x;return s;}
+function endTurn(){if(busy||!G||G.over)return;busy=true;pend=null;
+  G.asks=G.asks.filter(a=>a.t!=='peace');
+  // 玩家据点自动选生产、没选的传奇幸存者默认老教授
+  for(const o of CIV()){if(!isHum(o)||!G.civs[o].alive)continue;for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);if(!G.civs[o].res)aiResearch(o);while(G.civs[o].gpPend>0){G.civs[o].gpPend--;grantGP(o,HEADLESS&&BOT==='purify'?'saint':HEADLESS&&BOT==='war'?'general':'scientist');}G.civs[o].ready=false;}
+  for(const o of CIV()){if(!G.civs[o].alive)continue;const s=processCities(o);research(o,s);if(G.over){busy=false;return;}}
+  for(const o of CIV()){if(!G.civs[o].ai)continue;aiTurn(o);if(G.over){busy=false;return;}}
+  zombieTurn();if(G.over){busy=false;return;}nestTurn();
+  // 天末：感染伤害、回血、重置
+  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){if(u.work.k==='purge'){delete t.bl;}else t.imp=u.work.k;if(u.owner===ME){feed(u.work.k==='purge'?'建设队净化了一块感染地。':`${IMP[u.work.k].n}修好了：${IMP[u.work.k].d}。`,'good');pops.push({q:t.q,r:t.r,txt:u.work.k==='purge'?'净化':IMP[u.work.k].n,col:'#5e8c55',t:0});}u.work=null;}}}
+  for(const o of CIV())if(G.civs[o].alive)gpTick(o);
+  for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(u.owner>=0&&t.bl!==undefined){u.hp-=6;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}死在了感染区里。`,'bad');removeUnit(u);continue;}}
+    if(!u.acted){let h=10;if(u.owner>=0&&t.own===u.owner)h+=10;if(cityAt(u.q,u.r))h+=10;if(u.owner<0)h=t.bl!==undefined?15:5;u.hp=Math.min(100,u.hp+h);}
+    u.acted=0;u.mv=UN[u.k].mv;}
+  G.turn++;
+  if(G.turn>MAXT&&!G.over){const sc=CIV().map(score);const best=sc.indexOf(Math.max(...sc));endGame(best,'score');busy=false;return;}
+  // 玩家单位自动行军
+  for(const u of Object.values(G.units)){if(!u.dest||!isHum(u.owner))continue;const danger=Object.values(G.units).some(z=>(z.owner<0||atWar(u.owner,z.owner))&&hexDist(z.q,z.r,u.q,u.r)<=2);if(danger){u.dest=null;if(u.owner===ME)feed(`${UN[u.k].n}发现附近有敌人，停下待命。`,'bad');continue;}
+    const p=findPath(u,u.dest[0],u.dest[1],false);if(!p){u.dest=null;continue;}walkPath(u,p);if(u.q===u.dest[0]&&u.r===u.dest[1])u.dest=null;}
+  for(const u of Object.values(G.units)){if(!isHum(u.owner))continue;if(u.fort&&Object.values(G.units).some(z=>(z.owner<0||atWar(u.owner,z.owner))&&hexDist(z.q,z.r,u.q,u.r)<=2))u.fort=0;}
+  updVis();save();busy=false;
+  if(HEADLESS){G.asks=[];}else{checkAsks();storyCheck();}
+  if(sel&&sel.u&&!G.units[sel.u.id])select(null);if(sel)select(sel);
+  updHUD();SFX.turn();}
+function gpTick(o){const cv=G.civs[o];let p=1;for(const c of civCities(o)){if(c.blds.library)p+=1;p+=cityWons(c).length;if(cityWons(c).includes('archive'))p+=2;if(c.focus==='s')p+=0.5;}cv.gp+=p;cv.gpRate=p;
+  if(cv.gp>=gpNeed(o)){cv.gp-=gpNeed(o);cv.gpN=(cv.gpN||0)+1;if(cv.ai){const alive=Object.values(G.nests).some(n=>n.alive);const k=o===2?(alive?'saint':'scientist'):(atWarAny(o)?'general':'engineer');grantGP(o,k);}else cv.gpPend=(cv.gpPend||0)+1;}}
+function atWarAny(o){return CIV().some(x=>x!==o&&G.civs[x].alive&&atWar(o,x));}
+function grantGP(o,k){const cv=G.civs[o];const cs=civCities(o);const cap=cs.find(c=>c.cap)||cs[0];let msg='';
+  if(k==='scientist'){const s=Math.max(45,Math.round((cv.lastSci||5)*8));cv.sci+=s;msg=`蓝图 +${s}`;}
+  else if(k==='engineer'){const c=cs.find(x=>x.build&&x.build.t==='w')||cap;if(c){c.prod+=120;msg=`「${c.name}」物资 +120`;}}
+  else if(k==='general'){if(cap){const sp=[T(cap.q,cap.r)].concat(nbrs(cap.q,cap.r)).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!nestAt(t.q,t.r)&&(!cityAt(t.q,t.r)||cityAt(t.q,t.r).owner===o));if(sp){addUnit(o,'general',sp.q,sp.r);msg='指挥官在主营出现了';}}}
+  else if(k==='saint'){let n=0;for(const c of cs)for(const t of ring(c.q,c.r,3))if(t.bl!==undefined&&t.nest===undefined){delete t.bl;n++;}let hit=0;for(const ne of Object.values(G.nests)){if(!ne.alive)continue;if(cs.some(c=>hexDist(c.q,c.r,ne.q,ne.r)<=5)){ne.hp-=40;hit++;if(ne.hp<=0)killNest(ne,o);}}msg=`净化了 ${n} 块感染地，${hit} 座尸巢受到重创`;}
+  if(o===ME){toast(`传奇幸存者来投奔：${GPT[k].n}`,msg);SFX.wonder();feed(`${GPT[k].n}：${msg}。`,'good');}else feed(`${civName(o)}迎来了传奇幸存者「${GPT[k].n}」。`);}
+let askOpen=false;
+function checkAsks(){if(!G||G.over||askOpen||!$('#ovAsk').hidden||!$('#ovStory').hidden)return;const cv=G.civs[ME];if(!cv)return;
+  const pa=G.asks.find(a=>a.t==='peace'&&a.to===ME);
+  if(pa){askOpen=true;const o=pa.o;showAsk(`${civName(o)}提议停战`,`我们和${civName(o)}已经打了 ${G.turn-G.relT[ME][o]} 天。接受吗？`,'接受停战','继续打',()=>doCmd({t:'accept',x:o,yes:1}),()=>{askOpen=false;if(G.asks.includes(pa))doCmd({t:'accept',x:o,yes:0});});return;}
+  if(cv.gpPend>0){askOpen=true;$('#askC').innerHTML=`<h3>传奇幸存者来投奔</h3><p>传奇点数满了。选一位传奇幸存者（下一位需要 ${gpNeed(ME)} 点）。这天结束前没选会默认老教授：</p><div class="blist">${Object.keys(GPT).map(k=>`<button data-g="${k}"><b>${GPT[k].n}</b><small>${GPT[k].d}</small></button>`).join('')}</div>`;$('#ovAsk').hidden=false;
+    $('#askC').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{$('#ovAsk').hidden=true;askOpen=false;doCmd({t:'gp',k:b.dataset.g});});}}
+function score(o){if(!G.civs[o].alive)return 0;let s=0;for(const c of civCities(o))s+=10+c.pop*3+Object.keys(c.blds).length*2;s+=Object.keys(G.civs[o].techs).length*6+G.nestK[o]*12+G.kills[o]+Object.keys(WON).filter(k=>hasWon(o,k)).length*15;return s;}
+function endGame(w,how){if(G.over)return;G.over={w,how};if(NETON&&NET.host)setTimeout(netSnap,50);save();try{localStorage.removeItem(SAVEK);}catch(e){}
+  const win=w===ME;const HOW={conquest:'统一废土',purify:'大地复苏',science:'方舟启航',score:'繁荣胜利',dead:'阵营覆灭'};
+  const ch=FAC[ME].ch;const txt=win?{conquest:`四个字里只剩下一个。从今往后，废土上的人提起「${ch}」，不必再问怎么念。`,purify:`又一座尸巢倒下的那天，灰土里冒出了第一片绿芽。人们说，是「${ch}」把大地叫醒的。`,science:`方舟在雷声里升空。底下的废土上，有人仰头看了很久，念出了船身上那个难念的字：「${ch}」。`,score:`一百五十天过去，没有人赢下全部，但「${ch}」的灯火最亮。`}[how]
+    :how==='dead'?`最后一座据点也失守了。废土上再也没有人念「${ch}」这个字。`:`${civName(w)}取得了${HOW[how]}。历史记住的是「${FAC[w].ch}」，而我们的字，渐渐没人会念了。`;
+  setTimeout(()=>{$('#endC').innerHTML=`<div class="eb">第 ${G.turn} 天 · ${['简单','普通','困难'][G.diff]}</div><h2>${win?HOW[how]:'失败'}</h2><p>${txt}</p>
+    <div class="stats3"><div>据点<b>${civCities(ME).length}</b></div><div>蓝图<b>${Object.keys(G.civs[ME].techs).length}/${Object.keys(TECH).length}</b></div><div>摧毁尸巢<b>${G.nestK[ME]}</b></div></div>
+    <div class="stats3">${CIV().map(o=>`<div><span style="color:${civCol(o)}">●</span> ${civName(o)}<b>${score(o)} 分</b></div>`).join('')}</div>
+    <div class="acts2"><button class="b main" id="eNew">再来一局</button><button class="b" id="eLook">留下来看看地图</button></div>`;
+    $('#ovEnd').hidden=false;$('#eNew').onclick=()=>{$('#ovEnd').hidden=true;if(NETON)netLeave();showMenu();};$('#eLook').onclick=()=>{$('#ovEnd').hidden=true;};},how==='science'?600:900);
+  win?SFX.win():SFX.lose();updHUD();}
+
+/* ---------- 视野 ---------- */
+function updVis(){VIS=new Set();const add=(q,r,R)=>{for(const t of ring(q,r,R)){const k=key(t.q,t.r);VIS.add(k);t.ex=1;}};
+  if(G.civs[ME]&&!G.civs[ME].alive){for(const t of Object.values(G.tiles)){VIS.add(key(t.q,t.r));t.ex=1;}return;}
+  for(const u of civUnits(ME)){const t=T(u.q,u.r);add(u.q,u.r,(UN[u.k].vis||2)+(t.t==='h'?1:0));}
+  for(const c of civCities(ME))add(c.q,c.r,3);
+  for(const t of Object.values(G.tiles))if(t.own===ME){VIS.add(key(t.q,t.r));t.ex=1;}}
+
+/* ---------- 存档 ---------- */
+function save(){try{if(!G||G.over||NETON||G.mp)return;localStorage.setItem(SAVEK,JSON.stringify(G));}catch(e){}}
+function loadSave(){try{const s=localStorage.getItem(SAVEK);return s?JSON.parse(s):null;}catch(e){return null;}}
+
+/* ---------- 投影 ---------- */
+const cam={x:0,y:0,z:46};
+function hx(q,r){return[1.5*q,S3*(r+q/2)];}
+let shake=0;function w2s(q,r){const[x,y]=hx(q,r);return[W/2+(x-cam.x)*cam.z+(shake?(Math.random()-0.5)*shake:0),H/2+(y-cam.y)*cam.z*SQ+(shake?(Math.random()-0.5)*shake:0)];}
+function s2hex(sx,sy){const x=(sx-W/2)/cam.z+cam.x,y=(sy-H/2+cam.z*TH*0.5)/(cam.z*SQ)+cam.y;const q=(2/3)*x,r=(-1/3)*x+(S3/3)*y;
+  let rq=Math.round(q),rr=Math.round(r),rs=Math.round(-q-r);const dq=Math.abs(rq-q),dr=Math.abs(rr-r),ds=Math.abs(rs+q+r);if(dq>dr&&dq>ds)rq=-rr-rs;else if(dr>ds)rr=-rq-rs;return{q:rq,r:rr};}
+function vtx(k,Z){const a=k*Math.PI/3;return[Math.cos(a)*Z,Math.sin(a)*Z*SQ];}
+function centerOn(q,r){const[x,y]=hx(q,r);cam.x=x;cam.y=y+(H>W?1.2:0.4);}
+function clampCam(){if(!G)return;const[x0,y0]=hx(0,0);const[x1,y1]=hx(MW-1,MH-1-((MW-1)-((MW-1)&1))/2);cam.x=clamp(cam.x,-1,x1+1);cam.y=clamp(cam.y,-1,S3*(MH)+1);}
+
+/* ---------- 绘制：地块 ---------- */
+const spriteCache=new Map();
+function shadeHex(h,f){const n=parseInt(h.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;return`rgb(${clamp(Math.round(r*f),0,255)},${clamp(Math.round(g*f),0,255)},${clamp(Math.round(b*f),0,255)})`;}
+function hexPath(c,Z){c.beginPath();for(let k=0;k<6;k++){const v=vtx(k,Z);k?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]);}c.closePath();}
+function tree(c,x,y,s,r){c.fillStyle='rgba(60,80,40,.18)';c.beginPath();c.ellipse(x,y,s*0.55,s*0.22,0,0,7);c.fill();c.fillStyle='#8a6a4a';c.fillRect(x-s*0.08,y-s*0.4,s*0.16,s*0.4);
+  const g=r<0.5?['#4f8f58','#66a868']:['#3f7f52','#5a9c60'];c.fillStyle=g[0];c.beginPath();c.moveTo(x-s*0.5,y-s*0.3);c.lineTo(x,y-s*1.5);c.lineTo(x+s*0.5,y-s*0.3);c.closePath();c.fill();c.fillStyle=g[1];c.beginPath();c.moveTo(x,y-s*1.5);c.lineTo(x+s*0.5,y-s*0.3);c.lineTo(x+s*0.05,y-s*0.35);c.closePath();c.fill();}
+function house(c,x,y,s,roof,broken){c.fillStyle='rgba(60,50,40,.18)';c.beginPath();c.ellipse(x,y+s*0.05,s*0.75,s*0.28,0,0,7);c.fill();
+  c.fillStyle=broken?'#cfc6b6':'#f6efe3';c.fillRect(x-s*0.55,y-s*0.55,s*0.75,s*0.55);c.fillStyle=broken?'#b9af9e':'#e2d6c2';c.fillRect(x+s*0.2,y-s*0.55,s*0.35,s*0.55);
+  c.fillStyle=broken?'#6d655a':'#8a6a4a';c.fillRect(x-s*0.28,y-s*0.3,s*0.18,s*0.3);c.fillStyle=broken?'#6d655a':'#9fc3df';c.fillRect(x+s*0.28,y-s*0.42,s*0.14,s*0.13);
+  if(broken){c.fillStyle='#a69c8b';c.beginPath();c.moveTo(x-s*0.6,y-s*0.55);c.lineTo(x-s*0.3,y-s*0.8);c.lineTo(x-s*0.05,y-s*0.62);c.lineTo(x+s*0.2,y-s*0.75);c.lineTo(x+s*0.55,y-s*0.55);c.closePath();c.fill();return;}
+  c.fillStyle=roof;c.beginPath();c.moveTo(x-s*0.65,y-s*0.52);c.lineTo(x-s*0.15,y-s*1.05);c.lineTo(x+s*0.3,y-s*0.52);c.closePath();c.fill();c.fillStyle=shadeHex(roof,0.82);c.beginPath();c.moveTo(x-s*0.15,y-s*1.05);c.lineTo(x+s*0.65,y-s*0.95);c.lineTo(x+s*0.65,y-s*0.5);c.lineTo(x+s*0.3,y-s*0.52);c.closePath();c.fill();}
+function drawTileTo(c,t,Z){const R=mulberry(t.seed||1);const th=Z*TH;const T0=TERR[t.t];const water=t.t==='w';
+  for(let k=0;k<3;k++){const a=vtx(k,Z),b=vtx(k+1,Z);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineTo(b[0],b[1]+th);c.lineTo(a[0],a[1]+th);c.closePath();c.fillStyle=water?(k===1?'#7aa9be':'#8db8ca'):(k===1?'#b49572':k===0?'#a5866a':'#c2a582');c.fill();}
+  hexPath(c,Z);c.fillStyle=T0.c;c.fill();c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=Math.max(1,Z*0.025);c.stroke();
+  const pt=()=>{const a=R()*Math.PI*2,d=Math.sqrt(R())*0.62;return[Math.cos(a)*d*Z,Math.sin(a)*d*Z*SQ];};
+  const items=[];
+  if(t.t==='g'){for(let i=0;i<6;i++){const p=pt();const col=['#fff6c9','#f7b6c8','#ffffff','#c9e4ff'][Math.floor(R()*4)];items.push({y:p[1],f:()=>{c.fillStyle='rgba(120,160,80,.6)';c.fillRect(p[0]-Z*0.012,p[1]-Z*0.05,Z*0.014,Z*0.05);c.fillStyle=col;c.beginPath();c.arc(p[0],p[1]-Z*0.055,Z*0.028,0,7);c.fill();}});}}
+  else if(t.t==='p'){c.strokeStyle='rgba(190,150,60,.45)';c.lineWidth=Math.max(1,Z*0.025);for(let i=-3;i<=3;i++){c.beginPath();c.moveTo(-Z*0.6,i*Z*0.12*SQ*1.6);c.lineTo(Z*0.6,i*Z*0.12*SQ*1.6+Z*0.1);c.stroke();}
+    for(let i=0;i<2;i++){const p=pt();items.push({y:p[1],f:()=>{c.fillStyle='#e0b752';c.beginPath();c.ellipse(p[0],p[1]-Z*0.06,Z*0.06,Z*0.09,0,0,7);c.fill();c.fillStyle='#c99d3e';c.fillRect(p[0]-Z*0.07,p[1]-Z*0.02,Z*0.14,Z*0.03);}});}}
+  else if(t.t==='f'){for(let i=0;i<6;i++){const p=pt();const s=Z*(0.16+R()*0.08);items.push({y:p[1],f:()=>tree(c,p[0],p[1],s,R())});}}
+  else if(t.t==='h'){for(let i=0;i<2;i++){const p=i?[Z*0.2,Z*0.08]:[-Z*0.22,-Z*0.05];const s=Z*(0.42+R()*0.12);items.push({y:p[1],f:()=>{c.fillStyle='#bba57a';c.beginPath();c.ellipse(p[0],p[1],s,s*0.55,0,Math.PI,0);c.fill();c.fillStyle='#a8916a';c.beginPath();c.ellipse(p[0]+s*0.25,p[1],s*0.75,s*0.45,0,Math.PI*1.5,0);c.lineTo(p[0]+s,p[1]);c.fill();c.fillStyle='rgba(255,255,255,.25)';c.beginPath();c.ellipse(p[0]-s*0.3,p[1]-s*0.3,s*0.25,s*0.1,-0.4,0,7);c.fill();}});}}
+  else if(t.t==='r'){for(let i=0;i<3;i++){const p=pt();const s=Z*(0.2+R()*0.06);items.push({y:p[1],f:()=>house(c,p[0],p[1],s,'#999',true)});}for(let i=0;i<4;i++){const p=pt();items.push({y:p[1]-50,f:()=>{c.fillStyle='#a59b8a';c.fillRect(p[0],p[1],Z*0.06,Z*0.03);}});}}
+  else if(t.t==='o'){c.fillStyle='#86c6e4';c.beginPath();c.ellipse(-Z*0.15,Z*0.05,Z*0.28,Z*0.13,0,0,7);c.fill();c.fillStyle='rgba(255,255,255,.5)';c.beginPath();c.ellipse(-Z*0.2,Z*0.03,Z*0.1,Z*0.025,0,0,7);c.fill();for(let i=0;i<9;i++){const p=pt();if(Math.hypot(p[0]+Z*0.15,(p[1]-Z*0.05)/SQ)<Z*0.3)continue;const col=['#f7b6c8','#fff3b0','#ffffff','#e98bc0','#c9a7f2'][Math.floor(R()*5)];items.push({y:p[1],f:()=>{c.fillStyle=col;c.beginPath();c.arc(p[0],p[1]-Z*0.04,Z*0.035,0,7);c.fill();}});}const tp=[Z*0.3,-Z*0.05];items.push({y:tp[1],f:()=>tree(c,tp[0],tp[1],Z*0.22,0.2)});}
+  else if(t.t==='w'){c.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<3;i++){const p=pt();c.beginPath();c.ellipse(p[0],p[1],Z*0.14,Z*0.03,0,0,7);c.fill();}}
+  else if(t.t==='m'){for(let i=0;i<3;i++){const p=[(i-1)*Z*0.32,(i%2)*Z*0.1-Z*0.02];const s=Z*(0.42+R()*0.14)*(i===1?1.25:1);items.push({y:p[1],f:()=>{c.fillStyle='#9d978d';c.beginPath();c.moveTo(p[0]-s*0.6,p[1]);c.lineTo(p[0],p[1]-s*1.3);c.lineTo(p[0]+s*0.6,p[1]);c.closePath();c.fill();c.fillStyle='#857f76';c.beginPath();c.moveTo(p[0],p[1]-s*1.3);c.lineTo(p[0]+s*0.6,p[1]);c.lineTo(p[0]+s*0.1,p[1]);c.closePath();c.fill();c.fillStyle='#f6f3ee';c.beginPath();c.moveTo(p[0],p[1]-s*1.3);c.lineTo(p[0]-s*0.18,p[1]-s*0.92);c.lineTo(p[0],p[1]-s*0.98);c.lineTo(p[0]+s*0.16,p[1]-s*0.9);c.closePath();c.fill();}});}}
+  items.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+  if(t.res){const Rr=RES[t.res];const x=Z*0.42,y=Z*0.22;c.fillStyle='#fffdf8';c.beginPath();c.arc(x,y,Z*0.14,0,7);c.fill();c.strokeStyle=Rr.c;c.lineWidth=Math.max(1.2,Z*0.03);c.stroke();c.fillStyle=Rr.c;c.font=`900 ${Math.max(8,Z*0.15)}px "Noto Sans SC",sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(Rr.ch,x,y+0.5);}}
+function sprite(t){const Z=Math.round(cam.z);const k=t.t+t.seed+(t.res||'')+'@'+Z;let s=spriteCache.get(k);
+  if(!s){s=document.createElement('canvas');const w=Math.ceil(Z*2.3),h=Math.ceil(Z*2.1);const d=Math.min(2,devicePixelRatio||1);s.width=w*d;s.height=h*d;const c=s.getContext('2d');c.scale(d,d);c.translate(w/2,h*0.56);drawTileTo(c,t,Z);s._w=w;s._h=h;spriteCache.set(k,s);if(spriteCache.size>900)spriteCache.delete(spriteCache.keys().next().value);}
+  return s;}
+function cracks(seed,Z){ctx.strokeStyle='rgba(40,25,45,.5)';ctx.lineWidth=1.2;ctx.beginPath();const R=mulberry(seed);for(let i=0;i<4;i++){let x=(R()-0.5)*Z*0.3,y=(R()-0.5)*Z*0.2;ctx.moveTo(x,y);for(let s=0;s<3;s++){x+=(R()-0.5)*Z*0.45;y+=(R()-0.5)*Z*0.25;ctx.lineTo(x,y);}}ctx.stroke();}
+
+/* ---------- 绘制：据点、单位、尸巢 ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function drawCity(sx,sy,c){const Z=cam.z;const col=civCol(c.owner);const R=mulberry(c.id*31+7);
+  if(c.blds.walls){ctx.strokeStyle='#9d968a';ctx.lineWidth=Math.max(2,Z*0.07);ctx.beginPath();ctx.ellipse(sx,sy,Z*0.78,Z*0.78*SQ,0,0,7);ctx.stroke();ctx.strokeStyle='#bdb6aa';ctx.lineWidth=Math.max(1,Z*0.03);ctx.stroke();}
+  const n=Math.min(7,2+c.pop);const spots=[[0,-0.05],[-0.32,0.02],[0.32,0.04],[-0.12,0.22],[0.18,0.24],[-0.42,-0.18],[0.4,-0.16]];
+  const list=spots.slice(0,n).map(([x,y],i)=>({x:sx+x*Z,y:sy+y*Z*SQ*1.6,s:Z*(i===0?0.3:0.22),roof:i===0?col:shadeHex(col,0.85+R()*0.25)})).sort((a,b)=>a.y-b.y);
+  const wl=G.wonders?cityWons(c):[];wl.forEach((k,i)=>list.push({x:sx+(i%2?0.55:-0.55)*Z,y:sy-0.05*Z+Math.floor(i/2)*0.2*Z,s:Z*0.26,w:k}));list.sort((a,b)=>a.y-b.y);
+  for(const h of list){if(h.w)drawWonder(h.x,h.y,h.s,h.w,col);else house(ctx,h.x,h.y,h.s,h.roof);}
+  // 名牌
+  const nm=(c.cap?'★ ':'')+c.name;ctx.font=`700 ${Math.max(11,Z*0.24)}px "Noto Sans SC",sans-serif`;const w=ctx.measureText(nm).width+Z*0.62+12;const y=sy-Z*1.0;const hh=Math.max(17,Z*0.36);
+  ctx.fillStyle=col;rr(sx-w/2,y-hh/2,w,hh,hh/2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx-w/2+hh/2,y,hh/2-2,0,7);ctx.fill();
+  ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.pop,sx-w/2+hh/2,y+0.5);ctx.fillStyle='#fff';ctx.fillText(nm,sx+hh/4,y+0.5);
+  if(c.build&&(c.owner===ME)){const cost=buildCost(c,c.build);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(sx-w/2+6,y+hh/2+1,w-12,3);ctx.fillStyle='#e3a93b';ctx.fillRect(sx-w/2+6,y+hh/2+1,(w-12)*clamp(c.prod/cost,0,1),3);}
+  if(c.hp<maxHP(c)){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(sx-w/2+6,y-hh/2-5,w-12,3);ctx.fillStyle=c.hp/maxHP(c)>0.5?'#5e8c55':'#d9645a';ctx.fillRect(sx-w/2+6,y-hh/2-5,(w-12)*c.hp/maxHP(c),3);}
+  ctx.textAlign='left';}
+function drawImp(sx,sy,k){const Z=cam.z;const x=sx-Z*0.42,y=sy+Z*0.12;ctx.save();
+  if(k==='farm'){ctx.strokeStyle='rgba(110,150,70,.75)';ctx.lineWidth=Math.max(1,Z*0.03);for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x-Z*0.14,y-Z*0.08+i*Z*0.06);ctx.lineTo(x+Z*0.14,y-Z*0.12+i*Z*0.06);ctx.stroke();}ctx.fillStyle='#c46a4a';ctx.fillRect(x+Z*0.1,y-Z*0.2,Z*0.1,Z*0.08);}
+  else if(k==='mine'){ctx.fillStyle='#5a4f45';ctx.beginPath();ctx.arc(x,y,Z*0.11,Math.PI,0);ctx.fill();ctx.fillStyle='#2e2a26';ctx.beginPath();ctx.arc(x,y,Z*0.065,Math.PI,0);ctx.fill();ctx.fillStyle='#8a6a4a';ctx.fillRect(x-Z*0.13,y-Z*0.01,Z*0.26,Z*0.03);}
+  else if(k==='lumber'){ctx.fillStyle='#9a7350';for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x-Z*0.08+i*Z*0.08,y-(i===1?Z*0.06:0),Z*0.05,Z*0.035,0,0,7);ctx.fill();}ctx.fillStyle='#d9b88a';for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(x-Z*0.08+i*Z*0.08,y-(i===1?Z*0.06:0),Z*0.02,0,7);ctx.fill();}}
+  else if(k==='lab'){ctx.strokeStyle='#5a8fc0';ctx.lineWidth=Math.max(1.2,Z*0.025);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-Z*0.3);ctx.stroke();ctx.beginPath();ctx.arc(x,y-Z*0.3,Z*0.08,Math.PI*1.1,Math.PI*1.9);ctx.stroke();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-Z*0.3,Z*0.03,0,7);ctx.fill();}
+  ctx.restore();}
+function drawWonder(x,y,s,k,col){ctx.fillStyle='rgba(60,50,40,.2)';ctx.beginPath();ctx.ellipse(x,y,s*0.5,s*0.18,0,0,7);ctx.fill();ctx.fillStyle='#efe6d4';ctx.fillRect(x-s*0.18,y-s*1.5,s*0.36,s*1.5);ctx.fillStyle='#d8ccb4';ctx.fillRect(x+s*0.05,y-s*1.5,s*0.13,s*1.5);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x-s*0.26,y-s*1.5);ctx.lineTo(x,y-s*2.05);ctx.lineTo(x+s*0.26,y-s*1.5);ctx.closePath();ctx.fill();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-s*2.1,s*0.09,0,7);ctx.fill();const p=0.5+0.5*Math.sin(gt*2+x);ctx.fillStyle=`rgba(255,220,120,${0.15+p*0.2})`;ctx.beginPath();ctx.arc(x,y-s*2.1,s*0.3,0,7);ctx.fill();}
+function drawNest(sx,sy,n){const Z=cam.z;ctx.save();ctx.translate(sx,sy);
+  ctx.fillStyle='#6e6470';ctx.beginPath();ctx.ellipse(0,0,Z*0.6,Z*0.6*SQ,0,0,7);ctx.fill();
+  ctx.fillStyle='#5b4f57';ctx.beginPath();ctx.moveTo(-Z*0.45,0);ctx.quadraticCurveTo(-Z*0.3,-Z*0.75,0,-Z*0.8);ctx.quadraticCurveTo(Z*0.3,-Z*0.75,Z*0.45,0);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(40,30,40,.6)';ctx.lineWidth=1.4;ctx.beginPath();const R=mulberry(n.q*13+n.r*7);for(let i=0;i<5;i++){let x=(R()-0.5)*Z*0.5,y=-R()*Z*0.6;ctx.moveTo(x,y);for(let s=0;s<3;s++){x+=(R()-0.5)*Z*0.3;y+=(R()-0.5)*Z*0.3;ctx.lineTo(x,y);}}ctx.stroke();
+  const p=0.5+0.5*Math.sin(gt*2+n.q);ctx.fillStyle=`rgba(150,110,170,${0.2+p*0.15})`;ctx.beginPath();ctx.ellipse(0,-Z*0.4,Z*0.85,Z*0.5,0,0,7);ctx.fill();
+  ctx.fillStyle=`rgba(230,80,80,${0.5+p*0.5})`;ctx.fillRect(-Z*0.14,-Z*0.48,Z*0.07,Z*0.05);ctx.fillRect(Z*0.07,-Z*0.48,Z*0.07,Z*0.05);
+  ctx.font=`700 ${Math.max(10,Z*0.2)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';const w=Z*1.2;ctx.fillStyle='rgba(60,45,65,.85)';rr(-w/2,-Z*1.12,w,Math.max(15,Z*0.3),7);ctx.fill();ctx.fillStyle='#fff';ctx.fillText('尸巢',0,-Z*1.12+Math.max(15,Z*0.3)/2+0.5);
+  if(n.hp<80){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(-w/2,-Z*0.78,w,3);ctx.fillStyle='#d9645a';ctx.fillRect(-w/2,-Z*0.78,w*n.hp/80,3);}
+  ctx.restore();ctx.textAlign='left';}
+function drawUnit(u){const Z=cam.z;if(u.vq===undefined){u.vq=u.q;u.vr=u.r;}const[sx,sy0]=w2s(u.vq,u.vr);const city=cityAt(u.q,u.r);const sy=sy0+(city?Z*0.18:0);const U=UN[u.k];const col=civCol(u.owner);const s=Z/46;
+  const bob=Math.sin(gt*3+u.id)*1.2*s;const z=!!U.z;
+  ctx.fillStyle='rgba(50,40,30,.22)';ctx.beginPath();ctx.ellipse(sx,sy,13*s*(U.k==='brute'?1.4:1),5*s,0,0,7);ctx.fill();
+  const x=sx,y=sy-2*s;
+  if(u.k==='tank'){ctx.fillStyle=shadeHex(col,0.75);rr(x-14*s,y-10*s,28*s,10*s,3*s);ctx.fill();ctx.fillStyle=col;rr(x-8*s,y-17*s,16*s,8*s,3*s);ctx.fill();ctx.fillStyle='#555';ctx.fillRect(x+6*s,y-15*s,12*s,3*s);ctx.fillStyle='#4a4a4a';for(let i=-2;i<=2;i++){ctx.beginPath();ctx.arc(x+i*5*s,y-1*s,2.6*s,0,7);ctx.fill();}}
+  else if(u.k==='gun'){ctx.fillStyle='#6b5b45';ctx.beginPath();ctx.arc(x-6*s,y-3*s,4*s,0,7);ctx.arc(x+6*s,y-3*s,4*s,0,7);ctx.fill();ctx.save();ctx.translate(x,y-8*s);ctx.rotate(-0.45);ctx.fillStyle='#4a4a4a';ctx.fillRect(-4*s,-3*s,20*s,6*s);ctx.restore();ctx.fillStyle=col;rr(x-7*s,y-11*s,14*s,6*s,2*s);ctx.fill();}
+  else if(u.k==='raider'){ctx.fillStyle='#333';ctx.beginPath();ctx.arc(x-8*s,y-3*s,4*s,0,7);ctx.arc(x+8*s,y-3*s,4*s,0,7);ctx.fill();ctx.fillStyle='#777';ctx.fillRect(x-8*s,y-8*s,16*s,4*s);ctx.fillStyle=col;rr(x-4*s,y-18*s+bob,7*s,10*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x,y-21*s+bob,3.4*s,0,7);ctx.fill();}
+  else if(u.k==='settler'){ctx.fillStyle='#a07c52';rr(x+2*s,y-10*s,13*s,8*s,2*s);ctx.fill();ctx.fillStyle='#e8dcc6';ctx.beginPath();ctx.arc(x+8.5*s,y-11*s,6*s,Math.PI,0);ctx.fill();ctx.fillStyle='#5a4a3a';ctx.beginPath();ctx.arc(x+5*s,y-1.5*s,2.5*s,0,7);ctx.arc(x+12*s,y-1.5*s,2.5*s,0,7);ctx.fill();
+    ctx.fillStyle=col;rr(x-10*s,y-16*s+bob,8*s,13*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-6*s,y-19*s+bob,3.6*s,0,7);ctx.fill();}
+  else{const big=u.k==='brute'?1.5:1;const bw=8*s*big,bh=13*s*big;ctx.fillStyle=z?(u.k==='brute'?'#5c6a4a':'#7d8c62'):col;rr(x-bw/2,y-bh+bob,bw,bh,3*s);ctx.fill();
+    ctx.fillStyle=z?'#a8b48a':'#f1d3b8';ctx.beginPath();ctx.arc(x,y-bh-3.4*s*big+bob,3.8*s*big,0,7);ctx.fill();
+    if(z){ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=2.2*s*big;ctx.beginPath();ctx.moveTo(x-2*s,y-bh*0.75+bob);ctx.lineTo(x-9*s*big,y-bh*0.6+bob);ctx.moveTo(x+2*s,y-bh*0.75+bob);ctx.lineTo(x+9*s*big,y-bh*0.65+bob);ctx.stroke();ctx.fillStyle='#e04a4a';ctx.fillRect(x-2.2*s*big,y-bh-4.2*s*big+bob,1.4*s*big,1.2*s*big);ctx.fillRect(x+0.8*s*big,y-bh-4.2*s*big+bob,1.4*s*big,1.2*s*big);}
+    else if(u.k==='bow'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.arc(x+7*s,y-9*s+bob,6*s,-1.2,1.2);ctx.stroke();}
+    else if(u.k==='guard'){ctx.fillStyle='#8a929c';rr(x+3*s,y-12*s+bob,7*s,10*s,2*s);ctx.fill();}
+    else if(u.k==='worker'){ctx.strokeStyle='#7a5a3a';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.moveTo(x+4*s,y-2*s+bob);ctx.lineTo(x+9*s,y-16*s+bob);ctx.stroke();ctx.fillStyle='#8a8f96';ctx.fillRect(x+7*s,y-18*s+bob,6*s,3*s);if(u.work){ctx.fillStyle='#e3a93b';ctx.fillRect(x-12*s,y-4*s,6*s,4*s);}}
+    else if(u.k==='general'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x+6*s,y+bob);ctx.lineTo(x+6*s,y-26*s+bob);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x+6*s,y-26*s+bob);ctx.lineTo(x+18*s,y-22*s+bob);ctx.lineTo(x+6*s,y-18*s+bob);ctx.closePath();ctx.fill();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-17*s+bob,2.5*s,0,7);ctx.fill();}
+    else if(u.k==='scout'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.4*s;ctx.beginPath();ctx.moveTo(x+5*s,y+bob);ctx.lineTo(x+7*s,y-20*s+bob);ctx.stroke();}
+    else{ctx.strokeStyle='#5a5a5a';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(x+4*s,y-4*s+bob);ctx.lineTo(x+10*s,y-17*s+bob);ctx.stroke();}}
+  // 徽章
+  const by=sy-Z*0.82,br=Math.max(8,Z*0.17);const mine=u.owner===ME;const ready=mine&&u.mv>0&&!u.fort;
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(sx-Z*0.28,by,br,0,7);ctx.fill();if(ready){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+  ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(9,br*1.05)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(U.ch,sx-Z*0.28,by+0.5);
+  if(u.fort&&mine){ctx.fillStyle='#fffdf8';ctx.font=`700 ${Math.max(8,br*0.8)}px sans-serif`;ctx.fillText('盾',sx-Z*0.28+br*1.2,by-br*0.6);}
+  if(u.hp<100){const w=Z*0.5;ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(sx-Z*0.28-w/2,by+br+2,w,3);ctx.fillStyle=u.hp>50?'#5e8c55':'#d9645a';ctx.fillRect(sx-Z*0.28-w/2,by+br+2,w*u.hp/100,3);}
+  ctx.textAlign='left';}
+
+/* ---------- 主绘制 ---------- */
+let gt=0;
+function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#e4dfd4');g.addColorStop(1,'#cfc8ba');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  if(!G)return;const Z=cam.z;const draws=[];
+  for(const k in G.tiles){const t=G.tiles[k];const[sx,sy]=w2s(t.q,t.r);if(sx<-Z*1.6||sx>W+Z*1.6||sy<-Z*1.6||sy>H+Z*2)continue;
+    if(!t.ex){draws.push({y:sy,f:()=>{ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*1.03);ctx.fillStyle='#e6e1d6';ctx.fill();const R=mulberry(t.seed);ctx.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<2;i++){ctx.beginPath();ctx.ellipse((R()-0.5)*Z*0.6,(R()-0.5)*Z*0.4,Z*(0.3+R()*0.2),Z*0.16,0,0,7);ctx.fill();}ctx.restore();}});continue;}
+    const vis=VIS.has(k);
+    draws.push({y:sy,f:()=>{const s=sprite(t);ctx.drawImage(s,sx-s._w/2,sy-s._h*0.56,s._w,s._h);
+      if(t.bl!==undefined){ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.98);const p=0.5+0.5*Math.sin(gt*2+t.q);ctx.fillStyle=`rgba(110,90,120,${0.55+p*0.08})`;ctx.fill();cracks(t.seed,Z);ctx.restore();}
+      if(t.imp&&t.bl===undefined)drawImp(sx,sy,t.imp);
+      if(t.goody){ctx.fillStyle='#b78a4a';ctx.fillRect(sx-Z*0.14,sy-Z*0.18,Z*0.28,Z*0.2);ctx.fillStyle='#d9ad62';ctx.fillRect(sx-Z*0.14,sy-Z*0.24,Z*0.28,Z*0.07);ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(9,Z*0.16)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',sx,sy-Z*0.08);ctx.textAlign='left';}
+      if(!vis){ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*1.01);ctx.fillStyle='rgba(226,220,208,.55)';ctx.fill();ctx.restore();}}});
+    const c=cityAt(t.q,t.r);if(c)draws.push({y:sy+0.01,f:()=>drawCity(sx,sy,c)});
+    const n=t.nest!==undefined&&G.nests[t.nest]&&G.nests[t.nest].alive?G.nests[t.nest]:null;if(n)draws.push({y:sy+0.01,f:()=>drawNest(sx,sy,n)});}
+  for(const id in G.units){const u=G.units[id];if(u.owner!==ME&&!VIS.has(key(u.q,u.r)))continue;const[sx,sy]=w2s(u.vq===undefined?u.q:u.vq,u.vr===undefined?u.r:u.vr);draws.push({y:sy+0.02,f:()=>drawUnit(u)});}
+  draws.sort((a,b)=>a.y-b.y).forEach(d=>d.f());
+  // 国界
+  ctx.lineCap='round';for(const k in G.tiles){const t=G.tiles[k];if(t.own<0||!t.ex)continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;
+    for(let i=0;i<6;i++){const nb=T(t.q+DIRS[i][0],t.r+DIRS[i][1]);if(nb&&nb.own===t.own)continue;const a=vtx(i,Z*0.93),b=vtx(i+1,Z*0.93);ctx.strokeStyle=civCol(t.own);ctx.globalAlpha=0.85;ctx.lineWidth=Math.max(2,Z*0.07);ctx.beginPath();ctx.moveTo(sx+a[0],sy+a[1]);ctx.lineTo(sx+b[0],sy+b[1]);ctx.stroke();ctx.globalAlpha=1;}}
+  // 选中：可到达、攻击目标、路径
+  if(sel){const sq=sel.u?sel.u:sel.c;const[sx,sy]=w2s(sq.q,sq.r);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.9);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.setLineDash([Z*0.14,Z*0.08]);ctx.lineDashOffset=-gt*12;ctx.stroke();ctx.restore();ctx.setLineDash([]);}
+  if(reach){for(const[k,v]of reach){const[a,b]=k.split(',').map(Number);if(sel&&sel.u&&a===sel.u.q&&b===sel.u.r)continue;const[sx,sy]=w2s(a,b);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.86);ctx.fillStyle=v.mv>0?'rgba(255,255,255,.32)':'rgba(255,255,255,.2)';ctx.fill();ctx.restore();}}
+  for(const t of atkTargets()){const[sx,sy]=w2s(t.q,t.r);const p=0.5+0.5*Math.sin(gt*5);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*(0.86+p*0.05));ctx.strokeStyle=`rgba(217,80,70,${0.6+p*0.4})`;ctx.lineWidth=3;ctx.stroke();ctx.restore();}
+  if(pend){const[sx,sy]=w2s(pend.tg.o.q,pend.tg.o.r);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.95);ctx.fillStyle='rgba(217,80,70,.22)';ctx.fill();ctx.restore();}
+  if(sel&&sel.u&&sel.u.dest){const[dq,dr]=sel.u.dest;const[sx,sy]=w2s(dq,dr);ctx.strokeStyle='rgba(79,134,198,.9)';ctx.lineWidth=2;ctx.setLineDash([5,4]);const[ux,uy]=w2s(sel.u.q,sel.u.r);ctx.beginPath();ctx.moveTo(ux,uy);ctx.lineTo(sx,sy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(79,134,198,.9)';ctx.beginPath();ctx.arc(sx,sy,5,0,7);ctx.fill();}
+  // 飘字
+  for(const p of pops){const a=p.t/1.4;const[sx,sy]=w2s(p.q,p.r);ctx.globalAlpha=Math.max(0,1-a);ctx.font=`900 ${Math.max(13,Z*0.3)}px "Noto Sans SC",sans-serif`;ctx.fillStyle=p.col;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=3;ctx.textAlign='center';ctx.strokeText(p.txt,sx,sy-Z*0.9-a*Z*0.6);ctx.fillText(p.txt,sx,sy-Z*0.9-a*Z*0.6);}ctx.globalAlpha=1;ctx.textAlign='left';}
+function atkTargets(){const out=[];if(!sel||!G||G.over)return out;
+  if(sel.u&&sel.u.owner===ME&&sel.u.mv>0&&isMil(sel.u)){const U=UN[sel.u.k];const R=U.rng||1;for(const t of ring(sel.u.q,sel.u.r,R)){const tg=tgtAt(t.q,t.r);if(tg&&tg.owner!==ME&&VIS.has(key(t.q,t.r)))out.push(t);}
+    if(!U.rs&&reach){for(const[k]of reach){const[a,b]=k.split(',').map(Number);for(const n of nbrs(a,b)){const tg=tgtAt(n.q,n.r);if(tg&&tg.owner!==ME&&VIS.has(key(n.q,n.r))&&!out.includes(n))out.push(n);}}}}
+  if(sel.c&&sel.c.owner===ME&&!sel.c.shot){for(const t of ring(sel.c.q,sel.c.r,2)){const tg=tgtAt(t.q,t.r);if(tg&&tg.type==='unit'&&tg.owner!==ME&&atWar(ME,tg.owner)&&VIS.has(key(t.q,t.r)))out.push(t);}}
+  return out;}
+
+/* ---------- 剧情 ---------- */
+let STORY={};const storyQ=[];
+function storyKey(){return 'feitu-story-'+G.seed+'-'+ME;}
+function storySave(){if(NETON||!G)return;try{localStorage.setItem(storyKey(),JSON.stringify(STORY));}catch(e){}}
+function story(id,title,text,f,extra){if(STORY[id]||HEADLESS)return;STORY[id]=1;storySave();storyQ.push({title,text,f,extra});showStory();}
+function showStory(){if(!storyQ.length||!$('#ovStory').hidden)return;if(!$('#ovAsk').hidden||!$('#ovEnd').hidden||!$('#ovMenu').hidden||!$('#ovLobby').hidden)return;const s0=storyQ.shift();const f=s0.f;
+  $('#storyC').innerHTML=`${f?`<div class="big" style="color:${f.col}">${f.ch}</div><div class="py">${f.py} · ${f.ep}</div>`:''}<h3>${s0.title}</h3>${s0.text.split('\n').map(t=>`<p>${t}</p>`).join('')}${s0.extra||''}<div class="acts2"><button class="b main" id="stOk">继续</button></div>`;
+  $('#ovStory').hidden=false;$('#stOk').onclick=()=>{$('#ovStory').hidden=true;checkAsks();showStory();};}
+function showPrologue(){if(HEADLESS)return;try{STORY=JSON.parse(localStorage.getItem(storyKey())||'{}');}catch(e){STORY={};}if(STORY.pro){return;}const f=FAC[ME];
+  story('pro','第一天','大崩塌后的第十年。城市的地下长出了「巢」，一团团会呼吸的肉，尸潮就是从那里爬出来的。\n活下来的人分成了四股，各自从《字海》里挑了一个难念的字当旗号。谁能统一废土、让大地复苏、或者坐上方舟离开，谁就能决定这片土地以后叫什么名字。\n'+f.lore,f,`<p class="motto">「${f.motto}」</p><p style="font-size:12px;color:var(--sub)">先让拓荒者建立第一座据点（点「建据点」或按 B）。</p>`);}
+function storyCheck(){if(!G||HEADLESS||G.over)return;const me=ME;
+  for(const o of CIV()){if(o===me||!G.civs[o])continue;const f=FAC[o];
+    if(!STORY['c'+o]&&(Object.values(G.units).some(u=>u.owner===o&&VIS.has(key(u.q,u.r)))||Object.values(G.cities).some(c=>c.owner===o&&VIS.has(key(c.q,c.r)))))story('c'+o,`遇见「${f.ch}」`,f.lore,f,`<p class="motto">「${f.motto}」<br><small style="font-size:12px">——${f.leader}</small></p>`);
+    if(atWar(me,o)&&G.civs[o].alive)story('w'+o,`「${f.ch}」的战书`,f.war,f);
+    if(G.civs[o].techs.ark&&G.civs[o].alive)story('a'+o,`「${f.ch}」在造方舟`,`${f.leader}破解了方舟计划的蓝图。如果让他们造成，这片大地就只剩下我们和尸潮。\n去占领他们的主营，或者抢先造好自己的方舟。`,f);
+    if(!G.civs[o].alive)story('d'+o,`「${f.ch}」消失了`,`${f.leader}的旗被扯了下来。从今天起，废土上再也没有人念「${f.ch}」（${f.py}）这个字了。`,f);
+    const cp=Object.values(G.cities).find(c=>c.origCap&&c.orig===o);if(cp&&cp.owner===me)story('k'+o,`攻下「${f.ch}」的主营`,`「${cp.name}」的城门打开了。${f.leader}的人没有投降，他们只是一言不发地看着我们的旗升起来。`,f);}
+  if(!STORY.nest&&Object.values(G.nests).some(n=>n.alive&&VIS.has(key(n.q,n.r))))story('nest','巢','地面裂开的地方，长着一团会呼吸的肉。老人们叫它「巢」，尸潮就是从里面爬出来的，它周围的土地会慢慢变成灰紫色。\n军队可以打烂它。巢死了以后，原地会长出一片绿洲。',null);
+  if(Object.keys(G.wonders).length)story('won','地标','在一切都倒塌的世界里，有人重新盖起了远远就能望见的东西。\n每座地标全世界只有一座，谁先建成归谁；占领那座据点，地标也会换主人。',null);
+  const mc=Object.values(G.cities).find(c=>c.origCap&&c.orig===me);if(mc&&mc.owner!==me)story('lostcap','主营陷落',`「${mc.name}」丢了。${FAC[me].leader}带着剩下的人退到别的据点。只要还有一座据点在，「${FAC[me].ch}」就还在。`,FAC[me]);
+  if(G.turn>=30)story('d30','第三十天','尸潮变了。巢里开始爬出跑得更快的东西，夜里能听见它们在废墟里奔跑的声音。',null);
+  if(G.turn>=60)story('d60','第六十天','废土上开始流传一个说法：南边的发射场里还有一艘没造完的方舟。谁先造好它，谁就能离开。\n更大的东西也从巢里爬出来了。',null);
+  if(G.turn>=100)story('d100','第一百天','最后的五十天。各家的仓库都快见底了，没有人再相信和平能维持很久。',null);}
+
+/* ---------- 指令：单人直接执行，联机经房主排序后所有人同步执行 ---------- */
+let postSel=null;
+function doCmd(c){if(!G||G.over)return;c.o=ME;if(!NETON){applyCmd(c);afterCmd();return;}if(NET.host)hostCmd(c);else nsend('r',Object.assign({},c,{pid:NET.me}));}
+function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(!cv.alive&&c.t!=='ai')return;
+  const U=id=>{const u=G.units[id];return u&&u.owner===o?u:null;};const C=id=>{const x=G.cities[id];return x&&x.owner===o?x:null;};
+  switch(c.t){
+    case 'move':{const u=U(c.u);if(u&&u.mv>0)moveUnitTo(u,c.q,c.r);break;}
+    case 'atk':performAttack(c);break;
+    case 'found':{const u=U(c.u);if(u&&u.k==='settler'&&u.mv>0&&canFound(u.q,u.r,o))foundCity(u);break;}
+    case 'build':{const x=C(c.c);if(x&&buildOptions(x).some(b=>b.k===c.k)){if(!x.build||x.build.k!==c.k){if(x.build&&x.build.t!==c.bt)x.prod*=0.5;x.build={t:c.bt,k:c.k};}}break;}
+    case 'focus':{const x=C(c.c);if(x&&FOCUS[c.f])x.focus=c.f;break;}
+    case 'res':{if(TECH[c.k]&&!cv.techs[c.k]&&TECH[c.k].req.every(r=>cv.techs[r]))cv.res=c.k;break;}
+    case 'fort':{const u=U(c.u);if(u)u.fort=u.fort?0:1;break;}
+    case 'purge':{const u=U(c.u);if(u&&u.mv>0)purge(u);break;}
+    case 'work':{const u=U(c.u);if(u&&u.mv>0)startWork(u);break;}
+    case 'stop':{const u=U(c.u);if(u)u.dest=null;break;}
+    case 'del':{const u=U(c.u);if(u)removeUnit(u);break;}
+    case 'gp':{if(cv.gpPend>0&&GPT[c.k]){cv.gpPend--;grantGP(o,c.k);}break;}
+    case 'war':{const x=c.x;if(x!==o&&G.civs[x]&&G.civs[x].alive&&!atWar(o,x))declareWar(o,x);break;}
+    case 'peace':{const x=c.x;if(!G.civs[x]||!atWar(o,x))break;if(G.civs[x].ai){if(aiAcceptPeace(x,o))makePeace(o,x);else if(o===ME)feed(`${civName(x)}拒绝停战：${G.turn-G.relT[o][x]<6?'仗才刚开始':'他们觉得自己占上风'}。`,'bad');}
+      else{if(!G.asks.some(a=>a.t==='peace'&&a.o===o&&a.to===x))G.asks.push({t:'peace',o,to:x});if(o===ME)feed(`已向${civName(x)}提议停战，等对方回应。`);}break;}
+    case 'accept':{const a=G.asks.find(a=>a.t==='peace'&&a.o===c.x&&a.to===o);if(a){G.asks.splice(G.asks.indexOf(a),1);if(c.yes&&atWar(o,c.x))makePeace(o,c.x);else if(c.x===ME)feed(`${civName(o)}拒绝了停战。`,'bad');}break;}
+    case 'ready':cv.ready=!!c.on;break;
+    case 'ai':cv.ai=!!c.on;cv.dc=!!c.on;if(c.on)cv.ready=false;break;
+  }}
+function performAttack(c){const o=c.o;let a;if(c.at==='city'){const x=G.cities[c.id];if(!x||x.owner!==o||x.shot)return;a={type:'city',o:x};}else{const u=G.units[c.id];if(!u||u.owner!==o||u.mv<=0||!isMil(u))return;a={type:'unit',o:u};}
+  const tg=tgtAt(c.q,c.r);if(!tg||tg.owner===o)return;
+  if(a.type==='city'){if(tg.type!=='unit'||!atWar(o,tg.owner)||hexDist(a.o.q,a.o.r,c.q,c.r)>2)return;doAttack(a,tg);return;}
+  const U=UN[a.o.k];const d=hexDist(a.o.q,a.o.r,c.q,c.r);
+  if(U.rs){if(d>U.rng)return;}else if(d>1){const p=findPath(a.o,c.q,c.r,true);if(!p){if(o===ME)hint('走不过去');return;}walkPath(a.o,p);if(hexDist(a.o.q,a.o.r,c.q,c.r)>1||a.o.mv<=0){if(o===ME)hint('这天够不着了');return;}}
+  doAttack(a,tg);}
+function afterCmd(){if(!G)return;if(sel){if(sel.u)sel.u=G.units[sel.u.id]||null;if(sel.c)sel.c=G.cities[sel.c.id]||null;if(!sel.u&&!sel.c&&!sel.tile)sel=null;}
+  updVis();if(postSel){const f=postSel;postSel=null;try{f();}catch(e){}}else{if(sel)select(sel);else renderSel();}updHUD();checkAsks();if(typeof storyCheck==='function')storyCheck();}
+
+/* ---------- 界面 ---------- */
+function select(s){sel=s;pend=null;reach=null;if(s&&s.u&&!G.units[s.u.id]){sel=null;}if(sel&&sel.c&&!G.cities[sel.c.id])sel=null;
+  if(sel&&sel.u&&sel.u.owner===ME&&sel.u.mv>0)reach=reachable(sel.u);renderSel();}
+function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidden=false;
+  if(pend){const p=pend.p,tg=pend.tg;const tn=tg.type==='city'?`「${tg.o.name}」`:tg.type==='nest'?'尸巢':UN[tg.o.k].n;const an=pend.a.type==='city'?`「${pend.a.o.name}」`:UN[pend.a.o.k].n;
+    const war=tg.owner>=0&&!atWar(ME,tg.owner);
+    el.innerHTML=`<div class="hd"><i style="background:var(--bad)">战</i><div><b>进攻预览</b><br><small>${an} → ${tn}${tg.owner>=0?'（'+civName(tg.owner)+'）':''}</small></div></div>
+      <div class="odds"><div>对方损失<b style="color:var(--bad)">${p.toD}</b><small>剩 ${Math.max(0,Math.round(tg.o.hp-p.toD))}</small></div><div style="color:var(--sub)">vs</div><div>我方损失<b>${p.toA}</b><small>${pend.a.type==='city'?'据点射击不受反击':p.ranged?'远程不受反击':'剩 '+Math.max(0,Math.round(pend.a.o.hp-p.toA))}</small></div></div>
+      <p>战力 ${p.A.toFixed(1)} 对 ${p.D.toFixed(1)}。${p.kill?(tg.type==='city'?(p.ranged?'据点会被打到 0，需要近战单位进城才能占领。':'可以攻下这座据点！'):'可以消灭目标。'):''}${p.die?'<b style="color:var(--bad)">我方单位很可能会阵亡。</b>':''}${war?`<br><b style="color:var(--bad)">这会向${civName(tg.owner)}宣战。</b>`:''}</p>
+      <div class="acts"><button class="b ${war?'warn':'main'}" id="aGo">${war?'宣战并进攻':'进攻'}</button><button class="b" id="aNo">取消</button></div>`;
+    $('#aGo').onclick=confirmAttack;$('#aNo').onclick=()=>{pend=null;renderSel();};return;}
+  if(sel.u){const u=sel.u,U=UN[u.k];const mine=u.owner===ME;const t=T(u.q,u.r);
+    const acts=[];if(mine){if(u.k==='settler')acts.push(`<button class="b main" id="aFound" ${canFound(u.q,u.r,ME)&&u.mv>0?'':'disabled'}>建据点</button>`);
+      if(isMil(u)&&t.bl!==undefined&&t.nest===undefined)acts.push(`<button class="b" id="aPurge" ${u.mv>0?'':'disabled'}>净化此地</button>`);
+      if(u.k==='worker'){if(u.work)acts.push(`<button class="b" disabled>${u.work.k==='purge'?'净化中':'修建'+IMP[u.work.k].n+'中'} · 还要 ${u.work.left} 天</button>`);
+        else if(t.bl!==undefined&&t.nest===undefined)acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>净化（1 天）</button>`);
+        else{const k=impFor(t);if(k&&!t.imp&&t.own===ME&&!cityAt(t.q,t.r))acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>修${IMP[k].n}（3 天，${IMP[k].d}）</button>`);}}
+      if(isMil(u))acts.push(`<button class="b" id="aFort">${u.fort?'取消驻守':'驻守'}</button>`);
+      acts.push(`<button class="b" id="aSkip">跳过</button>`);if(u.dest)acts.push(`<button class="b" id="aStop">取消行军</button>`);acts.push(`<button class="b sm" id="aDel">解散</button>`);}
+    const wnote=u.k==='worker'&&mine&&!u.work?(t.own!==ME?'建设队只能在自己的领土里干活。':t.imp?`这里已经有${IMP[t.imp].n}了。`:!impFor(t)&&t.bl===undefined?'这种地形没有可修的设施。草地/平原修农场，丘陵修矿场，森林修伐木场，废墟修拾荒站。':''):'';
+    const fnote=wnote||(u.k==='settler'&&mine?(canFound(u.q,u.r,ME)?'这里可以建据点。据点之间至少隔 3 格，不能建在感染地和别人的领土上。':'这里不能建据点：离其他据点太近、在感染地上，或是别人的领土。'):'');
+    el.innerHTML=`<div class="hd"><i style="background:${civCol(u.owner)}">${U.ch}</i><div><b>${U.n}</b> <small>${civName(u.owner)}</small><br><small>${U.d||'丧尸'}</small></div></div>
+      <div class="row"><span>生命 <b>${Math.round(u.hp)}</b></span><span>${U.rs?'远程 <b>'+U.rs+'</b>（'+U.rng+' 格）· ':''}近战 <b>${U.str}</b></span><span>移动 <b>${mine?u.mv+'/'+U.mv:U.mv}</b></span><span>${TERR[t.t].n}${TERR[t.t].def?' 防御+'+TERR[t.t].def+'%':''}</span></div>
+      ${fnote?`<p>${fnote}</p>`:''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
+    const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f;};
+    on('aFound',()=>{const q=u.q,r=u.r;postSel=()=>{const c=cityAt(q,r);if(c&&c.owner===ME){select({c});toast(`「${c.name}」建立了`,'在据点面板里选择要生产什么');}else select(sel);};doCmd({t:'found',u:u.id});});
+    on('aPurge',()=>{postSel=()=>nextIdle();doCmd({t:'purge',u:u.id});});
+    on('aWork',()=>{SFX.build();postSel=()=>nextIdle();doCmd({t:'work',u:u.id});});
+    on('aFort',()=>{const id=u.id;postSel=()=>{const v=G.units[id];if(v&&v.fort)nextIdle();else select(sel);};doCmd({t:'fort',u:id});});
+    on('aSkip',()=>{u.skip=G.turn;nextIdle();updHUD();});
+    on('aStop',()=>{doCmd({t:'stop',u:u.id});});
+    on('aDel',()=>{showAsk('解散单位？',`${U.n}会永久消失。`,'解散','取消',()=>{doCmd({t:'del',u:u.id});});});
+    return;}
+  if(sel.c){const c=sel.c;const mine=c.owner===ME;const y=cityWork(c,new Set());const net=y.f-y.need;
+    const turns=net>0?Math.ceil((growNeed(c)-c.food)/net):null;
+    let html=`<div class="hd"><i style="background:${civCol(c.owner)}">${c.pop}</i><div><b>${c.cap?'★ ':''}${c.name}</b> <small>${civName(c.owner)}</small><br><small>防御 ${cityStr(c).toFixed(1)} · 生命 ${Math.round(c.hp)}/${maxHP(c)}</small></div></div>`;
+    if(mine){html+=`<div class="row"><span>口粮 <b>${net>=0?'+':''}${net.toFixed(0)}</b>${turns?`（${turns} 天后长居民）`:net<0?'（挨饿）':''}</span><span>物资 <b>${y.p.toFixed(1)}</b></span><span>蓝图 <b>${y.s.toFixed(1)}</b></span></div>`;
+      html+=`<div class="seg" id="focusSeg" style="margin:4px 0 2px">${Object.keys(FOCUS).map(k=>`<button data-f="${k}" class="${(c.focus||'bal')===k?'on':''}" style="padding:6px 2px;font-size:12px">${FOCUS[k].n}</button>`).join('')}</div><p style="margin:0 0 4px">据点方针：决定居民优先耕作哪种地块。</p>`;
+      const opts=buildOptions(c);const cur=c.build;
+      html+=`<div class="blist">${cur?'':'<p style="color:var(--bad);margin:0">还没选生产项目</p>'}<h5>单位</h5>`+opts.filter(b=>b.t==='u').map(b=>{const U=UN[b.k];const n=Math.max(1,Math.ceil((U.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="u:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${U.n}<span>${n} 天</span><small>${U.d}${U.str?' · 战力 '+(U.rs||U.str):''}</small></button>`;}).join('')
+        +(opts.some(b=>b.t==='b')?'<h5>建筑</h5>':'')+opts.filter(b=>b.t==='b').map(b=>{const B=BLD[b.k];const n=Math.max(1,Math.ceil((B.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="b:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${B.n}<span>${n} 天</span><small>${B.d}</small></button>`;}).join('')
+        +(opts.some(b=>b.t==='w')?'<h5>地标（全世界只有一座，先建成的得）</h5>':'')+opts.filter(b=>b.t==='w').map(b=>{const B=WON[b.k];const n=Math.max(1,Math.ceil((B.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));const rival=Object.values(G.cities).some(x=>x.owner!==ME&&x.build&&x.build.k===b.k);return`<button data-b="w:${b.k}" class="${cur&&cur.k===b.k?'on':''}">★ ${B.n}<span>${n} 天</span><small>${B.d}${rival?' · <b style="color:var(--bad)">有别的阵营也在建</b>':''}</small></button>`;}).join('')+'</div>';
+      const blds=Object.keys(c.blds).map(k=>BLD[k].n).concat(cityWons(c).map(k=>'★'+WON[k].n));if(blds.length)html+=`<p>已建：${blds.join('、')}</p>`;
+      if(!c.shot&&atkTargets().length)html+='<p style="color:var(--bad)">据点可以射击 2 格内的敌人：点红圈目标。</p>';}
+    else html+=`<p>${G.rel[ME][c.owner]==='war'?'<span class="tag war">交战中</span>':'<span class="tag peace">和平</span>'} 居民 ${c.pop}</p>`;
+    $('#sel').innerHTML=html;$('#sel').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{SFX.click();doCmd({t:'focus',c:c.id,f:b.dataset.f});});$('#sel').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const[t,k]=b.dataset.b.split(':');SFX.click();doCmd({t:'build',c:c.id,bt:t,k});});
+    return;}
+  if(sel.tile){const t=sel.tile;const y=tileYield(t);el.innerHTML=`<div class="hd"><i style="background:${TERR[t.t].c};color:#3a3a34">${TERR[t.t].n[0]}</i><div><b>${TERR[t.t].n}</b>${t.res?' · '+RES[t.res].n:''}${t.imp?' · '+IMP[t.imp].n:''}<br><small>${t.own>=0?civName(t.own)+'的领土':'无主之地'}</small></div></div>
+    <div class="row"><span>口粮 <b>${y.f}</b></span><span>物资 <b>${y.p}</b></span><span>蓝图 <b>${y.s}</b></span>${TERR[t.t].mv>50?'<span>无法通行</span>':`<span>移动消耗 <b>${TERR[t.t].mv}</b></span>`}</div>
+    ${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
+function confirmAttack(){if(!pend)return;const{a,tg}=pend;pend=null;const id=a.o.id,at=a.type;
+  postSel=()=>{if(G.over)return;if(at==='unit'&&G.units[id])select({u:G.units[id]});else if(at==='city'&&G.cities[id])select({c:G.cities[id]});else select(null);};
+  doCmd({t:'atk',at,id,q:tg.o.q,r:tg.o.r});}
+function tapTile(q,r){if(!G||G.over||busy)return;const t=T(q,r);if(!t){select(null);return;}const k=key(q,r);
+  if(pend){if(pend.tg.o.q===q&&pend.tg.o.r===r){confirmAttack();return;}pend=null;}
+  const tg=VIS.has(k)?tgtAt(q,r):null;
+  if(sel&&sel.u&&sel.u.owner===ME&&sel.u.mv>0){const u=sel.u;
+    if(tg&&tg.owner!==ME&&isMil(u)){const U=UN[u.k];const d=hexDist(u.q,u.r,q,r);let ok=false;if(U.rs)ok=d<=U.rng;else ok=d<=1||atkTargets().includes(t);
+      if(ok){pend={a:{type:'unit',o:u},tg,p:predict({type:'unit',o:u},tg)};renderSel();SFX.click();return;}}
+    if(!tg&&t.ex&&pass(t)){doCmd({t:'move',u:u.id,q,r});return;}}
+  if(sel&&sel.c&&sel.c.owner===ME&&!sel.c.shot&&tg&&tg.type==='unit'&&tg.owner!==ME&&atWar(ME,tg.owner)&&hexDist(sel.c.q,sel.c.r,q,r)<=2){pend={a:{type:'city',o:sel.c},tg,p:predict({type:'city',o:sel.c},tg)};renderSel();return;}
+  const u=unitAt(q,r),c=cityAt(q,r);
+  if(u&&(u.owner===ME||VIS.has(k))){if(c&&sel&&sel.u===u){select({c});return;}select({u});SFX.click();return;}
+  if(c&&t.ex){select({c});SFX.click();return;}
+  if(t.ex)select({tile:t});else select(null);}
+function idleUnits(){return civUnits(ME).filter(u=>u.mv>0&&!u.fort&&!u.dest&&!u.work&&u.skip!==G.turn);}
+function nextIdle(){const l=idleUnits();if(!l.length){select(null);updHUD();return false;}const cur=sel&&sel.u?l.indexOf(sel.u):-1;const u=l[(cur+1)%l.length];select({u});panTo(u.q,u.r);return true;}
+let panAnim=null;function panTo(q,r){const[x,y]=hx(q,r);panAnim={x,y:y+(H>W?1.2:0.3)};}
+function updHUD(){if(!G||!G.civs||!G.civs[ME])return;const cv=G.civs[ME];$('#turnN').textContent=`第 ${G.turn} / ${MAXT} 天`;
+  const res=cv.res;const lastSci=civCities(ME).reduce((s,c)=>s+cityWork(c,new Set()).s,0);
+  $('#sciName').textContent=res?TECH[res].n:'未选择';$('#sciBar').style.width=res?clamp(cv.sci/TECH[res].cost*100,0,100)+'%':'0';$('#sciSub').textContent=res?`${Math.floor(cv.sci)}/${TECH[res].cost} · ${Math.max(1,Math.ceil((TECH[res].cost-cv.sci)/Math.max(0.5,lastSci)))} 天`:'点这里选择要破解的蓝图';
+  $('#stC').textContent=civCities(ME).length;$('#stP').textContent=civCities(ME).reduce((s,c)=>s+c.pop,0);$('#stS').textContent='+'+lastSci.toFixed(1);$('#stM').textContent=power(ME);
+  const caps=Object.values(G.cities).filter(c=>c.origCap&&c.orig!==ME);$('#vC').textContent=`${caps.filter(c=>c.owner===ME).length}/2`;
+  $('#vN').textContent=`${G.nestK[ME]}/${G.pur||4} 座`;
+  const cap=civCities(ME).find(c=>c.cap);$('#vA').textContent=cv.techs.ark?(cap&&cap.build&&cap.build.k==='ark'?Math.floor(cap.prod/BLD.ark.cost*100)+'%':'可以建造'):`${Object.keys(cv.techs).length}/${Object.keys(TECH).length} 蓝图`;
+  {const cv0=G.civs[ME];$('#vG').textContent=`${Math.floor(cv0.gp||0)}/${gpNeed(ME)} · +${(cv0.gpRate||1).toFixed(1)}`;}
+  const idle=idleUnits().length;const noBuild=civCities(ME).filter(c=>!c.build);const b=$('#bEnd');
+  if(G.over){b.textContent='游戏结束';b.disabled=true;}else{b.disabled=false;if(noBuild.length)b.textContent='选择生产';else if(!cv.res&&Object.keys(TECH).some(k=>!cv.techs[k]))b.textContent='选择蓝图';else if(idle)b.textContent=`下一个单位（${idle}）`;else b.textContent=NETON?(cv.ready?'已准备 · 点我取消':'准备好了'):'结束这天';}
+  $('#bSkip').textContent=NETON?'直接准备好':'直接结束这天';
+  if(NETON){const hum=CIV().filter(o=>isHum(o)&&G.civs[o].alive);const rd=hum.filter(o=>G.civs[o].ready).length;const left=G.timer&&G.dayT?Math.max(0,Math.ceil(G.timer-(Date.now()-G.dayT)/1000)):null;$('#turnN').textContent=`第 ${G.turn} 天 · 准备 ${rd}/${hum.length}${left!==null?' · '+left+' 秒':''}`;}}
+function mainBtn(){if(!G||G.over||busy)return;const cv=G.civs[ME];const noBuild=civCities(ME).filter(c=>!c.build);
+  if(noBuild.length){select({c:noBuild[0]});panTo(noBuild[0].q,noBuild[0].r);return;}
+  if(!cv.res&&Object.keys(TECH).some(k=>!cv.techs[k])){openTech();return;}
+  if(idleUnits().length){nextIdle();return;}
+  if(NETON){doCmd({t:'ready',on:!cv.ready});return;}
+  endTurn();}
+let toastT=null;function toast(a,b){const el=$('#toast');el.innerHTML=a+(b?`<small>${b}</small>`:'');el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+function feed(t,cls){if(HEADLESS)return;const el=document.createElement('div');el.textContent=t;if(cls)el.className=cls;const f=$('#feed');f.prepend(el);while(f.children.length>5)f.lastChild.remove();}
+function hint(t){feed(t);}
+function closeAll(){['#ovMenu','#ovTech','#ovDip','#ovEnd','#ovAsk','#ovLobby','#ovStory'].forEach(s=>$(s).hidden=true);}
+function showAsk(title,txt,yes,no,f,after){$('#askC').innerHTML=`<h3>${title}</h3><p>${txt}</p><div class="acts2"><button class="b main" id="kY">${yes}</button><button class="b" id="kN">${no}</button></div>`;$('#ovAsk').hidden=false;$('#kY').onclick=()=>{$('#ovAsk').hidden=true;f();updHUD();renderSel();if(after)after();};$('#kN').onclick=()=>{$('#ovAsk').hidden=true;if(after)after();};}
+function openTech(){const cv=G.civs[ME];const tiers=[0,1,2,3].map(i=>Object.keys(TECH).filter(k=>TECH[k].t===i));const sciPT=civCities(ME).reduce((s,c)=>s+cityWork(c,new Set()).s,0);
+  $('#techC').innerHTML=`<h3>蓝图</h3><p style="margin-top:0">每天蓝图 +${sciPT.toFixed(1)}。点一张亮着的卡片开始破解，破解完会解锁新单位和建筑。</p><div class="tree">${tiers.map((ks,i)=>`<div class="tier"><h5>${['起步','发展','复兴','新时代'][i]}</h5>${ks.map(k=>{const t=TECH[k];const done=cv.techs[k],av=t.req.every(r=>cv.techs[r]);const cur=cv.res===k;const n=Math.max(1,Math.ceil((t.cost-(cur?cv.sci:0))/Math.max(0.5,sciPT)));
+    return`<button class="tech ${done?'done':cur?'cur':av?'':'lock'}" data-t="${k}" ${done||!av?'disabled':''}><b>${t.n}${done?' ✓':''}</b><span class="c">${done?'已完成':cur?`破解中 · ${n} 天`:`${t.cost} 蓝图 · 约 ${n} 天`}</span><small>${unlocksText(k)||'—'}</small>${t.req.length?`<small>需要：${t.req.map(r=>TECH[r].n).join('、')}</small>`:''}</button>`;}).join('')}</div>`).join('')}</div><div class="acts2"><button class="b" id="tClose">关闭</button></div>`;
+  $('#ovTech').hidden=false;$('#techC').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{SFX.click();$('#ovTech').hidden=true;doCmd({t:'res',k:b.dataset.t});});$('#tClose').onclick=()=>$('#ovTech').hidden=true;}
+function openDip(){const rows=CIV().filter(x=>x!==ME).map(o=>{const cv=G.civs[o];const war=atWar(ME,o);const t=G.turn-G.relT[ME][o];
+    return`<div class="civrow"><i style="background:${civCol(o)};width:30px;height:30px;color:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:18px">${FAC[o].ch}</i><div><b>${civName(o)}</b> <small style="color:var(--sub)">${FAC[o].py} · ${FAC[o].ep}${cv.ai?'':' · 真人'}${NETON&&isHum(o)&&cv.ready?' · 已准备':''}</small>${cv.alive?`<span class="tag ${war?'war':'peace'}">${war?'交战中':'和平'}</span>`:'<span class="tag">已灭亡</span>'}</div>
+    ${cv.alive?`<button class="b sm ${war?'':'warn'}" data-o="${o}">${war?'提议停战':'宣战'}</button>`:''}<small>据点 ${civCities(o).length} · 军力 ${power(o)}（我方 ${power(ME)}）· 蓝图 ${Object.keys(cv.techs).length} · 尸巢 ${G.nestK[o]}${war?` · 已打 ${t} 天`:''}</small></div>`;}).join('');
+  $('#dipC').innerHTML=`<h3>外交</h3><p style="margin-top:0">你执掌「${FAC[ME].ch}」${FAC[ME].py} · ${FAC[ME].ep}。${G.mp?'真人阵营之间宣战、停战需要对方同意。':''}</p>${rows}<div class="acts2"><button class="b" id="dClose">关闭</button></div>`;
+  $('#ovDip').hidden=false;$('#dClose').onclick=()=>$('#ovDip').hidden=true;
+  $('#dipC').querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{const o=+b.dataset.o;if(atWar(ME,o)){$('#ovDip').hidden=true;doCmd({t:'peace',x:o});}
+    else{$('#ovDip').hidden=true;showAsk(`向${civName(o)}宣战？`,'宣战后双方的单位和据点可以互相攻击。','宣战','算了',()=>{doCmd({t:'war',x:o});});}});}
+function showMenu(){const s=loadSave();$('#bCont').hidden=!s;$('#ovMenu').hidden=false;$('#diffSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.d===diff));}
+$('#diffSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;diff=+b.dataset.d;$('#diffSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
+let spN=3;$('#sizeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;spN=+b.dataset.n;$('#sizeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
+$('#bNew').onclick=()=>{closeAll();newGame(diff,0,{n:spN});showPrologue();};
+$('#bCont').onclick=()=>{const s=loadSave();if(!s)return;G=s;MW=G.mw||24;MH=G.mh||16;RNG=gRand;ME=0;try{STORY=JSON.parse(localStorage.getItem(storyKey())||'{}');}catch(e){STORY={};}G.wonders=G.wonders||{};G.asks=G.asks||[];G.civs.forEach(c=>{c.gp=c.gp||0;c.gpN=c.gpN||0;});diff=G.diff;closeAll();reidx();updVis();sel=null;const c=civCities(ME)[0]||civUnits(ME)[0];if(c)centerOn(c.q,c.r);updHUD();feed(`继续第 ${G.turn} 天。`);};
+
+$('#bMP').onclick=()=>openLobby();
+$('#lbCreate').onclick=()=>{NET.opt={n:3,diff:1,timer:0};lobbyEnter(roomCode(),true);};
+$('#lbJoin').onclick=()=>{const c=($('#lbCode').value||'').trim().toUpperCase();if(c.length<4){lbMsg('房号不对');return;}lobbyEnter(c,false);};
+$('#lbCopy').onclick=()=>{const u=location.origin+location.pathname+'?room='+NET.room+(FAKE?'&fakenet=1':'');try{navigator.clipboard.writeText(u);lbMsg('已复制：'+u);}catch(e){lbMsg(u);}};
+$('#lbBack').onclick=()=>{netLeave();$('#ovLobby').hidden=true;showMenu();};
+['lbN','lbD','lbT'].forEach(id=>$('#'+id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!NET.host)return;const v=+b.dataset.v;if(id==='lbN')NET.opt.n=v;if(id==='lbD')NET.opt.diff=v;if(id==='lbT')NET.opt.timer=v;nsend('opt',NET.opt);lobbyList();}));
+$('#lbGo').onclick=lobbyStart;
+setInterval(()=>{if(NET.on&&NET.host&&!NET.started)nsend('opt',NET.opt);},3000);
+$('#bMenu').onclick=showMenu;$('#bDip').onclick=()=>{if(G)openDip();};$('#sciP').onclick=()=>{if(G&&!G.over)openTech();};$('#vic').onclick=()=>{if(G)feed('统一废土：占领所有敌方的原主营。大地复苏：最先摧毁 4 座尸巢。方舟启航：破解方舟计划蓝图，在主营造好方舟。');};
+$('#bEnd').onclick=mainBtn;$('#bSkip').onclick=()=>{if(!G||G.over||busy)return;if(NETON)doCmd({t:'ready',on:1});else endTurn();};
+addEventListener('keydown',e=>{if(!G||!$('#ovMenu').hidden||!$('#ovTech').hidden)return;if(e.code==='Space'||e.code==='Enter'){e.preventDefault();mainBtn();}
+  else if(e.code==='Escape'){select(null);}else if(e.code==='KeyN')nextIdle();
+  else if(e.code==='KeyB'&&sel&&sel.u&&sel.u.k==='settler'){const b=$('#aFound');if(b&&!b.disabled)b.click();}
+  else if(e.code==='KeyF'){const b=$('#aFort');if(b)b.click();}else if(e.code==='KeyP'){const b=$('#aPurge');if(b&&!b.disabled)b.click();}});
+
+/* ---------- 联机：房主排序指令，所有人同步模拟，每天结束房主发快照校正 ---------- */
+const SB_URL='https://taraaujjrhjugfmnuwcw.supabase.co',SB_KEY='sb_publishable_zWqHjE7bT-Bfgg6yooXFYw_OKfKcSpy';
+const NET={on:false,host:false,me:null,name:'',room:'',tr:null,started:false,list:[],st:null,seen:{},hostSeen:0,opt:{n:3,diff:1,timer:0}};
+function netClient(){return NET.sb||(NET.sb=window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:30},timeout:7000},auth:{persistSession:true,autoRefreshToken:true}}));}
+function netAuth(){if(NET.authP)return NET.authP;const sb=netClient();NET.authP=(async()=>{const r=await sb.auth.getSession();let s=r.data&&r.data.session;if(!s){const a=await sb.auth.signInAnonymously();s=!a.error&&a.data&&a.data.session;}return s||null;})().catch(()=>null);NET.authP.then(s=>{if(!s)NET.authP=null;});return NET.authP;}
+function fakeTransport(room){const bc=new BroadcastChannel('civ-'+room);const hs={};let pres=null;const peers={};let me=null,beat=null;
+  const sync=()=>{const st={};const now=Date.now();for(const k in peers){if(now-peers[k].seen<4500)st[k]=[peers[k].o];}if(me)st[me.id]=[me];pres&&pres(st);};
+  bc.onmessage=m=>{const d=m.data;if(d.ev==='__pres'){peers[d.p.id]={o:d.p,seen:Date.now()};sync();return;}if(d.ev==='__leave'){delete peers[d.id];sync();return;}(hs[d.ev]||[]).forEach(f=>f(d.p));};
+  return{send(ev,p){bc.postMessage({ev,p});},on(ev,fn){(hs[ev]=hs[ev]||[]).push(fn);},presence(fn){pres=fn;},track(o){me=o;const b=()=>{bc.postMessage({ev:'__pres',p:o});sync();};b();clearInterval(beat);beat=setInterval(b,1500);},
+    subscribe(cb){setTimeout(()=>cb('SUBSCRIBED'),50);},close(){clearInterval(beat);try{bc.postMessage({ev:'__leave',id:me&&me.id});bc.close();}catch(e){}}};}
+const FAKE=/fakenet/.test(location.search);
+function netTransport(room){if(FAKE)return fakeTransport(room);
+  if(!window.supabase||!window.supabase.createClient)throw new Error('联机组件没加载。联机要在 5dayz 网站上打开，这个预览页不能联网。');
+  const sb=netClient();const hs=[];let pres=null,ch=null;
+  return{send(ev,p){if(ch)ch.send({type:'broadcast',event:ev,payload:p});},on(ev,fn){hs.push([ev,fn]);},presence(fn){pres=fn;},track(o){return ch&&ch.track(o);},
+    async subscribe(cb){let priv=false;try{const s=await netAuth();if(s&&s.access_token){priv=true;sb.realtime.setAuth(s.access_token);}}catch(e){priv=false;}
+      ch=sb.channel('scwr-civ-'+room,{config:{private:priv,broadcast:{self:false,ack:false},presence:{key:NET.me}}});
+      for(const [ev,fn] of hs)ch.on('broadcast',{event:ev},m=>{try{fn(m.payload);}catch(e){console.warn('net',ev,e);}});
+      if(pres)ch.on('presence',{event:'sync'},()=>{try{pres(ch.presenceState());}catch(e){}});ch.subscribe(st=>cb(st),7000);},
+    close(){try{ch&&ch.untrack();ch&&sb.removeChannel(ch);}catch(e){}}};}
+const ROOM_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function roomCode(){let s='';for(let i=0;i<5;i++)s+=ROOM_CH[Math.floor(Math.random()*ROOM_CH.length)];return s;}
+function nsend(ev,p){if(NET.tr)try{NET.tr.send(ev,p);}catch(e){}}
+function netIdFor(room){const k='civ-id-'+room;let id=null;try{id=sessionStorage.getItem(k);}catch(e){}if(!id){id=Math.random().toString(36).slice(2,9);try{sessionStorage.setItem(k,id);}catch(e){}}return id;}
+/* 大厅 */
+function lbMsg(t){$('#lbMsg').textContent=t||'';}
+function openLobby(code){closeAll();$('#ovLobby').hidden=false;$('#lbA').hidden=false;$('#lbB').hidden=true;let nm='';try{nm=localStorage.getItem('civ-name')||'';}catch(e){}
+  $('#lbName').value=nm||('幸存者'+Math.floor(10+Math.random()*90));if(code)$('#lbCode').value=code;
+  const off=!FAKE&&!window.supabase;lbMsg(off?'联机要在 5dayz 网站上打开（这个预览页不能联网）。':code?'输入名字后点「加入」':'');
+  if(!off&&!FAKE)try{netAuth();}catch(e){}}
+function lobbyEnter(code,host){const nm=($('#lbName').value||'').trim().slice(0,8)||'幸存者';try{localStorage.setItem('civ-name',nm);}catch(e){}
+  netLeave();Object.assign(NET,{on:true,host,me:netIdFor(code),name:nm,room:code,started:false,list:[],seen:{},st:null,T0:Date.now()});
+  try{NET.tr=netTransport(code);}catch(e){NET.on=false;lbMsg(e.message);return;}
+  const Tr=NET.tr;Tr.on('c',netOnCmd);Tr.on('r',netOnReq);Tr.on('s',netOnSnap);Tr.on('start',netOnStart);Tr.on('opt',o=>{if(!NET.host){NET.opt=o;lobbyList();}});Tr.on('sync',()=>{if(NET.host&&NET.started)netSnap();});Tr.presence(netOnPresence);
+  lbMsg('连接中……');
+  Tr.subscribe(st=>{if(st==='SUBSCRIBED'){Tr.track({id:NET.me,name:nm,host,t:NET.T0});$('#lbA').hidden=true;$('#lbB').hidden=false;$('#lbRoom').textContent=code;$('#lbHost').hidden=!host;$('#lbWait').hidden=host;lbMsg(host?'把房号或邀请链接发给朋友，2–4 人':'已连上，等房主开始');lobbyList();}
+    else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')lbMsg('连接失败，请检查网络后重试');});}
+function netLeave(){try{NET.tr&&NET.tr.close();}catch(e){}NET.tr=null;NET.on=false;NET.started=false;NETON=false;}
+function netOnPresence(st){const list=[];for(const k in st){const o=st[k]&&st[k][0];if(o&&o.id)list.push(o);}list.sort((a,b)=>(b.host?1:0)-(a.host?1:0)||a.t-b.t);
+  const now=Date.now();for(const o of list)NET.seen[o.id]=now;if(list.some(o=>o.host))NET.hostSeen=now;
+  const prevIds=NET.list.map(o=>o.id);NET.list=list;
+  if(NET.host&&NET.started&&NET.st){for(const o of list){if(!prevIds.includes(o.id)&&NET.st.humans.some(h=>h.id===o.id)){nsend('start',NET.st);setTimeout(netSnap,300);}}}
+  if(!NET.started)lobbyList();}
+function lobbyList(){const L=NET.list.slice(0,4);$('#lbList').innerHTML=L.map((o,i)=>`<div class="civrow" style="grid-template-columns:28px 1fr"><i style="width:26px;height:26px;border-radius:50%;background:${FAC[i].col};color:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900">${FAC[i].ch}</i><div><b>${o.name}</b>${o.host?'<span class="tag peace">房主</span>':''}<br><small>执掌「${FAC[i].ch}」${FAC[i].py} · ${FAC[i].ep}</small></div></div>`).join('')+(NET.list.length>4?'<p>房间已满，多出来的人只能等下一局。</p>':'');
+  const o=NET.opt;document.querySelectorAll('#lbN button').forEach(b=>b.classList.toggle('on',+b.dataset.v===o.n));document.querySelectorAll('#lbD button').forEach(b=>b.classList.toggle('on',+b.dataset.v===o.diff));document.querySelectorAll('#lbT button').forEach(b=>b.classList.toggle('on',+b.dataset.v===o.timer));
+  $('#lbOpt').textContent=`${o.n} 个阵营${o.n===4?'（大地图）':''} · ${['简单','普通','困难'][o.diff]} · ${o.timer?'每天限时 '+o.timer+' 秒':'每天不限时'} · 空位由电脑接管`;
+  $('#lbGo').disabled=!(NET.list.length>=2||FAKE);if(NET.list.length>o.n){o.n=4;}}
+function lobbyStart(){if(!NET.host)return;const L=NET.list.slice(0,4);const o=NET.opt;const n=Math.max(o.n,L.length);
+  const st={seed:Math.floor(Math.random()*1e9),diff:o.diff,n,timer:o.timer,humans:L.map((p,i)=>({id:p.id,name:p.name,civ:i}))};NET.st=st;nsend('start',st);netOnStart(st);}
+function netOnStart(st){if(NET.started&&G&&G.seed===st.seed)return;const me=st.humans.find(h=>h.id===NET.me);if(!me){lbMsg('这一局已经开始了，你不在名单里。');return;}
+  NET.started=true;NET.st=st;NETON=true;closeAll();HEADLESS=false;newGame(st.diff,st.seed,{n:st.n,humans:st.humans,me:me.civ,mp:true,timer:st.timer});
+  if(NET.host){G.dayT=Date.now();setTimeout(netSnap,200);}else nsend('sync',{});
+  showPrologue();}
+function hostCmd(c){c.seq=G.seq+1;nsend('c',c);applySeq(c);}
+function applySeq(c){G.seq=c.seq;if(c.t==='end'){endTurn();if(NET.host){G.dayT=Date.now();netSnap();}}else applyCmd(c);afterCmd();if(NET.host)hostCheckEnd();}
+function netOnCmd(c){if(!G||!NETON)return;if(c.seq<=G.seq)return;if(c.seq!==G.seq+1){nsend('sync',{});return;}applySeq(c);}
+function netOnReq(c){if(!NET.host||!G)return;const o=G.civs.findIndex(cv=>cv.pid===c.pid);if(o<0)return;delete c.pid;c.o=o;if(c.t==='end'||c.t==='ai')return;hostCmd(c);}
+function hostCheckEnd(){if(!NETON||!NET.host||!G||G.over||busy)return;const hum=CIV().filter(o=>isHum(o)&&G.civs[o].alive);const timeUp=G.timer>0&&G.dayT&&Date.now()-G.dayT>G.timer*1000;
+  if(!hum.length||hum.every(o=>G.civs[o].ready)||timeUp)hostCmd({t:'end',o:ME});}
+function netSnap(){if(!NET.host||!G)return;const keys=Object.keys(G.tiles);const tl=keys.map(k=>{const t=G.tiles[k];return [t.t,t.own,t.bl===undefined?'':t.bl,t.imp||'',t.goody?1:'',t.nest===undefined?'':t.nest,t.res||''].join(',');}).join(';');
+  const g=Object.assign({},G,{tiles:null});nsend('s',{g:JSON.stringify(g,(k,v)=>k==='vq'||k==='vr'?undefined:v),tl});}
+function netOnSnap(sn){if(!G||!NETON||NET.host)return;const g=JSON.parse(sn.g);if(g.seq<G.seq)return;const tiles=G.tiles;const keys=Object.keys(tiles);const parts=sn.tl.split(';');
+  keys.forEach((k,i)=>{const t=tiles[k];const f=(parts[i]||'').split(',');t.t=f[0]||t.t;t.own=+f[1];if(f[2]==='')delete t.bl;else t.bl=+f[2];if(f[3])t.imp=f[3];else delete t.imp;if(f[4])t.goody=1;else delete t.goody;if(f[5]==='')delete t.nest;else t.nest=+f[5];if(f[6])t.res=f[6];else delete t.res;});
+  const vpos={};for(const id in G.units){const u=G.units[id];vpos[id]=[u.vq,u.vr];}
+  g.tiles=tiles;const wasOver=G.over;G=g;for(const id in G.units){const v=vpos[id];if(v){G.units[id].vq=v[0];G.units[id].vr=v[1];}}
+  MW=G.mw;MH=G.mh;RNG=gRand;reidx();spriteCache.clear();afterCmd();
+  if(G.over&&!wasOver){const o=G.over;G.over=null;endGame(o.w,o.how);}}
+setInterval(()=>{if(!NETON||!G)return;const now=Date.now();
+  if(NET.host&&NET.st&&!G.over){for(const h of NET.st.humans){if(h.id===NET.me)continue;const cv=G.civs[h.civ];if(!cv||!cv.alive)continue;const gone=now-(NET.seen[h.id]||0)>20000;
+      if(gone&&!cv.ai){hostCmd({t:'ai',o:h.civ,on:1});feed(`${h.name}掉线了，暂时由电脑接管「${FAC[h.civ].ch}」。`,'bad');}
+      else if(!gone&&cv.dc){hostCmd({t:'ai',o:h.civ,on:0});feed(`${h.name}回来了。`,'good');}}
+    hostCheckEnd();}
+  if(!NET.host&&NET.hostSeen&&now-NET.hostSeen>15000&&!NET.warned){NET.warned=1;feed('房主好像掉线了，游戏暂停中……','bad');}else if(now-NET.hostSeen<15000)NET.warned=0;
+  updHUD();},1000);
+
+/* ---------- 声音 ---------- */
+const AU={ctx:null,on:true,next:0};const PENTA=[261.63,293.66,329.63,392,440,523.25,587.33,659.25,783.99,880];
+function auInit(){if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume().catch(()=>{});return;}
+  try{const C=new (window.AudioContext||window.webkitAudioContext)();AU.ctx=C;AU.m=C.createGain();AU.m.gain.value=AU.on?0.8:0;AU.m.connect(C.destination);
+    const len=C.sampleRate*2.4,ir=C.createBuffer(2,len,C.sampleRate);for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);}
+    AU.rev=C.createConvolver();AU.rev.buffer=ir;const rg=C.createGain();rg.gain.value=0.5;AU.rev.connect(rg);rg.connect(AU.m);AU.dry=C.createGain();AU.dry.gain.value=0.7;AU.dry.connect(AU.m);
+    AU.pad=C.createGain();AU.pad.gain.value=0.03;const pf=C.createBiquadFilter();pf.type='lowpass';pf.frequency.value=650;AU.pad.connect(pf);pf.connect(AU.rev);pf.connect(AU.dry);
+    [130.81,196,261.63].forEach((f,i)=>{const o=C.createOscillator();o.type='triangle';o.frequency.value=f;o.detune.value=(i-1)*5;o.connect(AU.pad);o.start();});
+    const nb=C.createBuffer(1,C.sampleRate*2,C.sampleRate);const nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;AU.noise=nb;AU.next=C.currentTime+0.5;}catch(e){AU.ctx=null;}}
+document.addEventListener('pointerdown',auInit);document.addEventListener('keydown',auInit);
+document.addEventListener('visibilitychange',()=>{if(!AU.ctx)return;if(document.hidden)AU.ctx.suspend().catch(()=>{});else AU.ctx.resume().catch(()=>{});});
+const ok=()=>AU.ctx&&AU.on&&!HEADLESS;
+function note(f,t,dur,vol,type){const C=AU.ctx;const o=C.createOscillator();o.type=type||'sine';o.frequency.value=f;const g=C.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(AU.rev);g.connect(AU.dry);o.start(t);o.stop(t+dur+0.05);}
+function thock(t,f,v){const C=AU.ctx;const s=C.createBufferSource();s.buffer=AU.noise;const lp=C.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;const g=C.createGain();g.gain.setValueAtTime(v||0.22,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);s.connect(lp);lp.connect(g);g.connect(AU.dry);s.start(t,Math.random());s.stop(t+0.15);
+  const o=C.createOscillator();o.frequency.setValueAtTime(f||190,t);o.frequency.exponentialRampToValueAtTime(80,t+0.15);const og=C.createGain();og.gain.setValueAtTime(0.25,t);og.gain.exponentialRampToValueAtTime(0.0001,t+0.18);o.connect(og);og.connect(AU.dry);o.start(t);o.stop(t+0.2);}
+const SFX={
+  click(){if(!ok())return;thock(AU.ctx.currentTime,420,0.12);},
+  step(){if(!ok())return;const t=AU.ctx.currentTime;thock(t,200);thock(t+0.12,180,0.15);},
+  hit(r){if(!ok())return;const C=AU.ctx,t=C.currentTime;const s=C.createBufferSource();s.buffer=AU.noise;const f=C.createBiquadFilter();f.type='bandpass';f.frequency.value=r?2200:900;f.Q.value=1;const g=C.createGain();g.gain.setValueAtTime(0.35,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);s.connect(f);f.connect(g);g.connect(AU.dry);s.start(t,Math.random());s.stop(t+0.3);thock(t,120,0.3);shake=6;},
+  found(){if(!ok())return;const t=AU.ctx.currentTime;[0,2,4,7].forEach((k,i)=>note(PENTA[k],t+i*0.12,1.8,0.07));},
+  build(){if(!ok())return;const t=AU.ctx.currentTime;thock(t);note(PENTA[4],t+0.1,1.2,0.06);note(PENTA[7],t+0.22,1.4,0.06);},
+  tech(){if(!ok())return;const t=AU.ctx.currentTime;[[261.63,329.63,392],[349.23,440,523.25]].forEach((ch,j)=>ch.forEach(f=>note(f,t+j*0.35,2.2,0.05,'triangle')));},
+  goody(){if(!ok())return;const t=AU.ctx.currentTime;[5,7,9].forEach((k,i)=>note(PENTA[k],t+i*0.08,1,0.06));},
+  purge(){if(!ok())return;const t=AU.ctx.currentTime;note(392,t,1.6,0.06,'triangle');note(587.33,t+0.15,1.6,0.05,'triangle');},
+  purify(){if(!ok())return;const t=AU.ctx.currentTime+0.2;[1,2.76,5.4].forEach((m,i)=>note(196*m,t,3.5-i*0.8,0.09/(i+1)));[392,493.88,587.33,783.99].forEach((f,i)=>note(f,t+0.5+i*0.15,2.5,0.06,'triangle'));},
+  war(){if(!ok())return;const C=AU.ctx,t=C.currentTime;const o=C.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(110,t);o.frequency.linearRampToValueAtTime(98,t+1.2);const f=C.createBiquadFilter();f.type='lowpass';f.frequency.value=500;const g=C.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.16,t+0.2);g.gain.exponentialRampToValueAtTime(0.0001,t+1.5);o.connect(f);f.connect(g);g.connect(AU.dry);o.start(t);o.stop(t+1.6);thock(t,90,0.4);},
+  peace(){if(!ok())return;const t=AU.ctx.currentTime;[0,4,7,9].forEach((k,i)=>note(PENTA[k],t+i*0.2,2,0.05,'triangle'));},
+  capture(){if(!ok())return;const t=AU.ctx.currentTime;[0,4,7,9].forEach((k,i)=>note(PENTA[k],t+i*0.1,1.6,0.08));thock(t,120,0.3);},
+  wonder(){if(!ok())return;const t=AU.ctx.currentTime;[[261.63,329.63,392,523.25],[293.66,369.99,440,587.33],[329.63,392,493.88,659.25]].forEach((ch,j)=>ch.forEach(f=>note(f,t+j*0.4,2.6,0.045,'triangle')));},
+  turn(){if(!ok())return;const t=AU.ctx.currentTime;note(PENTA[2],t,1.4,0.04,'triangle');note(PENTA[4],t+0.1,1.4,0.04,'triangle');},
+  win(){if(!ok())return;const t=AU.ctx.currentTime;[0,2,4,7,9,7,4,9].forEach((k,i)=>note(PENTA[k],t+i*0.2,2.2,0.07));},
+  lose(){if(!ok())return;const t=AU.ctx.currentTime;[440,415.3,392,329.63].forEach((f,i)=>note(f,t+i*0.45,2,0.07,'triangle'));},
+};
+function musicTick(){if(!ok())return;const C=AU.ctx,t=C.currentTime;const war=G&&G.civs&&CIV().some(o=>o!==ME&&atWar(ME,o));
+  while(AU.next<t+0.2){const tt=Math.max(AU.next,t);if(Math.random()<0.7){const sc=war?[0,1,2,4,5,7]:[0,1,2,3,4,5,6];const k=sc[Math.floor(Math.random()*sc.length)];note(PENTA[k]*(war?0.5:(Math.random()<0.25?0.5:1)),tt,2.6,0.032+Math.random()*0.02,war?'triangle':'sine');}AU.next+=war?0.6+Math.random()*0.8:0.9+Math.random()*1.6;}}
+$('#bSnd').onclick=()=>{AU.on=!AU.on;$('#bSnd').textContent=AU.on?'🔊':'🔇';if(AU.ctx)AU.m.gain.setTargetAtTime(AU.on?0.8:0,AU.ctx.currentTime,0.1);};
+
+/* ---------- 操作 ---------- */
+let HEADLESS=false,BOT='';
+function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';}
+addEventListener('resize',resize);
+const ptrs=new Map();let drag=null,moved=false,pinch=null;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptrs.size===1){drag={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y};moved=false;}else if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:cam.z};moved=true;}});
+cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1&&drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>7)moved=true;if(moved){panAnim=null;cam.x=drag.cx-dx/cam.z;cam.y=drag.cy-dy/(cam.z*SQ);clampCam();}}
+  else if(ptrs.size===2&&pinch){const[a,b]=[...ptrs.values()];zoomTo(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d);}});
+function up(e){if(!ptrs.has(e.pointerId))return;const was=ptrs.size;ptrs.delete(e.pointerId);if(was===1&&!moved){const h=s2hex(e.clientX,e.clientY);tapTile(h.q,h.r);}if(!ptrs.size){drag=null;pinch=null;}}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('contextmenu',e=>{e.preventDefault();select(null);});
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomTo(cam.z*(e.deltaY<0?1.1:0.9));},{passive:false});
+function zoomTo(z){const nz=clamp(z,20,90);if(Math.round(nz)!==Math.round(cam.z))spriteCache.clear();cam.z=nz;}
+
+/* ---------- 主循环 ---------- */
+let last=performance.now();
+function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;gt+=dt;shake=Math.max(0,shake-dt*20);
+  for(const p of pops)p.t+=dt;for(let i=pops.length-1;i>=0;i--)if(pops[i].t>1.4)pops.splice(i,1);
+  if(G)for(const id in G.units){const u=G.units[id];if(u.vq===undefined){u.vq=u.q;u.vr=u.r;}const k=Math.min(1,dt*7);u.vq+=(u.q-u.vq)*k;u.vr+=(u.r-u.vr)*k;if(Math.abs(u.q-u.vq)+Math.abs(u.r-u.vr)>8){u.vq=u.q;u.vr=u.r;}}
+  if(panAnim){const k=Math.min(1,dt*6);cam.x+=(panAnim.x-cam.x)*k;cam.y+=(panAnim.y-cam.y)*k;if(Math.abs(panAnim.x-cam.x)+Math.abs(panAnim.y-cam.y)<0.01)panAnim=null;}
+  render();try{musicTick();}catch(e){}requestAnimationFrame(loop);}
+resize();requestAnimationFrame(loop);
+// 封面：先生成一张地图当背景
+(function(){const m=genMap(2026);RNG=Math.random;G={seed:2026,diff:1,turn:1,tiles:m.tiles,nests:m.nests,units:{},cities:{},civs:[{techs:{}},{techs:{}},{techs:{}}],rel:[['peace','peace','peace'],['peace','peace','peace'],['peace','peace','peace']],relT:[[0,0,0],[0,0,0],[0,0,0]],nestK:[0,0,0],kills:[0,0,0],wonders:{},asks:[]};for(const t of Object.values(G.tiles))t.ex=1;VIS=new Set(Object.keys(G.tiles));centerOn(11,2);cam.z=40;})();
+showMenu();var _b=document.getElementById("boot");if(_b)_b.remove();
+{const rm=new URLSearchParams(location.search).get('room');if(rm)openLobby(rm.toUpperCase());}
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</body>
+</html>
