@@ -7,12 +7,11 @@
 <meta name="description" content="尸城五日 · 后方指挥：单人撤离之路战役，或 2–4 人联机联防据点。">
 <link rel="icon" href="../icon-192.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}</style>
 <title>尸城五日 后方指挥</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&family=JetBrains+Mono:wght@600&display=swap">
 <style>
 /* 布局：全屏等距基地地图（画布）+ 顶部指标胶囊 + 底部指挥按钮，参考 NPI 厂区看板风格；单一浅色视觉，夜间由画布自身变暗 */
 :root{
@@ -176,6 +175,8 @@ body.mp #speed{display:none;}
 </style>
 </head>
 <body>
+<div id="boot" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font:15px/1.7 system-ui,sans-serif;color:#1d2330;background:#e8eaee;z-index:99">后方指挥加载中……</div>
+<script>window.addEventListener("error",function(e){var b=document.getElementById("boot");if(b){b.style.display="flex";b.textContent="出错了，请把这个画面截图发给我："+(e.message||e)+" @"+(e.lineno||"");}});</script>
 <canvas id="cv"></canvas>
 
 <div id="top" class="ui">
@@ -1910,8 +1911,9 @@ function loop(now){const rdt=Math.min(0.05,(now-last)/1000);last=now;
   else{if(!idleS){S=newState();seedPeople();idleS=S;}S=idleS;count();layout();render();S=null;}
   requestAnimationFrame(loop);}
 document.addEventListener('click',e=>{if(e.target.closest('button'))SFX.click();});
-loadMap(0);resize();requestAnimationFrame(loop);showStart();
+loadMap(0);resize();requestAnimationFrame(loop);showStart();var _b=document.getElementById("boot");if(_b)_b.remove();
 
 </script>
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 </body>
 </html>
