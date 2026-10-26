@@ -246,6 +246,18 @@ const UN={
   b3:{n:'悬浮摩托',ch:'浮',fac:3,sl:3,str:12,mv:4,cost:45,tech:'moto',look:'raider',d:'移动 4，突袭'},
   b4:{n:'雷霆坦克',ch:'雷',fac:3,sl:4,str:26,mv:3,cost:85,tech:'armor',look:'tank',d:'最强的近战'},
   b5:{n:'特斯拉塔车',ch:'塔',fac:3,sl:5,str:8,rs:22,rng:3,mv:2,cost:80,tech:'cannon',siege:1.5,look:'gun',d:'远程 3 格，攻打据点 +50%'},
+  m6:{n:'净水医护兵',ch:'医',fac:0,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  m7:{n:'鱼叉猎尸手',ch:'叉',fac:0,sl:7,str:5,rs:9,rng:2,mv:2,cost:35,tech:'scav',hz:1,look:'hunter',d:'远程 2 格；打丧尸和尸巢 +50%，打人 -25%'},
+  m8:{n:'潮母号',ch:'母',fac:0,sl:8,ace:1,str:20,rs:20,rng:2,mv:3,cost:140,tech:'armor',boat:1,look:'ship',d:'王牌（全场只能有 1 个）：两栖巨舰，远程 2 格，能横渡湖泊'},
+  y6:{n:'战地火医',ch:'医',fac:1,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'烧灼止血：每天给相邻友军回 15 血；自己很弱'},
+  y7:{n:'焚尸手',ch:'焚',fac:1,sl:7,str:11,mv:2,cost:35,tech:'scav',hz:1,look:'flame',d:'打丧尸和尸巢 +50%，打人 -25%'},
+  y8:{n:'炎魔',ch:'魔',fac:1,sl:8,ace:1,str:26,mv:2,cost:140,tech:'armor',splash:12,look:'demon',d:'王牌（全场只能有 1 个）：进攻时火焰溅射，目标旁边的敌人各 -12 血'},
+  e6:{n:'草药婆',ch:'药',fac:2,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  e7:{n:'镰刀收割队',ch:'镰',fac:2,sl:7,str:10,mv:3,cost:35,tech:'scav',hz:1,look:'hunter',d:'移动 3；打丧尸和尸巢 +50%，打人 -25%'},
+  e8:{n:'山岳傀儡',ch:'岳',fac:2,sl:8,ace:1,str:28,mv:2,cost:140,tech:'armor',fortB:0.5,aura:0.2,look:'golem',d:'王牌（全场只能有 1 个）：驻守 +50%，相邻友军防御 +20%'},
+  b6:{n:'纳米维修兵',ch:'修',fac:3,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  b7:{n:'电击猎尸手',ch:'击',fac:3,sl:7,str:11,mv:2,cost:35,tech:'scav',hz:1,look:'hunter',d:'打丧尸和尸巢 +50%，打人 -25%'},
+  b8:{n:'雷神机甲',ch:'神',fac:3,sl:8,ace:1,str:14,rs:24,rng:3,mv:2,cost:140,tech:'armor',shootMove:1,look:'mech',d:'王牌（全场只能有 1 个）：远程 3 格，开火后还能接着走'},
   walker:{n:'行尸',ch:'尸',str:7,mv:1,z:1},
   runner:{n:'奔尸',ch:'奔',str:6,mv:2,z:1},
   brute:{n:'巨尸',ch:'巨',str:18,mv:1,z:1},
@@ -281,10 +293,10 @@ const TECH={
   armor:{n:'装甲',cost:150,req:['moto','fort'],t:3},ark:{n:'方舟计划',cost:330,req:['power','serum','armor','cannon'],t:3},
 };
 const FAC=[
-  {ch:'淼',trait:'领地里的单位回血翻倍；汽艇能渡湖，净水炮专克尸巢',py:'miǎo',ep:'净水营',col:'#4f86c6',leader:'掌水人',motto:'水在哪里，人就在哪里。',lore:'三水成淼。大崩塌之后，他们守住了城北最后一座净水厂。每一滴干净的水都要用命去换，所以淼的人从不浪费，也从不原谅。',war:'「水只给自己人。」掌水人关上了闸门，淼的枪口转向了我们。',cities:['澜口','汐泉','沧井','渟渊','溟滩','潆洲','浔岸','沚湾','涟镇','澈池']},
-  {ch:'燚',trait:'占领据点掠夺翻倍；火把手进攻 +25%，喷火兵不吃反击',py:'yì',ep:'焰族',col:'#c9654f',leader:'火主',motto:'灰烬是最干净的土地。',lore:'四火成燚。他们从焚城的火海里走出来，相信只有火能烧尽尸潮，也能烧尽挡路的人。燚的据点终年冒着黑烟。',war:'「烧。」火主的信是用炭写的，只有一个字。燚的车队已经出发了。',cities:['烬城','炽原','焱谷','燹关','灼岭','炎墟','煅坊','烽台','焚野','熇堡']},
+  {ch:'淼',trait:'每个据点口粮 +1，领地里的单位回血翻倍；汽艇能渡湖，净水炮专克尸巢',py:'miǎo',ep:'净水营',col:'#4f86c6',leader:'掌水人',motto:'水在哪里，人就在哪里。',lore:'三水成淼。大崩塌之后，他们守住了城北最后一座净水厂。每一滴干净的水都要用命去换，所以淼的人从不浪费，也从不原谅。',war:'「水只给自己人。」掌水人关上了闸门，淼的枪口转向了我们。',cities:['澜口','汐泉','沧井','渟渊','溟滩','潆洲','浔岸','沚湾','涟镇','澈池']},
+  {ch:'燚',trait:'每个据点物资 +2（熔炉），造兵物资再 +15%，占领据点掠夺翻倍；火把手进攻 +25%，喷火兵不吃反击',py:'yì',ep:'焰族',col:'#c9654f',leader:'火主',motto:'灰烬是最干净的土地。',lore:'四火成燚。他们从焚城的火海里走出来，相信只有火能烧尽尸潮，也能烧尽挡路的人。燚的据点终年冒着黑烟。',war:'「烧。」火主的信是用炭写的，只有一个字。燚的车队已经出发了。',cities:['烬城','炽原','焱谷','燹关','灼岭','炎墟','煅坊','烽台','焚野','熇堡']},
   {ch:'垚',trait:'设施 2 天就修好；锄头民兵能种地，犁地巨兽走过就净化',py:'yáo',ep:'守土之民',col:'#b8902a',leader:'地母',motto:'土不会背叛人。',lore:'三土成垚。一群死也不肯离开田地的农人。他们在尸巢旁边种麦子，用犁和铁锹把感染一寸一寸翻回来。',war:'「你们踩坏了我们的麦子。」地母很少说话，但垚的锄头也能杀人。',cities:['墒田','垄上','埂村','堰塘','坳里','垣乡','圩场','埕坡','壤丘','塬上']},
-  {ch:'靐',trait:'蓝图 +15%，方舟便宜 20%；无人机无视地形',py:'bìng',ep:'雷庭',col:'#5b6fd6',leader:'司雷',motto:'雷声响起的地方，就是新世界的方向。',lore:'三雷成靐。他们修好了旧电厂和半座发射场，认定这片大地已经没救了，唯一的出路是造一艘方舟离开。',war:'「方舟的位置不够。」司雷说得很平静，雷庭的炮口亮起了蓝光。',cities:['霆塔','霹坞','雳台','霰站','霄港','霁原','雩坛','霾城','磁峰','电冢']},
+  {ch:'靐',trait:'蓝图 +10%，方舟便宜 10%；无人机无视地形',py:'bìng',ep:'雷庭',col:'#5b6fd6',leader:'司雷',motto:'雷声响起的地方，就是新世界的方向。',lore:'三雷成靐。他们修好了旧电厂和半座发射场，认定这片大地已经没救了，唯一的出路是造一艘方舟离开。',war:'「方舟的位置不够。」司雷说得很平静，雷庭的炮口亮起了蓝光。',cities:['霆塔','霹坞','雳台','霰站','霄港','霁原','雩坛','霾城','磁峰','电冢']},
 ];
 const CIVS=FAC.map(f=>({name:'「'+f.ch+'」',col:f.col,cities:f.cities}));
 const ZCOL='#7d6a86';
@@ -376,13 +388,13 @@ function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);co
   for(let i=worked.length;i<c.pop;i++){y.p+=1;}// 没地可耕的居民当建设队
   for(const b in c.blds){const B=BLD[b];y.f+=B.f||0;y.p+=B.p||0;y.s+=B.s||0;}
   const o0=c.owner;if(G.wonders){if(hasWon(o0,'vault'))y.f+=1;if(hasWon(o0,'radio'))y.s+=3;for(const k of cityWons(c)){if(k==='vault')y.f+=3;if(k==='archive')y.s+=5;}}
-  y.s+=c.pop*0.4;if(fac(c.owner)===3)y.s*=1.15;if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
+  y.s+=c.pop*0.4;if(fac(c.owner)===3)y.s*=1.1;if(fac(c.owner)===0)y.f+=1;if(fac(c.owner)===1){y.p+=2;if(c.build&&c.build.t==='u')y.p*=1.15;}if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
   const k=G.civs[c.owner].ai?[0.85,1.0,1.18][G.diff]:1;y.p*=k;y.s*=k;y.f*=(G.civs[c.owner].ai&&G.diff===2?1.1:1);
   y.need=c.pop*2;y.worked=worked;return y;}
 function growNeed(c){return 10+c.pop*6;}
-function buildCost(c,b){if(b.t==='u')return UN[b.k].cost;if(b.t==='w')return WON[b.k].cost;return Math.round(BLD[b.k].cost*(b.k==='ark'&&fac(c.owner)===3?0.8:1));}
+function buildCost(c,b){if(b.t==='u')return UN[b.k].cost;if(b.t==='w')return WON[b.k].cost;return Math.round(BLD[b.k].cost*(b.k==='ark'&&fac(c.owner)===3?0.9:1));}
 const buildName=b=>b.t==='u'?UN[b.k].n:b.t==='w'?WON[b.k].n:BLD[b.k].n;
-function buildOptions(c){const o=c.owner,out=[];for(const k in UN){if(!unitOK(o,k))continue;out.push({t:'u',k});}
+function buildOptions(c){const o=c.owner,out=[];for(const k in UN){if(!unitOK(o,k))continue;if(UN[k].ace&&(civUnits(o).some(u=>u.k===k)||Object.values(G.cities).some(x=>x.owner===o&&x!==c&&x.build&&x.build.k===k)))continue;out.push({t:'u',k});}
   for(const k in BLD){const B=BLD[k];if(c.blds[k]||!hasTech(o,B.tech))continue;if(B.cap&&!c.cap)continue;out.push({t:'b',k});}
   for(const k in WON){if(G.wonders[k]!==undefined||!hasTech(o,WON[k].tech))continue;if(Object.values(G.cities).some(x=>x.owner===o&&x!==c&&x.build&&x.build.k===k))continue;out.push({t:'w',k});}return out;}
 function processCities(o){const taken=new Set();let sci=0;
@@ -441,7 +453,7 @@ function popGoody(u,t){delete t.goody;const o=u.owner;const cv=G.civs[o];const r
 
 /* ---------- 战斗 ---------- */
 function strMod(u,vsZ,def,tile){let m=1;if(def){m+=TERR[tile.t].def/100;if(u.fort)m+=UN[u.k].fortB||0.25;if(cityAt(u.q,u.r))m+=0.25;}
-  if(vsZ&&u.owner>=0&&hasTech(u.owner,'serum'))m+=0.5;if(u.owner>=0&&Object.values(G.units).some(g=>g.k==='general'&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=2))m+=0.2;if(UN[u.k].z)m+=Math.min(0.6,G.turn/180)+[ -0.1,0,0.15][G.diff];return m;}
+  if(vsZ&&u.owner>=0&&hasTech(u.owner,'serum'))m+=0.5;if(u.owner>=0&&Object.values(G.units).some(g=>g.k==='general'&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=2))m+=0.2;if(UN[u.k].hz)m+=vsZ?0.5:-0.25;if(def&&u.owner>=0&&Object.values(G.units).some(g=>g!==u&&UN[g.k].aura&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=1))m+=0.2;if(UN[u.k].z)m+=Math.min(0.6,G.turn/180)+[ -0.1,0,0.15][G.diff];return m;}
 const hpF=hp=>0.55+0.45*hp/100;
 function cityStr(c){let s=8+c.pop*1.6+(c.blds.walls?8:0);const g=unitAt(c.q,c.r);if(g&&isMil(g))s+=UN[g.k].str*0.3;const tl=Object.keys(G.civs[c.owner].techs).length;s+=tl*0.6;if(G.wonders&&hasWon(c.owner,'wall'))s+=6;return s;}
 function nestStr(n){return 10+G.turn*0.12+[ -2,0,3][G.diff];}
@@ -458,7 +470,8 @@ function doAttack(a,tg){const p=predict(a,tg);const v=x=>Math.round(x*(0.82+rnd(
   if(aO>=0&&dO>=0&&!atWar(aO,dO))declareWar(aO,dO);
   const vis=VIS.has(key(tg.o.q,tg.o.r))||aO===ME||dO===ME;
   if(vis){pops.push({q:tg.o.q,r:tg.o.r,txt:'-'+toD,col:'#d9645a',t:0});if(toA)pops.push({q:a.o.q,r:a.o.r,txt:'-'+toA,col:'#d9645a',t:0});SFX.hit(p.ranged);}
-  if(a.type==='city'){a.o.shot=1;}else{a.o.mv=0;a.o.fort=0;a.o.acted=1;a.o.hp-=toA;}
+  if(a.type==='city'){a.o.shot=1;}else{if(UN[a.o.k].shootMove){a.o.mv=Math.max(0,a.o.mv-1);a.o.fired=1;}else a.o.mv=0;a.o.fort=0;a.o.acted=1;a.o.hp-=toA;}
+  if(a.type==='unit'&&UN[a.o.k].splash){for(const n of nbrs(tg.o.q,tg.o.r)){const v=unitAt(n.q,n.r);if(!v||v===a.o||v===tg.o||v.owner===aO)continue;if(v.owner>=0&&!atWar(aO,v.owner))continue;v.hp-=UN[a.o.k].splash;if(vis)pops.push({q:v.q,r:v.r,txt:'-'+UN[a.o.k].splash,col:'#e8743a',t:0});if(v.hp<=0)removeUnit(v);}}
   tg.o.hp-=toD;let killed=false;
   if(tg.type==='unit'&&tg.o.hp<=0){killed=true;const du=tg.o;if(UN[du.k].z){if(aO>=0){G.kills[aO]++;}}removeUnit(du);if(du.owner===ME&&!UN[du.k].z)feed(`我们的${UN[du.k].n}阵亡了。`,'bad');
     if(a.type==='unit'&&!p.ranged&&a.o.hp>0&&canEnter(a.o,T(du.q,du.r),true))stepTo(a.o,du.q,du.r),a.o.mv=0;}
@@ -501,7 +514,7 @@ function aiDiplomacy(o){const cv=G.civs[o];if(o===0&&BOT==='war'&&G.turn>=35){fo
   for(const x of CIV()){if(x===o||!G.civs[x].alive)continue;const pa=power(o),px=power(x);
     if(G.rel[o][x]==='peace'){if(G.turn<18+(2-G.diff)*6)continue;if(G.turn-G.relT[o][x]<10)continue;
       const near=civCities(o).some(a=>civCities(x).some(b=>hexDist(a.q,a.r,b.q,b.r)<=10));
-      if(near&&pa>px*(aggr-(G.diff===2?0.15:0))&&rnd()<(fac(o)===1?0.18:0.1))declareWar(o,x);}
+      if(near&&pa>px*(aggr-(G.diff===2?0.15:0))&&rnd()<(fac(o)===1?0.13:0.1))declareWar(o,x);}
     else{const t=G.turn-G.relT[o][x];if(t>=10&&(pa<px*0.85)&&rnd()<0.3){if(isHum(x)){if(!G.asks.some(a=>a.t==='peace'&&a.o===o&&a.to===x))G.asks.push({t:'peace',o,to:x});}else if(aiAcceptPeace(x,o))makePeace(o,x);}}}}
 let peaceAsk=null;
 function askPeace(o){peaceAsk=o;}
@@ -523,12 +536,16 @@ function zombieTurn(){const zs=Object.values(G.units).filter(u=>u.owner<0);
       if(!ns.length||hexDist(ns[0].q,ns[0].r,best.q,best.r)>=hexDist(z.q,z.r,best.q,best.r)+ (best.wander?0:0.5))break;stepTo(z,ns[0].q,ns[0].r);if(best.wander&&hexDist(z.q,z.r,best.q,best.r)<=2)break;}}}
 
 /* ---------- 电脑阵营 ---------- */
-function bestUnit(o,ranged){const opts=Object.keys(UN).filter(k=>UN[k].sl!==undefined&&unitOK(o,k)&&(!!UN[k].rs===!!ranged));if(!opts.length)return unitFor(o,0);return opts.sort((a,b)=>((UN[b].rs||UN[b].str)/Math.pow(UN[b].cost,0.6))-((UN[a].rs||UN[a].str)/Math.pow(UN[a].cost,0.6)))[0];}
+function bestUnit(o,ranged){const opts=Object.keys(UN).filter(k=>UN[k].sl!==undefined&&UN[k].sl<=5&&unitOK(o,k)&&(!!UN[k].rs===!!ranged));if(!opts.length)return unitFor(o,0);if(!ranged&&rnd()<0.2){const f=opts.find(k=>UN[k].sl===3);if(f)return f;}return opts.sort((a,b)=>((UN[b].rs||UN[b].str)/Math.pow(UN[b].cost,0.6))-((UN[a].rs||UN[a].str)/Math.pow(UN[a].cost,0.6)))[0];}
 function siteScore(o,t){if(!canFound(t.q,t.r,o))return -1;let s=0;for(const x of ring(t.q,t.r,2)){if(x.own>=0&&x.own!==o)continue;const y=tileYield(x);s+=y.f*1.2+y.p+y.s+(x.bl!==undefined?-2:0);if(x.nest!==undefined)s-=8;}return s;}
 function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);const has=k=>opts.some(b=>b.k===k);
   const mil=civUnits(o).filter(isMil).length,nc=civCities(o).length;const war=CIV().some(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
   const threat=Object.values(G.units).filter(u=>(u.owner<0||atWar(o,u.owner))&&u.owner!==o&&hexDist(u.q,u.r,c.q,c.r)<=4).length;
-  const gar=unitAt(c.q,c.r);if((threat&&!gar)||threat>=2)return{t:'u',k:bestUnit(o,rnd()<0.4)};
+  const gar=unitAt(c.q,c.r);const zth=Object.values(G.units).filter(u=>u.owner<0&&hexDist(u.q,u.r,c.q,c.r)<=5).length+Object.values(G.nests).filter(n=>n.alive&&hexDist(n.q,n.r,c.q,c.r)<=6).length;
+  if((threat&&!gar)||threat>=2)return{t:'u',k:zth>=2&&has(unitFor(o,7))&&civUnits(o).filter(u=>UN[u.k].sl===7).length<3&&rnd()<0.35?unitFor(o,7):bestUnit(o,rnd()<0.4)};
+  if(has(unitFor(o,8))&&rnd()<0.35)return{t:'u',k:unitFor(o,8)};
+  if(zth>=2&&has(unitFor(o,7))&&civUnits(o).filter(u=>UN[u.k].sl===7).length<2&&rnd()<0.25)return{t:'u',k:unitFor(o,7)};
+  if(has(unitFor(o,6))&&mil>=4&&!civUnits(o).some(u=>UN[u.k].heal)&&rnd()<0.3)return{t:'u',k:unitFor(o,6)};
   if(has('ark'))return{t:'b',k:'ark'};
   const settlers=civUnits(o).filter(u=>u.k==='settler').length;const target=[4,5,6][G.diff]+(fac(o)===2?1:0);
   if(settlers===0&&nc<target&&c.pop>=2&&G.turn<90)return{t:'u',k:'settler'};
@@ -542,7 +559,7 @@ function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);cons
   for(const k of wpref)if(has(k)&&!civCities(o).some(x=>x.build&&x.build.k===k))return{t:'w',k};
   return{t:'u',k:bestUnit(o,rnd()<0.4)};}
 function aiResearch(o){const cv=G.civs[o];if(cv.res)return;const av=Object.keys(TECH).filter(k=>!cv.techs[k]&&TECH[k].req.every(r=>cv.techs[r]));if(!av.length)return;
-  const F=fac(o);const pref=F===3?['scav','agri','write','moto','power','serum','fort','bow','cannon','armor','ark']:o===0&&BOT==='purify'?['bow','agri','write','serum','fort','scav','moto','armor','cannon','power','ark']:o===0&&BOT==='war'?['bow','scav','fort','moto','armor','cannon','agri','write','serum','power','ark']:F===1?['bow','scav','fort','moto','agri','write','armor','cannon','power','serum','ark']:['agri','scav','write','bow','serum','power','fort','moto','ark','cannon','armor'];
+  const F=fac(o);const pref=F===3?['scav','agri','write','moto','power','serum','fort','bow','cannon','armor','ark']:o===0&&BOT==='purify'?['bow','agri','write','serum','fort','scav','moto','armor','cannon','power','ark']:o===0&&BOT==='war'?['bow','scav','fort','moto','armor','cannon','agri','write','serum','power','ark']:F===1?['bow','agri','scav','write','fort','moto','power','armor','cannon','serum','ark']:['agri','scav','write','bow','serum','power','fort','moto','ark','cannon','armor'];
   av.sort((a,b)=>pref.indexOf(a)-pref.indexOf(b));cv.res=av[0];}
 function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);
   for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);
@@ -555,7 +572,7 @@ function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);
   const wars=CIV().filter(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
   for(const u of units){if(!G.units[u.id])continue;try{aiUnit(u,wars);}catch(e){console.error(e);}}
   aiDiplomacy(o);}
-function bestTarget(u,maxd){let best=null,bs=-1e9;const U=UN[u.k];
+function bestTarget(u,maxd){let best=null,bs=-1e9;const U=UN[u.k];if(u.fired||U.heal)return null;
   for(const t of ring(u.q,u.r,maxd)){const tg=tgtAt(t.q,t.r);if(!tg||tg.owner===u.owner)continue;if(tg.owner>=0&&!atWar(u.owner,tg.owner))continue;if(tg.type==='unit'&&UN[tg.o.k].civ&&!U.rs){}
     const p=predict({type:'unit',o:u},tg);let s=p.toD-p.toA*1.2+(p.kill?40:0)-(hexDist(u.q,u.r,t.q,t.r))*3;if(tg.type==='city')s+=15-tg.o.hp/10;if(tg.type==='nest')s+=5;if(p.die||u.hp-p.toA<15)s-=200;if(s>bs){bs=s;best={tg,t,p,s};}}
   return best&&best.s>-20?best:null;}
@@ -566,7 +583,7 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
     if(want(here)&&civCities(u.owner).some(c=>hexDist(c.q,c.r,here.q,here.r)<=2)){startWork(u);return;}
     let best=null,bd=1e9;for(const c of civCities(u.owner))for(const t of ring(c.q,c.r,2)){if(!want(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r)-(t.bl!==undefined?2:0)-(t.res?1:0);if(d<bd){bd=d;best=t;}}
     if(best){const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);if(u.mv>0&&want(T(u.q,u.r)))startWork(u);}return;}
-  if(u.k==='general'){let best=null,bd=1e9;for(const v of civUnits(u.owner)){if(!isMil(v)||v.gar)continue;const d=hexDist(u.q,u.r,v.q,v.r);if(d<bd){bd=d;best=v;}}if(best&&bd>1){const p=findPath(u,best.q,best.r,true);if(p)walkPath(u,p);}return;}
+  if(u.k==='general'||UN[u.k].heal){let best=null,bd=1e9;for(const v of civUnits(u.owner)){if(!isMil(v)||v.gar)continue;const d=hexDist(u.q,u.r,v.q,v.r);if(d<bd){bd=d;best=v;}}if(best&&bd>1){const p=findPath(u,best.q,best.r,true);if(p)walkPath(u,p);}return;}
   if(UN[u.k].sc){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(!t.goody)continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}
     if(!best){const all=Object.values(G.tiles).filter(pass);best=all[Math.floor(rnd()*all.length)];}const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);return;}
   // 先打能打的
@@ -608,7 +625,8 @@ function endTurn(){if(busy||!G||G.over)return;busy=true;pend=null;
   for(const o of CIV())if(G.civs[o].alive)gpTick(o);
   for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(u.owner>=0&&t.bl!==undefined){u.hp-=6;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}死在了感染区里。`,'bad');removeUnit(u);continue;}}
     if(!u.acted){let h=10;if(u.owner>=0&&t.own===u.owner)h+=fac(u.owner)===0?20:10;if(cityAt(u.q,u.r))h+=10;if(u.owner<0)h=t.bl!==undefined?15:5;u.hp=Math.min(100,u.hp+h);}
-    u.acted=0;u.mv=UN[u.k].mv;}
+    u.acted=0;u.fired=0;u.mv=UN[u.k].mv;}
+  for(const m of Object.values(G.units)){const H=UN[m.k].heal;if(!H||m.owner<0)continue;for(const v of Object.values(G.units))if(v.owner===m.owner&&v!==m&&hexDist(v.q,v.r,m.q,m.r)<=1&&v.hp<100){v.hp=Math.min(100,v.hp+H);if(m.owner===ME&&VIS.has(key(v.q,v.r)))pops.push({q:v.q,r:v.r,txt:'+'+H,col:'#5e8c55',t:0});}}
   G.turn++;
   if(G.turn>MAXT&&!G.over){const sc=CIV().map(score);const best=sc.indexOf(Math.max(...sc));endGame(best,'score');busy=false;return;}
   // 玩家单位自动行军
@@ -740,6 +758,10 @@ function drawUnit(u){const Z=cam.z;const lk=UN[u.k].look||u.k;if(u.vq===undefine
   else if(lk==='boat'){ctx.fillStyle='#8a6a4a';ctx.beginPath();ctx.moveTo(x-15*s,y-7*s);ctx.lineTo(x+15*s,y-7*s);ctx.lineTo(x+10*s,y);ctx.lineTo(x-12*s,y);ctx.closePath();ctx.fill();ctx.fillStyle=col;rr(x-5*s,y-17*s+bob,7*s,10*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-1.5*s,y-20*s+bob,3.3*s,0,7);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x-18*s,y+1*s);ctx.lineTo(x-12*s,y+1*s);ctx.stroke();}
   else if(lk==='drone'){const hy=y-16*s+Math.sin(gt*6+u.id)*2*s;ctx.fillStyle='rgba(50,40,30,.18)';ctx.fillStyle='#555';rr(x-5*s,hy-2*s,10*s,4*s,2*s);ctx.fill();ctx.strokeStyle='#555';ctx.lineWidth=1.4*s;ctx.beginPath();ctx.moveTo(x-11*s,hy-4*s);ctx.lineTo(x+11*s,hy+2*s);ctx.moveTo(x+11*s,hy-4*s);ctx.lineTo(x-11*s,hy+2*s);ctx.stroke();ctx.fillStyle=col;[[-11,-4],[11,-4],[-11,2],[11,2]].forEach(([a,b])=>{ctx.beginPath();ctx.ellipse(x+a*s,hy+b*s,4*s,1.4*s,0,0,7);ctx.fill();});ctx.fillStyle='#9fd0ff';ctx.beginPath();ctx.arc(x,hy,1.6*s,0,7);ctx.fill();}
   else if(lk==='beast'){ctx.fillStyle='#7a6a55';rr(x-14*s,y-16*s,26*s,12*s,6*s);ctx.fill();ctx.fillRect(x-11*s,y-6*s,4*s,6*s);ctx.fillRect(x+5*s,y-6*s,4*s,6*s);ctx.beginPath();ctx.arc(x+13*s,y-14*s,5*s,0,7);ctx.fill();ctx.fillStyle='#e8dcc6';ctx.beginPath();ctx.moveTo(x+16*s,y-18*s);ctx.lineTo(x+21*s,y-22*s);ctx.lineTo(x+17*s,y-15*s);ctx.fill();ctx.fillStyle='#8a8f96';ctx.fillRect(x-20*s,y-6*s,8*s,4*s);ctx.fillStyle=col;rr(x-6*s,y-25*s+bob,7*s,9*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-2.5*s,y-28*s+bob,3*s,0,7);ctx.fill();}
+  else if(lk==='ship'){ctx.fillStyle='#6b7f93';ctx.beginPath();ctx.moveTo(x-22*s,y-9*s);ctx.lineTo(x+22*s,y-9*s);ctx.lineTo(x+15*s,y+1*s);ctx.lineTo(x-17*s,y+1*s);ctx.closePath();ctx.fill();ctx.fillStyle=col;rr(x-10*s,y-19*s,18*s,10*s,2*s);ctx.fill();ctx.fillStyle='#444';ctx.fillRect(x+4*s,y-25*s,3*s,7*s);ctx.fillRect(x-14*s,y-13*s,10*s,3*s);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x-26*s,y+2*s);ctx.lineTo(x-18*s,y+2*s);ctx.stroke();}
+  else if(lk==='demon'){const fl=0.6+0.4*Math.sin(gt*10+u.id);ctx.fillStyle=`rgba(255,${110+fl*90|0},40,.45)`;ctx.beginPath();ctx.ellipse(x,y-16*s,15*s,19*s,0,0,7);ctx.fill();ctx.fillStyle='#4a2a22';rr(x-8*s,y-24*s+bob,16*s,22*s,5*s);ctx.fill();ctx.fillStyle=col;rr(x-6*s,y-20*s+bob,12*s,10*s,3*s);ctx.fill();ctx.fillStyle='#3a1d18';ctx.beginPath();ctx.arc(x,y-28*s+bob,6*s,0,7);ctx.fill();ctx.fillStyle='#ffcf5a';ctx.fillRect(x-3*s,y-29*s+bob,2*s,1.5*s);ctx.fillRect(x+1*s,y-29*s+bob,2*s,1.5*s);ctx.fillStyle=`rgba(255,${140+fl*80|0},50,.95)`;ctx.beginPath();ctx.moveTo(x-6*s,y-33*s+bob);ctx.lineTo(x-3*s,y-40*s*fl+bob);ctx.lineTo(x,y-33*s+bob);ctx.lineTo(x+3*s,y-41*s*fl+bob);ctx.lineTo(x+6*s,y-33*s+bob);ctx.fill();}
+  else if(lk==='golem'){ctx.fillStyle='#9a8f7f';rr(x-12*s,y-26*s,24*s,24*s,6*s);ctx.fill();ctx.fillStyle='#857a6a';rr(x-17*s,y-22*s,7*s,15*s,3*s);ctx.fill();rr(x+10*s,y-22*s,7*s,15*s,3*s);ctx.fill();ctx.fillRect(x-9*s,y-3*s,6*s,4*s);ctx.fillRect(x+3*s,y-3*s,6*s,4*s);ctx.fillStyle='#8a7f70';rr(x-7*s,y-36*s,14*s,11*s,4*s);ctx.fill();ctx.fillStyle='#bde08f';ctx.fillRect(x-4*s,y-32*s,2.5*s,2*s);ctx.fillRect(x+1.5*s,y-32*s,2.5*s,2*s);ctx.fillStyle=col;ctx.fillRect(x-12*s,y-16*s,24*s,4*s);ctx.fillStyle='#7fb77e';ctx.beginPath();ctx.arc(x-6*s,y-36*s,3*s,0,7);ctx.arc(x+5*s,y-37*s,2.5*s,0,7);ctx.fill();}
+  else if(lk==='mech'){ctx.fillStyle='#4a4f5c';ctx.fillRect(x-9*s,y-12*s,5*s,12*s);ctx.fillRect(x+4*s,y-12*s,5*s,12*s);ctx.fillStyle=col;rr(x-11*s,y-28*s,22*s,17*s,4*s);ctx.fill();ctx.fillStyle='#2e3340';rr(x-6*s,y-35*s,12*s,8*s,3*s);ctx.fill();ctx.fillStyle='#9fd0ff';ctx.fillRect(x-4*s,y-32*s,8*s,2*s);ctx.fillStyle='#4a4f5c';ctx.fillRect(x+10*s,y-26*s,14*s,4*s);const p2=0.5+0.5*Math.sin(gt*8+u.id);ctx.fillStyle=`rgba(160,210,255,${0.4+p2*0.6})`;ctx.beginPath();ctx.arc(x+25*s,y-24*s,2.5*s,0,7);ctx.fill();}
   else if(lk==='settler'){ctx.fillStyle='#a07c52';rr(x+2*s,y-10*s,13*s,8*s,2*s);ctx.fill();ctx.fillStyle='#e8dcc6';ctx.beginPath();ctx.arc(x+8.5*s,y-11*s,6*s,Math.PI,0);ctx.fill();ctx.fillStyle='#5a4a3a';ctx.beginPath();ctx.arc(x+5*s,y-1.5*s,2.5*s,0,7);ctx.arc(x+12*s,y-1.5*s,2.5*s,0,7);ctx.fill();
     ctx.fillStyle=col;rr(x-10*s,y-16*s+bob,8*s,13*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-6*s,y-19*s+bob,3.6*s,0,7);ctx.fill();}
   else{const big=u.k==='brute'?1.5:1;const bw=8*s*big,bh=13*s*big;ctx.fillStyle=z?(u.k==='brute'?'#5c6a4a':'#7d8c62'):col;rr(x-bw/2,y-bh+bob,bw,bh,3*s);ctx.fill();
@@ -749,6 +771,8 @@ function drawUnit(u){const Z=cam.z;const lk=UN[u.k].look||u.k;if(u.vq===undefine
     else if(lk==='guard'){ctx.fillStyle='#8a929c';rr(x+3*s,y-12*s+bob,7*s,10*s,2*s);ctx.fill();}
     else if(lk==='worker'){ctx.strokeStyle='#7a5a3a';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.moveTo(x+4*s,y-2*s+bob);ctx.lineTo(x+9*s,y-16*s+bob);ctx.stroke();ctx.fillStyle='#8a8f96';ctx.fillRect(x+7*s,y-18*s+bob,6*s,3*s);if(u.work){ctx.fillStyle='#e3a93b';ctx.fillRect(x-12*s,y-4*s,6*s,4*s);}}
     else if(lk==='general'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x+6*s,y+bob);ctx.lineTo(x+6*s,y-26*s+bob);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x+6*s,y-26*s+bob);ctx.lineTo(x+18*s,y-22*s+bob);ctx.lineTo(x+6*s,y-18*s+bob);ctx.closePath();ctx.fill();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-17*s+bob,2.5*s,0,7);ctx.fill();}
+    else if(lk==='medic'){ctx.fillStyle='#f6f3ee';rr(x+2*s,y-11*s+bob,8*s,7*s,2*s);ctx.fill();ctx.fillStyle='#d9645a';ctx.fillRect(x+5.2*s,y-10*s+bob,1.6*s,5*s);ctx.fillRect(x+3.5*s,y-8.3*s+bob,5*s,1.6*s);}
+    else if(lk==='hunter'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.moveTo(x-2*s,y-2*s+bob);ctx.lineTo(x+12*s,y-20*s+bob);ctx.stroke();ctx.fillStyle='#b9bfc6';ctx.beginPath();ctx.moveTo(x+12*s,y-20*s+bob);ctx.lineTo(x+15*s,y-26*s+bob);ctx.lineTo(x+9*s,y-22*s+bob);ctx.fill();}
     else if(lk==='flame'){const fl=0.6+0.4*Math.sin(gt*14+u.id);ctx.strokeStyle='#5a5a5a';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(x+3*s,y-8*s+bob);ctx.lineTo(x+10*s,y-11*s+bob);ctx.stroke();ctx.fillStyle=`rgba(255,${120+fl*80|0},40,.9)`;ctx.beginPath();ctx.ellipse(x+13*s,y-12*s+bob,3.5*s*fl,2.2*s,0,0,7);ctx.fill();}
     else if(lk==='scout'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.4*s;ctx.beginPath();ctx.moveTo(x+5*s,y+bob);ctx.lineTo(x+7*s,y-20*s+bob);ctx.stroke();}
     else{ctx.strokeStyle='#5a5a5a';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(x+4*s,y-4*s+bob);ctx.lineTo(x+10*s,y-17*s+bob);ctx.stroke();}}
@@ -789,7 +813,7 @@ function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGrad
   // 飘字
   for(const p of pops){const a=p.t/1.4;const[sx,sy]=w2s(p.q,p.r);ctx.globalAlpha=Math.max(0,1-a);ctx.font=`900 ${Math.max(13,Z*0.3)}px "Noto Sans SC",sans-serif`;ctx.fillStyle=p.col;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=3;ctx.textAlign='center';ctx.strokeText(p.txt,sx,sy-Z*0.9-a*Z*0.6);ctx.fillText(p.txt,sx,sy-Z*0.9-a*Z*0.6);}ctx.globalAlpha=1;ctx.textAlign='left';}
 function atkTargets(){const out=[];if(!sel||!G||G.over)return out;
-  if(sel.u&&sel.u.owner===ME&&sel.u.mv>0&&isMil(sel.u)){const U=UN[sel.u.k];const R=U.rng||1;for(const t of ring(sel.u.q,sel.u.r,R)){const tg=tgtAt(t.q,t.r);if(tg&&tg.owner!==ME&&VIS.has(key(t.q,t.r)))out.push(t);}
+  if(sel.u&&sel.u.owner===ME&&sel.u.mv>0&&isMil(sel.u)&&!sel.u.fired&&!UN[sel.u.k].heal){const U=UN[sel.u.k];const R=U.rng||1;for(const t of ring(sel.u.q,sel.u.r,R)){const tg=tgtAt(t.q,t.r);if(tg&&tg.owner!==ME&&VIS.has(key(t.q,t.r)))out.push(t);}
     if(!U.rs&&reach){for(const[k]of reach){const[a,b]=k.split(',').map(Number);for(const n of nbrs(a,b)){const tg=tgtAt(n.q,n.r);if(tg&&tg.owner!==ME&&VIS.has(key(n.q,n.r))&&!out.includes(n))out.push(n);}}}}
   if(sel.c&&sel.c.owner===ME&&!sel.c.shot){for(const t of ring(sel.c.q,sel.c.r,2)){const tg=tgtAt(t.q,t.r);if(tg&&tg.type==='unit'&&tg.owner!==ME&&atWar(ME,tg.owner)&&VIS.has(key(t.q,t.r)))out.push(t);}}
   return out;}
@@ -846,7 +870,7 @@ function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(!cv.alive&&
 function performAttack(c){const o=c.o;let a;if(c.at==='city'){const x=G.cities[c.id];if(!x||x.owner!==o||x.shot)return;a={type:'city',o:x};}else{const u=G.units[c.id];if(!u||u.owner!==o||u.mv<=0||!isMil(u))return;a={type:'unit',o:u};}
   const tg=tgtAt(c.q,c.r);if(!tg||tg.owner===o)return;
   if(a.type==='city'){if(tg.type!=='unit'||!atWar(o,tg.owner)||hexDist(a.o.q,a.o.r,c.q,c.r)>2)return;doAttack(a,tg);return;}
-  const U=UN[a.o.k];const d=hexDist(a.o.q,a.o.r,c.q,c.r);
+  const U=UN[a.o.k];const d=hexDist(a.o.q,a.o.r,c.q,c.r);if(a.o.fired)return;
   if(U.rs){if(d>U.rng)return;}else if(d>1){const p=findPath(a.o,c.q,c.r,true);if(!p){if(o===ME)hint('走不过去');return;}walkPath(a.o,p);if(hexDist(a.o.q,a.o.r,c.q,c.r)>1||a.o.mv<=0){if(o===ME)hint('这天够不着了');return;}}
   doAttack(a,tg);}
 function afterCmd(c){if(!G)return;const lost=sel&&((sel.u&&!G.units[sel.u.id])||(sel.c&&!G.cities[sel.c.id]));if(sel){if(sel.u)sel.u=G.units[sel.u.id]||null;if(sel.c)sel.c=G.cities[sel.c.id]||null;if(!sel.u&&!sel.c&&!sel.tile)sel=null;}
