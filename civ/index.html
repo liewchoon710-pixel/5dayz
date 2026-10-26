@@ -780,7 +780,7 @@ function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGrad
   ctx.lineCap='round';for(const k in G.tiles){const t=G.tiles[k];if(t.own<0||!t.ex)continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;
     for(let i=0;i<6;i++){const nb=T(t.q+DIRS[i][0],t.r+DIRS[i][1]);if(nb&&nb.own===t.own)continue;const a=vtx(i,Z*0.93),b=vtx(i+1,Z*0.93);ctx.strokeStyle=civCol(t.own);ctx.globalAlpha=0.85;ctx.lineWidth=Math.max(2,Z*0.07);ctx.beginPath();ctx.moveTo(sx+a[0],sy+a[1]);ctx.lineTo(sx+b[0],sy+b[1]);ctx.stroke();ctx.globalAlpha=1;}}
   // 选中：可到达、攻击目标、路径
-  if(sel){const sq=sel.u?sel.u:sel.c;const[sx,sy]=w2s(sq.q,sq.r);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.9);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.setLineDash([Z*0.14,Z*0.08]);ctx.lineDashOffset=-gt*12;ctx.stroke();ctx.restore();ctx.setLineDash([]);}
+  if(sel&&(sel.u||sel.c||sel.tile)){const sq=sel.u||sel.c||sel.tile;const[sx,sy]=w2s(sq.q,sq.r);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.9);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.setLineDash([Z*0.14,Z*0.08]);ctx.lineDashOffset=-gt*12;ctx.stroke();ctx.restore();ctx.setLineDash([]);}
   if(reach){for(const[k,v]of reach){const[a,b]=k.split(',').map(Number);if(sel&&sel.u&&a===sel.u.q&&b===sel.u.r)continue;const[sx,sy]=w2s(a,b);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.86);ctx.fillStyle=v.mv>0?'rgba(255,255,255,.32)':'rgba(255,255,255,.2)';ctx.fill();ctx.restore();}}
   for(const t of atkTargets()){const[sx,sy]=w2s(t.q,t.r);const p=0.5+0.5*Math.sin(gt*5);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*(0.86+p*0.05));ctx.strokeStyle=`rgba(217,80,70,${0.6+p*0.4})`;ctx.lineWidth=3;ctx.stroke();ctx.restore();}
   if(pend){const[sx,sy]=w2s(pend.tg.o.q,pend.tg.o.r);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.95);ctx.fillStyle='rgba(217,80,70,.22)';ctx.fill();ctx.restore();}
@@ -1121,11 +1121,11 @@ function zoomTo(z){const nz=clamp(z,20,90);if(Math.round(nz)!==Math.round(cam.z)
 
 /* ---------- 主循环 ---------- */
 let last=performance.now();
-function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;gt+=dt;shake=Math.max(0,shake-dt*20);
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(0.05,(now-last)/1000);last=now;gt+=dt;shake=Math.max(0,shake-dt*20);
   for(const p of pops)p.t+=dt;for(let i=pops.length-1;i>=0;i--)if(pops[i].t>1.4)pops.splice(i,1);
   if(G)for(const id in G.units){const u=G.units[id];if(u.vq===undefined){u.vq=u.q;u.vr=u.r;}const k=Math.min(1,dt*7);u.vq+=(u.q-u.vq)*k;u.vr+=(u.r-u.vr)*k;if(Math.abs(u.q-u.vq)+Math.abs(u.r-u.vr)>8){u.vq=u.q;u.vr=u.r;}}
   if(panAnim){const k=Math.min(1,dt*6);cam.x+=(panAnim.x-cam.x)*k;cam.y+=(panAnim.y-cam.y)*k;if(Math.abs(panAnim.x-cam.x)+Math.abs(panAnim.y-cam.y)<0.01)panAnim=null;}
-  render();try{musicTick();}catch(e){}requestAnimationFrame(loop);}
+  try{render();}catch(e){if(!window._rerr){window._rerr=1;console.error(e);try{feed('画面出了个小错误，已自动跳过：'+e.message,'bad');}catch(_){}}}try{musicTick();}catch(e){}}
 resize();requestAnimationFrame(loop);
 // 封面：先生成一张地图当背景
 (function(){const m=genMap(2026);RNG=Math.random;G={seed:2026,diff:1,turn:1,tiles:m.tiles,nests:m.nests,units:{},cities:{},civs:[{techs:{}},{techs:{}},{techs:{}}],rel:[['peace','peace','peace'],['peace','peace','peace'],['peace','peace','peace']],relT:[[0,0,0],[0,0,0],[0,0,0]],nestK:[0,0,0],kills:[0,0,0],wonders:{},asks:[]};for(const t of Object.values(G.tiles))t.ex=1;VIS=new Set(Object.keys(G.tiles));centerOn(11,2);cam.z=40;})();
