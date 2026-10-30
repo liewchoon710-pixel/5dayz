@@ -45,9 +45,9 @@ button{font-family:var(--f-ui);}
 #vic{margin-left:auto;font-size:12px;color:var(--sub);display:flex;flex-direction:column;gap:3px;min-width:150px;pointer-events:auto;cursor:pointer;}
 #vic div{display:flex;justify-content:space-between;gap:10px;}
 #vic b{color:var(--ink);font-variant-numeric:tabular-nums;}
-#tools{top:calc(env(safe-area-inset-top,0px) + 100px);right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:6px;}
+#tools{top:calc(env(safe-area-inset-top,0px) + 132px);right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:6px;}
 .rb{width:40px;height:40px;padding:0;font-size:17px;}
-#feed{right:max(16px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 148px);width:min(250px,44vw);display:flex;flex-direction:column;gap:4px;pointer-events:none;}
+#feed{right:max(16px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 180px);width:min(250px,44vw);display:flex;flex-direction:column;gap:4px;pointer-events:none;}
 #feed div{background:var(--card);border-radius:10px;padding:5px 9px;font-size:12px;line-height:1.45;box-shadow:0 3px 10px rgba(80,70,50,.08);border-left:4px solid #cfc7b6;animation:fd 9s forwards;}
 #feed div.bad{border-left-color:var(--bad);} #feed div.good{border-left-color:var(--good);} #feed div.sci{border-left-color:var(--sci);}
 @keyframes fd{0%,88%{opacity:1}100%{opacity:0}}
@@ -122,8 +122,8 @@ button{font-family:var(--f-ui);}
 .stats3 b{display:block;font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;}
 @media (max-width:700px){
   #brand h1{font-size:18px;} #stats{display:none;} #sciP{min-width:0;flex:1;} #vic{margin-left:0;min-width:0;flex:1 1 100%;flex-direction:row;flex-wrap:wrap;gap:2px 12px;padding:5px 10px;}
-  #tools{top:calc(env(safe-area-inset-top,0px) + 140px);flex-direction:column;}
-  #feed{top:calc(env(safe-area-inset-top,0px) + 142px);left:max(16px,env(safe-area-inset-left,0px));right:calc(max(16px,env(safe-area-inset-right,0px)) + 50px);width:auto;}
+  #tools{top:calc(env(safe-area-inset-top,0px) + 158px);flex-direction:column;}
+  #feed{top:calc(env(safe-area-inset-top,0px) + 160px);left:max(16px,env(safe-area-inset-left,0px));right:calc(max(16px,env(safe-area-inset-right,0px)) + 50px);width:auto;}
   #feed div:nth-child(n+3){display:none;}
   #sel{bottom:calc(env(safe-area-inset-bottom,0px) + 72px);max-height:36vh;width:calc(100vw - 32px);}
   #sel p{font-size:11px;margin:4px 0;}
@@ -143,9 +143,9 @@ button{font-family:var(--f-ui);}
   <div class="pane" id="brand"><h1>尸土重生</h1><span id="turnN">第 1 天</span></div>
   <button class="pane" id="sciP"><span>蓝图 <b id="sciName">未选择</b></span><div class="bar"><i id="sciBar" style="width:0"></i></div><span id="sciSub"></span></button>
   <div class="pane" id="stats"><span>据点<b id="stC">0</b></span><span>居民<b id="stP">0</b></span><span>蓝图<b id="stS">+0</b></span><span>军力<b id="stM">0</b></span></div>
-  <div class="pane" id="vic" title="胜利进度"><div><span>统一 主营</span><b id="vC">0/2</b></div><div><span>复苏 尸巢</span><b id="vN">0/4 座</b></div><div><span>方舟</span><b id="vA">未解锁</b></div><div><span>传奇点数</span><b id="vG">0/40</b></div></div>
+  <div class="pane" id="vic" title="胜利进度"><div><span>统一 领土</span><b id="vL">0%</b></div><div><span>开拓点</span><b id="vE">0</b></div><div><span>复苏 尸巢</span><b id="vN">0/4 座</b></div><div><span>方舟</span><b id="vA">未解锁</b></div><div><span>传奇点数</span><b id="vG">0/40</b></div></div>
 </div>
-<div id="tools" class="ui"><button class="b rb" id="bDip" aria-label="外交">🤝</button><button class="b rb" id="bMenu" aria-label="菜单">☰</button><button class="b rb" id="bSnd" aria-label="声音">🔊</button></div>
+<div id="tools" class="ui"><button class="b rb" id="bClaim" aria-label="开拓模式" title="开拓模式">⛳</button><button class="b rb" id="bDip" aria-label="外交">🤝</button><button class="b rb" id="bMenu" aria-label="菜单">☰</button><button class="b rb" id="bSnd" aria-label="声音">🔊</button></div>
 <div id="feed" class="ui"></div>
 <div id="sel" class="ui pane" hidden></div>
 <div id="endT" class="ui"><button class="b main" id="bEnd">结束这天</button><button id="bSkip">直接结束这天</button></div>
@@ -157,8 +157,9 @@ button{font-family:var(--f-ui);}
   <div class="facs" id="facPick"></div><p id="facInfo" style="font-size:13px;margin:4px 0 8px"></p>
   <ul>
     <li>按天推进：移动单位、建据点、生产、破解蓝图，点「结束这天」后轮到电脑</li>
-    <li>尸巢会孵出丧尸、扩散感染；军队和建设队可以净化，摧毁尸巢会长出绿洲</li>
-    <li><b>三种胜利</b>：统一废土（占领所有敌方主营）、大地复苏（最先摧毁 4 座尸巢）、方舟启航（破解方舟计划蓝图，在主营造好方舟）</li>
+    <li><b>领土一格一格占</b>：用开拓点（⛳ 按钮）开拓边界外的格子；军队在别人的地上站一天就插旗抢过来。地必须连着自己的据点，被切断就变孤地，3 天后丢掉。建设队能修哨塔，挡住敌人插旗</li>
+    <li>尸巢会孵出丧尸、扩散感染；净化一格感染地，那一格就归你；摧毁尸巢会长出绿洲</li>
+    <li><b>三种胜利</b>：统一废土（占下一半土地，4 阵营时 40%；或占领所有敌方主营）、大地复苏（最先摧毁 4 座尸巢）、方舟启航（破解方舟计划蓝图，在主营造好方舟）</li>
     <li>建设队修设施，据点定方针，地标全世界只有一座，传奇幸存者会来投奔</li>
   </ul>
   <div class="seg" id="sizeSeg"><button data-n="3" class="on">3 个阵营</button><button data-n="4">4 个阵营（大地图）</button></div>
@@ -269,7 +270,7 @@ const BLD={
   walls:{n:'围墙',cost:45,tech:'fort',d:'防御 +8，据点生命 +100'},
   clinic:{n:'净化塔',cost:55,tech:'serum',d:'每天净化 2 格内 1 块感染地，口粮 +1',f:1},
   plant:{n:'发电站',cost:70,tech:'power',d:'物资 +25%，蓝图 +2',s:2},
-  ark:{n:'方舟',cost:500,tech:'ark',d:'建成即获得方舟启航（只能在主营建）',cap:1},
+  ark:{n:'方舟',cost:600,tech:'ark',d:'建成即获得方舟启航（只能在主营建）',cap:1},
 };
 const WON={
   vault:{n:'种子库',cost:90,tech:'agri',d:'本城口粮 +3，所有据点口粮 +1'},
@@ -380,7 +381,7 @@ function foundCity(u){const o=u.owner,cv=G.civs[o];const names=CIVS[fac(o)].citi
 function claim(c,R){for(const t of ring(c.q,c.r,R))if(t.own<0)t.own=c.owner;}
 function cityRadius(c){return c.pop>=6?3:c.pop>=3?2:1;}
 function maxHP(c){return 200+(c.blds.walls?100:0);}
-function tileYield(t,o){if(t.bl!==undefined)return{f:0,p:0,s:0};const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
+function tileYield(t,o){if(t.bl!==undefined||t.iso)return{f:0,p:0,s:0};const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
 function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);const y={f:Math.max(2,cy.f)+1,p:Math.max(1,cy.p)+1,s:1+cy.s};
   const cand=ring(c.q,c.r,Math.max(2,cityRadius(c))).filter(t=>t.own===c.owner&&!(t.q===c.q&&t.r===c.r)&&!taken.has(key(t.q,t.r))&&!cityAt(t.q,t.r)&&t.nest===undefined);
   const fw=FOCUS[c.focus||'bal'].w;const sc=t=>{const v=tileYield(t);return v.f*fw[0]+v.p*fw[1]+v.s*fw[2]+(c.pop<4?v.f*0.3:0);};
@@ -399,7 +400,7 @@ function buildOptions(c){const o=c.owner,out=[];for(const k in UN){if(!unitOK(o,
   for(const k in WON){if(G.wonders[k]!==undefined||!hasTech(o,WON[k].tech))continue;if(Object.values(G.cities).some(x=>x.owner===o&&x!==c&&x.build&&x.build.k===k))continue;out.push({t:'w',k});}return out;}
 function processCities(o){const taken=new Set();let sci=0;
   for(const c of civCities(o)){const y=cityWork(c,taken);sci+=y.s;
-    c.food+=y.f-y.need;if(c.food>=growNeed(c)){c.food=c.blds.granary?Math.floor(growNeed(c)*0.3):0;c.pop++;claim(c,cityRadius(c));if(o===ME)feed(`「${c.name}」居民增长到 ${c.pop}。`);}
+    c.food+=y.f-y.need;if(c.food>=growNeed(c)){c.food=c.blds.granary?Math.floor(growNeed(c)*0.3):0;c.pop++;if(o===ME)feed(`「${c.name}」居民增长到 ${c.pop}。`);}
     else if(c.food<0){if(c.pop>1){c.pop--;c.food=0;if(o===ME)feed(`「${c.name}」在挨饿，居民减少。`,'bad');}else c.food=0;}
     if(c.build){c.prod+=y.p;const cost=buildCost(c,c.build);if(c.prod>=cost){if(completeBuild(c))c.prod-=cost;}}else c.prod+=y.p*0.5;
     c.hp=Math.min(maxHP(c),c.hp+20);c.shot=0;
@@ -452,7 +453,7 @@ function popGoody(u,t){delete t.goody;const o=u.owner;const cv=G.civs[o];const r
   if(o===ME){feed(msg,'good');SFX.goody();pops.push({q:t.q,r:t.r,txt:'遗迹',col:'#c48a1c',t:0});}}
 
 /* ---------- 战斗 ---------- */
-function strMod(u,vsZ,def,tile){let m=1;if(def){m+=TERR[tile.t].def/100;if(u.fort)m+=UN[u.k].fortB||0.25;if(cityAt(u.q,u.r))m+=0.25;}
+function strMod(u,vsZ,def,tile){let m=1;if(def){m+=TERR[tile.t].def/100;if(tile.tower===u.owner)m+=0.25;if(u.fort)m+=UN[u.k].fortB||0.25;if(cityAt(u.q,u.r))m+=0.25;}
   if(vsZ&&u.owner>=0&&hasTech(u.owner,'serum'))m+=0.5;if(u.owner>=0&&Object.values(G.units).some(g=>g.k==='general'&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=2))m+=0.2;if(UN[u.k].hz)m+=vsZ?0.5:-0.25;if(def&&u.owner>=0&&Object.values(G.units).some(g=>g!==u&&UN[g.k].aura&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=1))m+=0.2;if(UN[u.k].z)m+=Math.min(0.6,G.turn/180)+[ -0.1,0,0.15][G.diff];return m;}
 const hpF=hp=>0.55+0.45*hp/100;
 function cityStr(c){let s=8+c.pop*1.6+(c.blds.walls?8:0);const g=unitAt(c.q,c.r);if(g&&isMil(g))s+=UN[g.k].str*0.3;const tl=Object.keys(G.civs[c.owner].techs).length;s+=tl*0.6;if(G.wonders&&hasWon(c.owner,'wall'))s+=6;return s;}
@@ -491,7 +492,7 @@ function zombieRaid(c){c.hp=60;if(c.pop>1){c.pop--;if(c.owner===ME)feed(`丧尸�
 function destroyCity(c){delete G.cities[c.id];delete CAT[key(c.q,c.r)];for(const t of Object.values(G.tiles))if(t.own===c.owner&&hexDist(t.q,t.r,c.q,c.r)<=1&&!civCities(c.owner).some(x=>hexDist(x.q,x.r,t.q,t.r)<=2))t.own=-1;checkAlive(c.owner);}
 function captureCity(c,u){const old=c.owner,o=u.owner;c.owner=o;c.pop=Math.max(1,Math.ceil(c.pop/2));c.hp=60;c.build=null;c.prod=0;delete c.blds.walls;delete c.blds.ark;
   if(c.cap){c.cap=false;const rest=civCities(old);G.civs[old].cap=null;if(rest.length){rest[0].cap=true;G.civs[old].cap=rest[0].id;}}
-  for(const t of ring(c.q,c.r,cityRadius(c)))if(t.own===old||t.own<0)t.own=o;
+  for(const t of ring(c.q,c.r,1))if(t.own===old||t.own<0)t.own=o;
   delete UAT[key(u.q,u.r)];u.q=c.q;u.r=c.r;UAT[key(c.q,c.r)]=u;u.mv=0;
   G.civs[old].lost++;if(o>=0){const pm=fac(o)===1?2:1;G.civs[o].sci+=(30+c.pop*5)*pm;G.civs[o].gp+=15;const near=civCities(o).filter(x=>x!==c).sort((a,b)=>hexDist(a.q,a.r,c.q,c.r)-hexDist(b.q,b.r,c.q,c.r))[0];if(near)near.prod+=30*pm;}
   if(o===ME){toast(`占领「${c.name}」`,(c.origCap?`这是${civName(c.orig)}的主营！`:'')+`掠夺：蓝图 +${30+c.pop*5}，传奇点数 +15`+(cityWons(c).length?`，地标「${cityWons(c).map(k=>WON[k].n).join('、')}」归我们了`:''));SFX.capture();feed(`我们占领了「${c.name}」。`,'good');}
@@ -561,7 +562,7 @@ function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);cons
 function aiResearch(o){const cv=G.civs[o];if(cv.res)return;const av=Object.keys(TECH).filter(k=>!cv.techs[k]&&TECH[k].req.every(r=>cv.techs[r]));if(!av.length)return;
   const F=fac(o);const pref=F===3?['scav','agri','write','moto','power','serum','fort','bow','cannon','armor','ark']:o===0&&BOT==='purify'?['bow','agri','write','serum','fort','scav','moto','armor','cannon','power','ark']:o===0&&BOT==='war'?['bow','scav','fort','moto','armor','cannon','agri','write','serum','power','ark']:F===1?['bow','agri','scav','write','fort','moto','power','armor','cannon','serum','ark']:['agri','scav','write','bow','serum','power','fort','moto','ark','cannon','armor'];
   av.sort((a,b)=>pref.indexOf(a)-pref.indexOf(b));cv.res=av[0];}
-function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);
+function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);aiExpand(o);
   for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);
   // 据点射击
   for(const c of civCities(o)){if(c.shot)continue;const tgts=Object.values(G.units).filter(u=>u.owner!==o&&atWar(o,u.owner)&&hexDist(u.q,u.r,c.q,c.r)<=2);if(tgts.length){tgts.sort((a,b)=>a.hp-b.hp);doAttack({type:'city',o:c},{type:'unit',o:tgts[0],owner:tgts[0].owner});}}
@@ -579,7 +580,9 @@ function bestTarget(u,maxd){let best=null,bs=-1e9;const U=UN[u.k];if(u.fired||U.
 function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(u.k==='settler'){let site=u.site&&T(u.site[0],u.site[1]);if(!site||!canFound(site.q,site.r,u.owner)){let best=null,bs=-1;for(const t of ring(u.q,u.r,9)){let s=siteScore(u.owner,t);if(s<0)continue;s-=hexDist(u.q,u.r,t.q,t.r)*1.4;if(Object.values(G.units).some(z=>z.owner<0&&hexDist(z.q,z.r,t.q,t.r)<=2))s-=10;if(s>bs){bs=s;best=t;}}if(!best)return;u.site=[best.q,best.r];site=best;}
     if(u.q===site.q&&u.r===site.r){foundCity(u);return;}const p=findPath(u,site.q,site.r,false);if(!p){u.site=null;return;}walkPath(u,p);if(u.q===site.q&&u.r===site.r&&canFound(u.q,u.r,u.owner))foundCity(u);return;}
-  if(u.k==='worker'){if(u.work)return;const here=T(u.q,u.r);const want=t=>t.own===u.owner&&t.nest===undefined&&!cityAt(t.q,t.r)&&(t.bl!==undefined||(!t.imp&&impFor(t)));
+  if(u.k==='worker'){if(u.work)return;const here=T(u.q,u.r);const bord=t=>t.own===u.owner&&t.tower===undefined&&!cityAt(t.q,t.r)&&t.t!=='w'&&nbrs(t.q,t.r).some(n=>n.own>=0&&n.own!==u.owner)&&!ring(t.q,t.r,2).some(n=>n.tower===u.owner);
+    if(bord(here)&&rnd()<0.6){startTower(u);return;}
+    if(atWarAny(u.owner)||rnd()<0.3){let bt=null,bd2=1e9;for(const c of civCities(u.owner))for(const t of ring(c.q,c.r,4)){if(!bord(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd2){bd2=d;bt=t;}}if(bt&&bd2<=6&&rnd()<0.5){const p=findPath(u,bt.q,bt.r,false);if(p){walkPath(u,p);if(u.mv>0&&bord(T(u.q,u.r)))startTower(u);return;}}}const want=t=>t.own===u.owner&&t.nest===undefined&&!cityAt(t.q,t.r)&&(t.bl!==undefined||(!t.imp&&impFor(t)));
     if(want(here)&&civCities(u.owner).some(c=>hexDist(c.q,c.r,here.q,here.r)<=2)){startWork(u);return;}
     let best=null,bd=1e9;for(const c of civCities(u.owner))for(const t of ring(c.q,c.r,2)){if(!want(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r)-(t.bl!==undefined?2:0)-(t.res?1:0);if(d<bd){bd=d;best=t;}}
     if(best){const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);if(u.mv>0&&want(T(u.q,u.r)))startWork(u);}return;}
@@ -598,6 +601,8 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(!goal){const field=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar).length;let best=null,bd=1e9;for(const n of Object.values(G.nests)){if(!n.alive)continue;const d=hexDist(u.q,u.r,n.q,n.r);const dc=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,n.q,n.r)),99);if((dc<=8+G.turn/12||fac(u.owner)===2&&G.turn>30||u.owner===0&&BOT==='purify')&&d<bd&&(field>=2||nestStr(n)<U.str*1.3)){bd=d;best=n;}}if(best)goal=[best.q,best.r];}
   if(!goal&&T(u.q,u.r).bl!==undefined&&T(u.q,u.r).own===u.owner){purge(u);return;}
   if(!goal){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(t.bl===undefined||t.own!==u.owner||t.nest!==undefined||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}if(best&&bd<=6){goal=[best.q,best.r];adj=false;}}
+  if(!goal&&!U.sc){const here=T(u.q,u.r);const cap=t=>t.t!=='m'&&!cityAt(t.q,t.r)&&t.nest===undefined&&t.bl===undefined&&(t.own<0||(t.own!==u.owner&&atWar(u.owner,t.own)&&!(towerGuard(t,t.own)&&t.tower!==t.own)))&&nbrs(t.q,t.r).some(n=>n.own===u.owner);
+    if(cap(here)){u.fort=1;return;}let bt=null,bd2=1e9;for(const t of ring(u.q,u.r,5)){if(!cap(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r)-(t.own>=0?2:0);if(d<bd2){bd2=d;bt=t;}}if(bt){goal=[bt.q,bt.r];adj=false;}}
   if(!goal){const c=civCities(u.owner).sort((a,b)=>hexDist(a.q,a.r,u.q,u.r)-hexDist(b.q,b.r,u.q,u.r))[0];if(c&&hexDist(c.q,c.r,u.q,u.r)>2){goal=[c.q,c.r];}else{u.fort=1;return;}}
   const p=findPath(u,goal[0],goal[1],adj);if(p){const stopAt=U.rs?U.rng:1;const trimmed=[];for(const s of p){trimmed.push(s);if(U.rs&&hexDist(s[0],s[1],goal[0],goal[1])<=stopAt&&tgtAt(goal[0],goal[1]))break;}walkPath(u,trimmed);}
   if(u.mv>0)tryAtk();
@@ -605,9 +610,39 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
 
 /* ---------- 建设队 ---------- */
 function impFor(t){if(t.bl!==undefined)return null;for(const k in IMP)if(IMP[k].on.includes(t.t))return k;return null;}
+function startTower(u){const t=T(u.q,u.r);if(t.own!==u.owner||t.tower!==undefined||cityAt(t.q,t.r)||t.t==='w')return false;u.work={k:'tower',left:2};u.mv=0;u.acted=1;return true;}
 function startWork(u){const t=T(u.q,u.r);if(t.bl!==undefined&&t.nest===undefined){u.work={k:'purge',left:1};}else{const k=impFor(t);if(!k||t.imp||t.own!==u.owner)return false;u.work={k,left:fac(u.owner)===2?2:3};}u.mv=0;u.acted=1;return true;}
+/* ---------- 占地：开拓、插旗、补给线、哨塔 ---------- */
+let WIN_LAND=0.55;
+function epRate(o){return 1.5+civCities(o).reduce((a,c)=>a+1+c.pop*0.2,0);}
+function landTiles(){return Object.values(G.tiles).filter(t=>t.t!=='m');}
+function winLand(){return G&&G.n===4?0.4:0.5;}
+function landShare(o){const all=landTiles();return all.filter(t=>t.own===o&&!t.iso).length/all.length;}
+function ownCityDist(o,t){let d=99;for(const c of Object.values(G.cities))if(c.owner===o)d=Math.min(d,hexDist(c.q,c.r,t.q,t.r));return d;}
+function claimable(o,t){if(!t||t.t==='m'||t.own>=0||t.nest!==undefined||cityAt(t.q,t.r))return false;if(t.bl!==undefined)return false;if(!nbrs(t.q,t.r).some(n=>n.own===o&&!n.iso))return false;return ownCityDist(o,t)<=4;}
+function claimCost(o,t){const d=ownCityDist(o,t);let c=2+(d-1)*1.5+((t.t==='f'||t.t==='h')?1:0)+(t.res?1:0)+(t.t==='o'?2:0);if(fac(o)===2)c*=0.85;return Math.max(1,Math.round(c));}
+function doClaim(o,t){if(!claimable(o,t))return false;const c=claimCost(o,t);const cv=G.civs[o];if((cv.ep||0)<c)return false;cv.ep-=c;t.own=o;if(o===ME){pops.push({q:t.q,r:t.r,txt:'开拓',col:'#5e8c55',t:0});SFX.click();}return true;}
+function towerGuard(t,o){// o 方的哨塔是否保护着这一格
+  for(const n of [t].concat(nbrs(t.q,t.r)))if(n.tower===o&&n.own===o)return true;return false;}
+function territoryTick(){
+  // 插旗：军队在不属于自己的格子上过了一天
+  for(const u of Object.values(G.units)){if(u.owner<0||!isMil(u)||UN[u.k].sc)continue;const t=T(u.q,u.r);if(t.own===u.owner&&!t.iso)continue;if(cityAt(t.q,t.r)||t.nest!==undefined||t.t==='m')continue;
+    if(t.own>=0&&t.own!==u.owner){if(!atWar(u.owner,t.own))continue;
+      if(t.tower===t.own){delete t.tower;if(u.owner===ME||t.own===ME){pops.push({q:t.q,r:t.r,txt:'拆塔',col:'#d9645a',t:0});feed(u.owner===ME?'我们拆掉了一座敌方哨塔，明天就能插旗。':'我们的一座哨塔被拆了！','');}continue;}
+      if(towerGuard(t,t.own)){if(u.owner===ME&&!u.twWarn){u.twWarn=1;feed('这一格被敌方哨塔保护着，先去拆掉旁边的哨塔。','bad');}continue;}
+      const was=t.own;t.own=u.owner;delete t.iso;delete t.tower;if(u.owner===ME||was===ME)pops.push({q:t.q,r:t.r,txt:u.owner===ME?'插旗':'失地',col:u.owner===ME?'#4f86c6':'#d9645a',t:0});}
+    else{t.own=u.owner;delete t.iso;if(u.owner===ME)pops.push({q:t.q,r:t.r,txt:'插旗',col:'#4f86c6',t:0});}}
+  // 补给线：没有连到自己据点的地变成孤地，3 天后丢失
+  for(const o of CIV()){const seen=new Set();const st=[];for(const c of civCities(o)){const k=key(c.q,c.r);seen.add(k);st.push(T(c.q,c.r));}
+    while(st.length){const t=st.pop();for(const n of nbrs(t.q,t.r)){const k=key(n.q,n.r);if(seen.has(k)||n.own!==o)continue;seen.add(k);st.push(n);}}
+    let lost=0,newIso=0;for(const t of Object.values(G.tiles)){if(t.own!==o)continue;if(seen.has(key(t.q,t.r))){delete t.iso;continue;}if(!t.iso)newIso++;t.iso=(t.iso||0)+1;if(t.iso>3){t.own=-1;delete t.iso;delete t.tower;lost++;}}
+    if(o===ME){if(newIso)feed(`有 ${newIso} 块地和据点断了联系，变成孤地：什么都不产，3 天内接不回来就会丢。`,'bad');if(lost)feed(`${lost} 块孤地失守了。`,'bad');}}
+  // 统一废土：占地过半
+  for(const o of CIV()){if(G.civs[o].alive&&landShare(o)>=winLand()){endGame(o,'conquest');return;}}}
+function aiExpand(o){const cv=G.civs[o];let n=0;while(n<5){let best=null,bs=-1e9;for(const c of civCities(o))for(const t of ring(c.q,c.r,4)){if(!claimable(o,t))continue;const y=tileYield(t);const sc=y.f*1.2+y.p+y.s+(t.res?1.5:0)-claimCost(o,t)*0.35-ownCityDist(o,t)*0.3;if(sc>bs){bs=sc;best=t;}}
+    if(!best||cv.ep<claimCost(o,best))break;doClaim(o,best);n++;}}
 /* ---------- 天流程 ---------- */
-function purge(u){const t=T(u.q,u.r);if(t.bl===undefined)return false;if(t.nest!==undefined)return false;delete t.bl;u.mv=0;u.acted=1;if(u.owner===ME){feed('净化了一块感染地。','good');SFX.purge();pops.push({q:t.q,r:t.r,txt:'净化',col:'#5e8c55',t:0});}return true;}
+function purge(u){const t=T(u.q,u.r);if(t.bl===undefined)return false;if(t.nest!==undefined)return false;delete t.bl;if(t.own<0)t.own=u.owner;u.mv=0;u.acted=1;if(u.owner===ME){feed('净化了一块感染地。','good');SFX.purge();pops.push({q:t.q,r:t.r,txt:'净化',col:'#5e8c55',t:0});}return true;}
 function research(o,sci){const cv=G.civs[o];cv.sci+=sci;cv.lastSci=sci;if(!cv.res){if(cv.ai)aiResearch(o);if(!cv.res)return;}
   const k=cv.res;if(cv.sci>=TECH[k].cost){cv.sci-=TECH[k].cost;cv.techs[k]=1;cv.res=null;if(o===ME){toast(`蓝图破解：${TECH[k].n}`,unlocksText(k));SFX.tech();feed(`蓝图破解：${TECH[k].n}。${unlocksText(k)}`,'sci');}
     else if(k==='ark'){feed(`${civName(o)}完成了方舟计划，正在建造方舟！`,'bad');toast(`${civName(o)}开始建造方舟`,'阻止他们：占领他们的主营，或者抢先建成');}
@@ -617,11 +652,12 @@ function endTurn(){if(busy||!G||G.over)return;busy=true;pend=null;
   G.asks=G.asks.filter(a=>a.t!=='peace');
   // 玩家据点自动选生产、没选的传奇幸存者默认老教授
   for(const o of CIV()){if(!isHum(o)||!G.civs[o].alive)continue;for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);if(!G.civs[o].res)aiResearch(o);while(G.civs[o].gpPend>0){G.civs[o].gpPend--;grantGP(o,HEADLESS&&BOT==='purify'?'saint':HEADLESS&&BOT==='war'?'general':'scientist');}G.civs[o].ready=false;}
-  for(const o of CIV()){if(!G.civs[o].alive)continue;const s=processCities(o);research(o,s);if(G.over){busy=false;return;}}
+  for(const o of CIV()){if(!G.civs[o].alive)continue;const s=processCities(o);research(o,s);const cv=G.civs[o];cv.ep=(cv.ep||0)+epRate(o);if(G.over){busy=false;return;}}
   for(const o of CIV()){if(!G.civs[o].ai)continue;aiTurn(o);if(G.over){busy=false;return;}}
   zombieTurn();if(G.over){busy=false;return;}nestTurn();
+  for(const u of Object.values(G.units))delete u.twWarn;territoryTick();if(G.over){busy=false;return;}
   // 天末：感染伤害、回血、重置
-  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){if(u.work.k==='purge'){delete t.bl;}else t.imp=u.work.k;if(u.owner===ME){feed(u.work.k==='purge'?'建设队净化了一块感染地。':`${IMP[u.work.k].n}修好了：${IMP[u.work.k].d}。`,'good');pops.push({q:t.q,r:t.r,txt:u.work.k==='purge'?'净化':IMP[u.work.k].n,col:'#5e8c55',t:0});}u.work=null;}}}
+  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){const wk=u.work.k;if(wk==='purge'){delete t.bl;if(t.own<0)t.own=u.owner;}else if(wk==='tower'){if(t.own===u.owner)t.tower=u.owner;}else t.imp=wk;if(u.owner===ME){feed(wk==='purge'?'净化了一块感染地，这一格归我们了。':wk==='tower'?'哨塔修好了：它周围一圈的地，敌人插不了旗。':`${IMP[wk].n}修好了：${IMP[wk].d}。`,'good');pops.push({q:t.q,r:t.r,txt:wk==='purge'?'净化':wk==='tower'?'哨塔':IMP[wk].n,col:'#5e8c55',t:0});}u.work=null;}}}
   for(const o of CIV())if(G.civs[o].alive)gpTick(o);
   for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(u.owner>=0&&t.bl!==undefined){u.hp-=6;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}死在了感染区里。`,'bad');removeUnit(u);continue;}}
     if(!u.acted){let h=10;if(u.owner>=0&&t.own===u.owner)h+=fac(u.owner)===0?20:10;if(cityAt(u.q,u.r))h+=10;if(u.owner<0)h=t.bl!==undefined?15:5;u.hp=Math.min(100,u.hp+h);}
@@ -655,7 +691,7 @@ function checkAsks(){if(!G||G.over||askOpen||!$('#ovAsk').hidden||!$('#ovStory')
 function score(o){if(!G.civs[o].alive)return 0;let s=0;for(const c of civCities(o))s+=10+c.pop*3+Object.keys(c.blds).length*2;s+=Object.keys(G.civs[o].techs).length*6+G.nestK[o]*12+G.kills[o]+Object.keys(WON).filter(k=>hasWon(o,k)).length*15;return s;}
 function endGame(w,how){if(G.over)return;G.over={w,how};if(NETON&&NET.host)setTimeout(netSnap,50);save();try{localStorage.removeItem(SAVEK);}catch(e){}
   const win=w===ME;const HOW={conquest:'统一废土',purify:'大地复苏',science:'方舟启航',score:'繁荣胜利',dead:'阵营覆灭'};
-  const ch=FAC[fac(ME)].ch;const txt=win?{conquest:`四个字里只剩下一个。从今往后，废土上的人提起「${ch}」，不必再问怎么念。`,purify:`又一座尸巢倒下的那天，灰土里冒出了第一片绿芽。人们说，是「${ch}」把大地叫醒的。`,science:`方舟在雷声里升空。底下的废土上，有人仰头看了很久，念出了船身上那个难念的字：「${ch}」。`,score:`一百五十天过去，没有人赢下全部，但「${ch}」的灯火最亮。`}[how]
+  const ch=FAC[fac(ME)].ch;const txt=win?{conquest:`半片废土插满了「${ch}」的旗。从今往后，废土上的人提起这个字，不必再问怎么念。`,purify:`又一座尸巢倒下的那天，灰土里冒出了第一片绿芽。人们说，是「${ch}」把大地叫醒的。`,science:`方舟在雷声里升空。底下的废土上，有人仰头看了很久，念出了船身上那个难念的字：「${ch}」。`,score:`一百五十天过去，没有人赢下全部，但「${ch}」的灯火最亮。`}[how]
     :how==='dead'?`最后一座据点也失守了。废土上再也没有人念「${ch}」这个字。`:`${civName(w)}取得了${HOW[how]}。历史记住的是「${FAC[fac(w)].ch}」，而我们的字，渐渐没人会念了。`;
   setTimeout(()=>{$('#endC').innerHTML=`<div class="eb">第 ${G.turn} 天 · ${['简单','普通','困难'][G.diff]}</div><h2>${win?HOW[how]:'失败'}</h2><p>${txt}</p>
     <div class="stats3"><div>据点<b>${civCities(ME).length}</b></div><div>蓝图<b>${Object.keys(G.civs[ME].techs).length}/${Object.keys(TECH).length}</b></div><div>摧毁尸巢<b>${G.nestK[ME]}</b></div></div>
@@ -803,6 +839,13 @@ function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGrad
   // 国界
   ctx.lineCap='round';for(const k in G.tiles){const t=G.tiles[k];if(t.own<0||!t.ex)continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;
     for(let i=0;i<6;i++){const nb=T(t.q+DIRS[i][0],t.r+DIRS[i][1]);if(nb&&nb.own===t.own)continue;const a=vtx(i,Z*0.93),b=vtx(i+1,Z*0.93);ctx.strokeStyle=civCol(t.own);ctx.globalAlpha=0.85;ctx.lineWidth=Math.max(2,Z*0.07);ctx.beginPath();ctx.moveTo(sx+a[0],sy+a[1]);ctx.lineTo(sx+b[0],sy+b[1]);ctx.stroke();ctx.globalAlpha=1;}}
+  // 开拓模式：可开拓的格子
+  if(claimMode&&G.civs[ME]){const ep=G.civs[ME].ep||0;for(const k in G.tiles){const t=G.tiles[k];if(!t.ex||!claimable(ME,t))continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;const c=claimCost(ME,t);const ok=ep>=c;const p=0.5+0.5*Math.sin(gt*4);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.86);ctx.fillStyle=ok?`rgba(94,140,85,${0.18+p*0.12})`:'rgba(255,255,255,.12)';ctx.fill();ctx.setLineDash([Z*0.12,Z*0.08]);ctx.strokeStyle=ok?'rgba(94,140,85,.9)':'rgba(120,110,100,.5)';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ok?'#3f6b38':'#8a8478';ctx.font=`900 ${Math.max(11,Z*0.24)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c,0,0);ctx.restore();}ctx.textAlign='left';}
+  // 孤地、哨塔、插旗中的格子
+  for(const k in G.tiles){const t=G.tiles[k];if(!t.ex)continue;if(!t.iso&&t.tower===undefined)continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;
+    if(t.iso&&t.own>=0){ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.93);ctx.clip();ctx.strokeStyle='rgba(217,80,70,.45)';ctx.lineWidth=2;for(let i=-3;i<=3;i++){ctx.beginPath();ctx.moveTo(i*Z*0.3-Z,Z);ctx.lineTo(i*Z*0.3+Z,-Z);ctx.stroke();}ctx.restore();}
+    if(t.tower!==undefined){const col=civCol(t.tower);const x=sx+Z*0.38,y=sy-Z*0.05;ctx.fillStyle='rgba(60,50,40,.2)';ctx.beginPath();ctx.ellipse(x,y,Z*0.12,Z*0.05,0,0,7);ctx.fill();ctx.fillStyle='#8a7a66';ctx.fillRect(x-Z*0.05,y-Z*0.42,Z*0.1,Z*0.42);ctx.fillStyle='#a8977f';ctx.fillRect(x-Z*0.1,y-Z*0.5,Z*0.2,Z*0.1);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,y-Z*0.5);ctx.lineTo(x,y-Z*0.72);ctx.lineTo(x+Z*0.16,y-Z*0.66);ctx.lineTo(x,y-Z*0.6);ctx.fill();}}
+  for(const id in G.units){const u=G.units[id];if(u.owner<0||!isMil(u)||UN[u.k].sc)continue;if(u.owner!==ME&&!VIS.has(key(u.q,u.r)))continue;const t=T(u.q,u.r);if((t.own===u.owner&&!t.iso)||cityAt(t.q,t.r)||t.t==='m')continue;if(t.own>=0&&t.own!==u.owner&&!atWar(u.owner,t.own))continue;const[sx,sy]=w2s(u.q,u.r);const col=civCol(u.owner);const wv=Math.sin(gt*5+u.id)*Z*0.03;ctx.strokeStyle='#5a4a3a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx+Z*0.3,sy+Z*0.1);ctx.lineTo(sx+Z*0.3,sy-Z*0.45);ctx.stroke();ctx.fillStyle=col;ctx.globalAlpha=0.55+0.45*Math.abs(Math.sin(gt*3));ctx.beginPath();ctx.moveTo(sx+Z*0.3,sy-Z*0.45);ctx.lineTo(sx+Z*0.58,sy-Z*0.37+wv);ctx.lineTo(sx+Z*0.3,sy-Z*0.28);ctx.fill();ctx.globalAlpha=1;}
   // 选中：可到达、攻击目标、路径
   if(sel&&(sel.u||sel.c||sel.tile)){const sq=sel.u||sel.c||sel.tile;const[sx,sy]=w2s(sq.q,sq.r);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.9);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.setLineDash([Z*0.14,Z*0.08]);ctx.lineDashOffset=-gt*12;ctx.stroke();ctx.restore();ctx.setLineDash([]);}
   if(reach){for(const[k,v]of reach){const[a,b]=k.split(',').map(Number);if(sel&&sel.u&&a===sel.u.q&&b===sel.u.r)continue;const[sx,sy]=w2s(a,b);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.86);ctx.fillStyle=v.mv>0?'rgba(255,255,255,.32)':'rgba(255,255,255,.2)';ctx.fill();ctx.restore();}}
@@ -857,6 +900,8 @@ function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(!cv.alive&&
     case 'fort':{const u=U(c.u);if(u)u.fort=u.fort?0:1;break;}
     case 'purge':{const u=U(c.u);if(u&&u.mv>0)purge(u);break;}
     case 'work':{const u=U(c.u);if(u&&u.mv>0)startWork(u);break;}
+    case 'tower':{const u=U(c.u);if(u&&u.mv>0&&UN[u.k].wk)startTower(u);break;}
+    case 'claim':{doClaim(o,T(c.q,c.r));break;}
     case 'stop':{const u=U(c.u);if(u)u.dest=null;break;}
     case 'del':{const u=U(c.u);if(u)removeUnit(u);break;}
     case 'gp':{if(cv.gpPend>0&&GPT[c.k]){cv.gpPend--;grantGP(o,c.k);}break;}
@@ -892,19 +937,20 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
   if(sel.u){const u=sel.u,U=UN[u.k];const mine=u.owner===ME;const t=T(u.q,u.r);
     const acts=[];if(mine){if(u.k==='settler')acts.push(`<button class="b main" id="aFound" ${canFound(u.q,u.r,ME)&&u.mv>0?'':'disabled'}>建据点</button>`);
       if(isMil(u)&&t.bl!==undefined&&t.nest===undefined)acts.push(`<button class="b" id="aPurge" ${u.mv>0?'':'disabled'}>净化此地</button>`);
-      if(UN[u.k].wk){if(u.work)acts.push(`<button class="b" disabled>${u.work.k==='purge'?'净化中':'修建'+IMP[u.work.k].n+'中'} · 还要 ${u.work.left} 天</button>`);
+      if(UN[u.k].wk){if(u.work)acts.push(`<button class="b" disabled>${u.work.k==='purge'?'净化中':u.work.k==='tower'?'修建哨塔中':'修建'+IMP[u.work.k].n+'中'} · 还要 ${u.work.left} 天</button>`);
         else if(t.bl!==undefined&&t.nest===undefined)acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>净化（1 天）</button>`);
-        else{const k=impFor(t);if(k&&!t.imp&&t.own===ME&&!cityAt(t.q,t.r))acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>修${IMP[k].n}（3 天，${IMP[k].d}）</button>`);}}
+        else{if(t.own===ME&&t.tower===undefined&&!cityAt(t.q,t.r)&&t.t!=='w')acts.push(`<button class="b" id="aTower" ${u.mv>0?'':'disabled'}>修哨塔（2 天）</button>`);const k=impFor(t);if(k&&!t.imp&&t.own===ME&&!cityAt(t.q,t.r))acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>修${IMP[k].n}（3 天，${IMP[k].d}）</button>`);}}
       if(isMil(u))acts.push(`<button class="b" id="aFort">${u.fort?'取消驻守':'驻守'}</button>`);
       acts.push(`<button class="b" id="aSkip">跳过</button>`);if(u.dest)acts.push(`<button class="b" id="aStop">取消行军</button>`);acts.push(`<button class="b sm" id="aDel">解散</button>`);}
     const wnote=UN[u.k].wk&&mine&&!u.work?(t.own!==ME?'建设队只能在自己的领土里干活。':t.imp?`这里已经有${IMP[t.imp].n}了。`:!impFor(t)&&t.bl===undefined?'这种地形没有可修的设施。草地/平原修农场，丘陵修矿场，森林修伐木场，废墟修拾荒站。':''):'';
     const fnote=wnote||(u.k==='settler'&&mine?(canFound(u.q,u.r,ME)?'这里可以建据点。据点之间至少隔 3 格，不能建在感染地和别人的领土上。':'这里不能建据点：离其他据点太近、在感染地上，或是别人的领土。'):'');
     el.innerHTML=`<div class="hd"><i style="background:${civCol(u.owner)}">${U.ch}</i><div><b>${U.n}</b> <small>${civName(u.owner)}</small><br><small>${U.d||'丧尸'}</small></div></div>
       <div class="row"><span>生命 <b>${Math.round(u.hp)}</b></span><span>${U.rs?'远程 <b>'+U.rs+'</b>（'+U.rng+' 格）· ':''}近战 <b>${U.str}</b></span><span>移动 <b>${mine?u.mv+'/'+U.mv:U.mv}</b></span><span>${TERR[t.t].n}${TERR[t.t].def?' 防御+'+TERR[t.t].def+'%':''}</span></div>
-      ${fnote?`<p>${fnote}</p>`:''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
+      ${fnote?`<p>${fnote}</p>`:''}${mine&&isMil(u)&&!UN[u.k].sc&&!cityAt(u.q,u.r)&&(t.own!==ME||t.iso)&&t.t!=='m'?`<p style="color:var(--sci)">${t.own>=0&&t.own!==ME?(atWar(ME,t.own)?(t.tower===t.own?'停在这里过一天会拆掉哨塔。':towerGuard(t,t.own)?'这里被敌方哨塔保护，插不了旗。':'停在这里过一天就会插旗，把这格抢过来。'):'这是别人的地，和平时插不了旗。'):'停在这里过一天就会插旗占领。'}</p>`:''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
     const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f;};
     on('aFound',()=>{const q=u.q,r=u.r;postSel=()=>{const c=cityAt(q,r);if(c&&c.owner===ME){select({c});toast(`「${c.name}」建立了`,'在据点面板里选择要生产什么');}else select(sel);};doCmd({t:'found',u:u.id});});
     on('aPurge',()=>{postSel=()=>nextIdle();doCmd({t:'purge',u:u.id});});
+    on('aTower',()=>{SFX.build();postSel=()=>nextIdle();doCmd({t:'tower',u:u.id});});
     on('aWork',()=>{SFX.build();postSel=()=>nextIdle();doCmd({t:'work',u:u.id});});
     on('aFort',()=>{const id=u.id;postSel=()=>{const v=G.units[id];if(v&&v.fort)nextIdle();else select(sel);};doCmd({t:'fort',u:id});});
     on('aSkip',()=>{u.skip=G.turn;nextIdle();updHUD();});
@@ -925,13 +971,15 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     else html+=`<p>${G.rel[ME][c.owner]==='war'?'<span class="tag war">交战中</span>':'<span class="tag peace">和平</span>'} 居民 ${c.pop}</p>`;
     $('#sel').innerHTML=html;$('#sel').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{SFX.click();doCmd({t:'focus',c:c.id,f:b.dataset.f});});$('#sel').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const[t,k]=b.dataset.b.split(':');SFX.click();doCmd({t:'build',c:c.id,bt:t,k});});
     return;}
-  if(sel.tile){const t=sel.tile;const y=tileYield(t);el.innerHTML=`<div class="hd"><i style="background:${TERR[t.t].c};color:#3a3a34">${TERR[t.t].n[0]}</i><div><b>${TERR[t.t].n}</b>${t.res?' · '+RES[t.res].n:''}${t.imp?' · '+IMP[t.imp].n:''}<br><small>${t.own>=0?civName(t.own)+'的领土':'无主之地'}</small></div></div>
+  if(sel.tile){const t=sel.tile;setTimeout(()=>{const b=$('#aClaim');if(b)b.onclick=()=>doCmd({t:'claim',q:t.q,r:t.r});},0);const y=tileYield(t);el.innerHTML=`<div class="hd"><i style="background:${TERR[t.t].c};color:#3a3a34">${TERR[t.t].n[0]}</i><div><b>${TERR[t.t].n}</b>${t.res?' · '+RES[t.res].n:''}${t.imp?' · '+IMP[t.imp].n:''}<br><small>${t.own>=0?civName(t.own)+'的领土':'无主之地'}</small></div></div>
     <div class="row"><span>口粮 <b>${y.f}</b></span><span>物资 <b>${y.p}</b></span><span>蓝图 <b>${y.s}</b></span>${TERR[t.t].mv>50?'<span>无法通行</span>':`<span>移动消耗 <b>${TERR[t.t].mv}</b></span>`}</div>
-    ${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
+    ${claimable(ME,t)?`<div class="acts"><button class="b main" id="aClaim" ${(G.civs[ME].ep||0)>=claimCost(ME,t)?'':'disabled'}>开拓这一格（${claimCost(ME,t)} 开拓点，现有 ${Math.floor(G.civs[ME].ep||0)}）</button></div>`:t.own<0&&t.t!=='m'?'<p>无主之地。贴着自己领土、离据点 4 格以内才能开拓；也可以派军队过去站一天插旗。</p>':''}${t.iso&&t.own>=0?`<p style="color:var(--bad)">孤地：和据点断了联系，什么都不产，再过 ${Math.max(0,4-t.iso)} 天会丢。把中间的地占回来就能接上。</p>`:''}${t.tower!==undefined?`<p>${civName(t.tower)}的哨塔：周围一圈的地敌人插不了旗；敌军站在塔上过一天就能拆掉。</p>`:''}${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
 function confirmAttack(){if(!pend)return;const{a,tg}=pend;pend=null;const id=a.o.id,at=a.type;
   postSel=()=>{if(G.over)return;if(at==='unit'&&G.units[id])select({u:G.units[id]});else if(at==='city'&&G.cities[id])select({c:G.cities[id]});else select(null);};
   doCmd({t:'atk',at,id,q:tg.o.q,r:tg.o.r});}
+let claimMode=false;
 function tapTile(q,r){if(!G||G.over||busy)return;const t=T(q,r);if(!t){select(null);return;}const k=key(q,r);
+  if(claimMode){if(claimable(ME,t)){if((G.civs[ME].ep||0)>=claimCost(ME,t)){tapFx={q,r,t:0};doCmd({t:'claim',q,r});}else{hint(`开拓点不够：要 ${claimCost(ME,t)}，现在 ${Math.floor(G.civs[ME].ep||0)}。`);tapFx={q,r,t:0,bad:1};}}else{tapFx={q,r,t:0,bad:1};hint('这一格不能开拓：要贴着自己的领土、离据点 4 格以内，而且不能是山、感染地或别人的地。');}return;}
   if(pend){if(pend.tg.o.q===q&&pend.tg.o.r===r){confirmAttack();return;}pend=null;}
   const tg=VIS.has(k)?tgtAt(q,r):null;
   if(sel&&sel.u&&sel.u.owner===ME&&sel.u.mv>0){const u=sel.u;
@@ -954,7 +1002,7 @@ function updHUD(){if(!G||!G.civs||!G.civs[ME])return;const cv=G.civs[ME];$('#tur
   const res=cv.res;const lastSci=civCities(ME).reduce((s,c)=>s+cityWork(c,new Set()).s,0);
   $('#sciName').textContent=res?TECH[res].n:'未选择';$('#sciBar').style.width=res?clamp(cv.sci/TECH[res].cost*100,0,100)+'%':'0';$('#sciSub').textContent=res?`${Math.floor(cv.sci)}/${TECH[res].cost} · ${Math.max(1,Math.ceil((TECH[res].cost-cv.sci)/Math.max(0.5,lastSci)))} 天`:'点这里选择要破解的蓝图';
   $('#stC').textContent=civCities(ME).length;$('#stP').textContent=civCities(ME).reduce((s,c)=>s+c.pop,0);$('#stS').textContent='+'+lastSci.toFixed(1);$('#stM').textContent=power(ME);
-  const caps=Object.values(G.cities).filter(c=>c.origCap&&c.orig!==ME);$('#vC').textContent=`${caps.filter(c=>c.owner===ME).length}/2`;
+  {const sh=CIV().map(o=>Math.round(landShare(o)*100));$('#vL').textContent=`${sh[ME]}%/${Math.round(winLand()*100)}%`;$('#vL').title=CIV().map(o=>civName(o)+' '+sh[o]+'%').join(' · ');$('#vE').textContent=`${Math.floor(cv.ep||0)} · +${epRate(ME).toFixed(1)}`;}
   $('#vN').textContent=`${G.nestK[ME]}/${G.pur||4} 座`;
   const cap=civCities(ME).find(c=>c.cap);$('#vA').textContent=cv.techs.ark?(cap&&cap.build&&cap.build.k==='ark'?Math.floor(cap.prod/BLD.ark.cost*100)+'%':'可以建造'):`${Object.keys(cv.techs).length}/${Object.keys(TECH).length} 蓝图`;
   {const cv0=G.civs[ME];$('#vG').textContent=`${Math.floor(cv0.gp||0)}/${gpNeed(ME)} · +${(cv0.gpRate||1).toFixed(1)}`;}
@@ -993,6 +1041,7 @@ $('#bNew').onclick=()=>{closeAll();newGame(diff,0,{n:spN,myF});showPrologue();};
 $('#bCont').onclick=()=>{const s=loadSave();if(!s)return;G=s;MW=G.mw||24;MH=G.mh||16;RNG=gRand;ME=0;try{STORY=JSON.parse(localStorage.getItem(storyKey())||'{}');}catch(e){STORY={};}G.wonders=G.wonders||{};G.asks=G.asks||[];G.civs.forEach(c=>{c.gp=c.gp||0;c.gpN=c.gpN||0;});diff=G.diff;closeAll();reidx();updVis();sel=null;const c=civCities(ME)[0]||civUnits(ME)[0];if(c)centerOn(c.q,c.r);updHUD();feed(`继续第 ${G.turn} 天。`);};
 
 $('#bMP').onclick=()=>openLobby();
+$('#bClaim').onclick=()=>{if(!G||G.over)return;claimMode=!claimMode;$('#bClaim').classList.toggle('main',claimMode);select(null);if(claimMode)hint(`开拓模式：点边界外发光的格子就能占下来（现有 ${Math.floor(G.civs[ME].ep||0)} 开拓点）。再点 ⛳ 退出。`);};
 $('#lbCreate').onclick=()=>{NET.opt={n:3,diff:1,timer:0};lobbyEnter(roomCode(),true);};
 $('#lbJoin').onclick=()=>{const c=($('#lbCode').value||'').trim().toUpperCase();if(c.length<4){lbMsg('房号不对');return;}lobbyEnter(c,false);};
 $('#lbCopy').onclick=()=>{const u=location.origin+location.pathname+'?room='+NET.room+(FAKE?'&fakenet=1':'');try{navigator.clipboard.writeText(u);lbMsg('已复制：'+u);}catch(e){lbMsg(u);}};
@@ -1000,7 +1049,7 @@ $('#lbBack').onclick=()=>{netLeave();$('#ovLobby').hidden=true;showMenu();};
 ['lbN','lbD','lbT'].forEach(id=>$('#'+id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!NET.host)return;const v=+b.dataset.v;if(id==='lbN')NET.opt.n=v;if(id==='lbD')NET.opt.diff=v;if(id==='lbT')NET.opt.timer=v;nsend('opt',NET.opt);lobbyList();}));
 $('#lbGo').onclick=lobbyStart;
 setInterval(()=>{if(NET.on&&NET.host&&!NET.started)nsend('opt',NET.opt);},3000);
-$('#bMenu').onclick=showMenu;$('#bDip').onclick=()=>{if(G)openDip();};$('#sciP').onclick=()=>{if(G&&!G.over)openTech();};$('#vic').onclick=()=>{if(G)feed('统一废土：占领所有敌方的原主营。大地复苏：最先摧毁 4 座尸巢。方舟启航：破解方舟计划蓝图，在主营造好方舟。');};
+$('#bMenu').onclick=showMenu;$('#bDip').onclick=()=>{if(G)openDip();};$('#sciP').onclick=()=>{if(G&&!G.over)openTech();};$('#vic').onclick=()=>{if(G){feed('领土：'+CIV().map(o=>civName(o)+' '+Math.round(landShare(o)*100)+'%').join('，'));}if(G)feed('统一废土：占下全地图一半的土地（4 阵营时 40%），或占领所有敌方原主营。大地复苏：最先摧毁 4 座尸巢。方舟启航：破解方舟计划蓝图，在主营造好方舟。');};
 $('#bEnd').onclick=mainBtn;$('#bSkip').onclick=()=>{if(!G||G.over||busy)return;if(NETON)doCmd({t:'ready',on:1});else endTurn();};
 addEventListener('keydown',e=>{if(!G||!$('#ovMenu').hidden||!$('#ovTech').hidden)return;if(e.code==='Space'||e.code==='Enter'){e.preventDefault();mainBtn();}
   else if(e.code==='Escape'){select(null);}else if(e.code==='KeyN')nextIdle();
@@ -1069,10 +1118,10 @@ function netOnCmd(c){if(!G||!NETON)return;if(c.seq<=G.seq)return;if(c.seq!==G.se
 function netOnReq(c){if(!NET.host||!G)return;const o=G.civs.findIndex(cv=>cv.pid===c.pid);if(o<0)return;delete c.pid;c.o=o;if(c.t==='end'||c.t==='ai')return;hostCmd(c);}
 function hostCheckEnd(){if(!NETON||!NET.host||!G||G.over||busy)return;const hum=CIV().filter(o=>isHum(o)&&G.civs[o].alive);const timeUp=G.timer>0&&G.dayT&&Date.now()-G.dayT>G.timer*1000;
   if(!hum.length||hum.every(o=>G.civs[o].ready)||timeUp)hostCmd({t:'end',o:ME});}
-function netSnap(){if(!NET.host||!G)return;const keys=Object.keys(G.tiles);const tl=keys.map(k=>{const t=G.tiles[k];return [t.t,t.own,t.bl===undefined?'':t.bl,t.imp||'',t.goody?1:'',t.nest===undefined?'':t.nest,t.res||''].join(',');}).join(';');
+function netSnap(){if(!NET.host||!G)return;const keys=Object.keys(G.tiles);const tl=keys.map(k=>{const t=G.tiles[k];return [t.t,t.own,t.bl===undefined?'':t.bl,t.imp||'',t.goody?1:'',t.nest===undefined?'':t.nest,t.res||'',t.tower===undefined?'':t.tower,t.iso||''].join(',');}).join(';');
   const g=Object.assign({},G,{tiles:null});nsend('s',{g:JSON.stringify(g,(k,v)=>k==='vq'||k==='vr'?undefined:v),tl});}
 function netOnSnap(sn){if(!G||!NETON||NET.host)return;const g=JSON.parse(sn.g);if(g.seq<G.seq)return;const tiles=G.tiles;const keys=Object.keys(tiles);const parts=sn.tl.split(';');
-  keys.forEach((k,i)=>{const t=tiles[k];const f=(parts[i]||'').split(',');t.t=f[0]||t.t;t.own=+f[1];if(f[2]==='')delete t.bl;else t.bl=+f[2];if(f[3])t.imp=f[3];else delete t.imp;if(f[4])t.goody=1;else delete t.goody;if(f[5]==='')delete t.nest;else t.nest=+f[5];if(f[6])t.res=f[6];else delete t.res;});
+  keys.forEach((k,i)=>{const t=tiles[k];const f=(parts[i]||'').split(',');t.t=f[0]||t.t;t.own=+f[1];if(f[2]==='')delete t.bl;else t.bl=+f[2];if(f[3])t.imp=f[3];else delete t.imp;if(f[4])t.goody=1;else delete t.goody;if(f[5]==='')delete t.nest;else t.nest=+f[5];if(f[6])t.res=f[6];else delete t.res;if(f[7]===undefined||f[7]==='')delete t.tower;else t.tower=+f[7];if(f[8])t.iso=+f[8];else delete t.iso;});
   const vpos={};for(const id in G.units){const u=G.units[id];vpos[id]=[u.vq,u.vr];}
   g.tiles=tiles;const wasOver=G.over;G=g;for(const id in G.units){const v=vpos[id];if(v){G.units[id].vq=v[0];G.units[id].vr=v[1];}}
   MW=G.mw;MH=G.mh;RNG=gRand;reidx();spriteCache.clear();afterCmd();
