@@ -143,7 +143,7 @@ button{font-family:var(--f-ui);}
   <div class="pane" id="brand"><h1>尸土重生</h1><span id="turnN">第 1 天</span></div>
   <button class="pane" id="sciP"><span>蓝图 <b id="sciName">未选择</b></span><div class="bar"><i id="sciBar" style="width:0"></i></div><span id="sciSub"></span></button>
   <div class="pane" id="stats"><span>据点<b id="stC">0</b></span><span>居民<b id="stP">0</b></span><span>蓝图<b id="stS">+0</b></span><span>军力<b id="stM">0</b></span></div>
-  <div class="pane" id="vic" title="胜利进度"><div><span>统一 领土</span><b id="vL">0%</b></div><div><span>开拓点</span><b id="vE">0</b></div><div><span>复苏 尸巢</span><b id="vN">0/4 座</b></div><div><span>方舟</span><b id="vA">未解锁</b></div><div><span>传奇点数</span><b id="vG">0/40</b></div></div>
+  <div class="pane" id="vic" title="胜利进度"><div><span>统一 领土</span><b id="vL">0%</b></div><div><span>开拓点</span><b id="vE">0</b></div><div><span>油 · 电 · 药</span><b id="vR">0/0</b></div><div><span>复苏 尸巢</span><b id="vN">0/4 座</b></div><div><span>方舟</span><b id="vA">未解锁</b></div><div><span>传奇点数</span><b id="vG">0/40</b></div></div>
 </div>
 <div id="tools" class="ui"><button class="b rb" id="bClaim" aria-label="开拓模式" title="开拓模式">⛳</button><button class="b rb" id="bDip" aria-label="外交">🤝</button><button class="b rb" id="bMenu" aria-label="菜单">☰</button><button class="b rb" id="bSnd" aria-label="声音">🔊</button></div>
 <div id="feed" class="ui"></div>
@@ -157,6 +157,8 @@ button{font-family:var(--f-ui);}
   <div class="facs" id="facPick"></div><p id="facInfo" style="font-size:13px;margin:4px 0 8px"></p>
   <ul>
     <li>按天推进：移动单位、建据点、生产、破解蓝图，点「结束这天」后轮到电脑</li>
+    <li><b>打仗讲站位</b>：走到敌军旁边会被拖住（控制区）；几个友军围着同一个目标打，每多一个 +15%；离开领土超过 1 格就断补给，每天掉血、战力 −20%</li>
+    <li><b>战略资源</b>：油、电、药散落在地图中间。快速和重型兵种要油，攻城和王牌要电，支援兵要药；每块资源地养 2 个单位。第 20、50 天各选一条阵营方针</li>
     <li><b>领土一格一格占</b>：用开拓点（⛳ 按钮）开拓边界外的格子；军队在别人的地上站一天就插旗抢过来。地必须连着自己的据点，被切断就变孤地，3 天后丢掉。建设队能修哨塔，挡住敌人插旗</li>
     <li>尸巢会孵出丧尸、扩散感染；净化一格感染地，那一格就归你；摧毁尸巢会长出绿洲</li>
     <li><b>三种胜利</b>：统一废土（占下一半土地，4 阵营时 40%；或占领所有敌方主营）、大地复苏（最先摧毁 4 座尸巢）、方舟启航（破解方舟计划蓝图，在主营造好方舟）</li>
@@ -216,7 +218,9 @@ const TERR={
   w:{n:'湖泊',f:2,p:0,s:0,mv:99,def:0,c:'#86c6e4'},
   m:{n:'山脉',f:0,p:0,s:0,mv:99,def:0,c:'#b3ada3'},
 };
-const RES={food:{n:'罐头仓',ch:'罐',f:2,c:'#e3a93b'},iron:{n:'废铁堆',ch:'铁',p:2,c:'#8a7f72'},chip:{n:'芯片残骸',ch:'芯',s:2,c:'#5a8fc0'}};
+const RES={food:{n:'罐头仓',ch:'罐',f:2,c:'#e3a93b'},iron:{n:'废铁堆',ch:'铁',p:2,c:'#8a7f72'},chip:{n:'芯片残骸',ch:'芯',s:2,c:'#5a8fc0'},oil:{n:'油井',ch:'油',p:1,strat:1,c:'#2f2f2a'},bat:{n:'电池堆',ch:'电',s:1,strat:1,c:'#5b6fd6'},med:{n:'药品库',ch:'药',f:1,strat:1,c:'#d9645a'}};
+const STRAT={oil:'石油',bat:'电池',med:'药品'};
+const needOf=k=>{const s=UN[k]&&UN[k].sl;return s===3||s===4?'oil':s===5||s===8?'bat':s===6?'med':null;};
 const UN={
   scout:{n:'侦察兵',ch:'侦',str:4,mv:3,cost:18,vis:3,sc:1,nf:3,look:'scout',d:'走得快、看得远，能搜刮遗迹'},
   drone:{n:'无人机',ch:'机',str:3,mv:4,cost:18,vis:4,sc:1,fac:3,fly:1,look:'drone',d:'无视地形消耗、能飞越山脉，视野 4'},
@@ -304,6 +308,15 @@ const ZCOL='#7d6a86';
 const civCol=o=>o<0?ZCOL:CIVS[fac(o)].col;
 const civName=o=>o<0?'尸潮':CIVS[fac(o)].name+(G&&G.civs&&G.civs[o]&&G.civs[o].pn?'（'+G.civs[o].pn+'）':'');
 const CIV=()=>G.civs.map((_,i)=>i);
+const POL=[
+  [[{k:'trade',n:'净水贸易',d:'每个据点蓝图 +2'},{k:'jail',n:'水牢',d:'敌军站在淼的领土上每天 −8 血'}],[{k:'amph',n:'两栖作战',d:'所有军队都能渡湖'},{k:'spring',n:'涌泉',d:'开拓点 +30%'}]],
+  [[{k:'burn',n:'焚城',d:'攻打据点战力 +25%'},{k:'loot',n:'掠夺',d:'每消灭一个敌军单位，最近的据点物资 +10'}],[{k:'zeal',n:'狂热',d:'每次消灭敌人，进攻的单位回 20 血'},{k:'sea',n:'火海',d:'所有近战进攻时，目标旁边的敌人各 −5 血'}]],
+  [[{k:'deep',n:'深耕',d:'农场口粮再 +1'},{k:'wall2',n:'土垒',d:'哨塔保护范围扩大到 2 格'}],[{k:'bless',n:'地母祝福',d:'每净化一格感染地 +3 开拓点'},{k:'stone',n:'石垒',d:'所有据点防御 +8'}]],
+  [[{k:'oc',n:'超频',d:'蓝图 +10%'},{k:'grid',n:'电网',d:'哨塔每天电击周围 1 格内的敌军 −10 血'}],[{k:'rail',n:'轨道炮',d:'所有远程单位射程 +1'},{k:'arkx',n:'方舟加速',d:'方舟造价再 −15%'}]],
+];
+const POLDAY=[20,50];
+const pp=(o,k)=>o>=0&&G&&G.civs&&G.civs[o]&&G.civs[o].pol&&G.civs[o].pol.includes(k);
+const rngOf=u=>(UN[u.k].rng||1)+(UN[u.k].rs&&pp(u.owner,'rail')?1:0);
 const fac=o=>o>=0&&G&&G.civs&&G.civs[o]&&G.civs[o].f!==undefined?G.civs[o].f:o;
 const unitFor=(o,sl)=>Object.keys(UN).find(k=>UN[k].fac===fac(o)&&UN[k].sl===sl);
 const scoutFor=o=>fac(o)===3?'drone':'scout';
@@ -317,7 +330,11 @@ function T(q,r){return G.tiles[key(q,r)];}
 function nbrs(q,r){const o=[];for(const d of DIRS){const t=T(q+d[0],r+d[1]);if(t)o.push(t);}return o;}
 function ring(q,r,R){const o=[];for(let dq=-R;dq<=R;dq++)for(let dr=Math.max(-R,-dq-R);dr<=Math.min(R,-dq+R);dr++){const t=T(q+dq,r+dr);if(t)o.push(t);}return o;}
 const pass=t=>t&&TERR[t.t].mv<50;
-function moveCost(u,t){const U=UN[u.k];if(U.fly)return t.t==='w'?99:1;if(U.boat&&t.t==='w')return 1;return TERR[t.t].mv;}
+function hostile(u,v){if(!v||v===u||v.owner===u.owner)return false;if(v.owner<0||u.owner<0)return true;return atWar(u.owner,v.owner);}
+function zocAt(u,t){const U=UN[u.k];if(U.sc||U.z)return false;for(const n of nbrs(t.q,t.r)){const v=UAT[key(n.q,n.r)];if(v&&hostile(u,v)&&(isMil(v)||UN[v.k].z))return true;}return false;}
+function supplied(u){if(u.owner<0)return true;const t=T(u.q,u.r);if(!t)return true;if(t.own===u.owner&&!t.iso)return true;for(const n of nbrs(t.q,t.r))if(n.own===u.owner&&!n.iso)return true;return false;}
+function flankN(a,tg){if(a.type!=='unit'||UN[a.o.k].rs)return 0;let n=0;for(const nb of nbrs(tg.o.q,tg.o.r)){const v=UAT[key(nb.q,nb.r)];if(v&&v!==a.o&&v.owner===a.o.owner&&isMil(v))n++;}return Math.min(3,n);}
+function moveCost(u,t){const U=UN[u.k];if(t.t==='w'&&u.owner>=0&&!U.civ&&!U.z&&pp(u.owner,'amph'))return 2;if(U.fly)return t.t==='w'?99:1;if(U.boat&&t.t==='w')return 1;return TERR[t.t].mv;}
 const passU=(u,t)=>!!t&&moveCost(u,t)<50;
 function reidx(){UAT={};for(const id in G.units){const u=G.units[id];UAT[key(u.q,u.r)]=u;}CAT={};for(const id in G.cities){const c=G.cities[id];CAT[key(c.q,c.r)]=c;}}
 const unitAt=(q,r)=>UAT[key(q,r)];const cityAt=(q,r)=>CAT[key(q,r)];
@@ -351,7 +368,8 @@ function genMap(seed,n){n=n||3;MW=n===4?30:24;MH=n===4?20:16;const NN=n===4?8:6;
     G.nests={};nests.forEach((t,i)=>{G.nests[i]={id:i,q:t.q,r:t.r,hp:80,alive:true,cd:3+i%3,spr:5+i};t.nest=i;t.t=rnd()<0.5?'r':'h';t.bl=i;for(const n of nbrs(t.q,t.r))if(pass(n)&&rnd()<0.5)n.bl=i;});
     // 遗迹与资源
     let gd=0;for(const t of cand){if(gd>=(n===4?16:11))break;if(t.nest!==undefined||t.bl!==undefined)continue;if(S.some(s=>hexDist(s.q,s.r,t.q,t.r)<3))continue;t.goody=1;gd++;}
-    for(const t of land){if(t.nest!==undefined||rnd()>0.13)continue;if(t.t==='g'||t.t==='p')t.res='food';else if(t.t==='h'||t.t==='f')t.res='iron';else if(t.t==='r')t.res=rnd()<0.6?'chip':'iron';}
+    {const SN=n===4?5:4;const pool=cand.filter(t=>t.nest===undefined&&t.bl===undefined&&!t.goody&&t.t!=='w'&&S.every(s=>hexDist(s.q,s.r,t.q,t.r)>=4));let pi=0;for(const k of ['oil','bat','med']){let placed=0;while(placed<SN&&pi<pool.length){const t=pool[pi++];if(t.res)continue;if(Object.values(tiles).some(x=>x.res===k&&hexDist(x.q,x.r,t.q,t.r)<3))continue;t.res=k;placed++;}}}
+    for(const t of land){if(t.nest!==undefined||t.res||rnd()>0.13)continue;if(t.t==='g'||t.t==='p')t.res='food';else if(t.t==='h'||t.t==='f')t.res='iron';else if(t.t==='r')t.res=rnd()<0.6?'chip':'iron';}
     return {tiles,nests:G.nests,starts:S.map(s=>[s.q,s.r])};}
   return null;}
 
@@ -381,7 +399,7 @@ function foundCity(u){const o=u.owner,cv=G.civs[o];const names=CIVS[fac(o)].citi
 function claim(c,R){for(const t of ring(c.q,c.r,R))if(t.own<0)t.own=c.owner;}
 function cityRadius(c){return c.pop>=6?3:c.pop>=3?2:1;}
 function maxHP(c){return 200+(c.blds.walls?100:0);}
-function tileYield(t,o){if(t.bl!==undefined||t.iso)return{f:0,p:0,s:0};const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
+function tileYield(t,o){if(t.bl!==undefined||t.iso)return{f:0,p:0,s:0};const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];if(t.imp==='farm'&&pp(t.own,'deep'))y.f+=1;y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
 function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);const y={f:Math.max(2,cy.f)+1,p:Math.max(1,cy.p)+1,s:1+cy.s};
   const cand=ring(c.q,c.r,Math.max(2,cityRadius(c))).filter(t=>t.own===c.owner&&!(t.q===c.q&&t.r===c.r)&&!taken.has(key(t.q,t.r))&&!cityAt(t.q,t.r)&&t.nest===undefined);
   const fw=FOCUS[c.focus||'bal'].w;const sc=t=>{const v=tileYield(t);return v.f*fw[0]+v.p*fw[1]+v.s*fw[2]+(c.pop<4?v.f*0.3:0);};
@@ -389,12 +407,15 @@ function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);co
   for(let i=worked.length;i<c.pop;i++){y.p+=1;}// 没地可耕的居民当建设队
   for(const b in c.blds){const B=BLD[b];y.f+=B.f||0;y.p+=B.p||0;y.s+=B.s||0;}
   const o0=c.owner;if(G.wonders){if(hasWon(o0,'vault'))y.f+=1;if(hasWon(o0,'radio'))y.s+=3;for(const k of cityWons(c)){if(k==='vault')y.f+=3;if(k==='archive')y.s+=5;}}
-  y.s+=c.pop*0.4;if(fac(c.owner)===3)y.s*=1.1;if(fac(c.owner)===0)y.f+=1;if(fac(c.owner)===1){y.p+=2;if(c.build&&c.build.t==='u')y.p*=1.15;}if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
+  y.s+=c.pop*0.4;if(pp(c.owner,'trade'))y.s+=2;if(pp(c.owner,'oc'))y.s*=1.1;if(fac(c.owner)===3)y.s*=1.1;if(fac(c.owner)===0)y.f+=1;if(fac(c.owner)===1){y.p+=2;if(c.build&&c.build.t==='u')y.p*=1.15;}if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
   const k=G.civs[c.owner].ai?[0.85,1.0,1.18][G.diff]:1;y.p*=k;y.s*=k;y.f*=(G.civs[c.owner].ai&&G.diff===2?1.1:1);
   y.need=c.pop*2;y.worked=worked;return y;}
 function growNeed(c){return 10+c.pop*6;}
-function buildCost(c,b){if(b.t==='u')return UN[b.k].cost;if(b.t==='w')return WON[b.k].cost;return Math.round(BLD[b.k].cost*(b.k==='ark'&&fac(c.owner)===3?0.9:1));}
+function buildCost(c,b){if(b.t==='u')return UN[b.k].cost;if(b.t==='w')return WON[b.k].cost;return Math.round(BLD[b.k].cost*((b.k==='ark'&&fac(c.owner)===3?0.9:1)*(b.k==='ark'&&pp(c.owner,'arkx')?0.85:1)));}
 const buildName=b=>b.t==='u'?UN[b.k].n:b.t==='w'?WON[b.k].n:BLD[b.k].n;
+function stratHave(o,k){let n=0;for(const t of Object.values(G.tiles))if(t.res===k&&t.own===o&&!t.iso)n+=2;return n;}
+function stratUsed(o,k,except){let n=0;for(const u of Object.values(G.units))if(u.owner===o&&needOf(u.k)===k)n++;for(const c of Object.values(G.cities))if(c!==except&&c.owner===o&&c.build&&c.build.t==='u'&&needOf(c.build.k)===k)n++;return n;}
+function stratOK(o,k,c){const r=needOf(k);if(!r)return true;return stratUsed(o,r,c)<stratHave(o,r);}
 function buildOptions(c){const o=c.owner,out=[];for(const k in UN){if(!unitOK(o,k))continue;if(UN[k].ace&&(civUnits(o).some(u=>u.k===k)||Object.values(G.cities).some(x=>x.owner===o&&x!==c&&x.build&&x.build.k===k)))continue;out.push({t:'u',k});}
   for(const k in BLD){const B=BLD[k];if(c.blds[k]||!hasTech(o,B.tech))continue;if(B.cap&&!c.cap)continue;out.push({t:'b',k});}
   for(const k in WON){if(G.wonders[k]!==undefined||!hasTech(o,WON[k].tech))continue;if(Object.values(G.cities).some(x=>x.owner===o&&x!==c&&x.build&&x.build.k===k))continue;out.push({t:'w',k});}return out;}
@@ -412,7 +433,7 @@ function completeBuild(c){const b=c.build;const o=c.owner;
     if(o===ME){toast(`地标落成：${WON[b.k].n}`,WON[b.k].d);SFX.wonder();feed(`「${c.name}」建成了地标「${WON[b.k].n}」！`,'good');}else feed(`${civName(o)}建成了地标「${WON[b.k].n}」。`,'');
     for(const x of Object.values(G.cities))if(x!==c&&x.build&&x.build.k===b.k){x.build=null;if(x.owner===ME)feed(`${civName(o)}抢先建成了${WON[b.k].n}，「${x.name}」需要换个项目（物资保留）。`,'bad');}
     return true;}
-  if(b.t==='u'){if(b.k==='settler'&&c.pop<2)return false;let spot=null;if(!unitAt(c.q,c.r))spot=[c.q,c.r];else{const n=nbrs(c.q,c.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r)&&!nestAt(t.q,t.r));if(n)spot=[n.q,n.r];}
+  if(b.t==='u'){if(b.k==='settler'&&c.pop<2)return false;if(needOf(b.k)&&stratUsed(o,needOf(b.k),c)>=stratHave(o,needOf(b.k))){if(o===ME&&!c.lackWarn){c.lackWarn=1;feed(`「${c.name}」缺${STRAT[needOf(b.k)]}，${UN[b.k].n}造不出来。去占资源地，或者换个生产项目。`,'bad');}return false;}c.lackWarn=0;let spot=null;if(!unitAt(c.q,c.r))spot=[c.q,c.r];else{const n=nbrs(c.q,c.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r)&&!nestAt(t.q,t.r));if(n)spot=[n.q,n.r];}
     if(!spot)return false;if(b.k==='settler')c.pop--;const u=addUnit(o,b.k,spot[0],spot[1]);u.mv=0;if(o===ME)feed(`「${c.name}」训练出了${UN[b.k].n}。`,'good');
     c.build=null;return true;}
   c.blds[b.k]=1;c.build=null;if(b.k==='walls')c.hp+=100;
@@ -425,7 +446,7 @@ function canEnter(u,t,final){if(!passU(u,t))return false;if(t.t==='w'&&cityAt(t.
   if(UN[u.k].z&&c)return false;const o=unitAt(t.q,t.r);if(o&&o!==u&&(final||o.owner!==u.owner))return false;return true;}
 function reachable(u){const res=new Map();const start=key(u.q,u.r);res.set(start,{mv:u.mv,prev:null});const q=[[u.q,u.r,u.mv]];
   while(q.length){q.sort((a,b)=>b[2]-a[2]);const[cq,cr,mv]=q.shift();if(mv<=0)continue;
-    for(const d of DIRS){const t=T(cq+d[0],cr+d[1]);if(!t||!canEnter(u,t,false))continue;const k=key(t.q,t.r);const nm=Math.max(0,mv-moveCost(u,t));const ex=res.get(k);if(ex&&ex.mv>=nm)continue;res.set(k,{mv:nm,prev:key(cq,cr)});const o=unitAt(t.q,t.r);if(!(o&&o!==u))q.push([t.q,t.r,nm]);}}
+    for(const d of DIRS){const t=T(cq+d[0],cr+d[1]);if(!t||!canEnter(u,t,false))continue;const k=key(t.q,t.r);let nm=Math.max(0,mv-moveCost(u,t));if(zocAt(u,t))nm=0;const ex=res.get(k);if(ex&&ex.mv>=nm)continue;res.set(k,{mv:nm,prev:key(cq,cr)});const o=unitAt(t.q,t.r);if(!(o&&o!==u))q.push([t.q,t.r,nm]);}}
   for(const[k]of res){if(k===start)continue;const[a,b]=k.split(',').map(Number);const o=unitAt(a,b);if(o&&o!==u)res.delete(k);}
   return res;}
 function findPath(u,tq,tr,adjOK){// A*，返回从下一步到终点的格子序列
@@ -436,7 +457,7 @@ function findPath(u,tq,tr,adjOK){// A*，返回从下一步到终点的格子序
       const o=unitAt(t.q,t.r);let extra=0;if(o&&o.owner!==u.owner)continue;if(o)extra=1.5;if(t.bl!==undefined&&!UN[u.k].z)extra+=0.6;
       const ng=cg+moveCost(u,t)+extra;if(g[k]!==undefined&&g[k]<=ng)continue;g[k]=ng;prev[k]=ck;open.push([t.q,t.r,ng,ng+hexDist(t.q,t.r,tq,tr)]);}}
   return null;}
-function stepTo(u,q,r){const t=T(q,r);u.work=null;delete UAT[key(u.q,u.r)];u.q=q;u.r=r;UAT[key(q,r)]=u;u.mv=Math.max(0,u.mv-moveCost(u,t));u.fort=0;u.acted=1;if(UN[u.k].plough&&t.bl!==undefined&&t.nest===undefined){delete t.bl;if(u.owner===ME)pops.push({q:t.q,r:t.r,txt:'翻土',col:'#5e8c55',t:0});}
+function stepTo(u,q,r){const t=T(q,r);u.work=null;delete UAT[key(u.q,u.r)];u.q=q;u.r=r;UAT[key(q,r)]=u;u.mv=Math.max(0,u.mv-moveCost(u,t));if(zocAt(u,t))u.mv=0;u.fort=0;u.acted=1;if(UN[u.k].plough&&t.bl!==undefined&&t.nest===undefined){delete t.bl;if(u.owner===ME)pops.push({q:t.q,r:t.r,txt:'翻土',col:'#5e8c55',t:0});}
   if(t.goody&&!UN[u.k].z)popGoody(u,t);
   if(u.owner>=0&&t.own>=0&&t.own!==u.owner&&G.rel[u.owner][t.own]==='peace'){}}
 function walkPath(u,path){for(const[q,r]of path){if(u.mv<=0)break;const t=T(q,r);if(!canEnter(u,t,true)){const o=unitAt(q,r);if(o&&o.owner===u.owner){/*穿过自己人*/if(u.mv>moveCost(u,t)){continue;}}break;}stepTo(u,q,r);}}
@@ -453,28 +474,29 @@ function popGoody(u,t){delete t.goody;const o=u.owner;const cv=G.civs[o];const r
   if(o===ME){feed(msg,'good');SFX.goody();pops.push({q:t.q,r:t.r,txt:'遗迹',col:'#c48a1c',t:0});}}
 
 /* ---------- 战斗 ---------- */
-function strMod(u,vsZ,def,tile){let m=1;if(def){m+=TERR[tile.t].def/100;if(tile.tower===u.owner)m+=0.25;if(u.fort)m+=UN[u.k].fortB||0.25;if(cityAt(u.q,u.r))m+=0.25;}
+function strMod(u,vsZ,def,tile){let m=1;if(u.owner>=0&&isMil(u)&&!supplied(u))m-=0.2;if(def){m+=TERR[tile.t].def/100;if(tile.tower===u.owner)m+=0.25;if(u.fort)m+=UN[u.k].fortB||0.25;if(cityAt(u.q,u.r))m+=0.25;}
   if(vsZ&&u.owner>=0&&hasTech(u.owner,'serum'))m+=0.5;if(u.owner>=0&&Object.values(G.units).some(g=>g.k==='general'&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=2))m+=0.2;if(UN[u.k].hz)m+=vsZ?0.5:-0.25;if(def&&u.owner>=0&&Object.values(G.units).some(g=>g!==u&&UN[g.k].aura&&g.owner===u.owner&&hexDist(g.q,g.r,u.q,u.r)<=1))m+=0.2;if(UN[u.k].z)m+=Math.min(0.6,G.turn/180)+[ -0.1,0,0.15][G.diff];return m;}
 const hpF=hp=>0.55+0.45*hp/100;
-function cityStr(c){let s=8+c.pop*1.6+(c.blds.walls?8:0);const g=unitAt(c.q,c.r);if(g&&isMil(g))s+=UN[g.k].str*0.3;const tl=Object.keys(G.civs[c.owner].techs).length;s+=tl*0.6;if(G.wonders&&hasWon(c.owner,'wall'))s+=6;return s;}
+function cityStr(c){let s=8+c.pop*1.6+(c.blds.walls?8:0)+(pp(c.owner,'stone')?8:0);const g=unitAt(c.q,c.r);if(g&&isMil(g))s+=UN[g.k].str*0.3;const tl=Object.keys(G.civs[c.owner].techs).length;s+=tl*0.6;if(G.wonders&&hasWon(c.owner,'wall'))s+=6;return s;}
 function nestStr(n){return 10+G.turn*0.12+[ -2,0,3][G.diff];}
 function tgtAt(q,r){const c=cityAt(q,r);if(c)return{type:'city',o:c,owner:c.owner};const n=nestAt(q,r);if(n)return{type:'nest',o:n,owner:-1};const u=unitAt(q,r);if(u)return{type:'unit',o:u,owner:u.owner};return null;}
-function attackerStr(a,tg){if(a.type==='city')return cityStr(a.o);const u=a.o;const U=UN[u.k];const ranged=!!U.rs;let s=(ranged?U.rs:U.str)*strMod(u,tg.owner<0,false)*hpF(u.hp);if(U.siege&&tg.type==='city')s*=U.siege;if(U.vz&&tg.owner<0)s*=U.vz;if(U.atk&&!ranged)s*=U.atk;return s;}
+function attackerStr(a,tg){if(a.type==='city')return cityStr(a.o);const u=a.o;const U=UN[u.k];const ranged=!!U.rs;let s=(ranged?U.rs:U.str)*strMod(u,tg.owner<0,false)*hpF(u.hp);if(U.siege&&tg.type==='city')s*=U.siege;if(tg.type==='city'&&pp(u.owner,'burn'))s*=1.25;if(U.vz&&tg.owner<0)s*=U.vz;if(U.atk&&!ranged)s*=U.atk;s*=1+0.15*flankN(a,tg);return s;}
 function defenderStr(tg,att){if(tg.type==='city')return cityStr(tg.o);if(tg.type==='nest')return nestStr(tg.o);const u=tg.o;const U=UN[u.k];if(U.civ)return 0.01;let s=U.str*strMod(u,att.owner<0,true,T(u.q,u.r))*hpF(u.hp);if(U.rs)s*=0.8;return s;}
 function predict(a,tg){const A=attackerStr(a,tg),D=defenderStr(tg,a);const r=A/Math.max(0.01,D);const ranged=a.type==='city'||!!UN[a.o.k].rs;
   let toD=Math.round(clamp(30*Math.pow(r,0.85),1,100)),toA=ranged?0:Math.round(clamp(30*Math.pow(1/r,0.85),0,100));
   if(tg.type==='unit'&&UN[tg.o.k].civ){toD=100;toA=0;}
-  const dhp=tg.o.hp;return{toD,toA,A,D,kill:toD>=dhp,die:!ranged&&toA>=(a.o.hp||200),ranged};}
-function inRange(a,q,r){if(a.type==='city')return hexDist(a.o.q,a.o.r,q,r)<=2;const U=UN[a.o.k];return hexDist(a.o.q,a.o.r,q,r)<=(U.rng||1);}
+  const dhp=tg.o.hp;return{toD,toA,A,D,kill:toD>=dhp,die:!ranged&&toA>=(a.o.hp||200),ranged,fl:flankN(a,tg),ns:a.type==='unit'&&!supplied(a.o)};}
+function inRange(a,q,r){if(a.type==='city')return hexDist(a.o.q,a.o.r,q,r)<=2;const U=UN[a.o.k];return hexDist(a.o.q,a.o.r,q,r)<=rngOf(a.o);}
 function doAttack(a,tg){const p=predict(a,tg);const v=x=>Math.round(x*(0.82+rnd()*0.36));let toD=v(p.toD),toA=v(p.toA);if(tg.type==='unit'&&UN[tg.o.k].civ)toD=100;
   const aO=a.type==='city'?a.o.owner:a.o.owner,dO=tg.owner;
   if(aO>=0&&dO>=0&&!atWar(aO,dO))declareWar(aO,dO);
   const vis=VIS.has(key(tg.o.q,tg.o.r))||aO===ME||dO===ME;
   if(vis){pops.push({q:tg.o.q,r:tg.o.r,txt:'-'+toD,col:'#d9645a',t:0});if(toA)pops.push({q:a.o.q,r:a.o.r,txt:'-'+toA,col:'#d9645a',t:0});SFX.hit(p.ranged);}
   if(a.type==='city'){a.o.shot=1;}else{if(UN[a.o.k].shootMove){a.o.mv=Math.max(0,a.o.mv-1);a.o.fired=1;}else a.o.mv=0;a.o.fort=0;a.o.acted=1;a.o.hp-=toA;}
-  if(a.type==='unit'&&UN[a.o.k].splash){for(const n of nbrs(tg.o.q,tg.o.r)){const v=unitAt(n.q,n.r);if(!v||v===a.o||v===tg.o||v.owner===aO)continue;if(v.owner>=0&&!atWar(aO,v.owner))continue;v.hp-=UN[a.o.k].splash;if(vis)pops.push({q:v.q,r:v.r,txt:'-'+UN[a.o.k].splash,col:'#e8743a',t:0});if(v.hp<=0)removeUnit(v);}}
+  const SPL=a.type==='unit'?(UN[a.o.k].splash||(!p.ranged&&pp(aO,'sea')?5:0)):0;
+  if(SPL){for(const n of nbrs(tg.o.q,tg.o.r)){const v=unitAt(n.q,n.r);if(!v||v===a.o||v===tg.o||v.owner===aO)continue;if(v.owner>=0&&!atWar(aO,v.owner))continue;v.hp-=SPL;if(vis)pops.push({q:v.q,r:v.r,txt:'-'+SPL,col:'#e8743a',t:0});if(v.hp<=0)removeUnit(v);}}
   tg.o.hp-=toD;let killed=false;
-  if(tg.type==='unit'&&tg.o.hp<=0){killed=true;const du=tg.o;if(UN[du.k].z){if(aO>=0){G.kills[aO]++;}}removeUnit(du);if(du.owner===ME&&!UN[du.k].z)feed(`我们的${UN[du.k].n}阵亡了。`,'bad');
+  if(tg.type==='unit'&&tg.o.hp<=0){killed=true;const du=tg.o;if(UN[du.k].z){if(aO>=0){G.kills[aO]++;}}removeUnit(du);if(a.type==='unit'&&aO>=0){if(pp(aO,'zeal'))a.o.hp=Math.min(100,a.o.hp+20);if(pp(aO,'loot')&&du.owner>=0){const nc=civCities(aO).sort((x,y)=>hexDist(x.q,x.r,du.q,du.r)-hexDist(y.q,y.r,du.q,du.r))[0];if(nc)nc.prod+=10;}}if(du.owner===ME&&!UN[du.k].z)feed(`我们的${UN[du.k].n}阵亡了。`,'bad');
     if(a.type==='unit'&&!p.ranged&&a.o.hp>0&&canEnter(a.o,T(du.q,du.r),true))stepTo(a.o,du.q,du.r),a.o.mv=0;}
   else if(tg.type==='nest'&&tg.o.hp<=0){killed=true;killNest(tg.o,aO);}
   else if(tg.type==='city'){const c=tg.o;if(c.hp<=0){c.hp=0;if(a.type==='unit'&&!p.ranged&&a.o.hp>0){if(UN[a.o.k].z)zombieRaid(c);else captureCity(c,a.o);}else c.hp=0;}}
@@ -511,7 +533,16 @@ function declareWar(a,b){if(a<0||b<0||atWar(a,b))return;G.rel[a][b]=G.rel[b][a]=
 function makePeace(a,b){G.rel[a][b]=G.rel[b][a]='peace';G.relT[a][b]=G.relT[b][a]=G.turn;if(a===ME||b===ME){const x=a===ME?b:a;feed(`和${civName(x)}签订了停战协议。`,'good');SFX.peace();}else feed(`${civName(a)}和${civName(b)}停战了。`);}
 function power(o){let p=0;for(const u of civUnits(o))if(isMil(u))p+=(UN[u.k].rs?UN[u.k].rs*0.8:UN[u.k].str)*u.hp/100;for(const c of civCities(o))p+=cityStr(c)*0.4;return Math.round(p);}
 function aiAcceptPeace(ai,other){const t=G.turn-G.relT[ai][other];if(t<6)return false;const pa=power(ai),po=power(other);return pa<=po*1.15||G.civs[ai].lost>0&&pa<po*1.5;}
-function aiDiplomacy(o){const cv=G.civs[o];if(o===0&&BOT==='war'&&G.turn>=35){for(const x of CIV().filter(x=>x!==0))if(G.civs[x].alive&&!atWar(0,x)&&civCities(x).length){declareWar(0,x);break;}return;}const aggr=fac(o)===1?1.25:1.5;
+function threatOf(x){let t=landShare(x)/winLand();const c=Object.values(G.cities).find(c=>c.owner===x&&c.build&&c.build.k==='ark');if(G.civs[x].techs.ark)t+=0.3;if(c)t+=0.3+c.prod/600;if(G.nestK[x]>=(G.pur||4)-1)t+=0.4;return t;}
+function aiGangUp(o){let lead=-1,lt=0;for(const x of CIV()){if(!G.civs[x].alive)continue;const t=threatOf(x);if(t>lt){lt=t;lead=x;}}if(lead<0||lead===o||lt<0.75)return;
+  if(!atWar(o,lead)&&G.turn-G.relT[o][lead]>=5&&rnd()<0.35){declareWar(o,lead);if(VIS.size)feed(`${civName(o)}觉得${civName(lead)}快要赢了，向它宣战！`,lead===ME?'bad':'');}
+  for(const x of CIV()){if(x===o||x===lead||!atWar(o,x))continue;if(G.civs[x].ai&&rnd()<0.5)makePeace(o,x);}}
+function aiPlan(o){const wars=CIV().filter(x=>x!==o&&G.civs[x].alive&&atWar(o,x));const cv=G.civs[o];if(!wars.length){cv.plan=null;return;}
+  const field=civUnits(o).filter(u=>isMil(u)&&!u.gar&&!UN[u.k].sc&&!UN[u.k].heal);if(!field.length){cv.plan=null;return;}
+  if(!cv.plan||!G.cities[cv.plan.c]||!wars.includes(G.cities[cv.plan.c].owner)){let best=null,bs=1e9;for(const x of wars)for(const c of civCities(x)){const d=Math.min(...civCities(o).map(m=>hexDist(m.q,m.r,c.q,c.r)),99);const sc=d*2+cityStr(c)*c.hp/100*0.3;if(sc<bs){bs=sc;best=c;}}if(!best){cv.plan=null;return;}
+    let st=null,sd=1e9;for(const t of Object.values(G.tiles)){if(t.own!==o||t.iso||!pass(t))continue;const d=hexDist(t.q,t.r,best.q,best.r);if(d>=2&&d<sd){sd=d;st=t;}}cv.plan={c:best.id,sq:st?st.q:best.q,sr:st?st.r:best.r,go:false};}
+  const pl=cv.plan;const tc=G.cities[pl.c];const near=field.filter(u=>hexDist(u.q,u.r,pl.sq,pl.sr)<=3||hexDist(u.q,u.r,tc.q,tc.r)<=3).length;pl.go=pl.go?near>=2:near>=Math.min(4,Math.max(3,Math.ceil(field.length*0.6)));}
+function aiDiplomacy(o){const cv=G.civs[o];aiGangUp(o);if(o===0&&BOT==='war'&&G.turn>=35){for(const x of CIV().filter(x=>x!==0))if(G.civs[x].alive&&!atWar(0,x)&&civCities(x).length){declareWar(0,x);break;}return;}const aggr=fac(o)===1?1.25:1.5;
   for(const x of CIV()){if(x===o||!G.civs[x].alive)continue;const pa=power(o),px=power(x);
     if(G.rel[o][x]==='peace'){if(G.turn<18+(2-G.diff)*6)continue;if(G.turn-G.relT[o][x]<10)continue;
       const near=civCities(o).some(a=>civCities(x).some(b=>hexDist(a.q,a.r,b.q,b.r)<=10));
@@ -537,9 +568,9 @@ function zombieTurn(){const zs=Object.values(G.units).filter(u=>u.owner<0);
       if(!ns.length||hexDist(ns[0].q,ns[0].r,best.q,best.r)>=hexDist(z.q,z.r,best.q,best.r)+ (best.wander?0:0.5))break;stepTo(z,ns[0].q,ns[0].r);if(best.wander&&hexDist(z.q,z.r,best.q,best.r)<=2)break;}}}
 
 /* ---------- 电脑阵营 ---------- */
-function bestUnit(o,ranged){const opts=Object.keys(UN).filter(k=>UN[k].sl!==undefined&&UN[k].sl<=5&&unitOK(o,k)&&(!!UN[k].rs===!!ranged));if(!opts.length)return unitFor(o,0);if(!ranged&&rnd()<0.2){const f=opts.find(k=>UN[k].sl===3);if(f)return f;}return opts.sort((a,b)=>((UN[b].rs||UN[b].str)/Math.pow(UN[b].cost,0.6))-((UN[a].rs||UN[a].str)/Math.pow(UN[a].cost,0.6)))[0];}
+function bestUnit(o,ranged){const opts=Object.keys(UN).filter(k=>UN[k].sl!==undefined&&UN[k].sl<=5&&unitOK(o,k)&&stratOK(o,k)&&(!!UN[k].rs===!!ranged));if(!opts.length)return unitFor(o,0);if(!ranged&&rnd()<0.2){const f=opts.find(k=>UN[k].sl===3);if(f)return f;}return opts.sort((a,b)=>((UN[b].rs||UN[b].str)/Math.pow(UN[b].cost,0.6))-((UN[a].rs||UN[a].str)/Math.pow(UN[a].cost,0.6)))[0];}
 function siteScore(o,t){if(!canFound(t.q,t.r,o))return -1;let s=0;for(const x of ring(t.q,t.r,2)){if(x.own>=0&&x.own!==o)continue;const y=tileYield(x);s+=y.f*1.2+y.p+y.s+(x.bl!==undefined?-2:0);if(x.nest!==undefined)s-=8;}return s;}
-function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);const has=k=>opts.some(b=>b.k===k);
+function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);const has=k=>opts.some(b=>b.k===k&&stratOK(o,k,c));
   const mil=civUnits(o).filter(isMil).length,nc=civCities(o).length;const war=CIV().some(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
   const threat=Object.values(G.units).filter(u=>(u.owner<0||atWar(o,u.owner))&&u.owner!==o&&hexDist(u.q,u.r,c.q,c.r)<=4).length;
   const gar=unitAt(c.q,c.r);const zth=Object.values(G.units).filter(u=>u.owner<0&&hexDist(u.q,u.r,c.q,c.r)<=5).length+Object.values(G.nests).filter(n=>n.alive&&hexDist(n.q,n.r,c.q,c.r)<=6).length;
@@ -570,7 +601,7 @@ function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);aiExpand
   const cities=civCities(o);const units=civUnits(o);
   for(const u of units)if(u.gar&&(!G.cities[u.gar]||G.cities[u.gar].owner!==o))u.gar=null;
   for(const c of cities){if(units.some(u=>u.gar===c.id))continue;let best=null,bd=1e9;for(const u of units){if(!isMil(u)||u.gar)continue;const d=hexDist(u.q,u.r,c.q,c.r);if(d<bd){bd=d;best=u;}}if(best&&(bd<=6||cities.length<=2))best.gar=c.id;}
-  const wars=CIV().filter(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
+  aiPlan(o);const wars=CIV().filter(x=>x!==o&&G.civs[x].alive&&atWar(o,x));
   for(const u of units){if(!G.units[u.id])continue;try{aiUnit(u,wars);}catch(e){console.error(e);}}
   aiDiplomacy(o);}
 function bestTarget(u,maxd){let best=null,bs=-1e9;const U=UN[u.k];if(u.fired||U.heal)return null;
@@ -590,11 +621,13 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(UN[u.k].sc){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(!t.goody)continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}
     if(!best){const all=Object.values(G.tiles).filter(pass);best=all[Math.floor(rnd()*all.length)];}const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);return;}
   // 先打能打的
-  const tryAtk=()=>{const bt=bestTarget(u,U.rs?U.rng:1);if(bt&&u.mv>0){doAttack({type:'unit',o:u},bt.tg);return true;}return false;};
+  const tryAtk=()=>{const bt=bestTarget(u,U.rs?rngOf(u):1);if(bt&&u.mv>0){doAttack({type:'unit',o:u},bt.tg);return true;}return false;};
   if(tryAtk())return;
   if(u.hp<45&&!cityAt(u.q,u.r)){const c=civCities(u.owner).sort((a,b)=>hexDist(a.q,a.r,u.q,u.r)-hexDist(b.q,b.r,u.q,u.r))[0];if(c&&!unitAt(c.q,c.r)){const p=findPath(u,c.q,c.r,false);if(p){walkPath(u,p);return;}}u.fort=1;return;}
   let goal=null,adj=true;
   if(u.gar){const c=G.cities[u.gar];if(c){if(u.q===c.q&&u.r===c.r){u.fort=1;return;}goal=[c.q,c.r];adj=false;}}
+  const PL=G.civs[u.owner].plan;if(!goal&&PL&&G.cities[PL.c]&&!U.sc&&!U.heal){const tc=G.cities[PL.c];if(PL.go){goal=[tc.q,tc.r];}else if(hexDist(u.q,u.r,PL.sq,PL.sr)>2){goal=[PL.sq,PL.sr];adj=false;}else{u.fort=1;return;}}
+  if(!goal&&wars.length){let iso=null,id=1e9;for(const t of ring(u.q,u.r,5)){if(!t.iso||t.own<0||!atWar(u.owner,t.own)||unitAt(t.q,t.r)||cityAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<id){id=d;iso=t;}}if(iso){goal=[iso.q,iso.r];adj=false;}}
   if(!goal&&wars.length){let best=null,bd=1e9;for(const x of wars)for(const c of civCities(x)){const d=hexDist(u.q,u.r,c.q,c.r);if(d<bd){bd=d;best=c;}}
     if(best&&bd<=16){const near=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar&&hexDist(v.q,v.r,best.q,best.r)<=bd+1).length;if(near>=2||bd>4)goal=[best.q,best.r];}}
   if(!goal){let best=null,bd=1e9;for(const z of Object.values(G.units)){if(z.owner>=0)continue;const d=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,z.q,z.r)),99);if(d<=4&&hexDist(u.q,u.r,z.q,z.r)<bd){bd=hexDist(u.q,u.r,z.q,z.r);best=z;}}if(best)goal=[best.q,best.r];}
@@ -604,7 +637,7 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(!goal&&!U.sc){const here=T(u.q,u.r);const cap=t=>t.t!=='m'&&!cityAt(t.q,t.r)&&t.nest===undefined&&t.bl===undefined&&(t.own<0||(t.own!==u.owner&&atWar(u.owner,t.own)&&!(towerGuard(t,t.own)&&t.tower!==t.own)))&&nbrs(t.q,t.r).some(n=>n.own===u.owner);
     if(cap(here)){u.fort=1;return;}let bt=null,bd2=1e9;for(const t of ring(u.q,u.r,5)){if(!cap(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r)-(t.own>=0?2:0);if(d<bd2){bd2=d;bt=t;}}if(bt){goal=[bt.q,bt.r];adj=false;}}
   if(!goal){const c=civCities(u.owner).sort((a,b)=>hexDist(a.q,a.r,u.q,u.r)-hexDist(b.q,b.r,u.q,u.r))[0];if(c&&hexDist(c.q,c.r,u.q,u.r)>2){goal=[c.q,c.r];}else{u.fort=1;return;}}
-  const p=findPath(u,goal[0],goal[1],adj);if(p){const stopAt=U.rs?U.rng:1;const trimmed=[];for(const s of p){trimmed.push(s);if(U.rs&&hexDist(s[0],s[1],goal[0],goal[1])<=stopAt&&tgtAt(goal[0],goal[1]))break;}walkPath(u,trimmed);}
+  const p=findPath(u,goal[0],goal[1],adj);if(p){const stopAt=U.rs?rngOf(u):1;const trimmed=[];for(const s of p){trimmed.push(s);if(U.rs&&hexDist(s[0],s[1],goal[0],goal[1])<=stopAt&&tgtAt(goal[0],goal[1]))break;}walkPath(u,trimmed);}
   if(u.mv>0)tryAtk();
   if(u.mv>0&&!goal)u.fort=1;}
 
@@ -614,7 +647,7 @@ function startTower(u){const t=T(u.q,u.r);if(t.own!==u.owner||t.tower!==undefine
 function startWork(u){const t=T(u.q,u.r);if(t.bl!==undefined&&t.nest===undefined){u.work={k:'purge',left:1};}else{const k=impFor(t);if(!k||t.imp||t.own!==u.owner)return false;u.work={k,left:fac(u.owner)===2?2:3};}u.mv=0;u.acted=1;return true;}
 /* ---------- 占地：开拓、插旗、补给线、哨塔 ---------- */
 let WIN_LAND=0.55;
-function epRate(o){return 1.5+civCities(o).reduce((a,c)=>a+1+c.pop*0.2,0);}
+function epRate(o){return (1.5+civCities(o).reduce((a,c)=>a+1+c.pop*0.2,0))*(pp(o,'spring')?1.3:1);}
 function landTiles(){return Object.values(G.tiles).filter(t=>t.t!=='m');}
 function winLand(){return G&&G.n===4?0.4:0.5;}
 function landShare(o){const all=landTiles();return all.filter(t=>t.own===o&&!t.iso).length/all.length;}
@@ -623,7 +656,7 @@ function claimable(o,t){if(!t||t.t==='m'||t.own>=0||t.nest!==undefined||cityAt(t
 function claimCost(o,t){const d=ownCityDist(o,t);let c=2+(d-1)*1.5+((t.t==='f'||t.t==='h')?1:0)+(t.res?1:0)+(t.t==='o'?2:0);if(fac(o)===2)c*=0.85;return Math.max(1,Math.round(c));}
 function doClaim(o,t){if(!claimable(o,t))return false;const c=claimCost(o,t);const cv=G.civs[o];if((cv.ep||0)<c)return false;cv.ep-=c;t.own=o;if(o===ME){pops.push({q:t.q,r:t.r,txt:'开拓',col:'#5e8c55',t:0});SFX.click();}return true;}
 function towerGuard(t,o){// o 方的哨塔是否保护着这一格
-  for(const n of [t].concat(nbrs(t.q,t.r)))if(n.tower===o&&n.own===o)return true;return false;}
+  for(const n of ring(t.q,t.r,pp(o,'wall2')?2:1))if(n.tower===o&&n.own===o)return true;return false;}
 function territoryTick(){
   // 插旗：军队在不属于自己的格子上过了一天
   for(const u of Object.values(G.units)){if(u.owner<0||!isMil(u)||UN[u.k].sc)continue;const t=T(u.q,u.r);if(t.own===u.owner&&!t.iso)continue;if(cityAt(t.q,t.r)||t.nest!==undefined||t.t==='m')continue;
@@ -642,7 +675,7 @@ function territoryTick(){
 function aiExpand(o){const cv=G.civs[o];let n=0;while(n<5){let best=null,bs=-1e9;for(const c of civCities(o))for(const t of ring(c.q,c.r,4)){if(!claimable(o,t))continue;const y=tileYield(t);const sc=y.f*1.2+y.p+y.s+(t.res?1.5:0)-claimCost(o,t)*0.35-ownCityDist(o,t)*0.3;if(sc>bs){bs=sc;best=t;}}
     if(!best||cv.ep<claimCost(o,best))break;doClaim(o,best);n++;}}
 /* ---------- 天流程 ---------- */
-function purge(u){const t=T(u.q,u.r);if(t.bl===undefined)return false;if(t.nest!==undefined)return false;delete t.bl;if(t.own<0)t.own=u.owner;u.mv=0;u.acted=1;if(u.owner===ME){feed('净化了一块感染地。','good');SFX.purge();pops.push({q:t.q,r:t.r,txt:'净化',col:'#5e8c55',t:0});}return true;}
+function purge(u){const t=T(u.q,u.r);if(t.bl===undefined)return false;if(t.nest!==undefined)return false;delete t.bl;if(t.own<0)t.own=u.owner;if(pp(u.owner,'bless'))G.civs[u.owner].ep=(G.civs[u.owner].ep||0)+3;u.mv=0;u.acted=1;if(u.owner===ME){feed('净化了一块感染地。','good');SFX.purge();pops.push({q:t.q,r:t.r,txt:'净化',col:'#5e8c55',t:0});}return true;}
 function research(o,sci){const cv=G.civs[o];cv.sci+=sci;cv.lastSci=sci;if(!cv.res){if(cv.ai)aiResearch(o);if(!cv.res)return;}
   const k=cv.res;if(cv.sci>=TECH[k].cost){cv.sci-=TECH[k].cost;cv.techs[k]=1;cv.res=null;if(o===ME){toast(`蓝图破解：${TECH[k].n}`,unlocksText(k));SFX.tech();feed(`蓝图破解：${TECH[k].n}。${unlocksText(k)}`,'sci');}
     else if(k==='ark'){feed(`${civName(o)}完成了方舟计划，正在建造方舟！`,'bad');toast(`${civName(o)}开始建造方舟`,'阻止他们：占领他们的主营，或者抢先建成');}
@@ -651,19 +684,27 @@ function unlocksText(k){const u=Object.keys(UN).filter(x=>UN[x].tech===k&&unitOK
 function endTurn(){if(busy||!G||G.over)return;busy=true;pend=null;
   G.asks=G.asks.filter(a=>a.t!=='peace');
   // 玩家据点自动选生产、没选的传奇幸存者默认老教授
+  for(const o of CIV()){const cv=G.civs[o];if(!cv.pol)cv.pol=[null,null];if(isHum(o)&&cv.polPend!==undefined&&cv.polPend!==null){cv.pol[cv.polPend]=POL[fac(o)][cv.polPend][0].k;cv.polPend=null;}}
   for(const o of CIV()){if(!isHum(o)||!G.civs[o].alive)continue;for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);if(!G.civs[o].res)aiResearch(o);while(G.civs[o].gpPend>0){G.civs[o].gpPend--;grantGP(o,HEADLESS&&BOT==='purify'?'saint':HEADLESS&&BOT==='war'?'general':'scientist');}G.civs[o].ready=false;}
   for(const o of CIV()){if(!G.civs[o].alive)continue;const s=processCities(o);research(o,s);const cv=G.civs[o];cv.ep=(cv.ep||0)+epRate(o);if(G.over){busy=false;return;}}
   for(const o of CIV()){if(!G.civs[o].ai)continue;aiTurn(o);if(G.over){busy=false;return;}}
   zombieTurn();if(G.over){busy=false;return;}nestTurn();
   for(const u of Object.values(G.units))delete u.twWarn;territoryTick();if(G.over){busy=false;return;}
   // 天末：感染伤害、回血、重置
-  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){const wk=u.work.k;if(wk==='purge'){delete t.bl;if(t.own<0)t.own=u.owner;}else if(wk==='tower'){if(t.own===u.owner)t.tower=u.owner;}else t.imp=wk;if(u.owner===ME){feed(wk==='purge'?'净化了一块感染地，这一格归我们了。':wk==='tower'?'哨塔修好了：它周围一圈的地，敌人插不了旗。':`${IMP[wk].n}修好了：${IMP[wk].d}。`,'good');pops.push({q:t.q,r:t.r,txt:wk==='purge'?'净化':wk==='tower'?'哨塔':IMP[wk].n,col:'#5e8c55',t:0});}u.work=null;}}}
+  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){const wk=u.work.k;if(wk==='purge'){delete t.bl;if(t.own<0)t.own=u.owner;if(pp(u.owner,'bless'))G.civs[u.owner].ep=(G.civs[u.owner].ep||0)+3;}else if(wk==='tower'){if(t.own===u.owner)t.tower=u.owner;}else t.imp=wk;if(u.owner===ME){feed(wk==='purge'?'净化了一块感染地，这一格归我们了。':wk==='tower'?'哨塔修好了：它周围一圈的地，敌人插不了旗。':`${IMP[wk].n}修好了：${IMP[wk].d}。`,'good');pops.push({q:t.q,r:t.r,txt:wk==='purge'?'净化':wk==='tower'?'哨塔':IMP[wk].n,col:'#5e8c55',t:0});}u.work=null;}}}
   for(const o of CIV())if(G.civs[o].alive)gpTick(o);
+  for(const u of Object.values(G.units)){if(u.owner<0||!G.units[u.id])continue;const t=T(u.q,u.r);let d=0;
+    if(isMil(u)&&!supplied(u)){d+=8;u.oos=1;}else u.oos=0;
+    if(t.own>=0&&t.own!==u.owner&&atWar(u.owner,t.own)&&pp(t.own,'jail'))d+=8;
+    for(const n of ring(u.q,u.r,1))if(n.tower!==undefined&&n.tower!==u.owner&&atWar(u.owner,n.tower)&&pp(n.tower,'grid')){d+=10;break;}
+    if(d){u.hp-=d;u.acted=1;if(u.owner===ME)pops.push({q:u.q,r:u.r,txt:'-'+d,col:'#d9645a',t:0});if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}${u.oos?'断了补给，':''}倒下了。`,'bad');removeUnit(u);}}}
+  for(const z of Object.values(G.units)){if(z.owner>=0)continue;const t=T(z.q,z.r);let d=0;if(t.own>=0&&pp(t.own,'jail'))d+=8;for(const n of ring(z.q,z.r,1))if(n.tower!==undefined&&pp(n.tower,'grid')){d+=10;break;}if(d){z.hp-=d;if(z.hp<=0)removeUnit(z);}}
   for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(u.owner>=0&&t.bl!==undefined){u.hp-=6;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}死在了感染区里。`,'bad');removeUnit(u);continue;}}
     if(!u.acted){let h=10;if(u.owner>=0&&t.own===u.owner)h+=fac(u.owner)===0?20:10;if(cityAt(u.q,u.r))h+=10;if(u.owner<0)h=t.bl!==undefined?15:5;u.hp=Math.min(100,u.hp+h);}
     u.acted=0;u.fired=0;u.mv=UN[u.k].mv;}
   for(const m of Object.values(G.units)){const H=UN[m.k].heal;if(!H||m.owner<0)continue;for(const v of Object.values(G.units))if(v.owner===m.owner&&v!==m&&hexDist(v.q,v.r,m.q,m.r)<=1&&v.hp<100){v.hp=Math.min(100,v.hp+H);if(m.owner===ME&&VIS.has(key(v.q,v.r)))pops.push({q:v.q,r:v.r,txt:'+'+H,col:'#5e8c55',t:0});}}
   G.turn++;
+  for(const o of CIV()){const cv=G.civs[o];if(!cv.alive)continue;if(!cv.pol)cv.pol=[null,null];for(let lv=0;lv<2;lv++){if(G.turn<POLDAY[lv]||cv.pol[lv])continue;if(cv.ai){const F=fac(o);const pick=F===1?(lv?0:rnd()<0.5?0:1):F===2?(lv?(rnd()<0.6?0:1):1):F===3?(lv?1:0):(rnd()<0.5?0:1);cv.pol[lv]=POL[F][lv][pick].k;}else if(cv.polPend===undefined||cv.polPend===null)cv.polPend=lv;break;}}
   if(G.turn>MAXT&&!G.over){const sc=CIV().map(score);const best=sc.indexOf(Math.max(...sc));endGame(best,'score');busy=false;return;}
   // 玩家单位自动行军
   for(const u of Object.values(G.units)){if(!u.dest||!isHum(u.owner))continue;const danger=Object.values(G.units).some(z=>(z.owner<0||atWar(u.owner,z.owner))&&hexDist(z.q,z.r,u.q,u.r)<=2);if(danger){u.dest=null;if(u.owner===ME)feed(`${UN[u.k].n}发现附近有敌人，停下待命。`,'bad');continue;}
@@ -686,6 +727,7 @@ let askOpen=false;
 function checkAsks(){if(!G||G.over||askOpen||!$('#ovAsk').hidden||!$('#ovStory').hidden)return;const cv=G.civs[ME];if(!cv)return;
   const pa=G.asks.find(a=>a.t==='peace'&&a.to===ME);
   if(pa){askOpen=true;const o=pa.o;showAsk(`${civName(o)}提议停战`,`我们和${civName(o)}已经打了 ${G.turn-G.relT[ME][o]} 天。接受吗？`,'接受停战','继续打',()=>doCmd({t:'accept',x:o,yes:1}),()=>{askOpen=false;if(G.asks.includes(pa))doCmd({t:'accept',x:o,yes:0});});return;}
+  if(cv.polPend!==undefined&&cv.polPend!==null&&!cv.pol[cv.polPend]){askOpen=true;const lv=cv.polPend;const F=FAC[fac(ME)];$('#askC').innerHTML=`<div style="text-align:center;font-size:52px;font-weight:900;color:${F.col};line-height:1.1">${F.ch}</div><h3>第 ${POLDAY[lv]} 天：${F.leader}要定下方针</h3><p>二选一，选了就不能改。这天结束前没选会默认第一个。</p><div class="blist">${POL[fac(ME)][lv].map(op=>`<button data-p="${op.k}"><b>${op.n}</b><small>${op.d}</small></button>`).join('')}</div>`;$('#ovAsk').hidden=false;$('#askC').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('#ovAsk').hidden=true;askOpen=false;doCmd({t:'pol',lv,k:b.dataset.p});});return;}
   if(cv.gpPend>0){askOpen=true;$('#askC').innerHTML=`<h3>传奇幸存者来投奔</h3><p>传奇点数满了。选一位传奇幸存者（下一位需要 ${gpNeed(ME)} 点）。这天结束前没选会默认老教授：</p><div class="blist">${Object.keys(GPT).map(k=>`<button data-g="${k}"><b>${GPT[k].n}</b><small>${GPT[k].d}</small></button>`).join('')}</div>`;$('#ovAsk').hidden=false;
     $('#askC').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{$('#ovAsk').hidden=true;askOpen=false;doCmd({t:'gp',k:b.dataset.g});});}}
 function score(o){if(!G.civs[o].alive)return 0;let s=0;for(const c of civCities(o))s+=10+c.pop*3+Object.keys(c.blds).length*2;s+=Object.keys(G.civs[o].techs).length*6+G.nestK[o]*12+G.kills[o]+Object.keys(WON).filter(k=>hasWon(o,k)).length*15;return s;}
@@ -816,6 +858,7 @@ function drawUnit(u){const Z=cam.z;const lk=UN[u.k].look||u.k;if(u.vq===undefine
   const by=sy-Z*0.82,br=Math.max(8,Z*0.17);const mine=u.owner===ME;const ready=mine&&u.mv>0&&!u.fort;
   ctx.fillStyle=col;ctx.beginPath();ctx.arc(sx-Z*0.28,by,br,0,7);ctx.fill();if(ready){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
   ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(9,br*1.05)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(U.ch,sx-Z*0.28,by+0.5);
+  if(u.owner>=0&&isMil(u)&&(u.owner===ME||VIS.has(key(u.q,u.r)))&&!supplied(u)){ctx.fillStyle='#d9645a';ctx.beginPath();ctx.arc(sx-Z*0.28-br*1.25,by,br*0.62,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(8,br*0.75)}px sans-serif`;ctx.textAlign='center';ctx.fillText('断',sx-Z*0.28-br*1.25,by+0.5);}
   if(u.fort&&mine){ctx.fillStyle='#fffdf8';ctx.font=`700 ${Math.max(8,br*0.8)}px sans-serif`;ctx.fillText('盾',sx-Z*0.28+br*1.2,by-br*0.6);}
   if(u.hp<100){const w=Z*0.5;ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(sx-Z*0.28-w/2,by+br+2,w,3);ctx.fillStyle=u.hp>50?'#5e8c55':'#d9645a';ctx.fillRect(sx-Z*0.28-w/2,by+br+2,w*u.hp/100,3);}
   ctx.textAlign='left';}
@@ -856,7 +899,7 @@ function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGrad
   // 飘字
   for(const p of pops){const a=p.t/1.4;const[sx,sy]=w2s(p.q,p.r);ctx.globalAlpha=Math.max(0,1-a);ctx.font=`900 ${Math.max(13,Z*0.3)}px "Noto Sans SC",sans-serif`;ctx.fillStyle=p.col;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=3;ctx.textAlign='center';ctx.strokeText(p.txt,sx,sy-Z*0.9-a*Z*0.6);ctx.fillText(p.txt,sx,sy-Z*0.9-a*Z*0.6);}ctx.globalAlpha=1;ctx.textAlign='left';}
 function atkTargets(){const out=[];if(!sel||!G||G.over)return out;
-  if(sel.u&&sel.u.owner===ME&&sel.u.mv>0&&isMil(sel.u)&&!sel.u.fired&&!UN[sel.u.k].heal){const U=UN[sel.u.k];const R=U.rng||1;for(const t of ring(sel.u.q,sel.u.r,R)){const tg=tgtAt(t.q,t.r);if(tg&&tg.owner!==ME&&VIS.has(key(t.q,t.r)))out.push(t);}
+  if(sel.u&&sel.u.owner===ME&&sel.u.mv>0&&isMil(sel.u)&&!sel.u.fired&&!UN[sel.u.k].heal){const U=UN[sel.u.k];const R=rngOf(sel.u);for(const t of ring(sel.u.q,sel.u.r,R)){const tg=tgtAt(t.q,t.r);if(tg&&tg.owner!==ME&&VIS.has(key(t.q,t.r)))out.push(t);}
     if(!U.rs&&reach){for(const[k]of reach){const[a,b]=k.split(',').map(Number);for(const n of nbrs(a,b)){const tg=tgtAt(n.q,n.r);if(tg&&tg.owner!==ME&&VIS.has(key(n.q,n.r))&&!out.includes(n))out.push(n);}}}}
   if(sel.c&&sel.c.owner===ME&&!sel.c.shot){for(const t of ring(sel.c.q,sel.c.r,2)){const tg=tgtAt(t.q,t.r);if(tg&&tg.type==='unit'&&tg.owner!==ME&&atWar(ME,tg.owner)&&VIS.has(key(t.q,t.r)))out.push(t);}}
   return out;}
@@ -909,6 +952,7 @@ function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(!cv.alive&&
     case 'peace':{const x=c.x;if(!G.civs[x]||!atWar(o,x))break;if(G.civs[x].ai){if(aiAcceptPeace(x,o))makePeace(o,x);else if(o===ME)feed(`${civName(x)}拒绝停战：${G.turn-G.relT[o][x]<6?'仗才刚开始':'他们觉得自己占上风'}。`,'bad');}
       else{if(!G.asks.some(a=>a.t==='peace'&&a.o===o&&a.to===x))G.asks.push({t:'peace',o,to:x});if(o===ME)feed(`已向${civName(x)}提议停战，等对方回应。`);}break;}
     case 'accept':{const a=G.asks.find(a=>a.t==='peace'&&a.o===c.x&&a.to===o);if(a){G.asks.splice(G.asks.indexOf(a),1);if(c.yes&&atWar(o,c.x))makePeace(o,c.x);else if(c.x===ME)feed(`${civName(o)}拒绝了停战。`,'bad');}break;}
+    case 'pol':{if(cv.polPend===c.lv&&!cv.pol[c.lv]){const op=POL[fac(o)][c.lv].find(x=>x.k===c.k);if(op){cv.pol[c.lv]=op.k;cv.polPend=null;if(o===ME){toast(`方针：${op.n}`,op.d);SFX.tech();}}}break;}
     case 'ready':cv.ready=!!c.on;break;
     case 'ai':cv.ai=!!c.on;cv.dc=!!c.on;if(c.on)cv.ready=false;break;
   }}
@@ -916,7 +960,7 @@ function performAttack(c){const o=c.o;let a;if(c.at==='city'){const x=G.cities[c
   const tg=tgtAt(c.q,c.r);if(!tg||tg.owner===o)return;
   if(a.type==='city'){if(tg.type!=='unit'||!atWar(o,tg.owner)||hexDist(a.o.q,a.o.r,c.q,c.r)>2)return;doAttack(a,tg);return;}
   const U=UN[a.o.k];const d=hexDist(a.o.q,a.o.r,c.q,c.r);if(a.o.fired)return;
-  if(U.rs){if(d>U.rng)return;}else if(d>1){const p=findPath(a.o,c.q,c.r,true);if(!p){if(o===ME)hint('走不过去');return;}walkPath(a.o,p);if(hexDist(a.o.q,a.o.r,c.q,c.r)>1||a.o.mv<=0){if(o===ME)hint('这天够不着了');return;}}
+  if(U.rs){if(d>rngOf(a.o))return;}else if(d>1){const p=findPath(a.o,c.q,c.r,true);if(!p){if(o===ME)hint('走不过去');return;}walkPath(a.o,p);if(hexDist(a.o.q,a.o.r,c.q,c.r)>1||a.o.mv<=0){if(o===ME)hint('这天够不着了');return;}}
   doAttack(a,tg);}
 function afterCmd(c){if(!G)return;const lost=sel&&((sel.u&&!G.units[sel.u.id])||(sel.c&&!G.cities[sel.c.id]));if(sel){if(sel.u)sel.u=G.units[sel.u.id]||null;if(sel.c)sel.c=G.cities[sel.c.id]||null;if(!sel.u&&!sel.c&&!sel.tile)sel=null;}
   if(c&&c.o!==ME&&c.t!=='end'&&!lost&&!postSel){if(pend){const a=pend.a.type==='city'?G.cities[pend.a.o.id]:G.units[pend.a.o.id];const tg=tgtAt(pend.tg.o.q,pend.tg.o.r);if(!a||!tg||tg.o.id!==pend.tg.o.id)pend=null;else{pend.a.o=a;pend.tg=tg;}}
@@ -931,7 +975,7 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     const war=tg.owner>=0&&!atWar(ME,tg.owner);
     el.innerHTML=`<div class="hd"><i style="background:var(--bad)">战</i><div><b>进攻预览</b><br><small>${an} → ${tn}${tg.owner>=0?'（'+civName(tg.owner)+'）':''}</small></div></div>
       <div class="odds"><div>对方损失<b style="color:var(--bad)">${p.toD}</b><small>剩 ${Math.max(0,Math.round(tg.o.hp-p.toD))}</small></div><div style="color:var(--sub)">vs</div><div>我方损失<b>${p.toA}</b><small>${pend.a.type==='city'?'据点射击不受反击':p.ranged?'远程不受反击':'剩 '+Math.max(0,Math.round(pend.a.o.hp-p.toA))}</small></div></div>
-      <p>战力 ${p.A.toFixed(1)} 对 ${p.D.toFixed(1)}。${p.kill?(tg.type==='city'?(p.ranged?'据点会被打到 0，需要近战单位进城才能占领。':'可以攻下这座据点！'):'可以消灭目标。'):''}${p.die?'<b style="color:var(--bad)">我方单位很可能会阵亡。</b>':''}${war?`<br><b style="color:var(--bad)">这会向${civName(tg.owner)}宣战。</b>`:''}</p>
+      <p>战力 ${p.A.toFixed(1)} 对 ${p.D.toFixed(1)}。${p.fl?`<b style="color:var(--good)">包夹 +${p.fl*15}%</b>（${p.fl} 个友军贴着目标）。`:(pend.a.type==='unit'&&!p.ranged?'让更多友军贴着目标能包夹加成。':'')}${p.ns?'<b style="color:var(--bad)">我方断了补给，战力 −20%。</b>':''}${p.kill?(tg.type==='city'?(p.ranged?'据点会被打到 0，需要近战单位进城才能占领。':'可以攻下这座据点！'):'可以消灭目标。'):''}${p.die?'<b style="color:var(--bad)">我方单位很可能会阵亡。</b>':''}${war?`<br><b style="color:var(--bad)">这会向${civName(tg.owner)}宣战。</b>`:''}</p>
       <div class="acts"><button class="b ${war?'warn':'main'}" id="aGo">${war?'宣战并进攻':'进攻'}</button><button class="b" id="aNo">取消</button></div>`;
     $('#aGo').onclick=confirmAttack;$('#aNo').onclick=()=>{pend=null;renderSel();};return;}
   if(sel.u){const u=sel.u,U=UN[u.k];const mine=u.owner===ME;const t=T(u.q,u.r);
@@ -945,8 +989,8 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     const wnote=UN[u.k].wk&&mine&&!u.work?(t.own!==ME?'建设队只能在自己的领土里干活。':t.imp?`这里已经有${IMP[t.imp].n}了。`:!impFor(t)&&t.bl===undefined?'这种地形没有可修的设施。草地/平原修农场，丘陵修矿场，森林修伐木场，废墟修拾荒站。':''):'';
     const fnote=wnote||(u.k==='settler'&&mine?(canFound(u.q,u.r,ME)?'这里可以建据点。据点之间至少隔 3 格，不能建在感染地和别人的领土上。':'这里不能建据点：离其他据点太近、在感染地上，或是别人的领土。'):'');
     el.innerHTML=`<div class="hd"><i style="background:${civCol(u.owner)}">${U.ch}</i><div><b>${U.n}</b> <small>${civName(u.owner)}</small><br><small>${U.d||'丧尸'}</small></div></div>
-      <div class="row"><span>生命 <b>${Math.round(u.hp)}</b></span><span>${U.rs?'远程 <b>'+U.rs+'</b>（'+U.rng+' 格）· ':''}近战 <b>${U.str}</b></span><span>移动 <b>${mine?u.mv+'/'+U.mv:U.mv}</b></span><span>${TERR[t.t].n}${TERR[t.t].def?' 防御+'+TERR[t.t].def+'%':''}</span></div>
-      ${fnote?`<p>${fnote}</p>`:''}${mine&&isMil(u)&&!UN[u.k].sc&&!cityAt(u.q,u.r)&&(t.own!==ME||t.iso)&&t.t!=='m'?`<p style="color:var(--sci)">${t.own>=0&&t.own!==ME?(atWar(ME,t.own)?(t.tower===t.own?'停在这里过一天会拆掉哨塔。':towerGuard(t,t.own)?'这里被敌方哨塔保护，插不了旗。':'停在这里过一天就会插旗，把这格抢过来。'):'这是别人的地，和平时插不了旗。'):'停在这里过一天就会插旗占领。'}</p>`:''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
+      <div class="row"><span>生命 <b>${Math.round(u.hp)}</b></span><span>${U.rs?'远程 <b>'+U.rs+'</b>（'+rngOf(u)+' 格）· ':''}近战 <b>${U.str}</b></span><span>移动 <b>${mine?u.mv+'/'+U.mv:U.mv}</b></span><span>${TERR[t.t].n}${TERR[t.t].def?' 防御+'+TERR[t.t].def+'%':''}</span></div>
+      ${fnote?`<p>${fnote}</p>`:''}${mine&&isMil(u)&&!UN[u.k].sc&&!cityAt(u.q,u.r)&&(t.own!==ME||t.iso)&&t.t!=='m'?`<p style="color:var(--sci)">${t.own>=0&&t.own!==ME?(atWar(ME,t.own)?(t.tower===t.own?'停在这里过一天会拆掉哨塔。':towerGuard(t,t.own)?'这里被敌方哨塔保护，插不了旗。':'停在这里过一天就会插旗，把这格抢过来。'):'这是别人的地，和平时插不了旗。'):'停在这里过一天就会插旗占领。'}</p>`:''}${mine&&isMil(u)&&!supplied(u)?'<p style="color:var(--bad)"><b>断了补给</b>：离自己领土太远，战力 −20%，每天 −8 血。退回领土旁边，或者把中间的地占下来。</p>':''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。走到敌军旁边会被拖住（控制区），几个友军围着打有包夹加成。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
     const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f;};
     on('aFound',()=>{const q=u.q,r=u.r;postSel=()=>{const c=cityAt(q,r);if(c&&c.owner===ME){select({c});toast(`「${c.name}」建立了`,'在据点面板里选择要生产什么');}else select(sel);};doCmd({t:'found',u:u.id});});
     on('aPurge',()=>{postSel=()=>nextIdle();doCmd({t:'purge',u:u.id});});
@@ -963,7 +1007,7 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     if(mine){html+=`<div class="row"><span>口粮 <b>${net>=0?'+':''}${net.toFixed(0)}</b>${turns?`（${turns} 天后长居民）`:net<0?'（挨饿）':''}</span><span>物资 <b>${y.p.toFixed(1)}</b></span><span>蓝图 <b>${y.s.toFixed(1)}</b></span></div>`;
       html+=`<div class="seg" id="focusSeg" style="margin:4px 0 2px">${Object.keys(FOCUS).map(k=>`<button data-f="${k}" class="${(c.focus||'bal')===k?'on':''}" style="padding:6px 2px;font-size:12px">${FOCUS[k].n}</button>`).join('')}</div><p style="margin:0 0 4px">据点方针：决定居民优先耕作哪种地块。</p>`;
       const opts=buildOptions(c);const cur=c.build;
-      html+=`<div class="blist">${cur?'':'<p style="color:var(--bad);margin:0">还没选生产项目</p>'}<h5>单位</h5>`+opts.filter(b=>b.t==='u').map(b=>{const U=UN[b.k];const n=Math.max(1,Math.ceil((U.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="u:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${U.n}<span>${n} 天</span><small>${U.d}${U.str?' · 战力 '+(U.rs||U.str):''}</small></button>`;}).join('')
+      html+=`<div class="blist">${cur?'':'<p style="color:var(--bad);margin:0">还没选生产项目</p>'}<h5>单位</h5>`+opts.filter(b=>b.t==='u').map(b=>{const U=UN[b.k];const n=Math.max(1,Math.ceil((U.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="u:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${U.n}<span>${n} 天</span><small>${U.d}${U.str?' · 战力 '+(U.rs||U.str):''}${needOf(b.k)?` · <b style="color:${stratOK(ME,b.k,c)||(cur&&cur.k===b.k)?'var(--sub)':'var(--bad)'}">要${STRAT[needOf(b.k)]}（${stratUsed(ME,needOf(b.k),c)}/${stratHave(ME,needOf(b.k))}）</b>`:''}</small></button>`;}).join('')
         +(opts.some(b=>b.t==='b')?'<h5>建筑</h5>':'')+opts.filter(b=>b.t==='b').map(b=>{const B=BLD[b.k];const n=Math.max(1,Math.ceil((B.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="b:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${B.n}<span>${n} 天</span><small>${B.d}</small></button>`;}).join('')
         +(opts.some(b=>b.t==='w')?'<h5>地标（全世界只有一座，先建成的得）</h5>':'')+opts.filter(b=>b.t==='w').map(b=>{const B=WON[b.k];const n=Math.max(1,Math.ceil((B.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));const rival=Object.values(G.cities).some(x=>x.owner!==ME&&x.build&&x.build.k===b.k);return`<button data-b="w:${b.k}" class="${cur&&cur.k===b.k?'on':''}">★ ${B.n}<span>${n} 天</span><small>${B.d}${rival?' · <b style="color:var(--bad)">有别的阵营也在建</b>':''}</small></button>`;}).join('')+'</div>';
       const blds=Object.keys(c.blds).map(k=>BLD[k].n).concat(cityWons(c).map(k=>'★'+WON[k].n));if(blds.length)html+=`<p>已建：${blds.join('、')}</p>`;
@@ -973,7 +1017,7 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     return;}
   if(sel.tile){const t=sel.tile;setTimeout(()=>{const b=$('#aClaim');if(b)b.onclick=()=>doCmd({t:'claim',q:t.q,r:t.r});},0);const y=tileYield(t);el.innerHTML=`<div class="hd"><i style="background:${TERR[t.t].c};color:#3a3a34">${TERR[t.t].n[0]}</i><div><b>${TERR[t.t].n}</b>${t.res?' · '+RES[t.res].n:''}${t.imp?' · '+IMP[t.imp].n:''}<br><small>${t.own>=0?civName(t.own)+'的领土':'无主之地'}</small></div></div>
     <div class="row"><span>口粮 <b>${y.f}</b></span><span>物资 <b>${y.p}</b></span><span>蓝图 <b>${y.s}</b></span>${TERR[t.t].mv>50?'<span>无法通行</span>':`<span>移动消耗 <b>${TERR[t.t].mv}</b></span>`}</div>
-    ${claimable(ME,t)?`<div class="acts"><button class="b main" id="aClaim" ${(G.civs[ME].ep||0)>=claimCost(ME,t)?'':'disabled'}>开拓这一格（${claimCost(ME,t)} 开拓点，现有 ${Math.floor(G.civs[ME].ep||0)}）</button></div>`:t.own<0&&t.t!=='m'?'<p>无主之地。贴着自己领土、离据点 4 格以内才能开拓；也可以派军队过去站一天插旗。</p>':''}${t.iso&&t.own>=0?`<p style="color:var(--bad)">孤地：和据点断了联系，什么都不产，再过 ${Math.max(0,4-t.iso)} 天会丢。把中间的地占回来就能接上。</p>`:''}${t.tower!==undefined?`<p>${civName(t.tower)}的哨塔：周围一圈的地敌人插不了旗；敌军站在塔上过一天就能拆掉。</p>`:''}${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
+    ${claimable(ME,t)?`<div class="acts"><button class="b main" id="aClaim" ${(G.civs[ME].ep||0)>=claimCost(ME,t)?'':'disabled'}>开拓这一格（${claimCost(ME,t)} 开拓点，现有 ${Math.floor(G.civs[ME].ep||0)}）</button></div>`:t.own<0&&t.t!=='m'?'<p>无主之地。贴着自己领土、离据点 4 格以内才能开拓；也可以派军队过去站一天插旗。</p>':''}${t.iso&&t.own>=0?`<p style="color:var(--bad)">孤地：和据点断了联系，什么都不产，再过 ${Math.max(0,4-t.iso)} 天会丢。把中间的地占回来就能接上。</p>`:''}${t.tower!==undefined?`<p>${civName(t.tower)}的哨塔：周围一圈的地敌人插不了旗；敌军站在塔上过一天就能拆掉。</p>`:''}${t.res&&RES[t.res].strat?`<p>战略资源「${STRAT[t.res]}」：占下这格，可以多养 2 个需要${STRAT[t.res]}的单位（${t.res==='oil'?'快速、重型兵种':t.res==='bat'?'攻城兵种和王牌':'支援兵'}）。</p>`:''}${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
 function confirmAttack(){if(!pend)return;const{a,tg}=pend;pend=null;const id=a.o.id,at=a.type;
   postSel=()=>{if(G.over)return;if(at==='unit'&&G.units[id])select({u:G.units[id]});else if(at==='city'&&G.cities[id])select({c:G.cities[id]});else select(null);};
   doCmd({t:'atk',at,id,q:tg.o.q,r:tg.o.r});}
@@ -983,7 +1027,7 @@ function tapTile(q,r){if(!G||G.over||busy)return;const t=T(q,r);if(!t){select(nu
   if(pend){if(pend.tg.o.q===q&&pend.tg.o.r===r){confirmAttack();return;}pend=null;}
   const tg=VIS.has(k)?tgtAt(q,r):null;
   if(sel&&sel.u&&sel.u.owner===ME&&sel.u.mv>0){const u=sel.u;
-    if(tg&&tg.owner!==ME&&isMil(u)){const U=UN[u.k];const d=hexDist(u.q,u.r,q,r);let ok=false;if(U.rs)ok=d<=U.rng;else ok=d<=1||atkTargets().includes(t);
+    if(tg&&tg.owner!==ME&&isMil(u)){const U=UN[u.k];const d=hexDist(u.q,u.r,q,r);let ok=false;if(U.rs)ok=d<=rngOf(u);else ok=d<=1||atkTargets().includes(t);
       if(ok){pend={a:{type:'unit',o:u},tg,p:predict({type:'unit',o:u},tg)};renderSel();SFX.click();return;}}
     if(!tg&&canGo(u,t)){tapFx={q,r,t:0};doCmd({t:'move',u:u.id,q,r});return;}
     if(!tg&&t.ex&&!canGo(u,t)){hint(`${TERR[t.t].n}过不去。`);tapFx={q,r,t:0,bad:1};return;}}
@@ -1002,6 +1046,7 @@ function updHUD(){if(!G||!G.civs||!G.civs[ME])return;const cv=G.civs[ME];$('#tur
   const res=cv.res;const lastSci=civCities(ME).reduce((s,c)=>s+cityWork(c,new Set()).s,0);
   $('#sciName').textContent=res?TECH[res].n:'未选择';$('#sciBar').style.width=res?clamp(cv.sci/TECH[res].cost*100,0,100)+'%':'0';$('#sciSub').textContent=res?`${Math.floor(cv.sci)}/${TECH[res].cost} · ${Math.max(1,Math.ceil((TECH[res].cost-cv.sci)/Math.max(0.5,lastSci)))} 天`:'点这里选择要破解的蓝图';
   $('#stC').textContent=civCities(ME).length;$('#stP').textContent=civCities(ME).reduce((s,c)=>s+c.pop,0);$('#stS').textContent='+'+lastSci.toFixed(1);$('#stM').textContent=power(ME);
+  $('#vR').textContent=['oil','bat','med'].map(k=>stratUsed(ME,k)+'/'+stratHave(ME,k)).join(' · ');
   {const sh=CIV().map(o=>Math.round(landShare(o)*100));$('#vL').textContent=`${sh[ME]}%/${Math.round(winLand()*100)}%`;$('#vL').title=CIV().map(o=>civName(o)+' '+sh[o]+'%').join(' · ');$('#vE').textContent=`${Math.floor(cv.ep||0)} · +${epRate(ME).toFixed(1)}`;}
   $('#vN').textContent=`${G.nestK[ME]}/${G.pur||4} 座`;
   const cap=civCities(ME).find(c=>c.cap);$('#vA').textContent=cv.techs.ark?(cap&&cap.build&&cap.build.k==='ark'?Math.floor(cap.prod/BLD.ark.cost*100)+'%':'可以建造'):`${Object.keys(cv.techs).length}/${Object.keys(TECH).length} 蓝图`;
@@ -1027,8 +1072,8 @@ function openTech(){const cv=G.civs[ME];const tiers=[0,1,2,3].map(i=>Object.keys
   $('#ovTech').hidden=false;$('#techC').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{SFX.click();$('#ovTech').hidden=true;doCmd({t:'res',k:b.dataset.t});});$('#tClose').onclick=()=>$('#ovTech').hidden=true;}
 function openDip(){const rows=CIV().filter(x=>x!==ME).map(o=>{const cv=G.civs[o];const war=atWar(ME,o);const t=G.turn-G.relT[ME][o];
     return`<div class="civrow"><i style="background:${civCol(o)};width:30px;height:30px;color:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:18px">${FAC[fac(o)].ch}</i><div><b>${civName(o)}</b> <small style="color:var(--sub)">${FAC[fac(o)].py} · ${FAC[fac(o)].ep}${cv.ai?'':' · 真人'}${NETON&&isHum(o)&&cv.ready?' · 已准备':''}</small>${cv.alive?`<span class="tag ${war?'war':'peace'}">${war?'交战中':'和平'}</span>`:'<span class="tag">已灭亡</span>'}</div>
-    ${cv.alive?`<button class="b sm ${war?'':'warn'}" data-o="${o}">${war?'提议停战':'宣战'}</button>`:''}<small>据点 ${civCities(o).length} · 军力 ${power(o)}（我方 ${power(ME)}）· 蓝图 ${Object.keys(cv.techs).length} · 尸巢 ${G.nestK[o]}${war?` · 已打 ${t} 天`:''}</small></div>`;}).join('');
-  $('#dipC').innerHTML=`<h3>外交</h3><p style="margin-top:0">你执掌「${FAC[fac(ME)].ch}」${FAC[fac(ME)].py} · ${FAC[fac(ME)].ep}。${G.mp?'真人阵营之间宣战、停战需要对方同意。':''}</p>${rows}<div class="acts2"><button class="b" id="dClose">关闭</button></div>`;
+    ${cv.alive?`<button class="b sm ${war?'':'warn'}" data-o="${o}">${war?'提议停战':'宣战'}</button>`:''}<small>${(cv.pol||[]).filter(Boolean).length?'方针：'+cv.pol.filter(Boolean).map(k=>POL[fac(o)].flat().find(x=>x.k===k).n).join('、')+' · ':''}据点 ${civCities(o).length} · 军力 ${power(o)}（我方 ${power(ME)}）· 蓝图 ${Object.keys(cv.techs).length} · 尸巢 ${G.nestK[o]}${war?` · 已打 ${t} 天`:''}</small></div>`;}).join('');
+  $('#dipC').innerHTML=`<h3>外交</h3><p style="margin-top:0">你执掌「${FAC[fac(ME)].ch}」${FAC[fac(ME)].py} · ${FAC[fac(ME)].ep}。${(G.civs[ME].pol||[]).filter(Boolean).length?'方针：'+G.civs[ME].pol.filter(Boolean).map(k=>{const x=POL[fac(ME)].flat().find(x=>x.k===k);return x.n+'（'+x.d+'）';}).join('；')+'。':`第 ${POLDAY[0]}、${POLDAY[1]} 天会让你选方针。`}${G.mp?'真人阵营之间宣战、停战需要对方同意。':''}</p>${rows}<div class="acts2"><button class="b" id="dClose">关闭</button></div>`;
   $('#ovDip').hidden=false;$('#dClose').onclick=()=>$('#ovDip').hidden=true;
   $('#dipC').querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{const o=+b.dataset.o;if(atWar(ME,o)){$('#ovDip').hidden=true;doCmd({t:'peace',x:o});}
     else{$('#ovDip').hidden=true;showAsk(`向${civName(o)}宣战？`,'宣战后双方的单位和据点可以互相攻击。','宣战','算了',()=>{doCmd({t:'war',x:o});});}});}
