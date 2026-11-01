@@ -133,6 +133,19 @@ button{font-family:var(--f-ui);}
 }
 @media (max-height:480px) and (min-width:701px){#feed{display:none;}#sel{max-height:calc(100vh - 90px);}}
 @media (prefers-reduced-motion:reduce){#toast{transition:none;}#feed div{animation:none;}}
+
+#ovTut .card{max-width:440px}
+#ovTut .tdots{display:flex;gap:6px;justify-content:center;margin:2px 0 10px}#ovTut .tdots i{width:7px;height:7px;border-radius:50%;background:#e2ddd2}#ovTut .tdots i.on{background:var(--ac,#6b8f4e)}
+#ovTut .tbig{font-size:46px;font-weight:900;text-align:center;line-height:1.1;margin:0}
+#ovTut h3{text-align:center;margin:6px 0 10px}#ovTut ol,#ovTut ul{padding-left:20px;margin:6px 0}#ovTut li{margin:5px 0;line-height:1.55}
+#ovTut .tnote{background:#f5f1e8;border-radius:12px;padding:8px 12px;font-size:13px;margin:8px 0}
+#ovTut .tchk{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub,#8a8577);margin:10px 0 0}
+#ovTut .acts2{display:flex;gap:8px;margin-top:10px}#ovTut .acts2 .b{flex:1}
+#coach{position:fixed;z-index:15;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 108px);width:min(400px,calc(100vw - 32px));background:#fffdf8;border-radius:16px;box-shadow:0 10px 30px rgba(80,70,50,.22);padding:10px 12px 8px 14px;font-size:14px;line-height:1.5;border-left:5px solid var(--tc,#6b8f4e);animation:cIn .35s ease}
+#coach .ct{font-size:11px;font-weight:700;color:var(--tc,#6b8f4e);letter-spacing:.05em;margin-bottom:2px}
+#coach .cb{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}#coach .cb button{font-size:12px;padding:5px 10px;border-radius:10px;border:0;background:#f0ece2;color:#5a5548;cursor:pointer}#coach .cb button.k{background:var(--tc,#6b8f4e);color:#fff}
+@keyframes cIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (max-width:600px){#coach{top:calc(env(safe-area-inset-top,0px) + 150px);left:16px;transform:none;width:calc(100vw - 96px);font-size:13px;padding:8px 10px 6px 12px}@keyframes cIn{from{opacity:0}to{opacity:1}}}
 </style>
 </head>
 <body>
@@ -164,6 +177,7 @@ button{font-family:var(--f-ui);}
     <li><b>三种胜利</b>：统一废土（占下一半土地，4 阵营时 40%；或占领所有敌方主营）、大地复苏（最先摧毁 4 座尸巢）、方舟启航（破解方舟计划蓝图，在主营造好方舟）</li>
     <li>建设队修设施，据点定方针，地标全世界只有一座，传奇幸存者会来投奔</li>
   </ul>
+  <label class="tchk" style="display:flex;align-items:center;gap:6px;font-size:13px;margin:0 0 8px"><input type="checkbox" id="tutOn"> 开局显示新手教学（卡片 + 跟着做的提示）</label>
   <div class="seg" id="sizeSeg"><button data-n="3" class="on">3 个阵营</button><button data-n="4">4 个阵营（大地图）</button></div>
   <div class="seg" id="diffSeg"><button data-d="0">简单</button><button data-d="1" class="on">普通</button><button data-d="2">困难</button></div>
   <div class="acts2"><button class="b main" id="bCont" hidden>继续上一局</button><button class="b main" id="bNew">单人开始新的一局</button><button class="b" id="bMP">联机对战（2–4 人）</button></div>
@@ -187,6 +201,8 @@ button{font-family:var(--f-ui);}
   <div class="acts2"><button class="b" id="lbBack">返回</button></div>
 </div></div>
 <div class="ov" id="ovStory" hidden><div class="card story" id="storyC" style="max-width:440px"></div></div>
+<div class="ov" id="ovTut" hidden><div class="card" id="tutC"></div></div>
+<div id="coach" hidden></div>
 <div class="ov" id="ovTech" hidden><div class="card" id="techC"></div></div>
 <div class="ov" id="ovDip" hidden><div class="card" id="dipC"></div></div>
 <div class="ov" id="ovEnd" hidden><div class="card" id="endC"></div></div>
@@ -380,7 +396,7 @@ function ring(q,r,R){const o=[];for(let dq=-R;dq<=R;dq++)for(let dr=Math.max(-R,
 const pass=t=>t&&TERR[t.t].mv<50;
 function hostile(u,v){if(!v||v===u||v.owner===u.owner)return false;if(v.owner<0||u.owner<0)return true;return atWar(u.owner,v.owner);}
 function zocAt(u,t){const U=UN[u.k];if(U.sc||U.z)return false;for(const n of nbrs(t.q,t.r)){const v=UAT[key(n.q,n.r)];if(v&&hostile(u,v)&&(isMil(v)||UN[v.k].z))return true;}return false;}
-function supplied(u){if(u.owner<0||UN[u.k].tame||u.k==='caravan')return true;const t=T(u.q,u.r);if(!t)return true;if(t.own===u.owner&&!t.iso)return true;for(const n of nbrs(t.q,t.r))if(n.own===u.owner&&!n.iso)return true;return false;}
+function supplied(u){if(u.owner<0||UN[u.k].tame||u.k==='caravan'||!civCities(u.owner).length)return true;const t=T(u.q,u.r);if(!t)return true;if(t.own===u.owner&&!t.iso)return true;for(const n of nbrs(t.q,t.r))if(n.own===u.owner&&!n.iso)return true;return false;}
 function flankN(a,tg){if(a.type!=='unit'||UN[a.o.k].rs)return 0;let n=0;for(const nb of nbrs(tg.o.q,tg.o.r)){const v=UAT[key(nb.q,nb.r)];if(v&&v!==a.o&&v.owner===a.o.owner&&isMil(v))n++;}return Math.min(3,n);}
 function moveCost(u,t){const U=UN[u.k];if(t.wall!==undefined&&t.wall!==u.owner)return 99;if(t.t==='w'&&u.owner>=0&&!U.z&&fac(u.owner)===0)return 1;if(t.t==='w'&&u.owner>=0&&!U.civ&&!U.z&&pp(u.owner,'amph'))return 2;if(U.fly)return t.t==='w'?99:1;if(U.boat&&t.t==='w')return 1;return TERR[t.t].mv;}
 const passU=(u,t)=>!!t&&moveCost(u,t)<50;
@@ -1108,7 +1124,7 @@ let STORY={};const storyQ=[];
 function storyKey(){return 'feitu-story-'+G.seed+'-'+ME;}
 function storySave(){if(NETON||!G)return;try{localStorage.setItem(storyKey(),JSON.stringify(STORY));}catch(e){}}
 function story(id,title,text,f,extra){if(STORY[id]||HEADLESS)return;STORY[id]=1;storySave();storyQ.push({title,text,f,extra});showStory();}
-function showStory(){if(!storyQ.length||!$('#ovStory').hidden)return;if(!$('#ovAsk').hidden||!$('#ovEnd').hidden||!$('#ovMenu').hidden||!$('#ovLobby').hidden)return;const s0=storyQ.shift();const f=s0.f;
+function showStory(){if(!storyQ.length||!$('#ovStory').hidden)return;if(!$('#ovAsk').hidden||!$('#ovEnd').hidden||!$('#ovMenu').hidden||!$('#ovLobby').hidden||!$('#ovTut').hidden)return;const s0=storyQ.shift();const f=s0.f;
   $('#storyC').innerHTML=`${f?`<div class="big" style="color:${f.col}">${f.ch}</div><div class="py">${f.py} · ${f.ep}</div>`:''}<h3>${s0.title}</h3>${s0.text.split('\n').map(t=>`<p>${t}</p>`).join('')}${s0.extra||''}<div class="acts2"><button class="b main" id="stOk">继续</button></div>`;
   $('#ovStory').hidden=false;$('#stOk').onclick=()=>{$('#ovStory').hidden=true;checkAsks();showStory();};}
 function showPrologue(){if(HEADLESS)return;try{STORY=JSON.parse(localStorage.getItem(storyKey())||'{}');}catch(e){STORY={};}if(STORY.pro){return;}const f=FAC[fac(ME)];
@@ -1130,7 +1146,7 @@ function storyCheck(){if(!G||HEADLESS||G.over)return;const me=ME;
 /* ---------- 指令：单人直接执行，联机经房主排序后所有人同步执行 ---------- */
 let postSel=null;
 function doCmd(c){if(!G||G.over)return;c.o=ME;if(!NETON){applyCmd(c);afterCmd(c);return;}if(NET.host)hostCmd(c);else nsend('r',Object.assign({},c,{pid:NET.me}));}
-function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(!cv.alive&&c.t!=='ai')return;
+function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(o===ME&&TUT&&!HEADLESS)TUT.did[c.t]=1;if(!cv.alive&&c.t!=='ai')return;
   const U=id=>{const u=G.units[id];return u&&u.owner===o?u:null;};const C=id=>{const x=G.cities[id];return x&&x.owner===o?x:null;};
   switch(c.t){
     case 'move':{const u=U(c.u);if(!u)break;if(u.mv>0)moveUnitTo(u,c.q,c.r);else{const p=findPath(u,c.q,c.r,false);if(p){u.dest=[c.q,c.r];u.fort=0;if(o===ME)feed(`${UN[u.k].n}今天已经走不动了，明天会自动出发。`);}else if(o===ME)hint('走不到那里');}break;}
@@ -1309,7 +1325,8 @@ $('#diffSeg').addEventListener('click',e=>{const b=e.target.closest('button');if
 let spN=3,myF=0;try{myF=+(localStorage.getItem('civ-fac')||0)||0;}catch(e){}
 function facCards(el,cur,taken,onPick){el.innerHTML=FAC.map((f,i)=>`<button data-f="${i}" class="${i===cur?'on':''}" ${taken&&taken[i]?'disabled':''}><b style="color:${f.col}">${f.ch}</b><span>${f.py} · ${f.ep}</span><small>${taken&&taken[i]?taken[i]:i===cur?'你':''}</small></button>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>onPick(+b.dataset.f));}
 function drawFacPick(){facCards($('#facPick'),myF,null,f=>{myF=f;try{localStorage.setItem('civ-fac',f);}catch(e){}SFX.click();drawFacPick();});const f=FAC[myF];$('#facInfo').innerHTML=`<b style="color:${f.col}">「${f.ch}」${f.ep}</b>：${f.trait}`;}$('#sizeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;spN=+b.dataset.n;$('#sizeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
-$('#bNew').onclick=()=>{closeAll();newGame(diff,0,{n:spN,myF});showPrologue();};
+$('#bNew').onclick=()=>{closeAll();newGame(diff,0,{n:spN,myF});showPrologue();tutStart();};
+{const c=$('#tutOn');c.checked=tutPref();c.onchange=()=>tutSetPref(c.checked);}
 $('#bCont').onclick=()=>{const s=loadSave();if(!s)return;G=s;MW=G.mw||24;MH=G.mh||16;RNG=gRand;ME=0;try{STORY=JSON.parse(localStorage.getItem(storyKey())||'{}');}catch(e){STORY={};}G.wonders=G.wonders||{};G.asks=G.asks||[];G.civs.forEach(c=>{c.gp=c.gp||0;c.gpN=c.gpN||0;});diff=G.diff;closeAll();reidx();updVis();sel=null;const c=civCities(ME)[0]||civUnits(ME)[0];if(c)centerOn(c.q,c.r);updHUD();feed(`继续第 ${G.turn} 天。`);};
 
 $('#bMP').onclick=()=>openLobby();
@@ -1383,7 +1400,7 @@ function lobbyStart(){if(!NET.host)return;const L=NET.list.slice(0,4);const o=NE
 function netOnStart(st){if(NET.started&&G&&G.seed===st.seed)return;const me=st.humans.find(h=>h.id===NET.me);if(!me){lbMsg('这一局已经开始了，你不在名单里。');return;}
   NET.started=true;NET.st=st;NETON=true;closeAll();HEADLESS=false;newGame(st.diff,st.seed,{n:st.n,humans:st.humans,me:me.civ,mp:true,timer:st.timer});
   if(NET.host){G.dayT=Date.now();setTimeout(netSnap,200);}else nsend('sync',{});
-  showPrologue();}
+  showPrologue();tutStart();}
 function hostCmd(c){c.seq=G.seq+1;nsend('c',c);applySeq(c);}
 function applySeq(c){G.seq=c.seq;if(c.t==='end'){endTurn();if(NET.host){G.dayT=Date.now();netSnap();}}else applyCmd(c);afterCmd(c);if(NET.host)hostCheckEnd();}
 function netOnCmd(c){if(!G||!NETON)return;if(c.seq<=G.seq)return;if(c.seq!==G.seq+1){nsend('sync',{});return;}applySeq(c);}
@@ -1451,6 +1468,67 @@ function musicTick(){if(!ok())return;const C=AU.ctx,t=C.currentTime;const war=G&
     AU.next+=(war?0.7:1)*M.sp*(0.8+Math.random()*0.8);}}
 $('#bSnd').onclick=()=>{AU.on=!AU.on;$('#bSnd').textContent=AU.on?'🔊':'🔇';if(AU.ctx)AU.m.gain.setTargetAtTime(AU.on?0.8:0,AU.ctx.currentTime,0.1);};
 
+
+/* ---------- 新手教学 ---------- */
+// 每个阵营：招牌怎么用（卡片里的步骤）+ 跟着做的提示
+const TUTF=[
+ {sig:'筑坝引水',how:['选中「民工」（建设队）','点「引水 / 填湖」','点它旁边一格<b>自己的地</b>：陆地变湖，湖变陆地'],tip:'湖格对淼 +2 口粮、走起来跟平地一样。把据点周围挖几格湖，人口涨得飞快；汽艇队能在湖上跑。',
+  coach:{t:'dam',txt:'【招牌·筑坝引水】点「民工」→「引水 / 填湖」→ 点旁边一格自己的地，把它挖成湖（湖 +2 口粮）。',av:()=>civUnits(ME).some(u=>UN[u.k].wk)}},
+ {sig:'焦土',how:['和别人开战（🤝 外交里宣战，或者被别人宣战）','把军队开到<b>敌人的地</b>上','点「放火：变焦土」'],tip:'焦土 3 天什么都不产，敌人站在上面每天 −8 血，哨塔也一起烧掉。适合烧掉敌人前线的哨塔，再插旗抢地。',
+  coach:{t:'burn',txt:'【招牌·焦土】开战了！把兵开到敌人的地上，点「放火：变焦土」——3 天寸草不生，敌人踩上去每天掉血。',av:()=>CIV().some(o=>o!==ME&&atWar(ME,o))}},
+ {sig:'筑墙',how:['选中「民工」（建设队），站在自己领土上','点「修城墙（2 天）」','修好后只有你自己的单位能通过，敌人得把墙（60 耐久）打塌'],tip:'在两座山之间、或者据点前面的路口修墙，一格就能挡住一整支军队。墙不会反击，但能拖住敌人好几天。',
+  coach:{t:'wall',txt:'【招牌·筑墙】点「民工」走到边界上 →「修城墙」。只有自己人能过，敌人得硬拆。',av:()=>civUnits(ME).some(u=>UN[u.k].wk)}},
+ {sig:'电网传送',how:['至少要有 2 座据点','把军队停在一座据点里','点「电网传送」，选要去的据点（冷却 3 天）'],tip:'兵不用走路：哪边告急就传送到哪边。哨塔的视野是 4 格，多修几座就能看清整片前线。',
+  coach:{t:'tp',txt:'【招牌·电网传送】把兵停进据点 → 点「电网传送」，瞬间去另一座据点支援。',av:()=>civCities(ME).length>=2&&civUnits(ME).some(u=>isMil(u)&&cityAt(u.q,u.r))}},
+ {sig:'拔营',how:['据点建好满 8 天以后，点据点','点「拔营」，据点变成一辆大篷车（人口和设施都带走）','开到更好的地方，点「落营」重新扎下'],tip:'所有单位移动 +1。地被尸巢污染、或者前线太危险，就整座据点搬走。注意：大篷车被打掉，整座据点就没了。',
+  coach:{t:'pack',txt:'【招牌·拔营】你的据点满 8 天了：点据点 →「拔营」变大篷车，开到好地方再「落营」。（想留着也可以不搬）',av:()=>civCities(ME).some(c=>G.turn-(c.born||0)>=8)}},
+ {sig:'驯尸',how:['用军队打死丧尸，有 35% 机会把它收编成你的「尸兵」','把军队开到<b>尸巢旁边</b>','点「供奉旁边的尸巢」：它不再扩散，以后替你孵尸兵'],tip:'惢不怕感染地。供奉的尸巢也算「大地复苏」的进度，供奉够数一样能赢。驯尸师打丧尸收编率更高，尸母每 3 天生一只尸兵。',
+  coach:{t:'worship',txt:'【招牌·驯尸】看到尸巢了！把兵开到它旁边 →「供奉旁边的尸巢」，它就替你孵兵，也算复苏进度。',av:()=>Object.values(G.nests).some(n=>n.alive&&!(n.own>=0)&&VIS.has(key(n.q,n.r)))}},
+ {sig:'空降',how:['选中一个站在<b>自己领土</b>上的军队','点「空降」，地图上会亮起能去的格子（2～8 格内、看得到的空地）','点一格亮起的地，部队直接落过去（冷却 4 天）'],tip:'所有单位视野 +1。最适合偷袭敌人后方的据点、或者瞬间补到前线。落地后当天不能再动，别空降到敌人堆里。',
+  coach:{t:'drop',txt:'【招牌·空降】点一个站在自己领土上的兵 →「空降」→ 点亮起来的格子，直接飞过去。',av:()=>G.turn>=3&&civUnits(ME).some(u=>isMil(u)&&T(u.q,u.r).own===ME)}},
+ {sig:'收买',how:['和别人开战','点一个<b>贴着你领土或你的部队</b>的敌军','点「收买」，花开拓点把它变成你的（也能收买敌方地块）'],tip:'开拓点 +25%。大掌柜站在旁边收买半价。打不过就买：一支重型战车往往比自己造便宜。',
+  coach:{t:'bribe',txt:'【招牌·收买】开战了！点贴着你领土的敌军 →「收买」，花开拓点把它变成你的兵。',av:()=>CIV().some(o=>o!==ME&&atWar(ME,o))}}];
+let TUT=null;
+function tutPref(){try{return localStorage.getItem('civ-tut')!=='0';}catch(e){return true;}}
+function tutSetPref(on){try{localStorage.setItem('civ-tut',on?'1':'0');}catch(e){}const c=$('#tutOn');if(c)c.checked=on;}
+function tutCards(){const F=fac(ME),f=FAC[F],T2=TUTF[F];const slots=[0,1,2,3,4,5,6,7,8].map(sl=>unitFor(ME,sl)).filter(Boolean);
+  return [
+  `<p class="tbig" style="color:${f.col}">${f.ch}</p><h3>欢迎，${f.leader}</h3><p>这是一局<b>按天回合</b>的废土争霸。你和其他阵营抢地、打仗、清尸巢，先达成下面任何一个目标就赢：</p><ul><li>🚩 <b>统一废土</b>：占下大约一半的土地，或者攻下所有敌人的主营</li><li>🌱 <b>大地复苏</b>：最先摧毁（或供奉）规定数量的尸巢</li><li>🚀 <b>方舟启航</b>：破解方舟蓝图，在主营造好方舟</li></ul><div class="tnote">右上角的面板随时显示你每个目标的进度。</div>`,
+  `<h3>怎么操作</h3><ol><li><b>点单位</b>选中它，<b>再点地块</b>：走过去；点敌人：进攻</li><li>点「拓荒者」→「<b>建据点</b>」，据点会自己长人口、出物资</li><li><b>点据点</b>，在下面选要生产的兵或设施</li><li>点左上「<b>蓝图</b>」选要破解的科技</li><li>点右上 <b>⛳</b>，用开拓点把边界外的地一格一格占下来</li><li>都做完了，点右下「<b>结束这天</b>」</li></ol><div class="tnote">拖动地图移动视角，双指 / 滚轮缩放。没选中东西时按大按钮会自动跳到下一个还能动的单位。</div>`,
+  `<h3>打仗的规矩</h3><ul><li><b>控制区</b>：走到敌军旁边会被拖住，这天就不能再走</li><li><b>包夹</b>：几个友军围着同一个目标，每多一个 +15%</li><li><b>补给</b>：离开自己领土太远会断补给，每天掉血、战力 −20%</li><li><b>插旗</b>：军队在别人的地上站一天就把地抢过来；建设队修的哨塔能挡住插旗</li><li><b>尸巢</b>会孵丧尸、扩散感染，靠近要小心</li></ul>`,
+  `<p class="tbig" style="color:${f.col}">${f.ch}</p><h3>你的招牌：${T2.sig}</h3><ol>${T2.how.map(x=>`<li>${x}</li>`).join('')}</ol><div class="tnote">${T2.tip}</div><p style="font-size:12px;color:var(--sub);margin:6px 0 0">你的兵种：${slots.map(k=>UN[k].n).join('、')}</p><p style="font-size:12px;color:var(--sub);margin:2px 0 0">到了能用招牌的时候，屏幕上方会提示你。</p>`];}
+function tutStart(){if(HEADLESS||!G)return;TUT={i:0,did:{},off:!tutPref(),shown:{},cur:null};if(TUT.off)return;
+  const go=()=>{if(!G||!TUT)return;if(!$('#ovStory').hidden||!$('#ovAsk').hidden||!$('#ovMenu').hidden){setTimeout(go,400);return;}tutShowCard();};setTimeout(go,300);}
+function tutShowCard(){const cards=tutCards();const i=TUT.i;const f=FAC[fac(ME)];
+  $('#tutC').innerHTML=`<div class="tdots">${cards.map((_,j)=>`<i class="${j===i?'on':''}" style="${j===i?'background:'+f.col:''}"></i>`).join('')}</div>${cards[i]}
+   <label class="tchk"><input type="checkbox" id="tutNo" ${tutPref()?'':'checked'}> 以后开局不再显示（主菜单可以重新打开）</label>
+   <div class="acts2">${i>0?'<button class="b" id="tPrev">上一张</button>':'<button class="b" id="tSkip">跳过教学</button>'}<button class="b main" id="tNext" style="background:${f.col}">${i<cards.length-1?'下一张':'开始玩'}</button></div>`;
+  $('#ovTut').hidden=false;
+  $('#tutNo').onchange=e=>tutSetPref(!e.target.checked);
+  const close=(coach)=>{$('#ovTut').hidden=true;if(!coach)TUT.off=true;SFX.click();showStory();};
+  if($('#tPrev'))$('#tPrev').onclick=()=>{TUT.i--;tutShowCard();};
+  if($('#tSkip'))$('#tSkip').onclick=()=>close(false);
+  $('#tNext').onclick=()=>{if(TUT.i<cards.length-1){TUT.i++;SFX.click();tutShowCard();}else close(tutPref());};}
+// 跟着做的提示
+function tutSteps(){const cv=G.civs[ME];const sig=TUTF[fac(ME)].coach;return [
+ {id:'found',txt:'先点「拓荒者」（头上写着「拓」），再点下面的「建据点」，建立第一座据点。',av:()=>civUnits(ME).some(u=>u.k==='settler'),done:()=>civCities(ME).length>0},
+ {id:'build',txt:'点你的据点，在下面选要生产的东西：先造一个兵防身，或者造建设队修设施。',av:()=>civCities(ME).length>0,done:()=>civCities(ME).some(c=>c.build)},
+ {id:'res',txt:'点左上角「蓝图」，选一项开始破解。破解后能造新兵种、新设施。',av:()=>civCities(ME).length>0,done:()=>!!cv.res||Object.keys(cv.techs).length>1},
+ {id:'move',txt:'点一个兵（比如侦察兵），再点远处的地块，它就会走过去探路。',av:()=>civUnits(ME).some(u=>isMil(u)||UN[u.k].vis),done:()=>TUT.did.move},
+ {id:'end',txt:'这一天的事做完了，就点右下「结束这天」。每天只要做几件事就好。',av:()=>civCities(ME).length>0&&TUT.did.move,done:()=>G.turn>=3||TUT.did.end},
+ {id:'claim',txt:'开拓点够了：点右上 ⛳，再点边界外亮起来的格子，把地占成你的。',av:()=>(cv.ep||0)>=claimCostMin(),done:()=>TUT.did.claim},
+ {id:'sig',txt:sig.txt,av:sig.av,done:()=>TUT.did[sig.t]||(sig.t==='bribe'&&TUT.did.bribeT),sig:1}];}
+function claimCostMin(){let m=1e9;for(const t of Object.values(G.tiles)){if(claimable(ME,t)){const c=claimCost(ME,t);if(c<m)m=c;}}return m;}
+function tutTick(){const el=$('#coach');if(!G||HEADLESS||!TUT||TUT.off||G.over||!G.civs[ME]||!G.civs[ME].alive){el.hidden=true;return;}
+  const blocked=['#ovStory','#ovAsk','#ovMenu','#ovTut','#ovEnd','#ovLobby'].some(q=>$(q)&&!$(q).hidden);if(blocked){el.hidden=true;return;}
+  let st=null;try{for(const s0 of tutSteps()){if(TUT.shown[s0.id]==='x')continue;if(s0.done()){TUT.shown[s0.id]='x';if(TUT.cur===s0.id)TUT.cur=null;continue;}if(s0.av()){st=s0;break;}}}catch(e){st=null;}
+  if(!st){el.hidden=true;TUT.cur=null;return;}
+  if(TUT.cur!==st.id){TUT.cur=st.id;const f=FAC[fac(ME)];el.style.setProperty('--tc',f.col);
+    el.innerHTML=`<div class="ct">${st.sig?'「'+f.ch+'」的招牌':'新手提示'}</div><div>${st.txt}</div><div class="cb"><button id="cOff">关掉提示</button><button class="k" id="cOk">知道了</button></div>`;
+    $('#cOk').onclick=()=>{TUT.shown[st.id]='x';TUT.cur=null;el.hidden=true;};
+    $('#cOff').onclick=()=>{TUT.off=true;el.hidden=true;feed('新手提示已关闭。主菜单里可以重新打开。');};}
+  el.hidden=false;}
+setInterval(tutTick,500);
 /* ---------- 操作 ---------- */
 let HEADLESS=false,BOT='';
 function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';}
