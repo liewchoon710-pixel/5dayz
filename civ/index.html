@@ -153,7 +153,7 @@ button{font-family:var(--f-ui);}
 
 <div class="ov" id="ovMenu"><div class="card">
   <div class="eb">尸城五日 · 外传 · 末日废土争霸</div><h2>尸土重生</h2>
-  <p>大崩塌后的第十年。幸存者在一座塌了一半的图书馆里翻出一本《字海》，四个首领各挑了一个没人念得出的字当旗号：「旧世界的话已经没人听了，我们要自己的名字。」</p>
+  <p>大崩塌后的第十年。幸存者在一座塌了一半的图书馆里翻出一本《字海》，八个首领各挑了一个没人念得出的字当旗号：「旧世界的话已经没人听了，我们要自己的名字。」</p>
   <div class="facs" id="facPick"></div><p id="facInfo" style="font-size:13px;margin:4px 0 8px"></p>
   <ul>
     <li>按天推进：移动单位、建据点、生产、破解蓝图，点「结束这天」后轮到电脑</li>
@@ -226,6 +226,7 @@ const UN={
   drone:{n:'无人机',ch:'机',str:3,mv:4,cost:18,vis:4,sc:1,fac:3,fly:1,look:'drone',d:'无视地形消耗、能飞越山脉，视野 4'},
   settler:{n:'拓荒者',ch:'拓',str:0,mv:2,cost:35,civ:1,look:'settler',d:'建立新据点，消耗 1 居民'},
   worker:{n:'建设队',ch:'建',str:0,mv:2,cost:30,civ:1,wk:1,look:'worker',d:'在自己领土上修农场、矿场，也能净化感染'},
+  caravan:{n:'大篷车',ch:'营',str:0,mv:2,civ:1,gp:1,look:'caravan',d:'拔营的据点：找到合适的地方就能「落营」重新变回据点'},
   general:{n:'指挥官',ch:'指',str:0,mv:3,civ:1,gp:1,look:'general',d:'传奇幸存者：2 格内的我方部队战斗力 +20%'},
   m0:{n:'水卫',ch:'卫',fac:0,sl:0,str:8,mv:2,cost:25,look:'mil',d:'守水源的步兵'},
   m1:{n:'高压水枪手',ch:'枪',fac:0,sl:1,str:6,rs:10,rng:2,mv:2,cost:35,tech:'bow',look:'bow',d:'远程 2 格，不会被反击'},
@@ -263,6 +264,45 @@ const UN={
   b6:{n:'纳米维修兵',ch:'修',fac:3,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
   b7:{n:'电击猎尸手',ch:'击',fac:3,sl:7,str:11,mv:2,cost:35,tech:'scav',hz:1,look:'hunter',d:'打丧尸和尸巢 +50%，打人 -25%'},
   b8:{n:'雷神机甲',ch:'神',fac:3,sl:8,ace:1,str:14,rs:24,rng:3,mv:2,cost:140,tech:'armor',shootMove:1,look:'mech',d:'王牌（全场只能有 1 个）：远程 3 格，开火后还能接着走'},
+  n0:{n:'套马手',ch:'套',fac:4,sl:0,str:8,mv:2,cost:25,look:'mil',d:'套着长杆的牧民'},
+  n1:{n:'骑射手',ch:'射',fac:4,sl:1,str:6,rs:10,rng:2,mv:2,cost:35,tech:'bow',look:'bow',d:'远程 2 格，不会被反击'},
+  n2:{n:'铁甲驼卫',ch:'驼',fac:4,sl:2,str:15,mv:2,cost:45,tech:'fort',look:'guard',d:'披着铁片的骆驼兵'},
+  n3:{n:'狼骑',ch:'狼',fac:4,sl:3,str:13,mv:4,cost:45,tech:'moto',look:'beast',d:'骑着变异狼，移动 4'},
+  n4:{n:'犀甲战车',ch:'犀',fac:4,sl:4,str:24,mv:3,cost:80,tech:'armor',look:'beast',d:'改装犀牛拖着的铁车'},
+  n5:{n:'抛石驼车',ch:'抛',fac:4,sl:5,str:8,rs:20,rng:2,mv:2,cost:80,tech:'cannon',siege:1.6,look:'gun',d:'远程 2 格，攻打据点 +60%'},
+  n6:{n:'萨满',ch:'萨',fac:4,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  n7:{n:'猎犬队',ch:'犬',fac:4,sl:7,str:11,mv:3,cost:35,tech:'scav',hz:1,look:'hunter',d:'移动 3；打丧尸和尸巢 +50%，打人 -25%'},
+  n8:{n:'铁蹄可汗',ch:'汗',fac:4,sl:8,ace:1,mv:3,cost:140,tech:'armor',str:27,charge:1,look:'beast',d:'王牌（全场只能有 1 个）：冲锋——进攻后还能继续移动'},
+  c0:{n:'信徒',ch:'信',fac:5,sl:0,str:7,mv:2,cost:20,look:'mil',d:'便宜的狂信者'},
+  c1:{n:'骨弩手',ch:'骨',fac:5,sl:1,str:6,rs:10,rng:2,mv:2,cost:35,tech:'bow',look:'bow',d:'远程 2 格，不会被反击'},
+  c2:{n:'尸盾卫',ch:'尸',fac:5,sl:2,str:14,mv:2,cost:45,tech:'fort',look:'guard',d:'用缝合的尸体当盾牌'},
+  c3:{n:'腐行者',ch:'腐',fac:5,sl:3,str:12,mv:4,cost:45,tech:'moto',look:'mil',d:'移动 4，突袭'},
+  c4:{n:'缝合巨尸',ch:'缝',fac:5,sl:4,str:25,mv:2,cost:80,tech:'armor',look:'zbig',d:'被驯服的巨尸'},
+  c5:{n:'骨塔',ch:'塔',fac:5,sl:5,str:8,rs:22,rng:3,mv:2,cost:80,tech:'cannon',siege:1.5,look:'gun',d:'远程 3 格，攻打据点 +50%'},
+  c6:{n:'尸语者',ch:'语',fac:5,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  c7:{n:'驯尸师',ch:'驯',fac:5,sl:7,str:11,mv:2,cost:35,tech:'scav',hz:1,look:'hunter',d:'打丧尸和尸巢 +50%，打人 -25%；收编丧尸的几率更高'},
+  c8:{n:'尸母',ch:'母',fac:5,sl:8,ace:1,mv:2,cost:140,tech:'armor',str:22,mother:1,look:'zbig',d:'王牌（全场只能有 1 个）：每 3 天在身边生出一只驯服的行尸'},
+  s0:{n:'滑翔兵',ch:'翔',fac:6,sl:0,str:8,mv:2,cost:25,look:'mil',d:'背着滑翔翼的步兵'},
+  s1:{n:'投弹手',ch:'弹',fac:6,sl:1,str:6,rs:10,rng:2,mv:2,cost:35,tech:'bow',look:'bow',d:'远程 2 格，不会被反击'},
+  s2:{n:'风盾卫',ch:'风',fac:6,sl:2,str:14,mv:2,cost:45,tech:'fort',look:'guard',d:'举着帆布大盾'},
+  s3:{n:'滑翔摩托',ch:'滑',fac:6,sl:3,str:12,mv:4,cost:45,tech:'moto',look:'raider',fly:1,d:'移动 4，能飞越山脉'},
+  s4:{n:'装甲飞艇',ch:'艇',fac:6,sl:4,str:24,mv:3,cost:80,tech:'armor',look:'ship',fly:1,d:'能飞越山脉和湖泊的重型飞艇'},
+  s5:{n:'轰炸气球',ch:'炸',fac:6,sl:5,str:8,rs:22,rng:3,mv:2,cost:80,tech:'cannon',siege:1.5,look:'gun',fly:1,d:'远程 3 格，能飞越地形'},
+  s6:{n:'空投医疗兵',ch:'医',fac:6,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  s7:{n:'鹰眼猎尸手',ch:'鹰',fac:6,sl:7,str:5,mv:2,cost:35,tech:'scav',hz:1,look:'hunter',rs:9,rng:2,d:'远程 2 格；打丧尸和尸巢 +50%，打人 -25%'},
+  s8:{n:'天空之城号',ch:'空',fac:6,sl:8,ace:1,mv:2,cost:140,tech:'armor',str:18,rs:22,rng:3,fly:1,vis:5,look:'ship',d:'王牌（全场只能有 1 个）：远程 3 格，飞越一切地形，视野 5'},
+  t0:{n:'雇佣兵',ch:'佣',fac:7,sl:0,str:7,mv:2,cost:22,look:'mil',d:'拿钱办事'},
+  t1:{n:'火枪商卫',ch:'铳',fac:7,sl:1,str:6,rs:10,rng:2,mv:2,cost:35,tech:'bow',look:'bow',d:'远程 2 格，不会被反击'},
+  t2:{n:'盾商',ch:'盾',fac:7,sl:2,str:13,mv:2,cost:45,tech:'fort',look:'guard',d:'拿铁板做生意'},
+  t3:{n:'快马镖师',ch:'镖',fac:7,sl:3,str:12,mv:4,cost:45,tech:'moto',look:'raider',d:'移动 4，突袭'},
+  t4:{n:'装甲运钞车',ch:'钞',fac:7,sl:4,str:23,mv:3,cost:80,tech:'armor',look:'tank',d:'厚重的运钞车'},
+  t5:{n:'礼炮车',ch:'炮',fac:7,sl:5,str:8,rs:20,rng:3,mv:2,cost:80,tech:'cannon',siege:1.5,look:'gun',d:'远程 3 格，攻打据点 +50%'},
+  t6:{n:'江湖郎中',ch:'郎',fac:7,sl:6,str:5,mv:2,cost:35,tech:'write',heal:15,look:'medic',d:'每天给相邻友军回 15 血；自己很弱'},
+  t7:{n:'赏金猎人',ch:'赏',fac:7,sl:7,str:11,mv:2,cost:35,tech:'scav',hz:1,look:'hunter',d:'打丧尸和尸巢 +50%，打人 -25%'},
+  t8:{n:'大掌柜',ch:'柜',fac:7,sl:8,ace:1,mv:2,cost:140,tech:'armor',str:22,aura:0.2,bribeHalf:1,look:'mil',d:'王牌（全场只能有 1 个）：相邻友军防御 +20%，身边的敌人收买半价'},
+  tw:{n:'驯服行尸',ch:'驯',str:7,mv:1,cost:0,look:'ztame',tame:1,d:'被收编的行尸'},
+  tr:{n:'驯服奔尸',ch:'驯',str:6,mv:2,cost:0,look:'ztame',tame:1,d:'被收编的奔尸'},
+  tb:{n:'驯服巨尸',ch:'驯',str:18,mv:1,cost:0,look:'zbig',tame:1,d:'被收编的巨尸'},
   walker:{n:'行尸',ch:'尸',str:7,mv:1,z:1},
   runner:{n:'奔尸',ch:'奔',str:6,mv:2,z:1},
   brute:{n:'巨尸',ch:'巨',str:18,mv:1,z:1},
@@ -298,10 +338,14 @@ const TECH={
   armor:{n:'装甲',cost:150,req:['moto','fort'],t:3},ark:{n:'方舟计划',cost:330,req:['power','serum','armor','cannon'],t:3},
 };
 const FAC=[
-  {ch:'淼',trait:'每个据点口粮 +1，领地里的单位回血翻倍；汽艇能渡湖，净水炮专克尸巢',py:'miǎo',ep:'净水营',col:'#4f86c6',leader:'掌水人',motto:'水在哪里，人就在哪里。',lore:'三水成淼。大崩塌之后，他们守住了城北最后一座净水厂。每一滴干净的水都要用命去换，所以淼的人从不浪费，也从不原谅。',war:'「水只给自己人。」掌水人关上了闸门，淼的枪口转向了我们。',cities:['澜口','汐泉','沧井','渟渊','溟滩','潆洲','浔岸','沚湾','涟镇','澈池']},
-  {ch:'燚',trait:'每个据点物资 +2（熔炉），造兵物资再 +15%，占领据点掠夺翻倍；火把手进攻 +25%，喷火兵不吃反击',py:'yì',ep:'焰族',col:'#c9654f',leader:'火主',motto:'灰烬是最干净的土地。',lore:'四火成燚。他们从焚城的火海里走出来，相信只有火能烧尽尸潮，也能烧尽挡路的人。燚的据点终年冒着黑烟。',war:'「烧。」火主的信是用炭写的，只有一个字。燚的车队已经出发了。',cities:['烬城','炽原','焱谷','燹关','灼岭','炎墟','煅坊','烽台','焚野','熇堡']},
-  {ch:'垚',trait:'设施 2 天就修好；锄头民兵能种地，犁地巨兽走过就净化',py:'yáo',ep:'守土之民',col:'#b8902a',leader:'地母',motto:'土不会背叛人。',lore:'三土成垚。一群死也不肯离开田地的农人。他们在尸巢旁边种麦子，用犁和铁锹把感染一寸一寸翻回来。',war:'「你们踩坏了我们的麦子。」地母很少说话，但垚的锄头也能杀人。',cities:['墒田','垄上','埂村','堰塘','坳里','垣乡','圩场','埕坡','壤丘','塬上']},
-  {ch:'靐',trait:'蓝图 +10%，方舟便宜 10%；无人机无视地形',py:'bìng',ep:'雷庭',col:'#5b6fd6',leader:'司雷',motto:'雷声响起的地方，就是新世界的方向。',lore:'三雷成靐。他们修好了旧电厂和半座发射场，认定这片大地已经没救了，唯一的出路是造一艘方舟离开。',war:'「方舟的位置不够。」司雷说得很平静，雷庭的炮口亮起了蓝光。',cities:['霆塔','霹坞','雳台','霰站','霄港','霁原','雩坛','霾城','磁峰','电冢']},
+  {ch:'淼',style:'water',trait:'【招牌·筑坝引水】民工能把自己的地变成湖、或把湖填平；湖格对我们 +2 口粮、走起来像平地。每个据点口粮 +1，领地里回血翻倍',py:'miǎo',ep:'净水营',col:'#4f86c6',leader:'掌水人',motto:'水在哪里，人就在哪里。',lore:'三水成淼。大崩塌之后，他们守住了城北最后一座净水厂。每一滴干净的水都要用命去换，所以淼的人从不浪费，也从不原谅。',war:'「水只给自己人。」掌水人关上了闸门，淼的枪口转向了我们。',cities:['澜口','汐泉','沧井','渟渊','溟滩','潆洲','浔岸','沚湾','涟镇','澈池']},
+  {ch:'燚',style:'fire',trait:'【招牌·焦土】军队能把敌人的地烧成焦土：3 天寸草不生，敌人站上去每天掉血，连哨塔一起烧掉。每个据点物资 +1，造兵 +12%，掠夺翻倍',py:'yì',ep:'焰族',col:'#c9654f',leader:'火主',motto:'灰烬是最干净的土地。',lore:'四火成燚。他们从焚城的火海里走出来，相信只有火能烧尽尸潮，也能烧尽挡路的人。燚的据点终年冒着黑烟。',war:'「烧。」火主的信是用炭写的，只有一个字。燚的车队已经出发了。',cities:['烬城','炽原','焱谷','燹关','灼岭','炎墟','煅坊','烽台','焚野','熇堡']},
+  {ch:'垚',style:'earth',trait:'【招牌·筑墙】民工能在领土上修城墙，只有自己人能过，敌人得硬拆（60 耐久）。每个据点口粮和物资各 +1，设施 2 天修好，犁地巨兽走过就净化',py:'yáo',ep:'守土之民',col:'#b8902a',leader:'地母',motto:'土不会背叛人。',lore:'三土成垚。一群死也不肯离开田地的农人。他们在尸巢旁边种麦子，用犁和铁锹把感染一寸一寸翻回来。',war:'「你们踩坏了我们的麦子。」地母很少说话，但垚的锄头也能杀人。',cities:['墒田','垄上','埂村','堰塘','坳里','垣乡','圩场','埕坡','壤丘','塬上']},
+  {ch:'靐',style:'thunder',trait:'【招牌·电网传送】军队能在自己的据点之间瞬间传送（冷却 3 天）；哨塔视野 4 格。蓝图 +5%，方舟便宜 10%',py:'bìng',ep:'雷庭',col:'#5b6fd6',leader:'司雷',motto:'雷声响起的地方，就是新世界的方向。',lore:'三雷成靐。他们修好了旧电厂和半座发射场，认定这片大地已经没救了，唯一的出路是造一艘方舟离开。',war:'「方舟的位置不够。」司雷说得很平静，雷庭的炮口亮起了蓝光。',cities:['霆塔','霹坞','雳台','霰站','霄港','霁原','雩坛','霾城','磁峰','电冢']},
+  {ch:'犇',style:'nomad',trait:'【招牌·拔营】据点满 8 天就能拔营变成大篷车，开到别处再落营（人口、设施都带走）。每个据点口粮和物资各 +1，所有单位移动 +1，可汗冲锋后还能再走',py:'bēn',ep:'铁蹄部',col:'#8a5a3c',leader:'可汗',motto:'有草的地方就是家。',lore:'三牛成犇。一群赶着变异牛群在废土上游荡的牧民。他们没有城墙，整个部落随时可以拔营，追着水草和猎物走。',war:'「草场不够了。」可汗把鞭子往地上一甩，犇的铁蹄朝我们奔来。',cities:['长风营','苍原','赤沙帐','白狼滩','野火坡','奔云','黑水营','烈马川','孤烟','远牧']},
+  {ch:'惢',style:'cult',trait:'【招牌·驯尸】打死丧尸有 35% 机会收编成尸兵；能供奉尸巢，让它停止扩散并替我们孵兵（也算复苏进度）。每个据点口粮 +1、蓝图 +1，不怕感染地',py:'suǒ',ep:'驯尸教',col:'#7d4f9e',leader:'尸母',motto:'它们也曾是人，只是忘了。',lore:'三心成惢。他们相信丧尸只是「忘了心」的人。驯尸教用骨笛和血香把行尸驯成仆从，在尸巢旁边修神坛。',war:'「来做我们的信徒吧，活着或者死了都行。」尸母的骨笛在夜里响起。',cities:['骨坛','腐林','忘心窟','血香寺','白骨岭','静尸谷','招魂台','蛊巢','冥灯','枯井']},
+  {ch:'飝',style:'sky',trait:'【招牌·空降】站在自己领土上的军队能空降到 2～8 格内看得到的空地（冷却 4 天）。每个据点口粮 +1、蓝图 +8%，所有单位视野 +1',py:'fēi',ep:'天翔众',col:'#3e9cb8',leader:'风长',motto:'地上太挤，天上很宽。',lore:'三飞成飝。一群用旧伞布和热气球飞上天的拾荒者。他们在高处看清了整片废土，也学会了从天而降。',war:'「风向变了。」风长升起了红色的气球，飝的滑翔翼遮住了太阳。',cities:['云栖','风口','高台','鹰巢','晴岚','气球港','天梯','浮岛','雁回','苍穹']},
+  {ch:'譶',style:'trade',trait:'【招牌·收买】交战时能花开拓点直接收买贴着我们的敌军和敌方地块，大掌柜在旁边半价。开拓点 +25%',py:'tà',ep:'说客会',col:'#c4508a',leader:'大掌柜',motto:'能用嘴解决的，不用刀。',lore:'三言成譶。废土上最会说话的一群人：商贩、说客、骗子。他们的兵不强，但几乎没有什么是买不到的。',war:'「这单生意谈崩了。」大掌柜合上账本，譶的雇佣兵开始上膛。',cities:['金市','钱塘','通宝','万利','聚源','珠集','南货','票号','驼铃市','长街']},
 ];
 const CIVS=FAC.map(f=>({name:'「'+f.ch+'」',col:f.col,cities:f.cities}));
 const ZCOL='#7d6a86';
@@ -313,6 +357,10 @@ const POL=[
   [[{k:'burn',n:'焚城',d:'攻打据点战力 +25%'},{k:'loot',n:'掠夺',d:'每消灭一个敌军单位，最近的据点物资 +10'}],[{k:'zeal',n:'狂热',d:'每次消灭敌人，进攻的单位回 20 血'},{k:'sea',n:'火海',d:'所有近战进攻时，目标旁边的敌人各 −5 血'}]],
   [[{k:'deep',n:'深耕',d:'农场口粮再 +1'},{k:'wall2',n:'土垒',d:'哨塔保护范围扩大到 2 格'}],[{k:'bless',n:'地母祝福',d:'每净化一格感染地 +3 开拓点'},{k:'stone',n:'石垒',d:'所有据点防御 +8'}]],
   [[{k:'oc',n:'超频',d:'蓝图 +10%'},{k:'grid',n:'电网',d:'哨塔每天电击周围 1 格内的敌军 −10 血'}],[{k:'rail',n:'轨道炮',d:'所有远程单位射程 +1'},{k:'arkx',n:'方舟加速',d:'方舟造价再 −15%'}]],
+  [[{k:'loot',n:'劫掠',d:'每消灭一个敌军单位，最近的据点物资 +10'},{k:'spring',n:'逐水草',d:'开拓点 +30%'}],[{k:'zeal',n:'血勇',d:'每次消灭敌人，进攻的单位回 20 血'},{k:'burn',n:'踏营',d:'攻打据点战力 +25%'}]],
+  [[{k:'jail',n:'尸牢',d:'敌军站在惢的领土上每天 −8 血'},{k:'bless',n:'献祭',d:'每净化一格感染地 +3 开拓点'}],[{k:'tame2',n:'万尸归心',d:'收编丧尸的几率翻倍'},{k:'stone',n:'骨垒',d:'所有据点防御 +8'}]],
+  [[{k:'oc',n:'高空观测',d:'蓝图 +10%'},{k:'drop2',n:'快速空降',d:'空降冷却从 4 天缩短到 2 天'}],[{k:'rail',n:'俯冲射击',d:'所有远程单位射程 +1'},{k:'arkx',n:'方舟加速',d:'方舟造价再 −15%'}]],
+  [[{k:'trade',n:'商路',d:'每个据点蓝图 +2'},{k:'bribe2',n:'重金收买',d:'收买花费 −30%'}],[{k:'spring',n:'钱庄',d:'开拓点 +30%'},{k:'stone',n:'护城镖局',d:'所有据点防御 +8'}]],
 ];
 const POLDAY=[20,50];
 const pp=(o,k)=>o>=0&&G&&G.civs&&G.civs[o]&&G.civs[o].pol&&G.civs[o].pol.includes(k);
@@ -320,7 +368,7 @@ const rngOf=u=>(UN[u.k].rng||1)+(UN[u.k].rs&&pp(u.owner,'rail')?1:0);
 const fac=o=>o>=0&&G&&G.civs&&G.civs[o]&&G.civs[o].f!==undefined?G.civs[o].f:o;
 const unitFor=(o,sl)=>Object.keys(UN).find(k=>UN[k].fac===fac(o)&&UN[k].sl===sl);
 const scoutFor=o=>fac(o)===3?'drone':'scout';
-const unitOK=(o,k)=>{const U=UN[k];if(!U||U.z||U.gp)return false;if(U.fac!==undefined&&U.fac!==fac(o))return false;if(U.nf!==undefined&&U.nf===fac(o))return false;return hasTech(o,U.tech);};
+const unitOK=(o,k)=>{const U=UN[k];if(!U||U.z||U.gp||U.tame)return false;if(U.fac!==undefined&&U.fac!==fac(o))return false;if(U.nf!==undefined&&U.nf===fac(o))return false;return hasTech(o,U.tech);};
 const isHum=o=>o>=0&&!!G.civs[o]&&!G.civs[o].ai;
 
 /* ---------- 状态 ---------- */
@@ -332,9 +380,9 @@ function ring(q,r,R){const o=[];for(let dq=-R;dq<=R;dq++)for(let dr=Math.max(-R,
 const pass=t=>t&&TERR[t.t].mv<50;
 function hostile(u,v){if(!v||v===u||v.owner===u.owner)return false;if(v.owner<0||u.owner<0)return true;return atWar(u.owner,v.owner);}
 function zocAt(u,t){const U=UN[u.k];if(U.sc||U.z)return false;for(const n of nbrs(t.q,t.r)){const v=UAT[key(n.q,n.r)];if(v&&hostile(u,v)&&(isMil(v)||UN[v.k].z))return true;}return false;}
-function supplied(u){if(u.owner<0)return true;const t=T(u.q,u.r);if(!t)return true;if(t.own===u.owner&&!t.iso)return true;for(const n of nbrs(t.q,t.r))if(n.own===u.owner&&!n.iso)return true;return false;}
+function supplied(u){if(u.owner<0||UN[u.k].tame||u.k==='caravan')return true;const t=T(u.q,u.r);if(!t)return true;if(t.own===u.owner&&!t.iso)return true;for(const n of nbrs(t.q,t.r))if(n.own===u.owner&&!n.iso)return true;return false;}
 function flankN(a,tg){if(a.type!=='unit'||UN[a.o.k].rs)return 0;let n=0;for(const nb of nbrs(tg.o.q,tg.o.r)){const v=UAT[key(nb.q,nb.r)];if(v&&v!==a.o&&v.owner===a.o.owner&&isMil(v))n++;}return Math.min(3,n);}
-function moveCost(u,t){const U=UN[u.k];if(t.t==='w'&&u.owner>=0&&!U.civ&&!U.z&&pp(u.owner,'amph'))return 2;if(U.fly)return t.t==='w'?99:1;if(U.boat&&t.t==='w')return 1;return TERR[t.t].mv;}
+function moveCost(u,t){const U=UN[u.k];if(t.wall!==undefined&&t.wall!==u.owner)return 99;if(t.t==='w'&&u.owner>=0&&!U.z&&fac(u.owner)===0)return 1;if(t.t==='w'&&u.owner>=0&&!U.civ&&!U.z&&pp(u.owner,'amph'))return 2;if(U.fly)return t.t==='w'?99:1;if(U.boat&&t.t==='w')return 1;return TERR[t.t].mv;}
 const passU=(u,t)=>!!t&&moveCost(u,t)<50;
 function reidx(){UAT={};for(const id in G.units){const u=G.units[id];UAT[key(u.q,u.r)]=u;}CAT={};for(const id in G.cities){const c=G.cities[id];CAT[key(c.q,c.r)]=c;}}
 const unitAt=(q,r)=>UAT[key(q,r)];const cityAt=(q,r)=>CAT[key(q,r)];
@@ -380,26 +428,28 @@ function newGame(d,seed,opt){opt=opt||{};const n=opt.n||3;diff=d;seed=seed||Math
   G={seed,diff:d,n,mw:MW,mh:MH,turn:1,tiles:m.tiles,nests:m.nests,units:{},cities:{},uid:1,cid:1,civs:[],rel:[],relT:[],over:null,log:[],kills:z(),nestK:z(),wonders:{},asks:[],rs:(seed^0x5bd1e995)|0,seq:0,pur:n===4?5:4,timer:opt.timer||0,mp:!!opt.mp};RNG=gRand;ME=opt.me||0;
   UAT={};CAT={};
   const hum=opt.humans||[{name:'',f:opt.myF||0}];const used=[];const facOf=[];for(let i=0;i<n;i++){const h=opt.mp?hum.find(x=>x.civ===i):(i===0?hum[0]:null);if(h&&h.f!==undefined&&!used.includes(h.f)){facOf[i]=h.f;used.push(h.f);}}
-  {const free=[0,1,2,3].filter(f=>!used.includes(f));for(let i=free.length-1;i>0;i--){const j=Math.floor(gRand()*(i+1));const t0=free[i];free[i]=free[j];free[j]=t0;}for(let i=0;i<n;i++)if(facOf[i]===undefined)facOf[i]=free.shift();}
+  {const free=[0,1,2,3,4,5,6,7].filter(f=>!used.includes(f));for(let i=free.length-1;i>0;i--){const j=Math.floor(gRand()*(i+1));const t0=free[i];free[i]=free[j];free[j]=t0;}for(let i=0;i<n;i++)if(facOf[i]===undefined)facOf[i]=free.shift();}
   for(let i=0;i<n;i++){const h=opt.mp?hum.find(x=>x.civ===i):(i===0?hum[0]:null);G.civs.push({f:facOf[i],id:i,ai:!h,alive:true,techs:{},res:null,sci:0,cap:null,cn:0,lost:0,gp:0,gpN:0,gpPend:0,pn:h&&opt.mp?h.name:'',pid:h&&h.id||null});G.rel.push(z().map(()=>'peace'));G.relT.push(z());}
   m.starts.forEach(([q,r],i)=>{addUnit(i,'settler',q,r);const ns=nbrs(q,r).filter(t=>pass(t)&&!unitAt(t.q,t.r));addUnit(i,unitFor(i,0),ns[0].q,ns[0].r);addUnit(i,scoutFor(i),ns[1].q,ns[1].r);if(G.civs[i].ai&&d===2)addUnit(i,unitFor(i,0),ns[2].q,ns[2].r);});
   for(const id in G.units){const u=G.units[id];if(G.civs[u.owner].ai&&u.k==='settler')foundCity(u);}
   sel=null;pend=null;reach=null;updVis();const s=civUnits(ME).find(u=>u.k==='settler');centerOn(s.q,s.r);cam.z=46;
   STORY={};closeAll();save();select({u:s});feed('点拓荒者下方的「建据点」，或按 B。','good');updHUD();}
-function addUnit(o,k,q,r){const u={id:G.uid++,owner:o,k,q,r,hp:100,mv:UN[k].mv,fort:0,acted:0};G.units[u.id]=u;UAT[key(q,r)]=u;return u;}
+function mvOf(u){return UN[u.k].mv+(u.owner>=0&&!UN[u.k].z&&fac(u.owner)===4?1:0);}
+function addUnit(o,k,q,r){const u={id:G.uid++,owner:o,k,q,r,hp:100,mv:UN[k].mv+(o>=0&&!UN[k].z&&G.civs&&G.civs[o]&&fac(o)===4?1:0),fort:0,acted:0};G.units[u.id]=u;UAT[key(q,r)]=u;return u;}
 function removeUnit(u){delete G.units[u.id];if(UAT[key(u.q,u.r)]===u)delete UAT[key(u.q,u.r)];if(sel&&sel.u===u)select(null);}
 
 /* ---------- 据点 ---------- */
 function canFound(q,r,o){const t=T(q,r);if(!pass(t)||t.nest!==undefined||t.bl!==undefined)return false;if(t.own>=0&&t.own!==o)return false;for(const c of Object.values(G.cities))if(hexDist(c.q,c.r,q,r)<4)return false;return true;}
 function foundCity(u){const o=u.owner,cv=G.civs[o];const names=CIVS[fac(o)].cities;const name=names[cv.cn%names.length]+(cv.cn>=names.length?'二':'');cv.cn++;
-  const c={id:G.cid++,owner:o,q:u.q,r:u.r,name,pop:1,food:0,prod:0,hp:200,shot:0,build:null,blds:{},cap:!cv.cap,orig:o,origCap:!cv.cap};
+  const c={id:G.cid++,owner:o,q:u.q,r:u.r,name,pop:1,food:0,prod:0,hp:200,shot:0,build:null,blds:{},cap:!cv.cap,orig:o,origCap:!cv.cap,born:G.turn};
   if(!cv.cap)cv.cap=c.id;G.cities[c.id]=c;CAT[key(c.q,c.r)]=c;const t=T(c.q,c.r);delete t.goody;t.own=o;claim(c,1);removeUnit(u);
   if(o===ME){feed(`建立了新据点「${name}」。`,'good');SFX.found();}else if(VIS.has(key(c.q,c.r)))feed(`${civName(o)}建立了「${name}」。`);
   return c;}
 function claim(c,R){for(const t of ring(c.q,c.r,R))if(t.own<0)t.own=c.owner;}
 function cityRadius(c){return c.pop>=6?3:c.pop>=3?2:1;}
 function maxHP(c){return 200+(c.blds.walls?100:0);}
-function tileYield(t,o){if(t.bl!==undefined||t.iso)return{f:0,p:0,s:0};const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];if(t.imp==='farm'&&pp(t.own,'deep'))y.f+=1;y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
+function tileYield(t,o){if(t.bl!==undefined||t.iso||(t.burn&&t.burn>G.turn))return{f:0,p:0,s:0};if(t.t==='w'&&t.own>=0&&fac(t.own)===0){const y0=tileYield0(t);y0.f+=2;return y0;}return tileYield0(t);}
+function tileYield0(t){const T0=TERR[t.t];const y={f:T0.f,p:T0.p,s:T0.s};if(t.res){const R=RES[t.res];y.f+=R.f||0;y.p+=R.p||0;y.s+=R.s||0;}if(t.imp){const I=IMP[t.imp];if(t.imp==='farm'&&pp(t.own,'deep'))y.f+=1;y.f+=I.f||0;y.p+=I.p||0;y.s+=I.s||0;}return y;}
 function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);const y={f:Math.max(2,cy.f)+1,p:Math.max(1,cy.p)+1,s:1+cy.s};
   const cand=ring(c.q,c.r,Math.max(2,cityRadius(c))).filter(t=>t.own===c.owner&&!(t.q===c.q&&t.r===c.r)&&!taken.has(key(t.q,t.r))&&!cityAt(t.q,t.r)&&t.nest===undefined);
   const fw=FOCUS[c.focus||'bal'].w;const sc=t=>{const v=tileYield(t);return v.f*fw[0]+v.p*fw[1]+v.s*fw[2]+(c.pop<4?v.f*0.3:0);};
@@ -407,12 +457,17 @@ function cityWork(c,taken){const center=T(c.q,c.r);const cy=tileYield(center);co
   for(let i=worked.length;i<c.pop;i++){y.p+=1;}// 没地可耕的居民当建设队
   for(const b in c.blds){const B=BLD[b];y.f+=B.f||0;y.p+=B.p||0;y.s+=B.s||0;}
   const o0=c.owner;if(G.wonders){if(hasWon(o0,'vault'))y.f+=1;if(hasWon(o0,'radio'))y.s+=3;for(const k of cityWons(c)){if(k==='vault')y.f+=3;if(k==='archive')y.s+=5;}}
-  y.s+=c.pop*0.4;if(pp(c.owner,'trade'))y.s+=2;if(pp(c.owner,'oc'))y.s*=1.1;if(fac(c.owner)===3)y.s*=1.1;if(fac(c.owner)===0)y.f+=1;if(fac(c.owner)===1){y.p+=2;if(c.build&&c.build.t==='u')y.p*=1.15;}if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
+  y.s+=c.pop*0.4;if(pp(c.owner,'trade'))y.s+=2;if(pp(c.owner,'oc'))y.s*=1.1;if(fac(c.owner)===3)y.s*=1.05;if(fac(c.owner)===0)y.f+=1;if(fac(c.owner)===2){y.p+=1;y.f+=1;}if(fac(c.owner)===4){y.f+=1;y.p+=1;}if(fac(c.owner)===1){y.p+=1;if(c.build&&c.build.t==='u')y.p*=1.12;}if(fac(c.owner)===5){y.f+=1;y.s+=1;}if(fac(c.owner)===6){y.f+=1;y.s*=1.08;}if(c.blds.plant)y.p*=1.25;if(c.build&&c.build.t==='u'&&G.wonders&&hasWon(o0,'factory'))y.p*=1.25;
   const k=G.civs[c.owner].ai?[0.85,1.0,1.18][G.diff]:1;y.p*=k;y.s*=k;y.f*=(G.civs[c.owner].ai&&G.diff===2?1.1:1);
   y.need=c.pop*2;y.worked=worked;return y;}
 function growNeed(c){return 10+c.pop*6;}
 function buildCost(c,b){if(b.t==='u')return UN[b.k].cost;if(b.t==='w')return WON[b.k].cost;return Math.round(BLD[b.k].cost*((b.k==='ark'&&fac(c.owner)===3?0.9:1)*(b.k==='ark'&&pp(c.owner,'arkx')?0.85:1)));}
 const buildName=b=>b.t==='u'?UN[b.k].n:b.t==='w'?WON[b.k].n:BLD[b.k].n;
+function dropOK(u,t){if(!t||!pass(t)||t.t==='w'&&!UN[u.k].fly||unitAt(t.q,t.r)||nestAt(t.q,t.r)||(t.wall!==undefined&&t.wall!==u.owner))return false;const c=cityAt(t.q,t.r);if(c&&c.owner!==u.owner)return false;if((u.dropT||0)>G.turn)return false;const h=T(u.q,u.r);if(h.own!==u.owner||h.iso)return false;if(hexDist(u.q,u.r,t.q,t.r)>8||hexDist(u.q,u.r,t.q,t.r)<2)return false;return true;}
+function bribeOK(o,v){if(!v||v.owner<0||v.owner===o||UN[v.k].ace||UN[v.k].civ&&v.k!=='settler'&&v.k!=='worker')return false;if(!atWar(o,v.owner))return false;const t=T(v.q,v.r);if(cityAt(v.q,v.r))return false;return t.own===o||nbrs(v.q,v.r).some(n=>n.own===o&&!n.iso)||Object.values(G.units).some(w=>w.owner===o&&hexDist(w.q,w.r,v.q,v.r)<=1);}
+function bribeCost(o,v){let c=(12+UN[v.k].cost*0.5)*(0.5+0.5*v.hp/100);if(pp(o,'bribe2'))c*=0.7;if(Object.values(G.units).some(w=>w.owner===o&&UN[w.k].bribeHalf&&hexDist(w.q,w.r,v.q,v.r)<=1))c*=0.5;return Math.max(5,Math.round(c));}
+function bribeTileOK(o,t){if(!t||t.own<0||t.own===o||!atWar(o,t.own)||cityAt(t.q,t.r)||t.wall!==undefined||towerGuard(t,t.own))return false;return nbrs(t.q,t.r).some(n=>n.own===o&&!n.iso);}
+function bribeTileCost(o,t){let c=claimCost(o,t)*2.5;if(pp(o,'bribe2'))c*=0.7;return Math.max(4,Math.round(c));}
 function stratHave(o,k){let n=0;for(const t of Object.values(G.tiles))if(t.res===k&&t.own===o&&!t.iso)n+=2;return n;}
 function stratUsed(o,k,except){let n=0;for(const u of Object.values(G.units))if(u.owner===o&&needOf(u.k)===k)n++;for(const c of Object.values(G.cities))if(c!==except&&c.owner===o&&c.build&&c.build.t==='u'&&needOf(c.build.k)===k)n++;return n;}
 function stratOK(o,k,c){const r=needOf(k);if(!r)return true;return stratUsed(o,r,c)<stratHave(o,r);}
@@ -479,12 +534,12 @@ function strMod(u,vsZ,def,tile){let m=1;if(u.owner>=0&&isMil(u)&&!supplied(u))m-
 const hpF=hp=>0.55+0.45*hp/100;
 function cityStr(c){let s=8+c.pop*1.6+(c.blds.walls?8:0)+(pp(c.owner,'stone')?8:0);const g=unitAt(c.q,c.r);if(g&&isMil(g))s+=UN[g.k].str*0.3;const tl=Object.keys(G.civs[c.owner].techs).length;s+=tl*0.6;if(G.wonders&&hasWon(c.owner,'wall'))s+=6;return s;}
 function nestStr(n){return 10+G.turn*0.12+[ -2,0,3][G.diff];}
-function tgtAt(q,r){const c=cityAt(q,r);if(c)return{type:'city',o:c,owner:c.owner};const n=nestAt(q,r);if(n)return{type:'nest',o:n,owner:-1};const u=unitAt(q,r);if(u)return{type:'unit',o:u,owner:u.owner};return null;}
+function tgtAt(q,r){const c=cityAt(q,r);if(c)return{type:'city',o:c,owner:c.owner};const n=nestAt(q,r);if(n)return{type:'nest',o:n,owner:n.own>=0?n.own:-1};const u=unitAt(q,r);if(u)return{type:'unit',o:u,owner:u.owner};const t=T(q,r);if(t&&t.wall!==undefined)return{type:'wall',o:t,owner:t.wall};return null;}
 function attackerStr(a,tg){if(a.type==='city')return cityStr(a.o);const u=a.o;const U=UN[u.k];const ranged=!!U.rs;let s=(ranged?U.rs:U.str)*strMod(u,tg.owner<0,false)*hpF(u.hp);if(U.siege&&tg.type==='city')s*=U.siege;if(tg.type==='city'&&pp(u.owner,'burn'))s*=1.25;if(U.vz&&tg.owner<0)s*=U.vz;if(U.atk&&!ranged)s*=U.atk;s*=1+0.15*flankN(a,tg);return s;}
-function defenderStr(tg,att){if(tg.type==='city')return cityStr(tg.o);if(tg.type==='nest')return nestStr(tg.o);const u=tg.o;const U=UN[u.k];if(U.civ)return 0.01;let s=U.str*strMod(u,att.owner<0,true,T(u.q,u.r))*hpF(u.hp);if(U.rs)s*=0.8;return s;}
+function defenderStr(tg,att){if(tg.type==='wall')return 14+G.turn*0.08;if(tg.type==='city')return cityStr(tg.o);if(tg.type==='nest')return nestStr(tg.o);const u=tg.o;const U=UN[u.k];if(U.civ)return 0.01;let s=U.str*strMod(u,att.owner<0,true,T(u.q,u.r))*hpF(u.hp);if(U.rs)s*=0.8;return s;}
 function predict(a,tg){const A=attackerStr(a,tg),D=defenderStr(tg,a);const r=A/Math.max(0.01,D);const ranged=a.type==='city'||!!UN[a.o.k].rs;
   let toD=Math.round(clamp(30*Math.pow(r,0.85),1,100)),toA=ranged?0:Math.round(clamp(30*Math.pow(1/r,0.85),0,100));
-  if(tg.type==='unit'&&UN[tg.o.k].civ){toD=100;toA=0;}
+  if(tg.type==='unit'&&UN[tg.o.k].civ){toD=100;toA=0;}if(tg.type==='wall')toA=0;
   const dhp=tg.o.hp;return{toD,toA,A,D,kill:toD>=dhp,die:!ranged&&toA>=(a.o.hp||200),ranged,fl:flankN(a,tg),ns:a.type==='unit'&&!supplied(a.o)};}
 function inRange(a,q,r){if(a.type==='city')return hexDist(a.o.q,a.o.r,q,r)<=2;const U=UN[a.o.k];return hexDist(a.o.q,a.o.r,q,r)<=rngOf(a.o);}
 function doAttack(a,tg){const p=predict(a,tg);const v=x=>Math.round(x*(0.82+rnd()*0.36));let toD=v(p.toD),toA=v(p.toA);if(tg.type==='unit'&&UN[tg.o.k].civ)toD=100;
@@ -496,12 +551,16 @@ function doAttack(a,tg){const p=predict(a,tg);const v=x=>Math.round(x*(0.82+rnd(
   const SPL=a.type==='unit'?(UN[a.o.k].splash||(!p.ranged&&pp(aO,'sea')?5:0)):0;
   if(SPL){for(const n of nbrs(tg.o.q,tg.o.r)){const v=unitAt(n.q,n.r);if(!v||v===a.o||v===tg.o||v.owner===aO)continue;if(v.owner>=0&&!atWar(aO,v.owner))continue;v.hp-=SPL;if(vis)pops.push({q:v.q,r:v.r,txt:'-'+SPL,col:'#e8743a',t:0});if(v.hp<=0)removeUnit(v);}}
   tg.o.hp-=toD;let killed=false;
-  if(tg.type==='unit'&&tg.o.hp<=0){killed=true;const du=tg.o;if(UN[du.k].z){if(aO>=0){G.kills[aO]++;}}removeUnit(du);if(a.type==='unit'&&aO>=0){if(pp(aO,'zeal'))a.o.hp=Math.min(100,a.o.hp+20);if(pp(aO,'loot')&&du.owner>=0){const nc=civCities(aO).sort((x,y)=>hexDist(x.q,x.r,du.q,du.r)-hexDist(y.q,y.r,du.q,du.r))[0];if(nc)nc.prod+=10;}}if(du.owner===ME&&!UN[du.k].z)feed(`我们的${UN[du.k].n}阵亡了。`,'bad');
-    if(a.type==='unit'&&!p.ranged&&a.o.hp>0&&canEnter(a.o,T(du.q,du.r),true))stepTo(a.o,du.q,du.r),a.o.mv=0;}
+  if(tg.type==='unit'&&tg.o.hp<=0){killed=true;const du=tg.o;let tamed=null;if(UN[du.k].z){if(aO>=0){G.kills[aO]++;}if(aO>=0&&fac(aO)===5&&a.type==='unit'){let ch=0.35+(UN[a.o.k].sl===7?0.25:0);if(pp(aO,'tame2'))ch*=2;if(rnd()<Math.min(0.9,ch))tamed={q:du.q,r:du.r,k:{walker:'tw',runner:'tr',brute:'tb'}[du.k]||'tw'};}}removeUnit(du);if(tamed){const tu=addUnit(aO,tamed.k,tamed.q,tamed.r);tu.hp=45;tu.mv=0;if(aO===ME){pops.push({q:tu.q,r:tu.r,txt:'收编',col:'#7d4f9e',t:0});feed('一只丧尸被驯服，加入了我们。','good');}}if(a.type==='unit'&&aO>=0){if(pp(aO,'zeal'))a.o.hp=Math.min(100,a.o.hp+20);if(pp(aO,'loot')&&du.owner>=0){const nc=civCities(aO).sort((x,y)=>hexDist(x.q,x.r,du.q,du.r)-hexDist(y.q,y.r,du.q,du.r))[0];if(nc)nc.prod+=10;}}if(du.owner===ME&&!UN[du.k].z)feed(`我们的${UN[du.k].n}阵亡了。`,'bad');
+    if(!tamed&&a.type==='unit'&&!p.ranged&&a.o.hp>0&&canEnter(a.o,T(du.q,du.r),true)){stepTo(a.o,du.q,du.r);a.o.mv=UN[a.o.k].charge?Math.max(0,mvOf(a.o)-2):0;}}
   else if(tg.type==='nest'&&tg.o.hp<=0){killed=true;killNest(tg.o,aO);}
+  else if(tg.type==='wall'&&tg.o.hp<=0){killed=true;delete tg.o.wall;delete tg.o.hp;if(vis)pops.push({q:tg.o.q,r:tg.o.r,txt:'墙塌了',col:'#d9645a',t:0});}
   else if(tg.type==='city'){const c=tg.o;if(c.hp<=0){c.hp=0;if(a.type==='unit'&&!p.ranged&&a.o.hp>0){if(UN[a.o.k].z)zombieRaid(c);else captureCity(c,a.o);}else c.hp=0;}}
   if(a.type==='unit'&&a.o.hp<=0){if(killed){a.o.hp=1;}else{const au=a.o;removeUnit(au);if(au.owner===ME)feed(`我们的${UN[au.k].n}在进攻中阵亡。`,'bad');}}
   return killed;}
+function worshipNest(n,o){if(!n.alive||n.own>=0)return false;n.own=o;n.cd=4;G.nestK[o]++;G.civs[o].gp+=15;for(const k in G.tiles){if(G.tiles[k].bl===n.id&&G.tiles[k].own===o)delete G.tiles[k].bl;}
+  if(o===ME){toast('尸巢被供奉','它不再扩散，以后会替我们孵出驯服的丧尸');SFX.purify();feed(`我们供奉了一座尸巢（${G.nestK[o]}/${G.pur||4}）。`,'good');}else feed(`${civName(o)}供奉了一座尸巢。`);
+  if(G.nestK[o]>=(G.pur||4))endGame(o,'purify');return true;}
 function killNest(n,by){n.alive=false;n.hp=0;const t=T(n.q,n.r);delete t.nest;t.t='o';delete t.res;spriteCache.clear();if(by>=0)G.civs[by].gp+=15;for(const k in G.tiles){if(G.tiles[k].bl===n.id)delete G.tiles[k].bl;}
   if(by>=0){G.nestK[by]++;G.civs[by].sci+=40;}
   const left=Object.values(G.nests).filter(x=>x.alive).length;
@@ -521,7 +580,10 @@ function captureCity(c,u){const old=c.owner,o=u.owner;c.owner=o;c.pop=Math.max(1
   else if(old===ME){toast(`「${c.name}」失守`,`被${civName(o)}占领`);SFX.lose();feed(`「${c.name}」被${civName(o)}占领了！`,'bad');}
   else feed(`${civName(o)}占领了${civName(old)}的「${c.name}」。`);
   checkAlive(old);checkConquest();}
-function checkAlive(o){if(o<0)return;const cv=G.civs[o];if(!cv.alive)return;if(civCities(o).length===0&&!civUnits(o).some(u=>u.k==='settler')){cv.alive=false;for(const u of civUnits(o))removeUnit(u);
+function packCity(c){const o=c.owner;if(fac(o)!==4||G.turn-(c.born||0)<8||unitAt(c.q,c.r)&&unitAt(c.q,c.r).owner!==o)return false;const g=unitAt(c.q,c.r);if(g){const sp=nbrs(c.q,c.r).find(t=>canEnter(g,t,true));if(!sp)return false;stepTo(g,sp.q,sp.r);g.mv=0;}
+  delete G.cities[c.id];delete CAT[key(c.q,c.r)];const cv=G.civs[o];if(cv.cap===c.id)cv.cap=null;const u=addUnit(o,'caravan',c.q,c.r);u.mv=0;u.city=JSON.parse(JSON.stringify(c));if(o===ME){feed(`「${c.name}」拔营了，大篷车可以去别的地方落营。`,'good');SFX.found();}return u;}
+function unpackCity(u){const o=u.owner;if(!u.city||!canFound(u.q,u.r,o))return false;const c=u.city;c.q=u.q;c.r=u.r;c.born=G.turn;c.hp=Math.min(c.hp,maxHP(c));c.shot=0;removeUnit(u);G.cities[c.id]=c;CAT[key(c.q,c.r)]=c;const cv=G.civs[o];if(c.cap||!cv.cap){c.cap=true;cv.cap=c.id;}const t=T(c.q,c.r);delete t.goody;t.own=o;delete t.iso;claim(c,1);for(const n of ring(c.q,c.r,1))if(n.own===o)delete n.iso;if(o===ME){feed(`「${c.name}」在新的地方落营了。`,'good');SFX.found();}return c;}
+function checkAlive(o){if(o<0)return;const cv=G.civs[o];if(!cv.alive)return;if(civCities(o).length===0&&!civUnits(o).some(u=>u.k==='settler'||u.k==='caravan')){cv.alive=false;for(const u of civUnits(o))removeUnit(u);
   if(isHum(o)){const left=CIV().filter(x=>isHum(x)&&G.civs[x].alive);if(!left.length||!G.mp)endGame(-1,'dead');else{feed(o===ME?'我们的阵营覆灭了。你可以继续观战。':`${civName(o)}覆灭了。`,'bad');if(o===ME){toast('阵营覆灭','你可以继续观战');}}}else{feed(`${civName(o)}灭亡了。`,'good');}}}
 function checkConquest(){for(const o of CIV()){if(!G.civs[o].alive)continue;const caps=Object.values(G.cities).filter(c=>c.origCap&&c.orig!==o);const others=CIV().filter(x=>x!==o);
   const ok=others.every(x=>{const cp=Object.values(G.cities).find(c=>c.origCap&&c.orig===x);return cp?cp.owner===o:!G.civs[x].alive;});if(ok){endGame(o,'conquest');return;}}}
@@ -542,17 +604,18 @@ function aiPlan(o){const wars=CIV().filter(x=>x!==o&&G.civs[x].alive&&atWar(o,x)
   if(!cv.plan||!G.cities[cv.plan.c]||!wars.includes(G.cities[cv.plan.c].owner)){let best=null,bs=1e9;for(const x of wars)for(const c of civCities(x)){const d=Math.min(...civCities(o).map(m=>hexDist(m.q,m.r,c.q,c.r)),99);const sc=d*2+cityStr(c)*c.hp/100*0.3;if(sc<bs){bs=sc;best=c;}}if(!best){cv.plan=null;return;}
     let st=null,sd=1e9;for(const t of Object.values(G.tiles)){if(t.own!==o||t.iso||!pass(t))continue;const d=hexDist(t.q,t.r,best.q,best.r);if(d>=2&&d<sd){sd=d;st=t;}}cv.plan={c:best.id,sq:st?st.q:best.q,sr:st?st.r:best.r,go:false};}
   const pl=cv.plan;const tc=G.cities[pl.c];const near=field.filter(u=>hexDist(u.q,u.r,pl.sq,pl.sr)<=3||hexDist(u.q,u.r,tc.q,tc.r)<=3).length;pl.go=pl.go?near>=2:near>=Math.min(4,Math.max(3,Math.ceil(field.length*0.6)));}
-function aiDiplomacy(o){const cv=G.civs[o];aiGangUp(o);if(o===0&&BOT==='war'&&G.turn>=35){for(const x of CIV().filter(x=>x!==0))if(G.civs[x].alive&&!atWar(0,x)&&civCities(x).length){declareWar(0,x);break;}return;}const aggr=fac(o)===1?1.25:1.5;
+function aiDiplomacy(o){const cv=G.civs[o];aiGangUp(o);if(o===0&&BOT==='war'&&G.turn>=35){for(const x of CIV().filter(x=>x!==0))if(G.civs[x].alive&&!atWar(0,x)&&civCities(x).length){declareWar(0,x);break;}return;}const aggr=fac(o)===1||fac(o)===4?1.25:1.5;
   for(const x of CIV()){if(x===o||!G.civs[x].alive)continue;const pa=power(o),px=power(x);
     if(G.rel[o][x]==='peace'){if(G.turn<18+(2-G.diff)*6)continue;if(G.turn-G.relT[o][x]<10)continue;
       const near=civCities(o).some(a=>civCities(x).some(b=>hexDist(a.q,a.r,b.q,b.r)<=10));
-      if(near&&pa>px*(aggr-(G.diff===2?0.15:0))&&rnd()<(fac(o)===1?0.13:0.1))declareWar(o,x);}
+      if(near&&pa>px*(aggr-(G.diff===2?0.15:0))&&rnd()<(fac(o)===1||fac(o)===4?0.13:0.1))declareWar(o,x);}
     else{const t=G.turn-G.relT[o][x];if(t>=10&&(pa<px*0.85)&&rnd()<0.3){if(isHum(x)){if(!G.asks.some(a=>a.t==='peace'&&a.o===o&&a.to===x))G.asks.push({t:'peace',o,to:x});}else if(aiAcceptPeace(x,o))makePeace(o,x);}}}}
 let peaceAsk=null;
 function askPeace(o){peaceAsk=o;}
 
 /* ---------- 尸巢与丧尸 ---------- */
-function nestTurn(){const holy=wonderOf('holy');for(const n of Object.values(G.nests)){if(!n.alive)continue;n.hp=Math.min(80,n.hp+3);if(holy&&hexDist(holy.q,holy.r,n.q,n.r)<=6){n.hp-=6;if(n.hp<=0){killNest(n,holy.owner);continue;}}
+function nestTurn(){const holy=wonderOf('holy');for(const n of Object.values(G.nests)){if(!n.alive)continue;
+  if(n.own>=0){if(!G.civs[n.own]||!G.civs[n.own].alive){n.own=-1;}else{n.hp=Math.min(80,n.hp+3);n.cd--;if(n.cd<=0){n.cd=6;const near=Object.values(G.units).filter(u=>u.owner===n.own&&UN[u.k].tame&&hexDist(u.q,u.r,n.q,n.r)<=3).length;if(near<2){const sp=nbrs(n.q,n.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r));if(sp){const tu=addUnit(n.own,'tw',sp.q,sp.r);tu.mv=0;}}}continue;}}n.hp=Math.min(80,n.hp+3);if(holy&&hexDist(holy.q,holy.r,n.q,n.r)<=6){n.hp-=6;if(n.hp<=0){killNest(n,holy.owner);continue;}}
   n.cd--;const mine=Object.values(G.units).filter(u=>u.home===n.id).length;const cap=G.turn<35?2:G.turn<70?3:4;
   if(n.cd<=0){n.cd=G.turn<30?7:G.turn<65?5:4;if(G.diff===0)n.cd++;
     if(mine<cap){const spot=nbrs(n.q,n.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r));if(spot){const k=G.turn>40&&rnd()<0.28?'brute':G.turn>12&&rnd()<0.35?'runner':'walker';const z=addUnit(-1,k,spot.q,spot.r);z.home=n.id;}}}
@@ -591,9 +654,9 @@ function aiBuild(c){const o=c.owner,cv=G.civs[o];const opts=buildOptions(c);cons
   for(const k of wpref)if(has(k)&&!civCities(o).some(x=>x.build&&x.build.k===k))return{t:'w',k};
   return{t:'u',k:bestUnit(o,rnd()<0.4)};}
 function aiResearch(o){const cv=G.civs[o];if(cv.res)return;const av=Object.keys(TECH).filter(k=>!cv.techs[k]&&TECH[k].req.every(r=>cv.techs[r]));if(!av.length)return;
-  const F=fac(o);const pref=F===3?['scav','agri','write','moto','power','serum','fort','bow','cannon','armor','ark']:o===0&&BOT==='purify'?['bow','agri','write','serum','fort','scav','moto','armor','cannon','power','ark']:o===0&&BOT==='war'?['bow','scav','fort','moto','armor','cannon','agri','write','serum','power','ark']:F===1?['bow','agri','scav','write','fort','moto','power','armor','cannon','serum','ark']:['agri','scav','write','bow','serum','power','fort','moto','ark','cannon','armor'];
+  const F=fac(o);const pref=F===4?['bow','scav','moto','agri','fort','write','armor','cannon','power','serum','ark']:F===5?['scav','agri','write','serum','bow','fort','moto','power','cannon','armor','ark']:F===6?['agri','scav','write','bow','moto','power','serum','fort','cannon','armor','ark']:F===7?['agri','scav','write','bow','power','serum','fort','moto','cannon','armor','ark']:F===3?['scav','agri','write','moto','power','serum','fort','bow','cannon','armor','ark']:o===0&&BOT==='purify'?['bow','agri','write','serum','fort','scav','moto','armor','cannon','power','ark']:o===0&&BOT==='war'?['bow','scav','fort','moto','armor','cannon','agri','write','serum','power','ark']:F===1?['bow','agri','scav','write','fort','moto','power','armor','cannon','serum','ark']:['agri','scav','write','bow','serum','power','fort','moto','ark','cannon','armor'];
   av.sort((a,b)=>pref.indexOf(a)-pref.indexOf(b));cv.res=av[0];}
-function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);aiExpand(o);
+function aiTurn(o){const cv=G.civs[o];if(!cv.alive)return;aiResearch(o);aiExpand(o);if(fac(o)===7)aiBribe(o);
   for(const c of civCities(o))if(!c.build)c.build=aiBuild(c);
   // 据点射击
   for(const c of civCities(o)){if(c.shot)continue;const tgts=Object.values(G.units).filter(u=>u.owner!==o&&atWar(o,u.owner)&&hexDist(u.q,u.r,c.q,c.r)<=2);if(tgts.length){tgts.sort((a,b)=>a.hp-b.hp);doAttack({type:'city',o:c},{type:'unit',o:tgts[0],owner:tgts[0].owner});}}
@@ -612,7 +675,7 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(u.k==='settler'){let site=u.site&&T(u.site[0],u.site[1]);if(!site||!canFound(site.q,site.r,u.owner)){let best=null,bs=-1;for(const t of ring(u.q,u.r,9)){let s=siteScore(u.owner,t);if(s<0)continue;s-=hexDist(u.q,u.r,t.q,t.r)*1.4;if(Object.values(G.units).some(z=>z.owner<0&&hexDist(z.q,z.r,t.q,t.r)<=2))s-=10;if(s>bs){bs=s;best=t;}}if(!best)return;u.site=[best.q,best.r];site=best;}
     if(u.q===site.q&&u.r===site.r){foundCity(u);return;}const p=findPath(u,site.q,site.r,false);if(!p){u.site=null;return;}walkPath(u,p);if(u.q===site.q&&u.r===site.r&&canFound(u.q,u.r,u.owner))foundCity(u);return;}
   if(u.k==='worker'){if(u.work)return;const here=T(u.q,u.r);const bord=t=>t.own===u.owner&&t.tower===undefined&&!cityAt(t.q,t.r)&&t.t!=='w'&&nbrs(t.q,t.r).some(n=>n.own>=0&&n.own!==u.owner)&&!ring(t.q,t.r,2).some(n=>n.tower===u.owner);
-    if(bord(here)&&rnd()<0.6){startTower(u);return;}
+    if(bord(here)&&rnd()<0.6){if(fac(u.owner)===2&&rnd()<0.5&&here.t!=='w'){u.work={k:'wall',left:2};u.mv=0;u.acted=1;}else startTower(u);return;}
     if(atWarAny(u.owner)||rnd()<0.3){let bt=null,bd2=1e9;for(const c of civCities(u.owner))for(const t of ring(c.q,c.r,4)){if(!bord(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd2){bd2=d;bt=t;}}if(bt&&bd2<=6&&rnd()<0.5){const p=findPath(u,bt.q,bt.r,false);if(p){walkPath(u,p);if(u.mv>0&&bord(T(u.q,u.r)))startTower(u);return;}}}const want=t=>t.own===u.owner&&t.nest===undefined&&!cityAt(t.q,t.r)&&(t.bl!==undefined||(!t.imp&&impFor(t)));
     if(want(here)&&civCities(u.owner).some(c=>hexDist(c.q,c.r,here.q,here.r)<=2)){startWork(u);return;}
     let best=null,bd=1e9;for(const c of civCities(u.owner))for(const t of ring(c.q,c.r,2)){if(!want(t)||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r)-(t.bl!==undefined?2:0)-(t.res?1:0);if(d<bd){bd=d;best=t;}}
@@ -620,6 +683,11 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(u.k==='general'||UN[u.k].heal){let best=null,bd=1e9;for(const v of civUnits(u.owner)){if(!isMil(v)||v.gar)continue;const d=hexDist(u.q,u.r,v.q,v.r);if(d<bd){bd=d;best=v;}}if(best&&bd>1){const p=findPath(u,best.q,best.r,true);if(p)walkPath(u,p);}return;}
   if(UN[u.k].sc){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(!t.goody)continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}
     if(!best){const all=Object.values(G.tiles).filter(pass);best=all[Math.floor(rnd()*all.length)];}const p=findPath(u,best.q,best.r,false);if(p)walkPath(u,p);return;}
+  if(fac(u.owner)===5&&U.str&&!U.civ){const n=Object.values(G.nests).find(n=>n.alive&&!(n.own>=0)&&hexDist(n.q,n.r,u.q,u.r)===1);if(n&&rnd()<0.7){worshipNest(n,u.owner);u.mv=0;u.acted=1;return;}}
+  if(fac(u.owner)===1&&isMil(u)){const h=T(u.q,u.r);if(!cityAt(h.q,h.r)&&h.own>=0&&h.own!==u.owner&&atWar(u.owner,h.own)&&(towerGuard(h,h.own)||h.imp&&rnd()<0.4)){h.burn=G.turn+3;h.burnBy=u.owner;delete h.imp;delete h.tower;h.own=-1;u.mv=0;u.acted=1;return;}}
+  if(fac(u.owner)===6&&isMil(u)&&(u.dropT||0)<=G.turn&&T(u.q,u.r).own===u.owner&&!nbrs(u.q,u.r).some(n=>{const g=tgtAt(n.q,n.r);return g&&g.owner!==u.owner&&(g.owner<0||atWar(u.owner,g.owner));})&&rnd()<0.5){
+    const foes=Object.values(G.units).filter(v=>v.owner>=0&&v.owner!==u.owner&&atWar(u.owner,v.owner)&&hexDist(v.q,v.r,u.q,u.r)<=9);
+    foes.sort((a,b)=>a.hp-b.hp);for(const v of foes){if(UN[v.k].civ||u.hp<80||!Object.values(G.units).some(w=>w!==u&&w.owner===u.owner&&isMil(w)&&hexDist(w.q,w.r,v.q,v.r)<=1)||defenderStr({type:'unit',o:v},{type:'unit',o:u})>UN[u.k].str*0.9||cityAt(v.q,v.r))continue;const sp=nbrs(v.q,v.r).find(t=>dropOK(u,t));if(sp){delete UAT[key(u.q,u.r)];u.q=sp.q;u.r=sp.r;UAT[key(sp.q,sp.r)]=u;u.vq=u.q;u.vr=u.r;u.mv=0;u.acted=1;u.dropT=G.turn+(pp(u.owner,'drop2')?2:4);return;}}}
   // 先打能打的
   const tryAtk=()=>{const bt=bestTarget(u,U.rs?rngOf(u):1);if(bt&&u.mv>0){doAttack({type:'unit',o:u},bt.tg);return true;}return false;};
   if(tryAtk())return;
@@ -631,7 +699,7 @@ function aiUnit(u,wars){const U=UN[u.k];u.mv=u.mv||0;if(u.mv<=0)return;
   if(!goal&&wars.length){let best=null,bd=1e9;for(const x of wars)for(const c of civCities(x)){const d=hexDist(u.q,u.r,c.q,c.r);if(d<bd){bd=d;best=c;}}
     if(best&&bd<=16){const near=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar&&hexDist(v.q,v.r,best.q,best.r)<=bd+1).length;if(near>=2||bd>4)goal=[best.q,best.r];}}
   if(!goal){let best=null,bd=1e9;for(const z of Object.values(G.units)){if(z.owner>=0)continue;const d=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,z.q,z.r)),99);if(d<=4&&hexDist(u.q,u.r,z.q,z.r)<bd){bd=hexDist(u.q,u.r,z.q,z.r);best=z;}}if(best)goal=[best.q,best.r];}
-  if(!goal){const field=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar).length;let best=null,bd=1e9;for(const n of Object.values(G.nests)){if(!n.alive)continue;const d=hexDist(u.q,u.r,n.q,n.r);const dc=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,n.q,n.r)),99);if((dc<=8+G.turn/12||fac(u.owner)===2&&G.turn>30||u.owner===0&&BOT==='purify')&&d<bd&&(field>=2||nestStr(n)<U.str*1.3)){bd=d;best=n;}}if(best)goal=[best.q,best.r];}
+  if(!goal){const field=civUnits(u.owner).filter(v=>isMil(v)&&!v.gar).length;let best=null,bd=1e9;for(const n of Object.values(G.nests)){if(!n.alive)continue;const d=hexDist(u.q,u.r,n.q,n.r);const dc=Math.min(...civCities(u.owner).map(c=>hexDist(c.q,c.r,n.q,n.r)),99);if((dc<=8+G.turn/12||(fac(u.owner)===2||fac(u.owner)===5)&&G.turn>30||u.owner===0&&BOT==='purify')&&d<bd&&(field>=2||nestStr(n)<U.str*1.3)){bd=d;best=n;}}if(best)goal=[best.q,best.r];}
   if(!goal&&T(u.q,u.r).bl!==undefined&&T(u.q,u.r).own===u.owner){purge(u);return;}
   if(!goal){let best=null,bd=1e9;for(const t of Object.values(G.tiles)){if(t.bl===undefined||t.own!==u.owner||t.nest!==undefined||unitAt(t.q,t.r))continue;const d=hexDist(u.q,u.r,t.q,t.r);if(d<bd){bd=d;best=t;}}if(best&&bd<=6){goal=[best.q,best.r];adj=false;}}
   if(!goal&&!U.sc){const here=T(u.q,u.r);const cap=t=>t.t!=='m'&&!cityAt(t.q,t.r)&&t.nest===undefined&&t.bl===undefined&&(t.own<0||(t.own!==u.owner&&atWar(u.owner,t.own)&&!(towerGuard(t,t.own)&&t.tower!==t.own)))&&nbrs(t.q,t.r).some(n=>n.own===u.owner);
@@ -647,12 +715,12 @@ function startTower(u){const t=T(u.q,u.r);if(t.own!==u.owner||t.tower!==undefine
 function startWork(u){const t=T(u.q,u.r);if(t.bl!==undefined&&t.nest===undefined){u.work={k:'purge',left:1};}else{const k=impFor(t);if(!k||t.imp||t.own!==u.owner)return false;u.work={k,left:fac(u.owner)===2?2:3};}u.mv=0;u.acted=1;return true;}
 /* ---------- 占地：开拓、插旗、补给线、哨塔 ---------- */
 let WIN_LAND=0.55;
-function epRate(o){return (1.5+civCities(o).reduce((a,c)=>a+1+c.pop*0.2,0))*(pp(o,'spring')?1.3:1);}
+function epRate(o){return (1.5+civCities(o).reduce((a,c)=>a+1+c.pop*0.2,0))*(pp(o,'spring')?1.3:1)*(fac(o)===7?1.25:1);}
 function landTiles(){return Object.values(G.tiles).filter(t=>t.t!=='m');}
 function winLand(){return G&&G.n===4?0.4:0.5;}
 function landShare(o){const all=landTiles();return all.filter(t=>t.own===o&&!t.iso).length/all.length;}
 function ownCityDist(o,t){let d=99;for(const c of Object.values(G.cities))if(c.owner===o)d=Math.min(d,hexDist(c.q,c.r,t.q,t.r));return d;}
-function claimable(o,t){if(!t||t.t==='m'||t.own>=0||t.nest!==undefined||cityAt(t.q,t.r))return false;if(t.bl!==undefined)return false;if(!nbrs(t.q,t.r).some(n=>n.own===o&&!n.iso))return false;return ownCityDist(o,t)<=4;}
+function claimable(o,t){if(!t||t.t==='m'||t.own>=0||t.nest!==undefined||cityAt(t.q,t.r)||(t.burn&&t.burn>G.turn))return false;if(t.bl!==undefined)return false;if(!nbrs(t.q,t.r).some(n=>n.own===o&&!n.iso))return false;return ownCityDist(o,t)<=4;}
 function claimCost(o,t){const d=ownCityDist(o,t);let c=2+(d-1)*1.5+((t.t==='f'||t.t==='h')?1:0)+(t.res?1:0)+(t.t==='o'?2:0);if(fac(o)===2)c*=0.85;return Math.max(1,Math.round(c));}
 function doClaim(o,t){if(!claimable(o,t))return false;const c=claimCost(o,t);const cv=G.civs[o];if((cv.ep||0)<c)return false;cv.ep-=c;t.own=o;if(o===ME){pops.push({q:t.q,r:t.r,txt:'开拓',col:'#5e8c55',t:0});SFX.click();}return true;}
 function towerGuard(t,o){// o 方的哨塔是否保护着这一格
@@ -672,6 +740,7 @@ function territoryTick(){
     if(o===ME){if(newIso)feed(`有 ${newIso} 块地和据点断了联系，变成孤地：什么都不产，3 天内接不回来就会丢。`,'bad');if(lost)feed(`${lost} 块孤地失守了。`,'bad');}}
   // 统一废土：占地过半
   for(const o of CIV()){if(G.civs[o].alive&&landShare(o)>=winLand()){endGame(o,'conquest');return;}}}
+function aiBribe(o){const cv=G.civs[o];if((cv.ep||0)<30)return;let best=null,bv=0;for(const v of Object.values(G.units)){if(!bribeOK(o,v))continue;const val=UN[v.k].cost*v.hp/100;const c=bribeCost(o,v);if(val/c>bv&&c<=cv.ep-10){bv=val/c;best=v;}}if(best){cv.ep-=bribeCost(o,best);const was=best.owner;best.owner=o;best.gar=null;best.dest=null;best.fort=0;best.mv=0;best.work=null;if(was===ME){feed(`我们的${UN[best.k].n}被${civName(o)}收买了！`,'bad');pops.push({q:best.q,r:best.r,txt:'被收买',col:'#d9645a',t:0});}checkAlive(was);}}
 function aiExpand(o){const cv=G.civs[o];let n=0;while(n<5){let best=null,bs=-1e9;for(const c of civCities(o))for(const t of ring(c.q,c.r,4)){if(!claimable(o,t))continue;const y=tileYield(t);const sc=y.f*1.2+y.p+y.s+(t.res?1.5:0)-claimCost(o,t)*0.35-ownCityDist(o,t)*0.3;if(sc>bs){bs=sc;best=t;}}
     if(!best||cv.ep<claimCost(o,best))break;doClaim(o,best);n++;}}
 /* ---------- 天流程 ---------- */
@@ -691,20 +760,23 @@ function endTurn(){if(busy||!G||G.over)return;busy=true;pend=null;
   zombieTurn();if(G.over){busy=false;return;}nestTurn();
   for(const u of Object.values(G.units))delete u.twWarn;territoryTick();if(G.over){busy=false;return;}
   // 天末：感染伤害、回血、重置
-  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){const wk=u.work.k;if(wk==='purge'){delete t.bl;if(t.own<0)t.own=u.owner;if(pp(u.owner,'bless'))G.civs[u.owner].ep=(G.civs[u.owner].ep||0)+3;}else if(wk==='tower'){if(t.own===u.owner)t.tower=u.owner;}else t.imp=wk;if(u.owner===ME){feed(wk==='purge'?'净化了一块感染地，这一格归我们了。':wk==='tower'?'哨塔修好了：它周围一圈的地，敌人插不了旗。':`${IMP[wk].n}修好了：${IMP[wk].d}。`,'good');pops.push({q:t.q,r:t.r,txt:wk==='purge'?'净化':wk==='tower'?'哨塔':IMP[wk].n,col:'#5e8c55',t:0});}u.work=null;}}}
+  for(const u of Object.values(G.units)){if(u.work){const t=T(u.q,u.r);u.work.left--;u.acted=1;if(u.work.left<=0){const wk=u.work.k;if(wk==='purge'){delete t.bl;if(t.own<0)t.own=u.owner;if(pp(u.owner,'bless'))G.civs[u.owner].ep=(G.civs[u.owner].ep||0)+3;}else if(wk==='tower'){if(t.own===u.owner)t.tower=u.owner;}else if(wk==='wall'){if(t.own===u.owner){t.wall=u.owner;t.hp=60;}}else t.imp=wk;if(u.owner===ME){feed(wk==='purge'?'净化了一块感染地，这一格归我们了。':wk==='tower'?'哨塔修好了：它周围一圈的地，敌人插不了旗。':wk==='wall'?'城墙修好了：只有我们自己的人能通过。':`${IMP[wk].n}修好了：${IMP[wk].d}。`,'good');pops.push({q:t.q,r:t.r,txt:wk==='purge'?'净化':wk==='tower'?'哨塔':wk==='wall'?'城墙':IMP[wk].n,col:'#5e8c55',t:0});}u.work=null;}}}
   for(const o of CIV())if(G.civs[o].alive)gpTick(o);
+  for(const m of Object.values(G.units)){if(!UN[m.k].mother||G.turn%3)continue;const near=Object.values(G.units).filter(u=>u.owner===m.owner&&UN[u.k].tame&&hexDist(u.q,u.r,m.q,m.r)<=2).length;if(near<3){const sp=nbrs(m.q,m.r).find(t=>pass(t)&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r)&&!nestAt(t.q,t.r));if(sp){const tu=addUnit(m.owner,'tw',sp.q,sp.r);tu.mv=0;}}}
+  for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(t.burn&&t.burn>G.turn&&u.owner!==t.burnBy&&u.owner>=0&&!(t.burnBy>=0&&!atWar(u.owner,t.burnBy))){u.hp-=8;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}被焦土烧死了。`,'bad');removeUnit(u);}}}
+  for(const t of Object.values(G.tiles))if(t.burn&&t.burn<=G.turn){delete t.burn;delete t.burnBy;}
   for(const u of Object.values(G.units)){if(u.owner<0||!G.units[u.id])continue;const t=T(u.q,u.r);let d=0;
     if(isMil(u)&&!supplied(u)){d+=8;u.oos=1;}else u.oos=0;
     if(t.own>=0&&t.own!==u.owner&&atWar(u.owner,t.own)&&pp(t.own,'jail'))d+=8;
     for(const n of ring(u.q,u.r,1))if(n.tower!==undefined&&n.tower!==u.owner&&atWar(u.owner,n.tower)&&pp(n.tower,'grid')){d+=10;break;}
     if(d){u.hp-=d;u.acted=1;if(u.owner===ME)pops.push({q:u.q,r:u.r,txt:'-'+d,col:'#d9645a',t:0});if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}${u.oos?'断了补给，':''}倒下了。`,'bad');removeUnit(u);}}}
   for(const z of Object.values(G.units)){if(z.owner>=0)continue;const t=T(z.q,z.r);let d=0;if(t.own>=0&&pp(t.own,'jail'))d+=8;for(const n of ring(z.q,z.r,1))if(n.tower!==undefined&&pp(n.tower,'grid')){d+=10;break;}if(d){z.hp-=d;if(z.hp<=0)removeUnit(z);}}
-  for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(u.owner>=0&&t.bl!==undefined){u.hp-=6;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}死在了感染区里。`,'bad');removeUnit(u);continue;}}
+  for(const u of Object.values(G.units)){const t=T(u.q,u.r);if(u.owner>=0&&t.bl!==undefined&&fac(u.owner)!==5){u.hp-=6;if(u.hp<=0){if(u.owner===ME)feed(`我们的${UN[u.k].n}死在了感染区里。`,'bad');removeUnit(u);continue;}}
     if(!u.acted){let h=10;if(u.owner>=0&&t.own===u.owner)h+=fac(u.owner)===0?20:10;if(cityAt(u.q,u.r))h+=10;if(u.owner<0)h=t.bl!==undefined?15:5;u.hp=Math.min(100,u.hp+h);}
-    u.acted=0;u.fired=0;u.mv=UN[u.k].mv;}
+    u.acted=0;u.fired=0;u.mv=mvOf(u);}
   for(const m of Object.values(G.units)){const H=UN[m.k].heal;if(!H||m.owner<0)continue;for(const v of Object.values(G.units))if(v.owner===m.owner&&v!==m&&hexDist(v.q,v.r,m.q,m.r)<=1&&v.hp<100){v.hp=Math.min(100,v.hp+H);if(m.owner===ME&&VIS.has(key(v.q,v.r)))pops.push({q:v.q,r:v.r,txt:'+'+H,col:'#5e8c55',t:0});}}
   G.turn++;
-  for(const o of CIV()){const cv=G.civs[o];if(!cv.alive)continue;if(!cv.pol)cv.pol=[null,null];for(let lv=0;lv<2;lv++){if(G.turn<POLDAY[lv]||cv.pol[lv])continue;if(cv.ai){const F=fac(o);const pick=F===1?(lv?0:rnd()<0.5?0:1):F===2?(lv?(rnd()<0.6?0:1):1):F===3?(lv?1:0):(rnd()<0.5?0:1);cv.pol[lv]=POL[F][lv][pick].k;}else if(cv.polPend===undefined||cv.polPend===null)cv.polPend=lv;break;}}
+  for(const o of CIV()){const cv=G.civs[o];if(!cv.alive)continue;if(!cv.pol)cv.pol=[null,null];for(let lv=0;lv<2;lv++){if(G.turn<POLDAY[lv]||cv.pol[lv])continue;if(cv.ai){const F=fac(o);const pick=F>=4?(rnd()<0.5?0:1):F===1?(lv?0:rnd()<0.5?0:1):F===2?(lv?(rnd()<0.6?0:1):1):F===3?(lv?1:0):(rnd()<0.5?0:1);cv.pol[lv]=POL[F][lv][pick].k;}else if(cv.polPend===undefined||cv.polPend===null)cv.polPend=lv;break;}}
   if(G.turn>MAXT&&!G.over){const sc=CIV().map(score);const best=sc.indexOf(Math.max(...sc));endGame(best,'score');busy=false;return;}
   // 玩家单位自动行军
   for(const u of Object.values(G.units)){if(!u.dest||!isHum(u.owner))continue;const danger=Object.values(G.units).some(z=>(z.owner<0||atWar(u.owner,z.owner))&&hexDist(z.q,z.r,u.q,u.r)<=2);if(danger){u.dest=null;if(u.owner===ME)feed(`${UN[u.k].n}发现附近有敌人，停下待命。`,'bad');continue;}
@@ -745,8 +817,9 @@ function endGame(w,how){if(G.over)return;G.over={w,how};if(NETON&&NET.host)setTi
 /* ---------- 视野 ---------- */
 function updVis(){VIS=new Set();const add=(q,r,R)=>{for(const t of ring(q,r,R)){const k=key(t.q,t.r);VIS.add(k);t.ex=1;}};
   if(G.civs[ME]&&!G.civs[ME].alive){for(const t of Object.values(G.tiles)){VIS.add(key(t.q,t.r));t.ex=1;}return;}
-  for(const u of civUnits(ME)){const t=T(u.q,u.r);add(u.q,u.r,(UN[u.k].vis||2)+(t.t==='h'?1:0));}
+  for(const u of civUnits(ME)){const t=T(u.q,u.r);add(u.q,u.r,(UN[u.k].vis||2)+(t.t==='h'?1:0)+(fac(ME)===6?1:0));}
   for(const c of civCities(ME))add(c.q,c.r,3);
+  for(const t of Object.values(G.tiles))if(t.tower===ME&&t.own===ME)add(t.q,t.r,fac(ME)===3?4:2);
   for(const t of Object.values(G.tiles))if(t.own===ME){VIS.add(key(t.q,t.r));t.ex=1;}}
 
 /* ---------- 存档 ---------- */
@@ -767,113 +840,233 @@ function clampCam(){if(!G)return;const[x0,y0]=hx(0,0);const[x1,y1]=hx(MW-1,MH-1-
 const spriteCache=new Map();
 function shadeHex(h,f){const n=parseInt(h.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;return`rgb(${clamp(Math.round(r*f),0,255)},${clamp(Math.round(g*f),0,255)},${clamp(Math.round(b*f),0,255)})`;}
 function hexPath(c,Z){c.beginPath();for(let k=0;k<6;k++){const v=vtx(k,Z);k?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]);}c.closePath();}
-function tree(c,x,y,s,r){c.fillStyle='rgba(60,80,40,.18)';c.beginPath();c.ellipse(x,y,s*0.55,s*0.22,0,0,7);c.fill();c.fillStyle='#8a6a4a';c.fillRect(x-s*0.08,y-s*0.4,s*0.16,s*0.4);
-  const g=r<0.5?['#4f8f58','#66a868']:['#3f7f52','#5a9c60'];c.fillStyle=g[0];c.beginPath();c.moveTo(x-s*0.5,y-s*0.3);c.lineTo(x,y-s*1.5);c.lineTo(x+s*0.5,y-s*0.3);c.closePath();c.fill();c.fillStyle=g[1];c.beginPath();c.moveTo(x,y-s*1.5);c.lineTo(x+s*0.5,y-s*0.3);c.lineTo(x+s*0.05,y-s*0.35);c.closePath();c.fill();}
-function house(c,x,y,s,roof,broken){c.fillStyle='rgba(60,50,40,.18)';c.beginPath();c.ellipse(x,y+s*0.05,s*0.75,s*0.28,0,0,7);c.fill();
-  c.fillStyle=broken?'#cfc6b6':'#f6efe3';c.fillRect(x-s*0.55,y-s*0.55,s*0.75,s*0.55);c.fillStyle=broken?'#b9af9e':'#e2d6c2';c.fillRect(x+s*0.2,y-s*0.55,s*0.35,s*0.55);
-  c.fillStyle=broken?'#6d655a':'#8a6a4a';c.fillRect(x-s*0.28,y-s*0.3,s*0.18,s*0.3);c.fillStyle=broken?'#6d655a':'#9fc3df';c.fillRect(x+s*0.28,y-s*0.42,s*0.14,s*0.13);
-  if(broken){c.fillStyle='#a69c8b';c.beginPath();c.moveTo(x-s*0.6,y-s*0.55);c.lineTo(x-s*0.3,y-s*0.8);c.lineTo(x-s*0.05,y-s*0.62);c.lineTo(x+s*0.2,y-s*0.75);c.lineTo(x+s*0.55,y-s*0.55);c.closePath();c.fill();return;}
-  c.fillStyle=roof;c.beginPath();c.moveTo(x-s*0.65,y-s*0.52);c.lineTo(x-s*0.15,y-s*1.05);c.lineTo(x+s*0.3,y-s*0.52);c.closePath();c.fill();c.fillStyle=shadeHex(roof,0.82);c.beginPath();c.moveTo(x-s*0.15,y-s*1.05);c.lineTo(x+s*0.65,y-s*0.95);c.lineTo(x+s*0.65,y-s*0.5);c.lineTo(x+s*0.3,y-s*0.52);c.closePath();c.fill();}
-function drawTileTo(c,t,Z){const R=mulberry(t.seed||1);const th=Z*TH;const T0=TERR[t.t];const water=t.t==='w';
-  for(let k=0;k<3;k++){const a=vtx(k,Z),b=vtx(k+1,Z);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineTo(b[0],b[1]+th);c.lineTo(a[0],a[1]+th);c.closePath();c.fillStyle=water?(k===1?'#7aa9be':'#8db8ca'):(k===1?'#b49572':k===0?'#a5866a':'#c2a582');c.fill();}
-  hexPath(c,Z);c.fillStyle=T0.c;c.fill();c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=Math.max(1,Z*0.025);c.stroke();
-  const pt=()=>{const a=R()*Math.PI*2,d=Math.sqrt(R())*0.62;return[Math.cos(a)*d*Z,Math.sin(a)*d*Z*SQ];};
-  const items=[];
-  if(t.t==='g'){for(let i=0;i<6;i++){const p=pt();const col=['#fff6c9','#f7b6c8','#ffffff','#c9e4ff'][Math.floor(R()*4)];items.push({y:p[1],f:()=>{c.fillStyle='rgba(120,160,80,.6)';c.fillRect(p[0]-Z*0.012,p[1]-Z*0.05,Z*0.014,Z*0.05);c.fillStyle=col;c.beginPath();c.arc(p[0],p[1]-Z*0.055,Z*0.028,0,7);c.fill();}});}}
-  else if(t.t==='p'){c.strokeStyle='rgba(190,150,60,.45)';c.lineWidth=Math.max(1,Z*0.025);for(let i=-3;i<=3;i++){c.beginPath();c.moveTo(-Z*0.6,i*Z*0.12*SQ*1.6);c.lineTo(Z*0.6,i*Z*0.12*SQ*1.6+Z*0.1);c.stroke();}
-    for(let i=0;i<2;i++){const p=pt();items.push({y:p[1],f:()=>{c.fillStyle='#e0b752';c.beginPath();c.ellipse(p[0],p[1]-Z*0.06,Z*0.06,Z*0.09,0,0,7);c.fill();c.fillStyle='#c99d3e';c.fillRect(p[0]-Z*0.07,p[1]-Z*0.02,Z*0.14,Z*0.03);}});}}
-  else if(t.t==='f'){for(let i=0;i<6;i++){const p=pt();const s=Z*(0.16+R()*0.08);items.push({y:p[1],f:()=>tree(c,p[0],p[1],s,R())});}}
-  else if(t.t==='h'){for(let i=0;i<2;i++){const p=i?[Z*0.2,Z*0.08]:[-Z*0.22,-Z*0.05];const s=Z*(0.42+R()*0.12);items.push({y:p[1],f:()=>{c.fillStyle='#bba57a';c.beginPath();c.ellipse(p[0],p[1],s,s*0.55,0,Math.PI,0);c.fill();c.fillStyle='#a8916a';c.beginPath();c.ellipse(p[0]+s*0.25,p[1],s*0.75,s*0.45,0,Math.PI*1.5,0);c.lineTo(p[0]+s,p[1]);c.fill();c.fillStyle='rgba(255,255,255,.25)';c.beginPath();c.ellipse(p[0]-s*0.3,p[1]-s*0.3,s*0.25,s*0.1,-0.4,0,7);c.fill();}});}}
-  else if(t.t==='r'){for(let i=0;i<3;i++){const p=pt();const s=Z*(0.2+R()*0.06);items.push({y:p[1],f:()=>house(c,p[0],p[1],s,'#999',true)});}for(let i=0;i<4;i++){const p=pt();items.push({y:p[1]-50,f:()=>{c.fillStyle='#a59b8a';c.fillRect(p[0],p[1],Z*0.06,Z*0.03);}});}}
-  else if(t.t==='o'){c.fillStyle='#86c6e4';c.beginPath();c.ellipse(-Z*0.15,Z*0.05,Z*0.28,Z*0.13,0,0,7);c.fill();c.fillStyle='rgba(255,255,255,.5)';c.beginPath();c.ellipse(-Z*0.2,Z*0.03,Z*0.1,Z*0.025,0,0,7);c.fill();for(let i=0;i<9;i++){const p=pt();if(Math.hypot(p[0]+Z*0.15,(p[1]-Z*0.05)/SQ)<Z*0.3)continue;const col=['#f7b6c8','#fff3b0','#ffffff','#e98bc0','#c9a7f2'][Math.floor(R()*5)];items.push({y:p[1],f:()=>{c.fillStyle=col;c.beginPath();c.arc(p[0],p[1]-Z*0.04,Z*0.035,0,7);c.fill();}});}const tp=[Z*0.3,-Z*0.05];items.push({y:tp[1],f:()=>tree(c,tp[0],tp[1],Z*0.22,0.2)});}
-  else if(t.t==='w'){c.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<3;i++){const p=pt();c.beginPath();c.ellipse(p[0],p[1],Z*0.14,Z*0.03,0,0,7);c.fill();}}
-  else if(t.t==='m'){for(let i=0;i<3;i++){const p=[(i-1)*Z*0.32,(i%2)*Z*0.1-Z*0.02];const s=Z*(0.42+R()*0.14)*(i===1?1.25:1);items.push({y:p[1],f:()=>{c.fillStyle='#9d978d';c.beginPath();c.moveTo(p[0]-s*0.6,p[1]);c.lineTo(p[0],p[1]-s*1.3);c.lineTo(p[0]+s*0.6,p[1]);c.closePath();c.fill();c.fillStyle='#857f76';c.beginPath();c.moveTo(p[0],p[1]-s*1.3);c.lineTo(p[0]+s*0.6,p[1]);c.lineTo(p[0]+s*0.1,p[1]);c.closePath();c.fill();c.fillStyle='#f6f3ee';c.beginPath();c.moveTo(p[0],p[1]-s*1.3);c.lineTo(p[0]-s*0.18,p[1]-s*0.92);c.lineTo(p[0],p[1]-s*0.98);c.lineTo(p[0]+s*0.16,p[1]-s*0.9);c.closePath();c.fill();}});}}
-  items.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
-  if(t.res){const Rr=RES[t.res];const x=Z*0.42,y=Z*0.22;c.fillStyle='#fffdf8';c.beginPath();c.arc(x,y,Z*0.14,0,7);c.fill();c.strokeStyle=Rr.c;c.lineWidth=Math.max(1.2,Z*0.03);c.stroke();c.fillStyle=Rr.c;c.font=`900 ${Math.max(8,Z*0.15)}px "Noto Sans SC",sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(Rr.ch,x,y+0.5);}}
-function sprite(t){const Z=Math.round(cam.z);const k=t.t+t.seed+(t.res||'')+'@'+Z;let s=spriteCache.get(k);
-  if(!s){s=document.createElement('canvas');const w=Math.ceil(Z*2.3),h=Math.ceil(Z*2.1);const d=Math.min(2,devicePixelRatio||1);s.width=w*d;s.height=h*d;const c=s.getContext('2d');c.scale(d,d);c.translate(w/2,h*0.56);drawTileTo(c,t,Z);s._w=w;s._h=h;spriteCache.set(k,s);if(spriteCache.size>900)spriteCache.delete(spriteCache.keys().next().value);}
-  return s;}
 function cracks(seed,Z){ctx.strokeStyle='rgba(40,25,45,.5)';ctx.lineWidth=1.2;ctx.beginPath();const R=mulberry(seed);for(let i=0;i<4;i++){let x=(R()-0.5)*Z*0.3,y=(R()-0.5)*Z*0.2;ctx.moveTo(x,y);for(let s=0;s<3;s++){x+=(R()-0.5)*Z*0.45;y+=(R()-0.5)*Z*0.25;ctx.lineTo(x,y);}}ctx.stroke();}
 
 /* ---------- 绘制：据点、单位、尸巢 ---------- */
 function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function drawCity(sx,sy,c){const Z=cam.z;const col=civCol(c.owner);const R=mulberry(c.id*31+7);
-  if(c.blds.walls){ctx.strokeStyle='#9d968a';ctx.lineWidth=Math.max(2,Z*0.07);ctx.beginPath();ctx.ellipse(sx,sy,Z*0.78,Z*0.78*SQ,0,0,7);ctx.stroke();ctx.strokeStyle='#bdb6aa';ctx.lineWidth=Math.max(1,Z*0.03);ctx.stroke();}
-  const n=Math.min(7,2+c.pop);const spots=[[0,-0.05],[-0.32,0.02],[0.32,0.04],[-0.12,0.22],[0.18,0.24],[-0.42,-0.18],[0.4,-0.16]];
-  const list=spots.slice(0,n).map(([x,y],i)=>({x:sx+x*Z,y:sy+y*Z*SQ*1.6,s:Z*(i===0?0.3:0.22),roof:i===0?col:shadeHex(col,0.85+R()*0.25)})).sort((a,b)=>a.y-b.y);
-  const wl=G.wonders?cityWons(c):[];wl.forEach((k,i)=>list.push({x:sx+(i%2?0.55:-0.55)*Z,y:sy-0.05*Z+Math.floor(i/2)*0.2*Z,s:Z*0.26,w:k}));list.sort((a,b)=>a.y-b.y);
-  for(const h of list){if(h.w)drawWonder(h.x,h.y,h.s,h.w,col);else house(ctx,h.x,h.y,h.s,h.roof);}
-  // 名牌
-  const nm=(c.cap?'★ ':'')+c.name;ctx.font=`700 ${Math.max(11,Z*0.24)}px "Noto Sans SC",sans-serif`;const w=ctx.measureText(nm).width+Z*0.62+12;const y=sy-Z*1.0;const hh=Math.max(17,Z*0.36);
-  ctx.fillStyle=col;rr(sx-w/2,y-hh/2,w,hh,hh/2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx-w/2+hh/2,y,hh/2-2,0,7);ctx.fill();
-  ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.pop,sx-w/2+hh/2,y+0.5);ctx.fillStyle='#fff';ctx.fillText(nm,sx+hh/4,y+0.5);
+/* ================= 美术：统一左上光源的精致 2.5D ================= */
+function hx2rgb(h){const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255];}
+function mixc(a,b,t){const A=hx2rgb(a),B=hx2rgb(b);return`rgb(${Math.round(A[0]+(B[0]-A[0])*t)},${Math.round(A[1]+(B[1]-A[1])*t)},${Math.round(A[2]+(B[2]-A[2])*t)})`;}
+const lite=(c,t)=>mixc(c,'#ffffff',t),dark=(c,t)=>mixc(c,'#1e1a16',t);
+const OUT='rgba(45,35,28,.55)';
+/* 斜投影小方块：x,y 为前左下角所在的正面底边中点；d 为进深 */
+function box3(c,x,y,w,d,h,col,opt){opt=opt||{};const dx=d*0.55,dy=d*0.38;
+  c.fillStyle=dark(col,0.28);c.beginPath();c.moveTo(x+w/2,y);c.lineTo(x+w/2,y-h);c.lineTo(x+w/2+dx,y-h-dy);c.lineTo(x+w/2+dx,y-dy);c.closePath();c.fill();
+  const g=c.createLinearGradient(0,y-h,0,y);g.addColorStop(0,lite(col,0.06));g.addColorStop(1,dark(col,0.1));c.fillStyle=g;c.fillRect(x-w/2,y-h,w,h);
+  if(!opt.noTop){c.fillStyle=lite(col,0.22);c.beginPath();c.moveTo(x-w/2,y-h);c.lineTo(x+w/2,y-h);c.lineTo(x+w/2+dx,y-h-dy);c.lineTo(x-w/2+dx,y-h-dy);c.closePath();c.fill();}
+  if(opt.line!==false){c.strokeStyle=OUT;c.lineWidth=Math.max(0.6,w*0.025);c.beginPath();c.moveTo(x-w/2,y-h);c.lineTo(x-w/2,y);c.lineTo(x+w/2,y);c.lineTo(x+w/2+dx,y-dy);c.lineTo(x+w/2+dx,y-h-dy);if(!opt.noTop)c.lineTo(x-w/2+dx,y-h-dy);c.lineTo(x-w/2,y-h);c.stroke();}}
+/* 坡屋顶：屋脊沿 x 方向 */
+function roof3(c,x,y,w,d,rh,col){const dx=d*0.55,dy=d*0.38,e=w*0.08;
+  const A=[x-w/2-e,y+e*0.2],B=[x+w/2+e,y+e*0.2],Rl=[x-w/2+dx/2-e*0.3,y-dy/2-rh],Rr=[x+w/2+dx/2+e*0.3,y-dy/2-rh],Bk=[x+w/2+dx+e,y-dy+e*0.2];
+  c.fillStyle=dark(col,0.32);c.beginPath();c.moveTo(B[0],B[1]);c.lineTo(Rr[0],Rr[1]);c.lineTo(Bk[0],Bk[1]);c.closePath();c.fill();
+  const g=c.createLinearGradient(0,Rl[1],0,A[1]);g.addColorStop(0,lite(col,0.18));g.addColorStop(1,dark(col,0.08));c.fillStyle=g;c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(B[0],B[1]);c.lineTo(Rr[0],Rr[1]);c.lineTo(Rl[0],Rl[1]);c.closePath();c.fill();
+  c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=Math.max(0.6,w*0.02);c.beginPath();c.moveTo(Rl[0],Rl[1]);c.lineTo(Rr[0],Rr[1]);c.stroke();
+  c.strokeStyle=OUT;c.lineWidth=Math.max(0.6,w*0.022);c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(B[0],B[1]);c.lineTo(Bk[0],Bk[1]);c.lineTo(Rr[0],Rr[1]);c.lineTo(Rl[0],Rl[1]);c.closePath();c.stroke();
+  // 瓦片纹
+  c.strokeStyle=dark(col,0.18);c.lineWidth=Math.max(0.5,w*0.012);for(let i=1;i<4;i++){const t=i/4;c.beginPath();c.moveTo(A[0]+(Rl[0]-A[0])*t,A[1]+(Rl[1]-A[1])*t);c.lineTo(B[0]+(Rr[0]-B[0])*t,B[1]+(Rr[1]-B[1])*t);c.stroke();}}
+function win(c,x,y,w,h,lit){c.fillStyle=lit?'#ffe9a8':'#7fa7c4';c.fillRect(x,y,w,h);c.fillStyle='rgba(255,255,255,.45)';c.fillRect(x,y,w*0.4,h*0.45);c.strokeStyle=OUT;c.lineWidth=0.6;c.strokeRect(x,y,w,h);}
+function shadowE(c,x,y,rx,ry,a){c.fillStyle=`rgba(40,32,24,${a||0.2})`;c.beginPath();c.ellipse(x+rx*0.18,y+ry*0.25,rx,ry,0,0,7);c.fill();}
+/* 树 */
+function treeC(c,x,y,s,r){shadowE(c,x,y,s*0.5,s*0.18,0.22);c.fillStyle='#7a5a3e';c.fillRect(x-s*0.06,y-s*0.35,s*0.12,s*0.37);
+  const g=r<0.5?['#3f7f52','#5a9c60','#7cc07a']:['#356f48','#4d8e58','#6fb06c'];for(let i=0;i<3;i++){const ty=y-s*(0.3+i*0.42),wd=s*(0.62-i*0.14),ht=s*0.62;
+    c.fillStyle=g[0];c.beginPath();c.moveTo(x-wd,ty);c.lineTo(x,ty-ht);c.lineTo(x+wd,ty);c.closePath();c.fill();c.fillStyle=g[1];c.beginPath();c.moveTo(x-wd,ty);c.lineTo(x,ty-ht);c.lineTo(x+wd*0.05,ty);c.closePath();c.fill();
+    c.fillStyle=g[2];c.beginPath();c.moveTo(x-wd*0.55,ty-ht*0.35);c.lineTo(x,ty-ht);c.lineTo(x-wd*0.15,ty-ht*0.3);c.closePath();c.fill();}}
+function treeB(c,x,y,s,r){shadowE(c,x,y,s*0.55,s*0.2,0.22);c.fillStyle='#7a5a3e';c.fillRect(x-s*0.07,y-s*0.5,s*0.14,s*0.52);
+  const base=r<0.33?'#5f9e4f':r<0.66?'#6aa85a':'#7aa84a';for(const[ox,oy,rr2] of [[-0.25,-0.62,0.32],[0.22,-0.66,0.3],[0,-0.92,0.36]]){const cx=x+ox*s,cy=y+oy*s,R2=rr2*s;const gg=c.createRadialGradient(cx-R2*0.4,cy-R2*0.45,R2*0.1,cx,cy,R2);gg.addColorStop(0,lite(base,0.35));gg.addColorStop(0.6,base);gg.addColorStop(1,dark(base,0.3));c.fillStyle=gg;c.beginPath();c.arc(cx,cy,R2,0,7);c.fill();}}
+function palm(c,x,y,s){shadowE(c,x,y,s*0.5,s*0.16,0.2);c.strokeStyle='#8a6a48';c.lineWidth=s*0.1;c.lineCap='round';c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+s*0.15,y-s*0.6,x+s*0.05,y-s*1.1);c.stroke();
+  for(let i=0;i<6;i++){const a=-Math.PI/2+(i-2.5)*0.55;c.strokeStyle=i%2?'#4f9a58':'#6bb56a';c.lineWidth=s*0.09;c.beginPath();c.moveTo(x+s*0.05,y-s*1.1);c.quadraticCurveTo(x+s*0.05+Math.cos(a)*s*0.4,y-s*1.25+Math.sin(a)*s*0.2,x+s*0.05+Math.cos(a)*s*0.65,y-s*1.0+Math.abs(Math.sin(a))*s*0.15);c.stroke();}c.lineCap='butt';}
+function rock(c,x,y,s,col){col=col||'#a39a8c';shadowE(c,x,y,s*0.55,s*0.2,0.18);c.fillStyle=col;c.beginPath();c.moveTo(x-s*0.5,y);c.lineTo(x-s*0.35,y-s*0.42);c.lineTo(x+s*0.05,y-s*0.55);c.lineTo(x+s*0.45,y-s*0.3);c.lineTo(x+s*0.5,y);c.closePath();c.fill();
+  c.fillStyle=lite(col,0.25);c.beginPath();c.moveTo(x-s*0.35,y-s*0.42);c.lineTo(x+s*0.05,y-s*0.55);c.lineTo(x-s*0.05,y-s*0.15);c.closePath();c.fill();c.fillStyle=dark(col,0.2);c.beginPath();c.moveTo(x+s*0.05,y-s*0.55);c.lineTo(x+s*0.45,y-s*0.3);c.lineTo(x+s*0.5,y);c.lineTo(x-s*0.05,y-s*0.15);c.closePath();c.fill();}
+function tuft(c,x,y,s,col){c.strokeStyle=col;c.lineWidth=Math.max(0.8,s*0.12);c.beginPath();for(const a of [-0.5,-0.15,0.2,0.5]){c.moveTo(x,y);c.lineTo(x+Math.sin(a)*s,y-Math.cos(a)*s);}c.stroke();}
+function house(c,x,y,s,roof,broken){shadowE(c,x,y,s*0.7,s*0.22,0.2);if(broken){box3(c,x,y,s*0.8,s*0.55,s*0.45,'#c8bfae');c.fillStyle='#8f8676';c.beginPath();c.moveTo(x-s*0.4,y-s*0.45);c.lineTo(x-s*0.2,y-s*0.62);c.lineTo(x,y-s*0.48);c.lineTo(x+s*0.15,y-s*0.6);c.lineTo(x+s*0.4,y-s*0.45);c.closePath();c.fill();win(c,x-s*0.25,y-s*0.32,s*0.14,s*0.14,false);return;}
+  box3(c,x,y,s*0.8,s*0.6,s*0.5,'#f2eadc');roof3(c,x,y-s*0.5,s*0.8,s*0.6,s*0.32,roof);win(c,x-s*0.28,y-s*0.34,s*0.15,s*0.15,true);c.fillStyle='#7a5a3e';c.fillRect(x+s*0.08,y-s*0.28,s*0.14,s*0.28);}
+/* ---------- 地块 ---------- */
+const SIDE={g:['#7fae5a','#9b7a55','#7d6247'],p:['#c9b46a','#a5845e','#86684b'],f:['#4f8a4a','#8d6e4f','#6f5640'],h:['#b39c72','#9a8062','#7a644c'],r:['#a8a093','#8f8678','#716a5f'],w:['#7fb9d6','#6b9fb8','#56879f'],m:['#9c968c','#857f76','#6c675f'],o:['#8fd37a','#9b7a55','#7d6247']};
+const TOPC={g:'#a9d47e',p:'#e9d48c',f:'#7fb86c',h:'#cdb98a',r:'#c9c2b5',w:'#7ec2e2',m:'#b9b3a8',o:'#a6dd8c'};
+function drawTileTo(c,t,Z){const R=mulberry(t.seed||1);const th=Z*TH;const top=TOPC[t.t]||'#ccc';const sd=SIDE[t.t]||SIDE.g;
+  // 侧面：上沿草皮 + 土层渐变 + 地层线
+  for(let k=0;k<3;k++){const a=vtx(k,Z),b=vtx(k+1,Z);c.save();c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineTo(b[0],b[1]+th);c.lineTo(a[0],a[1]+th);c.closePath();
+    const g=c.createLinearGradient(0,Math.min(a[1],b[1]),0,Math.max(a[1],b[1])+th);g.addColorStop(0,sd[0]);g.addColorStop(0.22,sd[0]);g.addColorStop(0.24,sd[1]);g.addColorStop(1,sd[2]);c.fillStyle=g;c.fill();
+    c.fillStyle=k===1?'rgba(0,0,0,.06)':k===0?'rgba(0,0,0,.14)':'rgba(255,255,255,.04)';c.fill();c.clip();c.strokeStyle='rgba(0,0,0,.08)';c.lineWidth=1;for(let i=1;i<3;i++){const yy=th*(0.45+i*0.2);c.beginPath();c.moveTo(a[0],a[1]+yy);c.lineTo(b[0],b[1]+yy);c.stroke();}c.restore();}
+  // 顶面
+  hexPath(c,Z);const g=c.createLinearGradient(-Z,-Z*SQ,Z,Z*SQ);g.addColorStop(0,lite(top,0.16));g.addColorStop(0.55,top);g.addColorStop(1,dark(top,0.08));c.fillStyle=g;c.fill();
+  // 细碎纹理
+  c.save();hexPath(c,Z*0.98);c.clip();for(let i=0;i<26;i++){const x=(R()-0.5)*Z*1.9,y=(R()-0.5)*Z*1.9*SQ;c.fillStyle=R()<0.5?`rgba(255,255,255,${0.06+R()*0.08})`:`rgba(0,0,0,${0.03+R()*0.05})`;c.beginPath();c.ellipse(x,y,Z*(0.03+R()*0.07),Z*(0.015+R()*0.03),R()*3,0,7);c.fill();}c.restore();
+  // 边缘高光/阴影（光从左上）
+  c.lineWidth=Math.max(1,Z*0.035);for(let k=0;k<6;k++){const a=vtx(k,Z*0.985),b=vtx(k+1,Z*0.985);c.strokeStyle=k>=3?'rgba(255,255,255,.45)':'rgba(40,30,20,.12)';c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();}
+  const pt=(rad)=>{const a=R()*Math.PI*2,d=Math.sqrt(R())*(rad||0.62);return[Math.cos(a)*d*Z,Math.sin(a)*d*Z*SQ];};
+  const items=[];const add=(y,f)=>items.push({y,f});
+  if(t.t==='g'){for(let i=0;i<9;i++){const p=pt();add(p[1],()=>tuft(c,p[0],p[1],Z*0.07,R()<0.5?'#6f9e4c':'#86b85e'));}for(let i=0;i<5;i++){const p=pt();const col=['#fff6c9','#f7b6c8','#ffffff','#c9e4ff','#ffd08a'][Math.floor(R()*5)];add(p[1],()=>{c.fillStyle=col;c.beginPath();c.arc(p[0],p[1]-Z*0.03,Z*0.025,0,7);c.fill();});}
+    if(R()<0.5){const p=pt(0.5);add(p[1],()=>{const s=Z*0.14;shadowE(c,p[0],p[1],s,s*0.35,0.18);const gg=c.createRadialGradient(p[0]-s*0.3,p[1]-s*0.7,1,p[0],p[1]-s*0.45,s);gg.addColorStop(0,'#9fd27a');gg.addColorStop(1,'#5a8f45');c.fillStyle=gg;c.beginPath();c.arc(p[0],p[1]-s*0.45,s*0.75,0,7);c.fill();});}}
+  else if(t.t==='p'){c.save();hexPath(c,Z*0.92);c.clip();const ang=-0.45;for(let i=-6;i<=6;i++){c.save();c.rotate(ang);c.fillStyle=i%2?'rgba(214,180,80,.38)':'rgba(255,240,170,.35)';c.fillRect(-Z*1.3,i*Z*0.14,Z*2.6,Z*0.08);c.restore();}c.restore();
+    for(let i=0;i<2;i++){const p=pt(0.5);add(p[1],()=>{const s=Z*0.12;shadowE(c,p[0],p[1],s,s*0.35,0.2);const gg=c.createLinearGradient(p[0]-s,0,p[0]+s,0);gg.addColorStop(0,'#f2d36e');gg.addColorStop(1,'#c9a043');c.fillStyle=gg;c.beginPath();c.ellipse(p[0],p[1]-s*0.5,s*0.7,s*0.65,0,Math.PI,0);c.lineTo(p[0]+s*0.7,p[1]);c.lineTo(p[0]-s*0.7,p[1]);c.fill();c.strokeStyle='rgba(120,90,30,.4)';c.lineWidth=0.8;c.stroke();});}
+    if(R()<0.6){const p=pt(0.55);add(p[1],()=>{c.strokeStyle='#8a6a48';c.lineWidth=Math.max(1,Z*0.02);c.beginPath();for(let i=0;i<4;i++){c.moveTo(p[0]+i*Z*0.08,p[1]+i*Z*0.02);c.lineTo(p[0]+i*Z*0.08,p[1]+i*Z*0.02-Z*0.08);}c.moveTo(p[0],p[1]-Z*0.06);c.lineTo(p[0]+Z*0.24,p[1]-Z*0.0);c.stroke();});}}
+  else if(t.t==='f'){c.save();hexPath(c,Z*0.9);c.clip();c.fillStyle='rgba(40,80,40,.18)';c.fillRect(-Z,-Z,Z*2,Z*2);c.restore();for(let i=0;i<8;i++){const p=pt(0.68);const s=Z*(0.18+R()*0.07);const k2=R();add(p[1],()=>(k2<0.6?treeC:treeB)(c,p[0],p[1],s,R()));}}
+  else if(t.t==='h'){for(let i=0;i<3;i++){const p=i===0?[-Z*0.25,-Z*0.02]:i===1?[Z*0.22,Z*0.1]:[Z*0.05,-Z*0.22];const s=Z*(0.36+R()*0.12);add(p[1],()=>{shadowE(c,p[0],p[1],s,s*0.3,0.18);const gg=c.createRadialGradient(p[0]-s*0.4,p[1]-s*0.55,s*0.1,p[0],p[1]-s*0.2,s*1.1);gg.addColorStop(0,'#d6e0a0');gg.addColorStop(0.35,'#b8c47e');gg.addColorStop(0.75,'#a8925e');gg.addColorStop(1,'#7f6c4c');c.fillStyle=gg;c.beginPath();c.ellipse(p[0],p[1],s,s*0.82,0,Math.PI,0);c.closePath();c.fill();c.strokeStyle='rgba(80,60,40,.25)';c.lineWidth=1;c.stroke();tuft(c,p[0]-s*0.3,p[1]-s*0.3,Z*0.05,'#8a9a58');});}const p=pt(0.5);add(p[1]+1,()=>rock(c,p[0],p[1],Z*0.12));}
+  else if(t.t==='r'){c.save();hexPath(c,Z*0.9);c.clip();c.strokeStyle='rgba(80,72,64,.35)';c.lineWidth=1;for(let i=0;i<5;i++){let x=(R()-0.5)*Z*1.4,y=(R()-0.5)*Z*0.8;c.beginPath();c.moveTo(x,y);for(let s2=0;s2<3;s2++){x+=(R()-0.5)*Z*0.35;y+=(R()-0.5)*Z*0.2;c.lineTo(x,y);}c.stroke();}c.restore();
+    for(let i=0;i<3;i++){const p=pt(0.55);const s=Z*(0.2+R()*0.08);const hh=0.4+R()*0.5;add(p[1],()=>{shadowE(c,p[0],p[1],s*0.7,s*0.22,0.2);box3(c,p[0],p[1],s*0.8,s*0.55,s*hh,'#bdb4a4',{noTop:false});c.fillStyle='#d9d2c4';c.beginPath();c.moveTo(p[0]-s*0.4,p[1]-s*hh);c.lineTo(p[0]-s*0.1,p[1]-s*hh-s*0.18);c.lineTo(p[0]+s*0.15,p[1]-s*hh+s*0.02);c.lineTo(p[0]+s*0.4,p[1]-s*hh-s*0.12);c.lineTo(p[0]+s*0.4,p[1]-s*hh);c.closePath();c.fill();win(c,p[0]-s*0.28,p[1]-s*hh*0.6,s*0.14,s*0.13,false);c.strokeStyle='#6d5a48';c.lineWidth=1;c.beginPath();c.moveTo(p[0]+s*0.3,p[1]-s*hh);c.lineTo(p[0]+s*0.36,p[1]-s*hh-s*0.25);c.stroke();});}
+    for(let i=0;i<4;i++){const p=pt(0.6);add(p[1]-0.5,()=>rock(c,p[0],p[1],Z*0.06,'#9d9486'));}for(let i=0;i<3;i++){const p=pt(0.6);add(p[1],()=>tuft(c,p[0],p[1],Z*0.06,'#7f9e58'));}}
+  else if(t.t==='w'){hexPath(c,Z*0.9);const gw=c.createRadialGradient(-Z*0.2,-Z*0.15,Z*0.1,0,0,Z);gw.addColorStop(0,'#9fd6ef');gw.addColorStop(0.7,'#6db3d8');gw.addColorStop(1,'#4f97c0');c.fillStyle=gw;c.fill();c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=Math.max(1.5,Z*0.05);c.stroke();
+    c.strokeStyle='rgba(255,255,255,.4)';c.lineWidth=1;for(let i=0;i<4;i++){const p=pt(0.5);c.beginPath();c.arc(p[0],p[1],Z*0.1,Math.PI*1.1,Math.PI*1.9);c.stroke();}if(R()<0.6){const p=pt(0.45);c.fillStyle='#6fae5c';c.beginPath();c.ellipse(p[0],p[1],Z*0.07,Z*0.035,0,0.3,6.0);c.fill();}}
+  else if(t.t==='m'){const peaks=[[-0.3,0.08,0.45],[0.3,0.12,0.42],[0.02,-0.06,0.62]];for(const[px,py,ps] of peaks){const x=px*Z,y=py*Z,s=Z*ps*(0.9+R()*0.2);add(y,()=>{shadowE(c,x,y,s*0.75,s*0.2,0.2);const tx=x+s*0.05,ty=y-s*1.25;
+      c.fillStyle='#a9a297';c.beginPath();c.moveTo(x-s*0.72,y);c.lineTo(tx,ty);c.lineTo(x+s*0.1,y);c.closePath();c.fill();c.fillStyle='#7d776e';c.beginPath();c.moveTo(tx,ty);c.lineTo(x+s*0.72,y);c.lineTo(x+s*0.1,y);c.closePath();c.fill();
+      c.fillStyle='#c4bdb1';c.beginPath();c.moveTo(x-s*0.4,y-s*0.4);c.lineTo(tx,ty);c.lineTo(x-s*0.1,y-s*0.55);c.closePath();c.fill();
+      c.fillStyle='#fbf8f2';c.beginPath();c.moveTo(tx,ty);c.lineTo(tx-s*0.24,ty+s*0.38);c.lineTo(tx-s*0.08,ty+s*0.3);c.lineTo(tx+s*0.02,ty+s*0.42);c.lineTo(tx+s*0.12,ty+s*0.32);c.lineTo(tx+s*0.23,ty+s*0.4);c.closePath();c.fill();c.fillStyle='#dcd8d0';c.beginPath();c.moveTo(tx,ty);c.lineTo(tx+s*0.23,ty+s*0.4);c.lineTo(tx+s*0.12,ty+s*0.32);c.closePath();c.fill();
+      c.strokeStyle=OUT;c.lineWidth=0.8;c.beginPath();c.moveTo(x-s*0.72,y);c.lineTo(tx,ty);c.lineTo(x+s*0.72,y);c.stroke();});}add(Z*0.3,()=>rock(c,-Z*0.05,Z*0.28,Z*0.12));}
+  else if(t.t==='o'){hexPath(c,Z*0.95);c.fillStyle='rgba(160,220,130,.35)';c.fill();c.fillStyle='#7ec2e2';c.beginPath();c.ellipse(-Z*0.12,Z*0.06,Z*0.3,Z*0.14,0,0,7);c.fill();c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=Math.max(1.2,Z*0.03);c.stroke();
+    for(let i=0;i<10;i++){const p=pt();if(Math.hypot(p[0]+Z*0.12,(p[1]-Z*0.06)/SQ)<Z*0.34)continue;const col=['#f7b6c8','#fff3b0','#ffffff','#e98bc0','#c9a7f2'][Math.floor(R()*5)];add(p[1],()=>{c.fillStyle=col;c.beginPath();c.arc(p[0],p[1]-Z*0.03,Z*0.03,0,7);c.fill();});}add(-Z*0.05,()=>palm(c,Z*0.3,-Z*0.05,Z*0.3));add(Z*0.2,()=>palm(c,Z*0.18,Z*0.22,Z*0.24));}
+  if(t.res)add(Z*0.3,()=>drawRes(c,t.res,Z*0.4,Z*0.18,Z));
+  items.sort((a,b)=>a.y-b.y).forEach(o=>o.f());}
+function drawRes(c,k,x,y,Z){const s=Z*0.16;
+  if(RES[k].strat){c.fillStyle='rgba(255,236,150,.35)';c.beginPath();c.ellipse(x,y,s*1.5,s*0.6,0,0,7);c.fill();}
+  if(k==='food'){box3(c,x-s*0.35,y,s*0.7,s*0.5,s*0.55,'#c69a5e');box3(c,x+s*0.4,y+s*0.08,s*0.6,s*0.45,s*0.45,'#b88a52');c.strokeStyle='rgba(90,60,30,.5)';c.lineWidth=0.8;c.beginPath();c.moveTo(x-s*0.7,y-s*0.28);c.lineTo(x,y-s*0.28);c.stroke();}
+  else if(k==='iron'){for(const[ox,oy,sc] of [[-0.3,0,0.7],[0.25,0.05,0.55],[0,-0.15,0.6]])rock(c,x+ox*s,y+oy*s,s*sc,'#8a7f72');c.fillStyle='#b5653c';c.fillRect(x-s*0.1,y-s*0.5,s*0.35,s*0.1);}
+  else if(k==='chip'){c.fillStyle='#3f7a52';c.beginPath();c.moveTo(x-s*0.6,y);c.lineTo(x+s*0.3,y);c.lineTo(x+s*0.65,y-s*0.3);c.lineTo(x-s*0.25,y-s*0.3);c.closePath();c.fill();c.strokeStyle='#e3c46a';c.lineWidth=0.8;c.beginPath();for(let i=0;i<3;i++){c.moveTo(x-s*0.45+i*s*0.25,y-s*0.05);c.lineTo(x-s*0.2+i*s*0.25,y-s*0.25);}c.stroke();c.fillStyle='#222';c.fillRect(x-s*0.1,y-s*0.22,s*0.25,s*0.12);}
+  else if(k==='oil'){shadowE(c,x,y,s*0.6,s*0.2,0.2);c.strokeStyle='#3a3a34';c.lineWidth=Math.max(1,s*0.12);c.beginPath();c.moveTo(x-s*0.35,y);c.lineTo(x,y-s*0.9);c.lineTo(x+s*0.35,y);c.stroke();const a=Math.sin(gt*2)*0.25;c.save();c.translate(x,y-s*0.9);c.rotate(a);c.fillStyle='#2f2f2a';c.fillRect(-s*0.75,-s*0.08,s*1.3,s*0.16);c.fillStyle='#c9654f';c.beginPath();c.moveTo(-s*0.75,-s*0.2);c.lineTo(-s*0.95,0);c.lineTo(-s*0.75,s*0.2);c.fill();c.restore();c.fillStyle='#2f2f2a';c.beginPath();c.ellipse(x+s*0.5,y,s*0.22,s*0.1,0,0,7);c.fill();}
+  else if(k==='bat'){for(let i=0;i<3;i++){const bx=x-s*0.45+i*s*0.42;box3(c,bx,y+(i%2)*s*0.05,s*0.34,s*0.3,s*0.6,'#5b6fd6');c.fillStyle='#d8dcf5';c.fillRect(bx-s*0.06,y-s*0.68,s*0.12,s*0.06);}c.fillStyle='#ffe36a';c.beginPath();c.moveTo(x+s*0.05,y-s*1.05);c.lineTo(x-s*0.12,y-s*0.72);c.lineTo(x+s*0.02,y-s*0.72);c.lineTo(x-s*0.08,y-s*0.45);c.lineTo(x+s*0.18,y-s*0.82);c.lineTo(x+s*0.04,y-s*0.82);c.closePath();c.fill();}
+  else if(k==='med'){box3(c,x,y,s*0.9,s*0.6,s*0.6,'#f4f1ea');c.fillStyle='#d9645a';c.fillRect(x-s*0.07,y-s*0.5,s*0.14,s*0.4);c.fillRect(x-s*0.2,y-s*0.37,s*0.4,s*0.14);}}
+function sprite(t){const Z=Math.round(cam.z);const k=t.t+t.seed+(t.res||'')+'@'+Z;let s=spriteCache.get(k);
+  if(!s){s=document.createElement('canvas');const w=Math.ceil(Z*2.3),h=Math.ceil(Z*2.3);const d=Math.min(2,devicePixelRatio||1);s.width=w*d;s.height=h*d;const c=s.getContext('2d');c.scale(d,d);c.translate(w/2,h*0.6);drawTileTo(c,t,Z);s._w=w;s._h=h;s._oy=0.6;spriteCache.set(k,s);if(spriteCache.size>900)spriteCache.delete(spriteCache.keys().next().value);}
+  return s;}
+function fogSprite(t){const Z=Math.round(cam.z);const k='fog'+t.seed+'@'+Z;let s=spriteCache.get(k);
+  if(!s){s=document.createElement('canvas');const w=Math.ceil(Z*2.6),h=Math.ceil(Z*2.2);const d=Math.min(2,devicePixelRatio||1);s.width=w*d;s.height=h*d;const c=s.getContext('2d');c.scale(d,d);c.translate(w/2,h*0.55);const R=mulberry(t.seed);
+    hexPath(c,Z*1.04);c.fillStyle='#e9e5dc';c.fill();for(let i=0;i<5;i++){const x=(R()-0.5)*Z*1.2,y=(R()-0.5)*Z*0.6,r=Z*(0.28+R()*0.22);const g=c.createRadialGradient(x-r*0.3,y-r*0.4,r*0.1,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(0.7,'#f2efe8');g.addColorStop(1,'rgba(232,227,218,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();}
+    s._w=w;s._h=h;spriteCache.set(k,s);}return s;}
+/* ---------- 据点：8 种风格 ---------- */
+function bldg(c,x,y,s,st,col,R,main){
+  if(st==='water'){box3(c,x,y,s*0.8,s*0.6,s*0.5,'#f4f6f8');c.fillStyle=lite(col,0.3);c.beginPath();c.ellipse(x+s*0.1,y-s*0.6,s*0.42,s*0.3,0,Math.PI,0);c.fill();c.strokeStyle=OUT;c.lineWidth=0.8;c.stroke();win(c,x-s*0.28,y-s*0.34,s*0.15,s*0.15,true);
+    if(main){c.fillStyle='#9fb6c9';c.fillRect(x+s*0.55,y-s*1.2,s*0.12,s*1.2);c.fillStyle=col;c.beginPath();c.ellipse(x+s*0.61,y-s*1.25,s*0.28,s*0.18,0,0,7);c.fill();c.strokeStyle=OUT;c.stroke();}}
+  else if(st==='fire'){box3(c,x,y,s*0.8,s*0.6,s*0.55,'#8a5a48');roof3(c,x,y-s*0.55,s*0.8,s*0.6,s*0.22,'#3e3330');win(c,x-s*0.28,y-s*0.36,s*0.15,s*0.15,true);c.fillStyle='#5a4a3a';c.fillRect(x+s*0.22,y-s*1.05,s*0.12,s*0.4);
+    for(let i=0;i<3;i++){const p=(gt*0.35+i/3+R)%1;c.fillStyle=`rgba(80,74,70,${0.35*(1-p)})`;c.beginPath();c.arc(x+s*0.28+p*s*0.3,y-s*1.1-p*s*0.7,s*(0.08+p*0.15),0,7);c.fill();}
+    if(main){c.fillStyle=`rgba(255,${130+Math.sin(gt*8)*40|0},50,.9)`;c.beginPath();c.moveTo(x-s*0.6,y-s*0.6);c.lineTo(x-s*0.52,y-s*0.95);c.lineTo(x-s*0.44,y-s*0.6);c.fill();c.fillStyle='#5a4a3a';c.fillRect(x-s*0.56,y-s*0.6,s*0.08,s*0.6);}}
+  else if(st==='earth'){shadowE(c,x,y,s*0.6,s*0.2,0.2);const g=c.createRadialGradient(x-s*0.2,y-s*0.5,s*0.05,x,y-s*0.2,s*0.6);g.addColorStop(0,'#ead2a0');g.addColorStop(1,'#b8955e');c.fillStyle=g;c.beginPath();c.ellipse(x,y,s*0.45,s*0.42,0,Math.PI,0);c.lineTo(x+s*0.45,y);c.lineTo(x-s*0.45,y);c.fill();
+    c.fillStyle=col;c.beginPath();c.moveTo(x-s*0.58,y-s*0.3);c.lineTo(x,y-s*0.95);c.lineTo(x+s*0.58,y-s*0.3);c.closePath();c.fill();c.strokeStyle='rgba(120,90,30,.5)';c.lineWidth=0.8;for(let i=1;i<4;i++){c.beginPath();c.moveTo(x-s*0.58*i/4*1.6+s*0.3,y-s*0.3-s*0.16*i);c.lineTo(x+s*0.58*i/4*1.6-s*0.3,y-s*0.3-s*0.16*i);c.stroke();}c.fillStyle='#6d5038';c.beginPath();c.ellipse(x+s*0.1,y-s*0.05,s*0.09,s*0.16,0,Math.PI,0);c.fill();}
+  else if(st==='thunder'){box3(c,x,y,s*0.75,s*0.6,s*0.7,'#b9bec8');c.fillStyle='#4a4f5c';for(let i=0;i<2;i++)for(let j=0;j<2;j++)win(c,x-s*0.3+i*s*0.3,y-s*0.6+j*s*0.25,s*0.12,s*0.12,true);c.strokeStyle='#3a3f4c';c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.moveTo(x+s*0.2,y-s*0.78);c.lineTo(x+s*0.2,y-s*1.15);c.stroke();c.fillStyle=`rgba(160,210,255,${0.5+0.5*Math.sin(gt*6+R*9)})`;c.beginPath();c.arc(x+s*0.2,y-s*1.17,s*0.06,0,7);c.fill();
+    if(main){c.strokeStyle='#555';c.lineWidth=Math.max(1,s*0.035);c.beginPath();c.moveTo(x+s*0.55,y);c.lineTo(x+s*0.72,y-s*1.4);c.lineTo(x+s*0.9,y);c.moveTo(x+s*0.6,y-s*0.5);c.lineTo(x+s*0.84,y-s*0.5);c.moveTo(x+s*0.65,y-s*0.95);c.lineTo(x+s*0.79,y-s*0.95);c.stroke();}}
+  else if(st==='nomad'){shadowE(c,x,y,s*0.6,s*0.2,0.2);const g=c.createLinearGradient(x-s*0.5,0,x+s*0.5,0);g.addColorStop(0,'#f6eedd');g.addColorStop(1,'#cfc2a6');c.fillStyle=g;c.beginPath();c.moveTo(x-s*0.5,y);c.lineTo(x-s*0.5,y-s*0.3);c.quadraticCurveTo(x,y-s*0.95,x+s*0.5,y-s*0.3);c.lineTo(x+s*0.5,y);c.closePath();c.fill();c.strokeStyle=OUT;c.lineWidth=0.8;c.stroke();
+    c.strokeStyle=col;c.lineWidth=Math.max(1.2,s*0.06);c.beginPath();c.moveTo(x-s*0.5,y-s*0.3);c.quadraticCurveTo(x,y-s*0.5,x+s*0.5,y-s*0.3);c.stroke();c.fillStyle='#7a5a3e';c.fillRect(x-s*0.1,y-s*0.28,s*0.2,s*0.28);if(main){c.fillStyle='#7a5a3e';c.fillRect(x+s*0.02,y-s*1.0,s*0.04,s*0.3);c.fillStyle=col;c.beginPath();c.moveTo(x+s*0.06,y-s*1.0);c.lineTo(x+s*0.32,y-s*0.92);c.lineTo(x+s*0.06,y-s*0.84);c.fill();}}
+  else if(st==='cult'){box3(c,x,y,s*0.7,s*0.55,s*0.55,'#6e6470');c.fillStyle=dark(col,0.1);c.beginPath();c.moveTo(x-s*0.45,y-s*0.55);c.lineTo(x+s*0.05,y-s*1.05);c.lineTo(x+s*0.55,y-s*0.55);c.fill();c.fillStyle='#ede6d6';c.beginPath();c.arc(x+s*0.05,y-s*0.72,s*0.1,0,7);c.fill();c.fillStyle='#2a2028';c.fillRect(x,y-s*0.74,s*0.03,s*0.03);c.fillRect(x+s*0.07,y-s*0.74,s*0.03,s*0.03);
+    const fl=0.6+0.4*Math.sin(gt*7+R*10);c.fillStyle=`rgba(190,120,255,${0.5*fl})`;c.beginPath();c.arc(x-s*0.32,y-s*0.15,s*0.09,0,7);c.fill();c.fillStyle='#f0e8d8';c.fillRect(x-s*0.34,y-s*0.12,s*0.04,s*0.12);if(main){for(let i=0;i<5;i++){c.fillStyle='#e8e2d6';c.beginPath();c.arc(x+s*0.55+Math.cos(i)*s*0.12,y-s*0.1-i*s*0.12,s*0.06,0,7);c.fill();}}}
+  else if(st==='sky'){box3(c,x,y,s*0.75,s*0.55,s*0.48,'#d9b98a');roof3(c,x,y-s*0.48,s*0.75,s*0.55,s*0.26,'#8a6a48');win(c,x-s*0.26,y-s*0.32,s*0.14,s*0.14,true);
+    if(main){const by=y-s*1.6+Math.sin(gt*1.5+R*5)*s*0.06;c.strokeStyle='#6d5038';c.lineWidth=0.8;c.beginPath();c.moveTo(x+s*0.2,y-s*0.6);c.lineTo(x+s*0.45,by+s*0.45);c.stroke();const g=c.createRadialGradient(x+s*0.38,by-s*0.12,s*0.05,x+s*0.45,by,s*0.4);g.addColorStop(0,lite(col,0.45));g.addColorStop(1,col);c.fillStyle=g;c.beginPath();c.arc(x+s*0.45,by,s*0.36,0,7);c.fill();c.strokeStyle='rgba(255,255,255,.5)';c.beginPath();c.moveTo(x+s*0.45,by-s*0.36);c.lineTo(x+s*0.45,by+s*0.36);c.stroke();c.fillStyle='#8a6a48';c.fillRect(x+s*0.37,by+s*0.42,s*0.16,s*0.1);}}
+  else if(st==='trade'){shadowE(c,x,y,s*0.55,s*0.2,0.2);c.fillStyle='#8a6a48';c.fillRect(x-s*0.42,y-s*0.45,s*0.05,s*0.45);c.fillRect(x+s*0.37,y-s*0.45,s*0.05,s*0.45);box3(c,x,y,s*0.8,s*0.4,s*0.25,'#c9a77a');
+    const cols=[col,'#ffffff'];for(let i=0;i<5;i++){c.fillStyle=cols[i%2];c.beginPath();c.moveTo(x-s*0.5+i*s*0.2,y-s*0.45);c.lineTo(x-s*0.3+i*s*0.2,y-s*0.45);c.lineTo(x-s*0.25+i*s*0.2,y-s*0.68);c.lineTo(x-s*0.45+i*s*0.2,y-s*0.68);c.fill();}
+    c.fillStyle='#e3a93b';c.beginPath();c.arc(x-s*0.15,y-s*0.3,s*0.06,0,7);c.arc(x+s*0.05,y-s*0.3,s*0.06,0,7);c.fill();c.fillStyle='#d9645a';c.beginPath();c.arc(x+s*0.22,y-s*0.3,s*0.06,0,7);c.fill();}
+  else house(c,x,y,s,col);}
+function drawCity(sx,sy,c){const Z=cam.z;const col=civCol(c.owner);const R=mulberry(c.id*31+7);const st=(FAC[fac(c.owner)]||{}).style||'water';
+  // 广场地面
+  ctx.fillStyle='rgba(120,105,85,.25)';ctx.beginPath();ctx.ellipse(sx,sy+Z*0.05,Z*0.72,Z*0.72*SQ,0,0,7);ctx.fill();ctx.fillStyle='rgba(235,225,205,.55)';ctx.beginPath();ctx.ellipse(sx,sy+Z*0.02,Z*0.6,Z*0.6*SQ,0,0,7);ctx.fill();
+  if(c.blds.walls){ctx.save();const n=18;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const x=sx+Math.cos(a)*Z*0.8,y=sy+Math.sin(a)*Z*0.8*SQ;if(Math.sin(a)<-0.2)box3(ctx,x,y,Z*0.16,Z*0.08,Z*0.14,'#a59c8e',{line:false});}ctx.restore();}
+  const n=Math.min(7,2+c.pop);const spots=[[0,-0.08],[-0.34,0.0],[0.34,0.02],[-0.14,0.2],[0.2,0.22],[-0.44,-0.2],[0.42,-0.18]];
+  const list=spots.slice(0,n).map(([x,y],i)=>({x:sx+x*Z*1.05,y:sy+y*Z*SQ*1.6,s:Z*(i===0?0.46:0.34),main:i===0,r:R()}));
+  const wl=G.wonders?cityWons(c):[];wl.forEach((k,i)=>list.push({x:sx+(i%2?0.6:-0.6)*Z,y:sy-0.05*Z+Math.floor(i/2)*0.2*Z,s:Z*0.28,w:k}));list.sort((a,b)=>a.y-b.y);
+  for(const h of list){if(h.w)drawWonder(h.x,h.y,h.s,h.w,col);else bldg(ctx,h.x,h.y,h.s,st,col,h.r,h.main);}
+  if(c.blds.walls){for(let i=0;i<18;i++){const a=i/18*Math.PI*2;if(Math.sin(a)<-0.2)continue;const x=sx+Math.cos(a)*Z*0.8,y=sy+Math.sin(a)*Z*0.8*SQ;box3(ctx,x,y,Z*0.16,Z*0.08,Z*0.14,'#a59c8e',{line:false});}}
+  const nm=(c.cap?'★ ':'')+c.name;ctx.font=`700 ${Math.max(11,Z*0.24)}px "Noto Sans SC",sans-serif`;const w=ctx.measureText(nm).width+Z*0.62+12;const y=sy-Z*1.08;const hh=Math.max(17,Z*0.36);
+  ctx.fillStyle='rgba(30,25,20,.25)';rr(sx-w/2+1,y-hh/2+2,w,hh,hh/2);ctx.fill();const gg=ctx.createLinearGradient(0,y-hh/2,0,y+hh/2);gg.addColorStop(0,lite(col,0.15));gg.addColorStop(1,dark(col,0.1));ctx.fillStyle=gg;rr(sx-w/2,y-hh/2,w,hh,hh/2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx-w/2+hh/2,y,hh/2-2,0,7);ctx.fill();ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.pop,sx-w/2+hh/2,y+0.5);ctx.fillStyle='#fff';ctx.fillText(nm,sx+hh/4,y+0.5);
   if(c.build&&(c.owner===ME)){const cost=buildCost(c,c.build);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(sx-w/2+6,y+hh/2+1,w-12,3);ctx.fillStyle='#e3a93b';ctx.fillRect(sx-w/2+6,y+hh/2+1,(w-12)*clamp(c.prod/cost,0,1),3);}
   if(c.hp<maxHP(c)){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(sx-w/2+6,y-hh/2-5,w-12,3);ctx.fillStyle=c.hp/maxHP(c)>0.5?'#5e8c55':'#d9645a';ctx.fillRect(sx-w/2+6,y-hh/2-5,(w-12)*c.hp/maxHP(c),3);}
   ctx.textAlign='left';}
-function drawImp(sx,sy,k){const Z=cam.z;const x=sx-Z*0.42,y=sy+Z*0.12;ctx.save();
-  if(k==='farm'){ctx.strokeStyle='rgba(110,150,70,.75)';ctx.lineWidth=Math.max(1,Z*0.03);for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x-Z*0.14,y-Z*0.08+i*Z*0.06);ctx.lineTo(x+Z*0.14,y-Z*0.12+i*Z*0.06);ctx.stroke();}ctx.fillStyle='#c46a4a';ctx.fillRect(x+Z*0.1,y-Z*0.2,Z*0.1,Z*0.08);}
-  else if(k==='mine'){ctx.fillStyle='#5a4f45';ctx.beginPath();ctx.arc(x,y,Z*0.11,Math.PI,0);ctx.fill();ctx.fillStyle='#2e2a26';ctx.beginPath();ctx.arc(x,y,Z*0.065,Math.PI,0);ctx.fill();ctx.fillStyle='#8a6a4a';ctx.fillRect(x-Z*0.13,y-Z*0.01,Z*0.26,Z*0.03);}
-  else if(k==='lumber'){ctx.fillStyle='#9a7350';for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(x-Z*0.08+i*Z*0.08,y-(i===1?Z*0.06:0),Z*0.05,Z*0.035,0,0,7);ctx.fill();}ctx.fillStyle='#d9b88a';for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(x-Z*0.08+i*Z*0.08,y-(i===1?Z*0.06:0),Z*0.02,0,7);ctx.fill();}}
-  else if(k==='lab'){ctx.strokeStyle='#5a8fc0';ctx.lineWidth=Math.max(1.2,Z*0.025);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-Z*0.3);ctx.stroke();ctx.beginPath();ctx.arc(x,y-Z*0.3,Z*0.08,Math.PI*1.1,Math.PI*1.9);ctx.stroke();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-Z*0.3,Z*0.03,0,7);ctx.fill();}
+/* ---------- 尸巢 ---------- */
+function drawImp(sx,sy,k){const Z=cam.z;const x=sx-Z*0.4,y=sy+Z*0.16;ctx.save();
+  if(k==='farm'){ctx.save();ctx.translate(x,y);for(let i=0;i<4;i++){ctx.fillStyle=i%2?'#7fb05a':'#a9d06e';ctx.beginPath();ctx.moveTo(-Z*0.2+i*Z*0.06,Z*0.02);ctx.lineTo(-Z*0.14+i*Z*0.06,Z*0.02);ctx.lineTo(Z*0.06+i*Z*0.06,-Z*0.12);ctx.lineTo(i*Z*0.06,-Z*0.12);ctx.fill();}ctx.strokeStyle='#8a6a48';ctx.lineWidth=Math.max(1,Z*0.015);ctx.beginPath();ctx.moveTo(-Z*0.22,Z*0.04);ctx.lineTo(Z*0.08,Z*0.04);ctx.lineTo(Z*0.28,-Z*0.12);ctx.stroke();ctx.restore();box3(ctx,x+Z*0.22,y-Z*0.02,Z*0.1,Z*0.08,Z*0.08,'#c46a4a');}
+  else if(k==='mine'){shadowE(ctx,x,y,Z*0.14,Z*0.05,0.2);ctx.fillStyle='#6d5a48';ctx.beginPath();ctx.ellipse(x,y,Z*0.13,Z*0.13,0,Math.PI,0);ctx.fill();ctx.fillStyle='#211c18';ctx.beginPath();ctx.ellipse(x,y,Z*0.08,Z*0.09,0,Math.PI,0);ctx.fill();ctx.fillStyle='#8a6a48';ctx.fillRect(x-Z*0.1,y-Z*0.1,Z*0.02,Z*0.1);ctx.fillRect(x+Z*0.08,y-Z*0.1,Z*0.02,Z*0.1);ctx.fillRect(x-Z*0.1,y-Z*0.11,Z*0.2,Z*0.025);box3(ctx,x+Z*0.18,y+Z*0.02,Z*0.1,Z*0.06,Z*0.05,'#7d6f60');}
+  else if(k==='lumber'){for(let i=0;i<3;i++){const ly=y-(i===1?Z*0.05:0),lx=x-Z*0.08+i*Z*0.08;ctx.fillStyle='#9a7350';ctx.beginPath();ctx.ellipse(lx,ly,Z*0.045,Z*0.035,0,0,7);ctx.fill();ctx.fillStyle='#e0c08e';ctx.beginPath();ctx.arc(lx,ly,Z*0.025,0,7);ctx.fill();ctx.strokeStyle='rgba(120,80,40,.6)';ctx.lineWidth=0.7;ctx.beginPath();ctx.arc(lx,ly,Z*0.012,0,7);ctx.stroke();}ctx.fillStyle='#5a4a3a';ctx.fillRect(x+Z*0.16,y-Z*0.08,Z*0.03,Z*0.08);}
+  else if(k==='lab'){box3(ctx,x,y,Z*0.16,Z*0.1,Z*0.1,'#b9bec8');ctx.strokeStyle='#5a8fc0';ctx.lineWidth=Math.max(1.2,Z*0.02);ctx.beginPath();ctx.moveTo(x,y-Z*0.1);ctx.lineTo(x,y-Z*0.32);ctx.stroke();ctx.beginPath();ctx.arc(x,y-Z*0.34,Z*0.07,Math.PI*1.1,Math.PI*1.9);ctx.stroke();ctx.fillStyle=`rgba(255,207,90,${0.5+0.5*Math.sin(gt*5+sx)})`;ctx.beginPath();ctx.arc(x,y-Z*0.34,Z*0.025,0,7);ctx.fill();}
   ctx.restore();}
-function drawWonder(x,y,s,k,col){ctx.fillStyle='rgba(60,50,40,.2)';ctx.beginPath();ctx.ellipse(x,y,s*0.5,s*0.18,0,0,7);ctx.fill();ctx.fillStyle='#efe6d4';ctx.fillRect(x-s*0.18,y-s*1.5,s*0.36,s*1.5);ctx.fillStyle='#d8ccb4';ctx.fillRect(x+s*0.05,y-s*1.5,s*0.13,s*1.5);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x-s*0.26,y-s*1.5);ctx.lineTo(x,y-s*2.05);ctx.lineTo(x+s*0.26,y-s*1.5);ctx.closePath();ctx.fill();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-s*2.1,s*0.09,0,7);ctx.fill();const p=0.5+0.5*Math.sin(gt*2+x);ctx.fillStyle=`rgba(255,220,120,${0.15+p*0.2})`;ctx.beginPath();ctx.arc(x,y-s*2.1,s*0.3,0,7);ctx.fill();}
-function drawNest(sx,sy,n){const Z=cam.z;ctx.save();ctx.translate(sx,sy);
-  ctx.fillStyle='#6e6470';ctx.beginPath();ctx.ellipse(0,0,Z*0.6,Z*0.6*SQ,0,0,7);ctx.fill();
-  ctx.fillStyle='#5b4f57';ctx.beginPath();ctx.moveTo(-Z*0.45,0);ctx.quadraticCurveTo(-Z*0.3,-Z*0.75,0,-Z*0.8);ctx.quadraticCurveTo(Z*0.3,-Z*0.75,Z*0.45,0);ctx.closePath();ctx.fill();
-  ctx.strokeStyle='rgba(40,30,40,.6)';ctx.lineWidth=1.4;ctx.beginPath();const R=mulberry(n.q*13+n.r*7);for(let i=0;i<5;i++){let x=(R()-0.5)*Z*0.5,y=-R()*Z*0.6;ctx.moveTo(x,y);for(let s=0;s<3;s++){x+=(R()-0.5)*Z*0.3;y+=(R()-0.5)*Z*0.3;ctx.lineTo(x,y);}}ctx.stroke();
-  const p=0.5+0.5*Math.sin(gt*2+n.q);ctx.fillStyle=`rgba(150,110,170,${0.2+p*0.15})`;ctx.beginPath();ctx.ellipse(0,-Z*0.4,Z*0.85,Z*0.5,0,0,7);ctx.fill();
-  ctx.fillStyle=`rgba(230,80,80,${0.5+p*0.5})`;ctx.fillRect(-Z*0.14,-Z*0.48,Z*0.07,Z*0.05);ctx.fillRect(Z*0.07,-Z*0.48,Z*0.07,Z*0.05);
-  ctx.font=`700 ${Math.max(10,Z*0.2)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';const w=Z*1.2;ctx.fillStyle='rgba(60,45,65,.85)';rr(-w/2,-Z*1.12,w,Math.max(15,Z*0.3),7);ctx.fill();ctx.fillStyle='#fff';ctx.fillText('尸巢',0,-Z*1.12+Math.max(15,Z*0.3)/2+0.5);
-  if(n.hp<80){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(-w/2,-Z*0.78,w,3);ctx.fillStyle='#d9645a';ctx.fillRect(-w/2,-Z*0.78,w*n.hp/80,3);}
-  ctx.restore();ctx.textAlign='left';}
-function drawUnit(u){const Z=cam.z;const lk=UN[u.k].look||u.k;if(u.vq===undefined){u.vq=u.q;u.vr=u.r;}const[sx,sy0]=w2s(u.vq,u.vr);const city=cityAt(u.q,u.r);const sy=sy0+(city?Z*0.18:0);const U=UN[u.k];const col=civCol(u.owner);const s=Z/46;
-  const bob=Math.sin(gt*3+u.id)*1.2*s;const z=!!U.z;
-  ctx.fillStyle='rgba(50,40,30,.22)';ctx.beginPath();ctx.ellipse(sx,sy,13*s*(U.k==='brute'?1.4:1),5*s,0,0,7);ctx.fill();
-  const x=sx,y=sy-2*s;
-  if(lk==='tank'){ctx.fillStyle=shadeHex(col,0.75);rr(x-14*s,y-10*s,28*s,10*s,3*s);ctx.fill();ctx.fillStyle=col;rr(x-8*s,y-17*s,16*s,8*s,3*s);ctx.fill();ctx.fillStyle='#555';ctx.fillRect(x+6*s,y-15*s,12*s,3*s);ctx.fillStyle='#4a4a4a';for(let i=-2;i<=2;i++){ctx.beginPath();ctx.arc(x+i*5*s,y-1*s,2.6*s,0,7);ctx.fill();}}
-  else if(lk==='gun'){ctx.fillStyle='#6b5b45';ctx.beginPath();ctx.arc(x-6*s,y-3*s,4*s,0,7);ctx.arc(x+6*s,y-3*s,4*s,0,7);ctx.fill();ctx.save();ctx.translate(x,y-8*s);ctx.rotate(-0.45);ctx.fillStyle='#4a4a4a';ctx.fillRect(-4*s,-3*s,20*s,6*s);ctx.restore();ctx.fillStyle=col;rr(x-7*s,y-11*s,14*s,6*s,2*s);ctx.fill();}
-  else if(lk==='raider'){ctx.fillStyle='#333';ctx.beginPath();ctx.arc(x-8*s,y-3*s,4*s,0,7);ctx.arc(x+8*s,y-3*s,4*s,0,7);ctx.fill();ctx.fillStyle='#777';ctx.fillRect(x-8*s,y-8*s,16*s,4*s);ctx.fillStyle=col;rr(x-4*s,y-18*s+bob,7*s,10*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x,y-21*s+bob,3.4*s,0,7);ctx.fill();}
-  else if(lk==='boat'){ctx.fillStyle='#8a6a4a';ctx.beginPath();ctx.moveTo(x-15*s,y-7*s);ctx.lineTo(x+15*s,y-7*s);ctx.lineTo(x+10*s,y);ctx.lineTo(x-12*s,y);ctx.closePath();ctx.fill();ctx.fillStyle=col;rr(x-5*s,y-17*s+bob,7*s,10*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-1.5*s,y-20*s+bob,3.3*s,0,7);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x-18*s,y+1*s);ctx.lineTo(x-12*s,y+1*s);ctx.stroke();}
-  else if(lk==='drone'){const hy=y-16*s+Math.sin(gt*6+u.id)*2*s;ctx.fillStyle='rgba(50,40,30,.18)';ctx.fillStyle='#555';rr(x-5*s,hy-2*s,10*s,4*s,2*s);ctx.fill();ctx.strokeStyle='#555';ctx.lineWidth=1.4*s;ctx.beginPath();ctx.moveTo(x-11*s,hy-4*s);ctx.lineTo(x+11*s,hy+2*s);ctx.moveTo(x+11*s,hy-4*s);ctx.lineTo(x-11*s,hy+2*s);ctx.stroke();ctx.fillStyle=col;[[-11,-4],[11,-4],[-11,2],[11,2]].forEach(([a,b])=>{ctx.beginPath();ctx.ellipse(x+a*s,hy+b*s,4*s,1.4*s,0,0,7);ctx.fill();});ctx.fillStyle='#9fd0ff';ctx.beginPath();ctx.arc(x,hy,1.6*s,0,7);ctx.fill();}
-  else if(lk==='beast'){ctx.fillStyle='#7a6a55';rr(x-14*s,y-16*s,26*s,12*s,6*s);ctx.fill();ctx.fillRect(x-11*s,y-6*s,4*s,6*s);ctx.fillRect(x+5*s,y-6*s,4*s,6*s);ctx.beginPath();ctx.arc(x+13*s,y-14*s,5*s,0,7);ctx.fill();ctx.fillStyle='#e8dcc6';ctx.beginPath();ctx.moveTo(x+16*s,y-18*s);ctx.lineTo(x+21*s,y-22*s);ctx.lineTo(x+17*s,y-15*s);ctx.fill();ctx.fillStyle='#8a8f96';ctx.fillRect(x-20*s,y-6*s,8*s,4*s);ctx.fillStyle=col;rr(x-6*s,y-25*s+bob,7*s,9*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-2.5*s,y-28*s+bob,3*s,0,7);ctx.fill();}
-  else if(lk==='ship'){ctx.fillStyle='#6b7f93';ctx.beginPath();ctx.moveTo(x-22*s,y-9*s);ctx.lineTo(x+22*s,y-9*s);ctx.lineTo(x+15*s,y+1*s);ctx.lineTo(x-17*s,y+1*s);ctx.closePath();ctx.fill();ctx.fillStyle=col;rr(x-10*s,y-19*s,18*s,10*s,2*s);ctx.fill();ctx.fillStyle='#444';ctx.fillRect(x+4*s,y-25*s,3*s,7*s);ctx.fillRect(x-14*s,y-13*s,10*s,3*s);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x-26*s,y+2*s);ctx.lineTo(x-18*s,y+2*s);ctx.stroke();}
-  else if(lk==='demon'){const fl=0.6+0.4*Math.sin(gt*10+u.id);ctx.fillStyle=`rgba(255,${110+fl*90|0},40,.45)`;ctx.beginPath();ctx.ellipse(x,y-16*s,15*s,19*s,0,0,7);ctx.fill();ctx.fillStyle='#4a2a22';rr(x-8*s,y-24*s+bob,16*s,22*s,5*s);ctx.fill();ctx.fillStyle=col;rr(x-6*s,y-20*s+bob,12*s,10*s,3*s);ctx.fill();ctx.fillStyle='#3a1d18';ctx.beginPath();ctx.arc(x,y-28*s+bob,6*s,0,7);ctx.fill();ctx.fillStyle='#ffcf5a';ctx.fillRect(x-3*s,y-29*s+bob,2*s,1.5*s);ctx.fillRect(x+1*s,y-29*s+bob,2*s,1.5*s);ctx.fillStyle=`rgba(255,${140+fl*80|0},50,.95)`;ctx.beginPath();ctx.moveTo(x-6*s,y-33*s+bob);ctx.lineTo(x-3*s,y-40*s*fl+bob);ctx.lineTo(x,y-33*s+bob);ctx.lineTo(x+3*s,y-41*s*fl+bob);ctx.lineTo(x+6*s,y-33*s+bob);ctx.fill();}
-  else if(lk==='golem'){ctx.fillStyle='#9a8f7f';rr(x-12*s,y-26*s,24*s,24*s,6*s);ctx.fill();ctx.fillStyle='#857a6a';rr(x-17*s,y-22*s,7*s,15*s,3*s);ctx.fill();rr(x+10*s,y-22*s,7*s,15*s,3*s);ctx.fill();ctx.fillRect(x-9*s,y-3*s,6*s,4*s);ctx.fillRect(x+3*s,y-3*s,6*s,4*s);ctx.fillStyle='#8a7f70';rr(x-7*s,y-36*s,14*s,11*s,4*s);ctx.fill();ctx.fillStyle='#bde08f';ctx.fillRect(x-4*s,y-32*s,2.5*s,2*s);ctx.fillRect(x+1.5*s,y-32*s,2.5*s,2*s);ctx.fillStyle=col;ctx.fillRect(x-12*s,y-16*s,24*s,4*s);ctx.fillStyle='#7fb77e';ctx.beginPath();ctx.arc(x-6*s,y-36*s,3*s,0,7);ctx.arc(x+5*s,y-37*s,2.5*s,0,7);ctx.fill();}
-  else if(lk==='mech'){ctx.fillStyle='#4a4f5c';ctx.fillRect(x-9*s,y-12*s,5*s,12*s);ctx.fillRect(x+4*s,y-12*s,5*s,12*s);ctx.fillStyle=col;rr(x-11*s,y-28*s,22*s,17*s,4*s);ctx.fill();ctx.fillStyle='#2e3340';rr(x-6*s,y-35*s,12*s,8*s,3*s);ctx.fill();ctx.fillStyle='#9fd0ff';ctx.fillRect(x-4*s,y-32*s,8*s,2*s);ctx.fillStyle='#4a4f5c';ctx.fillRect(x+10*s,y-26*s,14*s,4*s);const p2=0.5+0.5*Math.sin(gt*8+u.id);ctx.fillStyle=`rgba(160,210,255,${0.4+p2*0.6})`;ctx.beginPath();ctx.arc(x+25*s,y-24*s,2.5*s,0,7);ctx.fill();}
-  else if(lk==='settler'){ctx.fillStyle='#a07c52';rr(x+2*s,y-10*s,13*s,8*s,2*s);ctx.fill();ctx.fillStyle='#e8dcc6';ctx.beginPath();ctx.arc(x+8.5*s,y-11*s,6*s,Math.PI,0);ctx.fill();ctx.fillStyle='#5a4a3a';ctx.beginPath();ctx.arc(x+5*s,y-1.5*s,2.5*s,0,7);ctx.arc(x+12*s,y-1.5*s,2.5*s,0,7);ctx.fill();
-    ctx.fillStyle=col;rr(x-10*s,y-16*s+bob,8*s,13*s,3*s);ctx.fill();ctx.fillStyle='#f1d3b8';ctx.beginPath();ctx.arc(x-6*s,y-19*s+bob,3.6*s,0,7);ctx.fill();}
-  else{const big=u.k==='brute'?1.5:1;const bw=8*s*big,bh=13*s*big;ctx.fillStyle=z?(u.k==='brute'?'#5c6a4a':'#7d8c62'):col;rr(x-bw/2,y-bh+bob,bw,bh,3*s);ctx.fill();
-    ctx.fillStyle=z?'#a8b48a':'#f1d3b8';ctx.beginPath();ctx.arc(x,y-bh-3.4*s*big+bob,3.8*s*big,0,7);ctx.fill();
-    if(z){ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=2.2*s*big;ctx.beginPath();ctx.moveTo(x-2*s,y-bh*0.75+bob);ctx.lineTo(x-9*s*big,y-bh*0.6+bob);ctx.moveTo(x+2*s,y-bh*0.75+bob);ctx.lineTo(x+9*s*big,y-bh*0.65+bob);ctx.stroke();ctx.fillStyle='#e04a4a';ctx.fillRect(x-2.2*s*big,y-bh-4.2*s*big+bob,1.4*s*big,1.2*s*big);ctx.fillRect(x+0.8*s*big,y-bh-4.2*s*big+bob,1.4*s*big,1.2*s*big);}
-    else if(lk==='bow'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.arc(x+7*s,y-9*s+bob,6*s,-1.2,1.2);ctx.stroke();}
-    else if(lk==='guard'){ctx.fillStyle='#8a929c';rr(x+3*s,y-12*s+bob,7*s,10*s,2*s);ctx.fill();}
-    else if(lk==='worker'){ctx.strokeStyle='#7a5a3a';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.moveTo(x+4*s,y-2*s+bob);ctx.lineTo(x+9*s,y-16*s+bob);ctx.stroke();ctx.fillStyle='#8a8f96';ctx.fillRect(x+7*s,y-18*s+bob,6*s,3*s);if(u.work){ctx.fillStyle='#e3a93b';ctx.fillRect(x-12*s,y-4*s,6*s,4*s);}}
-    else if(lk==='general'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x+6*s,y+bob);ctx.lineTo(x+6*s,y-26*s+bob);ctx.stroke();ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x+6*s,y-26*s+bob);ctx.lineTo(x+18*s,y-22*s+bob);ctx.lineTo(x+6*s,y-18*s+bob);ctx.closePath();ctx.fill();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x,y-17*s+bob,2.5*s,0,7);ctx.fill();}
-    else if(lk==='medic'){ctx.fillStyle='#f6f3ee';rr(x+2*s,y-11*s+bob,8*s,7*s,2*s);ctx.fill();ctx.fillStyle='#d9645a';ctx.fillRect(x+5.2*s,y-10*s+bob,1.6*s,5*s);ctx.fillRect(x+3.5*s,y-8.3*s+bob,5*s,1.6*s);}
-    else if(lk==='hunter'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.moveTo(x-2*s,y-2*s+bob);ctx.lineTo(x+12*s,y-20*s+bob);ctx.stroke();ctx.fillStyle='#b9bfc6';ctx.beginPath();ctx.moveTo(x+12*s,y-20*s+bob);ctx.lineTo(x+15*s,y-26*s+bob);ctx.lineTo(x+9*s,y-22*s+bob);ctx.fill();}
-    else if(lk==='flame'){const fl=0.6+0.4*Math.sin(gt*14+u.id);ctx.strokeStyle='#5a5a5a';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(x+3*s,y-8*s+bob);ctx.lineTo(x+10*s,y-11*s+bob);ctx.stroke();ctx.fillStyle=`rgba(255,${120+fl*80|0},40,.9)`;ctx.beginPath();ctx.ellipse(x+13*s,y-12*s+bob,3.5*s*fl,2.2*s,0,0,7);ctx.fill();}
-    else if(lk==='scout'){ctx.strokeStyle='#6b4f2f';ctx.lineWidth=1.4*s;ctx.beginPath();ctx.moveTo(x+5*s,y+bob);ctx.lineTo(x+7*s,y-20*s+bob);ctx.stroke();}
-    else{ctx.strokeStyle='#5a5a5a';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(x+4*s,y-4*s+bob);ctx.lineTo(x+10*s,y-17*s+bob);ctx.stroke();}}
+function drawWonder(x,y,s,k,col){shadowE(ctx,x,y,s*0.6,s*0.2,0.25);box3(ctx,x,y,s*0.6,s*0.5,s*0.35,'#e9dfcb');box3(ctx,x+s*0.03,y-s*0.35,s*0.42,s*0.36,s*1.05,'#f4ecdc');ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x-s*0.24,y-s*1.4);ctx.lineTo(x+s*0.13,y-s*2.0);ctx.lineTo(x+s*0.47,y-s*1.4);ctx.lineTo(x+s*0.36,y-s*1.53);ctx.closePath();ctx.fill();ctx.strokeStyle=OUT;ctx.lineWidth=0.8;ctx.stroke();
+  for(let i=0;i<3;i++)win(ctx,x-s*0.12,y-s*0.55-i*s*0.28,s*0.1,s*0.14,true);const p=0.5+0.5*Math.sin(gt*2+x);const g=ctx.createRadialGradient(x+s*0.13,y-s*2.05,1,x+s*0.13,y-s*2.05,s*0.5);g.addColorStop(0,`rgba(255,226,140,${0.6+p*0.3})`);g.addColorStop(1,'rgba(255,226,140,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x+s*0.13,y-s*2.05,s*0.5,0,7);ctx.fill();ctx.fillStyle='#e3a93b';ctx.beginPath();ctx.arc(x+s*0.13,y-s*2.05,s*0.09,0,7);ctx.fill();}
+function drawNest(sx,sy,n){const Z=cam.z;const p=0.5+0.5*Math.sin(gt*2+n.q);ctx.save();ctx.translate(sx,sy);
+  const ga=ctx.createRadialGradient(0,-Z*0.3,Z*0.1,0,-Z*0.2,Z*1.0);ga.addColorStop(0,`rgba(170,110,200,${0.25+p*0.15})`);ga.addColorStop(1,'rgba(170,110,200,0)');ctx.fillStyle=ga;ctx.beginPath();ctx.ellipse(0,-Z*0.25,Z*1.0,Z*0.6,0,0,7);ctx.fill();
+  shadowE(ctx,0,0,Z*0.62,Z*0.2,0.3);const lumps=[[-0.32,-0.05,0.3],[0.3,-0.02,0.28],[0,-0.25,0.42],[-0.12,-0.48,0.24],[0.16,-0.5,0.2]];
+  for(const[x,y,r] of lumps){const R2=Z*r*(1+p*0.04);const g=ctx.createRadialGradient(x*Z-R2*0.35,y*Z-R2*0.4,R2*0.1,x*Z,y*Z,R2);g.addColorStop(0,'#a68a9e');g.addColorStop(0.6,'#6e5468');g.addColorStop(1,'#3e2c3a');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x*Z,y*Z,R2,0,7);ctx.fill();}
+  ctx.strokeStyle=`rgba(210,80,110,${0.45+p*0.3})`;ctx.lineWidth=Math.max(1,Z*0.025);const Rr=mulberry(n.q*13+n.r*7);for(let i=0;i<6;i++){let x=(Rr()-0.5)*Z*0.6,y=-Rr()*Z*0.55;ctx.beginPath();ctx.moveTo(x,y);for(let s=0;s<3;s++){x+=(Rr()-0.5)*Z*0.2;y+=Rr()*Z*0.1;ctx.lineTo(x,y);}ctx.stroke();}
+  for(const[x,y] of [[-0.12,-0.32],[0.1,-0.34],[0.25,-0.1]]){ctx.fillStyle=`rgba(255,${90+p*60|0},80,${0.6+p*0.4})`;ctx.beginPath();ctx.ellipse(x*Z,y*Z,Z*0.045,Z*0.03,0,0,7);ctx.fill();}
+  for(let i=0;i<3;i++){const q=(gt*0.3+i/3+n.q*0.1)%1;ctx.fillStyle=`rgba(200,170,220,${0.5*(1-q)})`;ctx.beginPath();ctx.arc(Math.sin(i*2+gt)*Z*0.2,-Z*0.6-q*Z*0.7,Z*(0.03+q*0.03),0,7);ctx.fill();}
+  if(n.own>=0){const col2=civCol(n.own);ctx.fillStyle=col2;ctx.fillRect(Z*0.35,-Z*0.9,Z*0.03,Z*0.6);ctx.beginPath();ctx.moveTo(Z*0.38,-Z*0.9);ctx.lineTo(Z*0.62,-Z*0.82);ctx.lineTo(Z*0.38,-Z*0.74);ctx.fill();for(let i=0;i<4;i++){const a=gt*0.8+i*1.57;ctx.fillStyle=`rgba(255,220,140,${0.5+0.3*Math.sin(gt*5+i)})`;ctx.beginPath();ctx.arc(Math.cos(a)*Z*0.55,Math.sin(a)*Z*0.2-Z*0.05,Z*0.03,0,7);ctx.fill();}}
+  ctx.font=`700 ${Math.max(10,Z*0.2)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';const w=Z*1.2;ctx.fillStyle=n.own>=0?civCol(n.own):'rgba(60,45,65,.85)';rr(-w/2,-Z*1.18,w,Math.max(15,Z*0.3),7);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(n.own>=0?'供奉的巢':'尸巢',0,-Z*1.18+Math.max(15,Z*0.3)/2+0.5);
+  if(n.hp<80){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(-w/2,-Z*0.82,w,3);ctx.fillStyle='#d9645a';ctx.fillRect(-w/2,-Z*0.82,w*n.hp/80,3);}ctx.restore();ctx.textAlign='left';}
+/* ---------- 单位 ---------- */
+const HAT={water:'hood',fire:'band',earth:'straw',thunder:'helm',nomad:'fur',cult:'cowl',sky:'goggle',trade:'tophat'};
+function person(c,x,y,s,o){// o:{body,trim,skin,hat,bob,big,zombie}
+  const b=o.bob||0,k=o.big||1;const sk=o.skin||'#f1d3b8';const body=o.body;
+  // 腿
+  c.fillStyle=o.zombie?'#4a5a3a':'#4a3f36';const lg=Math.sin(gt*6+(o.ph||0))*1.2*s*(o.walk?1:0);rr(x-3.4*s*k,y-6*s*k,2.6*s*k,6*s*k+lg,1.2*s);c.fill();rr(x+0.8*s*k,y-6*s*k,2.6*s*k,6*s*k-lg,1.2*s);c.fill();
+  // 身体
+  const by=y-6*s*k+b;const g=c.createLinearGradient(x-5*s*k,0,x+5*s*k,0);g.addColorStop(0,lite(body,0.22));g.addColorStop(1,dark(body,0.22));c.fillStyle=g;rr(x-5*s*k,by-11*s*k,10*s*k,12*s*k,3.2*s*k);c.fill();c.strokeStyle=OUT;c.lineWidth=Math.max(0.6,0.8*s);c.stroke();
+  if(o.trim){c.fillStyle=o.trim;c.fillRect(x-5*s*k,by-3.5*s*k,10*s*k,1.8*s*k);}
+  // 手臂
+  c.fillStyle=dark(body,0.12);if(o.zombie){rr(x-9*s*k,by-10*s*k,6*s*k,2.6*s*k,1.2*s);c.fill();rr(x+3*s*k,by-9*s*k,7*s*k,2.6*s*k,1.2*s);c.fill();c.fillStyle=sk;c.beginPath();c.arc(x-9*s*k,by-8.7*s*k,1.4*s*k,0,7);c.arc(x+10*s*k,by-7.7*s*k,1.4*s*k,0,7);c.fill();}
+  else{rr(x-7*s*k,by-10*s*k,2.6*s*k,8*s*k,1.2*s);c.fill();rr(x+4.4*s*k,by-10*s*k,2.6*s*k,8*s*k,1.2*s);c.fill();}
+  // 头
+  const hy=by-15.5*s*k;const hg=c.createRadialGradient(x-1.6*s*k,hy-1.8*s*k,0.5,x,hy,5*s*k);hg.addColorStop(0,lite(sk,0.25));hg.addColorStop(1,dark(sk,0.12));c.fillStyle=hg;c.beginPath();c.arc(x,hy,4.6*s*k,0,7);c.fill();c.strokeStyle=OUT;c.lineWidth=Math.max(0.6,0.8*s);c.stroke();
+  c.fillStyle=o.zombie?'#ff4a3a':'#2e2620';c.fillRect(x-2*s*k,hy-0.3*s*k,1.2*s*k,1.3*s*k);c.fillRect(x+1*s*k,hy-0.3*s*k,1.2*s*k,1.3*s*k);
+  if(o.zombie){c.strokeStyle='rgba(60,30,30,.6)';c.lineWidth=0.7*s;c.beginPath();c.moveTo(x-1.5*s*k,hy+2.2*s*k);c.lineTo(x+1.8*s*k,hy+2*s*k);c.stroke();return hy;}
+  const h=o.hat;const hc=o.hatc||dark(body,0.15);c.fillStyle=hc;
+  if(h==='hood'){c.beginPath();c.arc(x,hy-0.6*s*k,5.2*s*k,Math.PI*1.05,Math.PI*1.95);c.lineTo(x+5*s*k,hy+1*s*k);c.lineTo(x+4*s*k,hy-1*s*k);c.lineTo(x-4*s*k,hy-1*s*k);c.lineTo(x-5*s*k,hy+1*s*k);c.closePath();c.fill();}
+  else if(h==='band'){c.fillStyle='#c9654f';c.fillRect(x-4.6*s*k,hy-3*s*k,9.2*s*k,1.8*s*k);c.beginPath();c.moveTo(x+4.4*s*k,hy-2.6*s*k);c.lineTo(x+7.5*s*k,hy-1*s*k);c.lineTo(x+6.6*s*k,hy-3.6*s*k);c.fill();c.fillStyle='#3a2a22';c.beginPath();c.arc(x,hy-3*s*k,4.4*s*k,Math.PI,0);c.fill();}
+  else if(h==='straw'){c.fillStyle='#e3c46a';c.beginPath();c.ellipse(x,hy-2.4*s*k,8*s*k,2.2*s*k,0,0,7);c.fill();c.beginPath();c.arc(x,hy-2.8*s*k,3.8*s*k,Math.PI,0);c.fill();c.strokeStyle='rgba(120,90,30,.6)';c.lineWidth=0.6*s;c.beginPath();c.ellipse(x,hy-2.4*s*k,8*s*k,2.2*s*k,0,0,7);c.stroke();}
+  else if(h==='helm'){c.fillStyle='#5a6070';c.beginPath();c.arc(x,hy-0.8*s*k,5*s*k,Math.PI,0);c.fill();c.fillStyle='#9fd0ff';c.fillRect(x-3.6*s*k,hy-1.2*s*k,7.2*s*k,1.4*s*k);}
+  else if(h==='fur'){c.fillStyle='#8a6a48';c.beginPath();c.arc(x,hy-1.6*s*k,5*s*k,Math.PI,0);c.fill();c.fillStyle='#e8dcc6';c.fillRect(x-5*s*k,hy-2.2*s*k,10*s*k,1.8*s*k);}
+  else if(h==='cowl'){c.fillStyle='#4a3456';c.beginPath();c.moveTo(x-5.4*s*k,hy+3*s*k);c.lineTo(x-5*s*k,hy-2*s*k);c.lineTo(x,hy-8*s*k);c.lineTo(x+5*s*k,hy-2*s*k);c.lineTo(x+5.4*s*k,hy+3*s*k);c.lineTo(x+3.6*s*k,hy+0.5*s*k);c.lineTo(x-3.6*s*k,hy+0.5*s*k);c.closePath();c.fill();c.fillStyle='#ede6d6';c.fillRect(x-2.6*s*k,hy-1*s*k,5.2*s*k,2.6*s*k);c.fillStyle='#2a2028';c.fillRect(x-1.8*s*k,hy-0.4*s*k,1.2*s*k,1*s*k);c.fillRect(x+0.6*s*k,hy-0.4*s*k,1.2*s*k,1*s*k);}
+  else if(h==='goggle'){c.fillStyle='#7a5a3e';c.beginPath();c.arc(x,hy-1.2*s*k,4.8*s*k,Math.PI,0);c.fill();c.fillStyle='#3a3a34';c.fillRect(x-4.4*s*k,hy-2.4*s*k,8.8*s*k,1.4*s*k);c.fillStyle='#9fe0f0';c.beginPath();c.arc(x-1.8*s*k,hy-1.8*s*k,1.3*s*k,0,7);c.arc(x+1.8*s*k,hy-1.8*s*k,1.3*s*k,0,7);c.fill();}
+  else if(h==='tophat'){c.fillStyle='#2e2a30';c.fillRect(x-5.5*s*k,hy-3.4*s*k,11*s*k,1.4*s*k);c.fillRect(x-3.4*s*k,hy-9*s*k,6.8*s*k,6*s*k);c.fillStyle=o.hatc||'#c4508a';c.fillRect(x-3.4*s*k,hy-4.8*s*k,6.8*s*k,1.2*s*k);}
+  return hy;}
+function weapon(c,lk,x,y,s,col,b){c.lineCap='round';
+  if(lk==='bow'){c.strokeStyle='#5a4a3a';c.lineWidth=1.8*s;c.beginPath();c.moveTo(x+5*s,y-12*s+b);c.lineTo(x+16*s,y-16*s+b);c.stroke();c.fillStyle='#777';c.fillRect(x+12*s,y-17.5*s+b,6*s,3*s);}
+  else if(lk==='guard'){const g=c.createLinearGradient(x+3*s,0,x+12*s,0);g.addColorStop(0,'#c3c9d1');g.addColorStop(1,'#7d858f');c.fillStyle=g;rr(x+3*s,y-20*s+b,9*s,14*s,2.5*s);c.fill();c.strokeStyle=OUT;c.lineWidth=0.8;c.stroke();c.fillStyle=col;c.fillRect(x+6.6*s,y-18*s+b,1.8*s,10*s);}
+  else if(lk==='scout'){c.strokeStyle='#6b4f2f';c.lineWidth=1.4*s;c.beginPath();c.moveTo(x+6*s,y+b);c.lineTo(x+8*s,y-26*s+b);c.stroke();c.fillStyle=col;c.beginPath();c.moveTo(x+8*s,y-26*s+b);c.lineTo(x+14*s,y-23*s+b);c.lineTo(x+8*s,y-20*s+b);c.fill();}
+  else if(lk==='worker'){c.strokeStyle='#7a5a3a';c.lineWidth=1.6*s;c.beginPath();c.moveTo(x+4*s,y-4*s+b);c.lineTo(x+11*s,y-22*s+b);c.stroke();c.fillStyle='#8a8f96';c.beginPath();c.moveTo(x+9*s,y-24*s+b);c.lineTo(x+15*s,y-22*s+b);c.lineTo(x+12*s,y-19*s+b);c.fill();}
+  else if(lk==='flame'){const fl=0.6+0.4*Math.sin(gt*14);c.strokeStyle='#5a5a5a';c.lineWidth=2.2*s;c.beginPath();c.moveTo(x+4*s,y-12*s+b);c.lineTo(x+12*s,y-14*s+b);c.stroke();const g=c.createRadialGradient(x+16*s,y-15*s+b,0.5,x+16*s,y-15*s+b,5*s);g.addColorStop(0,'#fff3a0');g.addColorStop(0.5,'#ff9a3a');g.addColorStop(1,'rgba(255,80,40,0)');c.fillStyle=g;c.beginPath();c.ellipse(x+16*s,y-15*s+b,5*s*fl+2*s,3*s,0,0,7);c.fill();}
+  else if(lk==='medic'){c.fillStyle='#f6f3ee';rr(x+3*s,y-15*s+b,8*s,7*s,1.5*s);c.fill();c.strokeStyle=OUT;c.lineWidth=0.7;c.stroke();c.fillStyle='#d9645a';c.fillRect(x+6.2*s,y-14*s+b,1.6*s,5*s);c.fillRect(x+4.5*s,y-12.3*s+b,5*s,1.6*s);}
+  else if(lk==='hunter'){c.strokeStyle='#6b4f2f';c.lineWidth=1.6*s;c.beginPath();c.moveTo(x-2*s,y-3*s+b);c.lineTo(x+13*s,y-26*s+b);c.stroke();c.fillStyle='#c9cfd6';c.beginPath();c.moveTo(x+13*s,y-26*s+b);c.lineTo(x+17*s,y-31*s+b);c.lineTo(x+10*s,y-27*s+b);c.fill();}
+  else if(lk==='general'){c.strokeStyle='#6b4f2f';c.lineWidth=1.5*s;c.beginPath();c.moveTo(x+7*s,y+b);c.lineTo(x+7*s,y-32*s+b);c.stroke();const w2=Math.sin(gt*4)*2*s;c.fillStyle=col;c.beginPath();c.moveTo(x+7*s,y-32*s+b);c.lineTo(x+20*s,y-29*s+w2+b);c.lineTo(x+7*s,y-24*s+b);c.fill();}
+  else{c.strokeStyle='#5a5a5a';c.lineWidth=2.2*s;c.beginPath();c.moveTo(x+4*s,y-6*s+b);c.lineTo(x+11*s,y-24*s+b);c.stroke();c.fillStyle='#b9bfc6';c.beginPath();c.moveTo(x+11*s,y-24*s+b);c.lineTo(x+13*s,y-28*s+b);c.lineTo(x+9.5*s,y-25*s+b);c.fill();}
+  c.lineCap='butt';}
+function wheel(c,x,y,r){const g=c.createRadialGradient(x-r*0.3,y-r*0.3,0.5,x,y,r);g.addColorStop(0,'#5a5a5a');g.addColorStop(1,'#222');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();c.fillStyle='#8a8a8a';c.beginPath();c.arc(x,y,r*0.35,0,7);c.fill();}
+function drawUnit(u){const Z=cam.z;const U=UN[u.k];const lk=U.look||u.k;if(u.vq===undefined){u.vq=u.q;u.vr=u.r;}const[sx,sy0]=w2s(u.vq,u.vr);const city=cityAt(u.q,u.r);const sy=sy0+(city?Z*0.18:0);const col=civCol(u.owner);const s=Z/46;
+  const moving=Math.abs(u.vq-u.q)+Math.abs(u.vr-u.r)>0.02;const bob=Math.sin(gt*3+u.id)*0.8*s;const z=!!U.z;const st=u.owner>=0?((FAC[fac(u.owner)]||{}).style||'water'):'z';const hat=HAT[st];
+  const x=sx,y=sy-1*s;
+  shadowE(ctx,x,y+1*s,(lk==='tank'||lk==='ship'||lk==='beast'||lk==='golem'||lk==='mech'||u.k==='brute'?17:11)*s,4.5*s,0.26);
+  if(lk==='tank'){box3(ctx,x-2*s,y-1*s,26*s,12*s,8*s,dark(col,0.15));for(let i=-2;i<=2;i++)wheel(ctx,x-2*s+i*5.5*s,y-1*s,2.8*s);box3(ctx,x-1*s,y-10*s,14*s,9*s,6*s,col);ctx.fillStyle='#4a4a4a';ctx.fillRect(x+6*s,y-15*s,15*s,3*s);ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(x-7*s,y-15*s,6*s,1.5*s);}
+  else if(lk==='gun'){wheel(ctx,x-7*s,y-3*s,4.5*s);wheel(ctx,x+7*s,y-3*s,4.5*s);ctx.save();ctx.translate(x,y-9*s);ctx.rotate(-0.45);const g=ctx.createLinearGradient(0,-3*s,0,3*s);g.addColorStop(0,'#7a7a7a');g.addColorStop(1,'#333');ctx.fillStyle=g;rr(-5*s,-3*s,24*s,6*s,2*s);ctx.fill();ctx.restore();box3(ctx,x,y-6*s,14*s,8*s,5*s,col);}
+  else if(lk==='raider'){wheel(ctx,x-9*s,y-3.5*s,4.2*s);wheel(ctx,x+9*s,y-3.5*s,4.2*s);ctx.fillStyle=dark(col,0.1);rr(x-10*s,y-10*s,20*s,4.5*s,2*s);ctx.fill();ctx.fillStyle='#ccc';ctx.fillRect(x+6*s,y-13*s,5*s,2*s);person(ctx,x-1*s,y-6*s,s*0.85,{body:col,hat,bob:0,big:1});}
+  else if(lk==='boat'){ctx.fillStyle='#8a6a4a';ctx.beginPath();ctx.moveTo(x-16*s,y-8*s);ctx.lineTo(x+16*s,y-8*s);ctx.lineTo(x+11*s,y);ctx.lineTo(x-13*s,y);ctx.closePath();ctx.fill();ctx.fillStyle=lite('#8a6a4a',0.25);ctx.fillRect(x-16*s,y-8*s,32*s,2*s);person(ctx,x-2*s,y-7*s,s*0.8,{body:col,hat,bob});ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x-20*s,y+1.5*s);ctx.lineTo(x-13*s,y+1.5*s);ctx.moveTo(x+12*s,y+2*s);ctx.lineTo(x+18*s,y+2*s);ctx.stroke();}
+  else if(lk==='ship'){ctx.fillStyle='#5f7389';ctx.beginPath();ctx.moveTo(x-24*s,y-10*s);ctx.lineTo(x+24*s,y-10*s);ctx.lineTo(x+16*s,y+1*s);ctx.lineTo(x-18*s,y+1*s);ctx.closePath();ctx.fill();ctx.fillStyle='#8aa0b6';ctx.fillRect(x-24*s,y-10*s,48*s,2.5*s);box3(ctx,x-3*s,y-10*s,18*s,10*s,9*s,col);ctx.fillStyle='#3a3a3a';ctx.fillRect(x+3*s,y-28*s,3*s,9*s);ctx.fillRect(x-16*s,y-14*s,11*s,3*s);ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=1.5*s;ctx.beginPath();ctx.moveTo(x-28*s,y+2*s);ctx.lineTo(x-19*s,y+2*s);ctx.stroke();}
+  else if(lk==='drone'){const hy=y-18*s+Math.sin(gt*6+u.id)*2*s;ctx.fillStyle='rgba(40,32,24,.15)';ctx.beginPath();ctx.ellipse(x,y,8*s,2.5*s,0,0,7);ctx.fill();ctx.strokeStyle='#4a4a4a';ctx.lineWidth=1.6*s;ctx.beginPath();ctx.moveTo(x-11*s,hy-3*s);ctx.lineTo(x+11*s,hy+2*s);ctx.moveTo(x+11*s,hy-3*s);ctx.lineTo(x-11*s,hy+2*s);ctx.stroke();box3(ctx,x,hy+2*s,9*s,6*s,4*s,col);[[-11,-3],[11,-3],[-11,2],[11,2]].forEach(([a,b2])=>{ctx.fillStyle='rgba(200,200,200,.6)';ctx.beginPath();ctx.ellipse(x+a*s,hy+b2*s,5*s,1.3*s,gt*20,0,7);ctx.fill();});ctx.fillStyle='#9fd0ff';ctx.beginPath();ctx.arc(x+2*s,hy-1*s,1.5*s,0,7);ctx.fill();}
+  else if(lk==='beast'){ctx.fillStyle='#6f604c';[[-11,0],[-4,1],[5,0],[11,1]].forEach(([a,b2])=>{rr(x+a*s-2*s,y-8*s,4*s,8*s+b2,1.5*s);ctx.fill();});const g=ctx.createRadialGradient(x-5*s,y-20*s,1,x,y-14*s,16*s);g.addColorStop(0,'#a8957a');g.addColorStop(1,'#6a5a46');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(x,y-14*s,15*s,8*s,0,0,7);ctx.fill();ctx.strokeStyle=OUT;ctx.lineWidth=0.8;ctx.stroke();ctx.fillStyle='#7a6a55';ctx.beginPath();ctx.arc(x+15*s,y-15*s,5.5*s,0,7);ctx.fill();ctx.fillStyle='#ede3cf';ctx.beginPath();ctx.moveTo(x+18*s,y-19*s);ctx.lineTo(x+24*s,y-24*s);ctx.lineTo(x+19*s,y-16*s);ctx.fill();ctx.fillStyle='#8a8f96';box3(ctx,x-19*s,y-2*s,7*s,4*s,4*s,'#8a8f96');person(ctx,x-3*s,y-20*s,s*0.75,{body:col,hat,bob});}
+  else if(lk==='demon'){const fl=0.6+0.4*Math.sin(gt*10+u.id);const g=ctx.createRadialGradient(x,y-18*s,2,x,y-18*s,22*s);g.addColorStop(0,`rgba(255,${150+fl*60|0},60,.55)`);g.addColorStop(1,'rgba(255,90,40,0)');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(x,y-18*s,20*s,24*s,0,0,7);ctx.fill();person(ctx,x,y,s,{body:'#4a2a22',trim:col,skin:'#3a1d18',hat:'band',bob,big:1.45});ctx.fillStyle=`rgba(255,${140+fl*80|0},50,.95)`;ctx.beginPath();ctx.moveTo(x-6*s,y-41*s+bob);ctx.lineTo(x-3*s,y-50*s*fl+bob);ctx.lineTo(x,y-41*s+bob);ctx.lineTo(x+3*s,y-51*s*fl+bob);ctx.lineTo(x+6*s,y-41*s+bob);ctx.fill();}
+  else if(lk==='golem'){const st2='#9a8f7f';box3(ctx,x-6*s,y,6*s,5*s,6*s,'#857a6a');box3(ctx,x+5*s,y,6*s,5*s,6*s,'#857a6a');box3(ctx,x,y-6*s,22*s,12*s,18*s,st2);box3(ctx,x-15*s,y-9*s,7*s,6*s,14*s,'#857a6a');box3(ctx,x+15*s,y-9*s,7*s,6*s,14*s,'#857a6a');box3(ctx,x,y-24*s,12*s,8*s,9*s,'#8a7f70');ctx.fillStyle='#bde08f';ctx.fillRect(x-4*s,y-30*s,2.5*s,2*s);ctx.fillRect(x+1.5*s,y-30*s,2.5*s,2*s);ctx.fillStyle=col;ctx.fillRect(x-11*s,y-16*s,22*s,3*s);ctx.fillStyle='#7fb77e';ctx.beginPath();ctx.arc(x-5*s,y-33*s,3*s,0,7);ctx.arc(x+4*s,y-34*s,2.5*s,0,7);ctx.fill();}
+  else if(lk==='mech'){box3(ctx,x-6*s,y,5*s,5*s,12*s,'#4a4f5c');box3(ctx,x+6*s,y,5*s,5*s,12*s,'#4a4f5c');box3(ctx,x,y-12*s,20*s,12*s,15*s,col);box3(ctx,x,y-27*s,11*s,8*s,7*s,'#2e3340');ctx.fillStyle='#9fd0ff';ctx.fillRect(x-4*s,y-32*s,8*s,2*s);ctx.fillStyle='#4a4f5c';ctx.fillRect(x+10*s,y-23*s,15*s,4*s);const p2=0.5+0.5*Math.sin(gt*8+u.id);ctx.fillStyle=`rgba(160,210,255,${0.4+p2*0.6})`;ctx.beginPath();ctx.arc(x+26*s,y-21*s,2.5*s,0,7);ctx.fill();}
+  else if(lk==='settler'){box3(ctx,x+8*s,y-1*s,13*s,8*s,7*s,'#a07c52');const g=ctx.createLinearGradient(0,y-17*s,0,y-8*s);g.addColorStop(0,'#fbf5e8');g.addColorStop(1,'#d8ccb4');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x+10*s,y-8*s,7*s,Math.PI,0);ctx.fill();ctx.strokeStyle=OUT;ctx.lineWidth=0.8;ctx.stroke();wheel(ctx,x+4*s,y-0.5*s,2.8*s);wheel(ctx,x+14*s,y-0.5*s,2.8*s);person(ctx,x-7*s,y,s*0.9,{body:col,hat,bob,walk:moving,ph:u.id});}
+  else if(lk==='ztame'||lk==='zbig'){person(ctx,x,y,s,{body:dark(col,0.15),trim:col,skin:'#a8b48a',zombie:true,bob:Math.sin(gt*3+u.id)*1.2*s,big:lk==='zbig'?1.55:1.05,walk:true,ph:u.id});}
+  else if(lk==='caravan'){box3(ctx,x+3*s,y-1*s,24*s,13*s,9*s,'#a07c52');const g=ctx.createLinearGradient(0,y-24*s,0,y-10*s);g.addColorStop(0,'#fbf5e8');g.addColorStop(1,'#d8ccb4');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(x+6*s,y-10*s,13*s,11*s,0,Math.PI,0);ctx.fill();ctx.strokeStyle=OUT;ctx.lineWidth=0.8;ctx.stroke();ctx.strokeStyle=col;ctx.lineWidth=2.5*s;ctx.beginPath();ctx.ellipse(x+6*s,y-10*s,13*s,11*s,0,Math.PI*1.1,Math.PI*1.9);ctx.stroke();wheel(ctx,x-5*s,y-0.5*s,3.6*s);wheel(ctx,x+14*s,y-0.5*s,3.6*s);ctx.fillStyle='#6f604c';ctx.beginPath();ctx.ellipse(x-16*s,y-8*s,7*s,4.5*s,0,0,7);ctx.fill();ctx.beginPath();ctx.arc(x-22*s,y-10*s,3*s,0,7);ctx.fill();}
+  else if(z){const big=u.k==='brute'?1.55:u.k==='runner'?0.92:1.05;person(ctx,x,y,s,{body:u.k==='brute'?'#5c6a4a':'#6f7d58',skin:'#a8b48a',zombie:true,bob:Math.sin(gt*(u.k==='runner'?7:3)+u.id)*1.2*s,big,walk:true,ph:u.id});
+    if(u.k==='brute'){ctx.strokeStyle='rgba(230,220,200,.7)';ctx.lineWidth=1*s;for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x-4*s,y-18*s+i*3*s);ctx.lineTo(x+4*s,y-18*s+i*3*s);ctx.stroke();}}}
+  else{person(ctx,x,y,s,{body:col,trim:lite(col,0.35),hat,bob,walk:moving,ph:u.id});weapon(ctx,lk,x,y,s,col,bob);}
   // 徽章
-  const by=sy-Z*0.82,br=Math.max(8,Z*0.17);const mine=u.owner===ME;const ready=mine&&u.mv>0&&!u.fort;
-  ctx.fillStyle=col;ctx.beginPath();ctx.arc(sx-Z*0.28,by,br,0,7);ctx.fill();if(ready){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+  const by=sy-Z*0.86,br=Math.max(8,Z*0.17);const mine=u.owner===ME;const ready=mine&&u.mv>0&&!u.fort;
+  ctx.fillStyle='rgba(30,25,20,.25)';ctx.beginPath();ctx.arc(sx-Z*0.28+1,by+1.5,br,0,7);ctx.fill();const bg=ctx.createRadialGradient(sx-Z*0.28-br*0.3,by-br*0.4,1,sx-Z*0.28,by,br);bg.addColorStop(0,lite(col,0.3));bg.addColorStop(1,dark(col,0.1));ctx.fillStyle=bg;ctx.beginPath();ctx.arc(sx-Z*0.28,by,br,0,7);ctx.fill();ctx.strokeStyle=ready?'#fff':'rgba(255,255,255,.4)';ctx.lineWidth=ready?2:1;ctx.stroke();
   ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(9,br*1.05)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(U.ch,sx-Z*0.28,by+0.5);
-  if(u.owner>=0&&isMil(u)&&(u.owner===ME||VIS.has(key(u.q,u.r)))&&!supplied(u)){ctx.fillStyle='#d9645a';ctx.beginPath();ctx.arc(sx-Z*0.28-br*1.25,by,br*0.62,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(8,br*0.75)}px sans-serif`;ctx.textAlign='center';ctx.fillText('断',sx-Z*0.28-br*1.25,by+0.5);}
+  if(u.owner>=0&&isMil(u)&&(u.owner===ME||VIS.has(key(u.q,u.r)))&&!supplied(u)){ctx.fillStyle='#d9645a';ctx.beginPath();ctx.arc(sx-Z*0.28-br*1.25,by,br*0.62,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(8,br*0.75)}px sans-serif`;ctx.fillText('断',sx-Z*0.28-br*1.25,by+0.5);}
   if(u.fort&&mine){ctx.fillStyle='#fffdf8';ctx.font=`700 ${Math.max(8,br*0.8)}px sans-serif`;ctx.fillText('盾',sx-Z*0.28+br*1.2,by-br*0.6);}
   if(u.hp<100){const w=Z*0.5;ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(sx-Z*0.28-w/2,by+br+2,w,3);ctx.fillStyle=u.hp>50?'#5e8c55':'#d9645a';ctx.fillRect(sx-Z*0.28-w/2,by+br+2,w*u.hp/100,3);}
   ctx.textAlign='left';}
 
+function tree(c,x,y,s,r){treeC(c,x,y,s,r);}
+
 /* ---------- 主绘制 ---------- */
 let gt=0;
-function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#e4dfd4');g.addColorStop(1,'#cfc8ba');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#eae5da');g.addColorStop(1,'#cfc6b5');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.75);vg.addColorStop(0,'rgba(255,255,255,0)');vg.addColorStop(1,'rgba(120,100,70,.18)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
   if(!G)return;const Z=cam.z;const draws=[];
   for(const k in G.tiles){const t=G.tiles[k];const[sx,sy]=w2s(t.q,t.r);if(sx<-Z*1.6||sx>W+Z*1.6||sy<-Z*1.6||sy>H+Z*2)continue;
-    if(!t.ex){draws.push({y:sy,f:()=>{ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*1.03);ctx.fillStyle='#e6e1d6';ctx.fill();const R=mulberry(t.seed);ctx.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<2;i++){ctx.beginPath();ctx.ellipse((R()-0.5)*Z*0.6,(R()-0.5)*Z*0.4,Z*(0.3+R()*0.2),Z*0.16,0,0,7);ctx.fill();}ctx.restore();}});continue;}
+    if(!t.ex){draws.push({y:sy,f:()=>{const fs=fogSprite(t);ctx.drawImage(fs,sx-fs._w/2,sy-fs._h*0.55,fs._w,fs._h);}});continue;}
     const vis=VIS.has(k);
-    draws.push({y:sy,f:()=>{const s=sprite(t);ctx.drawImage(s,sx-s._w/2,sy-s._h*0.56,s._w,s._h);
+    draws.push({y:sy,f:()=>{const s=sprite(t);ctx.drawImage(s,sx-s._w/2,sy-s._h*(s._oy||0.56),s._w,s._h);if(t.t==='w'){const k2=Math.floor(gt*1.2+t.seed%7)%5;const p2=(gt*0.9+(t.seed%13)/13)%1;ctx.fillStyle=`rgba(255,255,255,${0.7*Math.sin(p2*Math.PI)})`;ctx.beginPath();ctx.ellipse(sx+(k2-2)*Z*0.18,sy+((k2%2)-0.5)*Z*0.18,Z*0.07,Z*0.018,0,0,7);ctx.fill();}
       if(t.bl!==undefined){ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.98);const p=0.5+0.5*Math.sin(gt*2+t.q);ctx.fillStyle=`rgba(110,90,120,${0.55+p*0.08})`;ctx.fill();cracks(t.seed,Z);ctx.restore();}
       if(t.imp&&t.bl===undefined)drawImp(sx,sy,t.imp);
-      if(t.goody){ctx.fillStyle='#b78a4a';ctx.fillRect(sx-Z*0.14,sy-Z*0.18,Z*0.28,Z*0.2);ctx.fillStyle='#d9ad62';ctx.fillRect(sx-Z*0.14,sy-Z*0.24,Z*0.28,Z*0.07);ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(9,Z*0.16)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',sx,sy-Z*0.08);ctx.textAlign='left';}
+      if(t.goody){const by=sy-Z*0.02+Math.sin(gt*2+t.q)*Z*0.02;shadowE(ctx,sx,sy,Z*0.2,Z*0.07,0.25);box3(ctx,sx-Z*0.02,by,Z*0.3,Z*0.16,Z*0.16,'#b07a42');ctx.fillStyle='#e3a93b';ctx.fillRect(sx-Z*0.17,by-Z*0.11,Z*0.3,Z*0.03);ctx.fillStyle=`rgba(255,230,140,${0.4+0.3*Math.sin(gt*3)})`;ctx.beginPath();ctx.arc(sx,by-Z*0.24,Z*0.06,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(9,Z*0.15)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',sx,by-Z*0.24);ctx.textAlign='left';}
       if(!vis){ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*1.01);ctx.fillStyle='rgba(226,220,208,.55)';ctx.fill();ctx.restore();}}});
     const c=cityAt(t.q,t.r);if(c)draws.push({y:sy+0.01,f:()=>drawCity(sx,sy,c)});
     const n=t.nest!==undefined&&G.nests[t.nest]&&G.nests[t.nest].alive?G.nests[t.nest]:null;if(n)draws.push({y:sy+0.01,f:()=>drawNest(sx,sy,n)});}
@@ -882,6 +1075,12 @@ function render(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createLinearGrad
   // 国界
   ctx.lineCap='round';for(const k in G.tiles){const t=G.tiles[k];if(t.own<0||!t.ex)continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;
     for(let i=0;i<6;i++){const nb=T(t.q+DIRS[i][0],t.r+DIRS[i][1]);if(nb&&nb.own===t.own)continue;const a=vtx(i,Z*0.93),b=vtx(i+1,Z*0.93);ctx.strokeStyle=civCol(t.own);ctx.globalAlpha=0.85;ctx.lineWidth=Math.max(2,Z*0.07);ctx.beginPath();ctx.moveTo(sx+a[0],sy+a[1]);ctx.lineTo(sx+b[0],sy+b[1]);ctx.stroke();ctx.globalAlpha=1;}}
+  // 引水 / 空降 可选格子
+  if(modeSel&&G.units[modeSel.u]){const u=G.units[modeSel.u];const R2=modeSel.k==='drop'?8:1;for(const t of ring(u.q,u.r,R2)){const ok=modeSel.k==='dam'?(hexDist(u.q,u.r,t.q,t.r)===1&&t.own===ME&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r)&&t.t!=='m'):(dropOK(u,t)&&VIS.has(key(t.q,t.r)));if(!ok)continue;const[sx,sy]=w2s(t.q,t.r);const p=0.5+0.5*Math.sin(gt*5);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.86);ctx.fillStyle=modeSel.k==='dam'?`rgba(79,134,198,${0.2+p*0.15})`:`rgba(62,156,184,${0.2+p*0.15})`;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.stroke();ctx.restore();}}
+  // 焦土、城墙
+  for(const k in G.tiles){const t=G.tiles[k];if(!t.ex||(!t.burn&&t.wall===undefined))continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;
+    if(t.burn&&t.burn>G.turn){ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.96);ctx.fillStyle='rgba(50,36,30,.55)';ctx.fill();const R3=mulberry(t.seed+5);for(let i=0;i<6;i++){const x=(R3()-0.5)*Z*1.2,y=(R3()-0.5)*Z*0.6;const fl=0.5+0.5*Math.sin(gt*6+i*2);ctx.fillStyle=`rgba(255,${120+fl*80|0},40,${0.4+fl*0.5})`;ctx.beginPath();ctx.arc(x,y,Z*0.03*(1+fl),0,7);ctx.fill();}for(let i=0;i<2;i++){const q2=(gt*0.3+i*0.5)%1;ctx.fillStyle=`rgba(70,60,55,${0.3*(1-q2)})`;ctx.beginPath();ctx.arc((i-0.5)*Z*0.3,-q2*Z*0.8,Z*(0.08+q2*0.12),0,7);ctx.fill();}ctx.restore();}
+    if(t.wall!==undefined){const col=civCol(t.wall);for(let i=-2;i<=2;i++){const x=sx+i*Z*0.2,y=sy+i*Z*0.05;box3(ctx,x,y+Z*0.1,Z*0.21,Z*0.16,Z*0.32,'#a69b88');if(i%2===0)box3(ctx,x,y+Z*0.1-Z*0.32,Z*0.09,Z*0.16,Z*0.08,'#b5aa96');}ctx.fillStyle=col;ctx.fillRect(sx-Z*0.02,sy-Z*0.62,Z*0.03,Z*0.32);ctx.beginPath();ctx.moveTo(sx+Z*0.01,sy-Z*0.62);ctx.lineTo(sx+Z*0.2,sy-Z*0.55);ctx.lineTo(sx+Z*0.01,sy-Z*0.48);ctx.fill();if((t.hp||60)<60){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(sx-Z*0.3,sy-Z*0.7,Z*0.6,3);ctx.fillStyle='#d9645a';ctx.fillRect(sx-Z*0.3,sy-Z*0.7,Z*0.6*(t.hp||0)/60,3);}}}
   // 开拓模式：可开拓的格子
   if(claimMode&&G.civs[ME]){const ep=G.civs[ME].ep||0;for(const k in G.tiles){const t=G.tiles[k];if(!t.ex||!claimable(ME,t))continue;const[sx,sy]=w2s(t.q,t.r);if(sx<-Z||sx>W+Z||sy<-Z||sy>H+Z)continue;const c=claimCost(ME,t);const ok=ep>=c;const p=0.5+0.5*Math.sin(gt*4);ctx.save();ctx.translate(sx,sy);hexPath(ctx,Z*0.86);ctx.fillStyle=ok?`rgba(94,140,85,${0.18+p*0.12})`:'rgba(255,255,255,.12)';ctx.fill();ctx.setLineDash([Z*0.12,Z*0.08]);ctx.strokeStyle=ok?'rgba(94,140,85,.9)':'rgba(120,110,100,.5)';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ok?'#3f6b38':'#8a8478';ctx.font=`900 ${Math.max(11,Z*0.24)}px "Noto Sans SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c,0,0);ctx.restore();}ctx.textAlign='left';}
   // 孤地、哨塔、插旗中的格子
@@ -913,7 +1112,7 @@ function showStory(){if(!storyQ.length||!$('#ovStory').hidden)return;if(!$('#ovA
   $('#storyC').innerHTML=`${f?`<div class="big" style="color:${f.col}">${f.ch}</div><div class="py">${f.py} · ${f.ep}</div>`:''}<h3>${s0.title}</h3>${s0.text.split('\n').map(t=>`<p>${t}</p>`).join('')}${s0.extra||''}<div class="acts2"><button class="b main" id="stOk">继续</button></div>`;
   $('#ovStory').hidden=false;$('#stOk').onclick=()=>{$('#ovStory').hidden=true;checkAsks();showStory();};}
 function showPrologue(){if(HEADLESS)return;try{STORY=JSON.parse(localStorage.getItem(storyKey())||'{}');}catch(e){STORY={};}if(STORY.pro){return;}const f=FAC[fac(ME)];
-  story('pro','第一天','大崩塌后的第十年。城市的地下长出了「巢」，一团团会呼吸的肉，尸潮就是从那里爬出来的。\n活下来的人分成了四股，各自从《字海》里挑了一个难念的字当旗号。谁能统一废土、让大地复苏、或者坐上方舟离开，谁就能决定这片土地以后叫什么名字。\n'+f.lore,f,`<p class="motto">「${f.motto}」</p><p style="font-size:12px;color:var(--sub)">先让拓荒者建立第一座据点（点「建据点」或按 B）。</p>`);}
+  story('pro','第一天','大崩塌后的第十年。城市的地下长出了「巢」，一团团会呼吸的肉，尸潮就是从那里爬出来的。\n活下来的人分成了八股，各自从《字海》里挑了一个难念的字当旗号。谁能统一废土、让大地复苏、或者坐上方舟离开，谁就能决定这片土地以后叫什么名字。\n'+f.lore,f,`<p class="motto">「${f.motto}」</p><p style="font-size:12px;color:var(--sub)">先让拓荒者建立第一座据点（点「建据点」或按 B）。</p>`);}
 function storyCheck(){if(!G||HEADLESS||G.over)return;const me=ME;
   for(const o of CIV()){if(o===me||!G.civs[o])continue;const f=FAC[fac(o)];
     if(!STORY['c'+o]&&(Object.values(G.units).some(u=>u.owner===o&&VIS.has(key(u.q,u.r)))||Object.values(G.cities).some(c=>c.owner===o&&VIS.has(key(c.q,c.r)))))story('c'+o,`遇见「${f.ch}」`,f.lore,f,`<p class="motto">「${f.motto}」<br><small style="font-size:12px">——${f.leader}</small></p>`);
@@ -953,6 +1152,16 @@ function applyCmd(c){const o=c.o;const cv=G.civs[o];if(!cv)return;if(!cv.alive&&
       else{if(!G.asks.some(a=>a.t==='peace'&&a.o===o&&a.to===x))G.asks.push({t:'peace',o,to:x});if(o===ME)feed(`已向${civName(x)}提议停战，等对方回应。`);}break;}
     case 'accept':{const a=G.asks.find(a=>a.t==='peace'&&a.o===c.x&&a.to===o);if(a){G.asks.splice(G.asks.indexOf(a),1);if(c.yes&&atWar(o,c.x))makePeace(o,c.x);else if(c.x===ME)feed(`${civName(o)}拒绝了停战。`,'bad');}break;}
     case 'pol':{if(cv.polPend===c.lv&&!cv.pol[c.lv]){const op=POL[fac(o)][c.lv].find(x=>x.k===c.k);if(op){cv.pol[c.lv]=op.k;cv.polPend=null;if(o===ME){toast(`方针：${op.n}`,op.d);SFX.tech();}}}break;}
+    case 'dam':{const u=U(c.u);const t=T(c.q,c.r);if(u&&u.mv>0&&UN[u.k].wk&&fac(o)===0&&t&&hexDist(u.q,u.r,t.q,t.r)===1&&t.own===o&&!unitAt(t.q,t.r)&&!cityAt(t.q,t.r)&&t.nest===undefined&&t.t!=='m'){t.t=t.t==='w'?'g':'w';delete t.imp;delete t.tower;if(t.t==='w')delete t.res;u.mv=0;u.acted=1;spriteCache.clear();if(o===ME){SFX.build();pops.push({q:t.q,r:t.r,txt:t.t==='w'?'引水':'填湖',col:'#4f86c6',t:0});}}break;}
+    case 'burn':{const u=U(c.u);if(u&&u.mv>0&&isMil(u)&&fac(o)===1){const t=T(u.q,u.r);if(!cityAt(t.q,t.r)&&t.own!==o&&(t.own<0||atWar(o,t.own))){t.burn=G.turn+3;t.burnBy=o;delete t.imp;delete t.tower;t.own=-1;delete t.iso;u.mv=0;u.acted=1;if(o===ME||VIS.has(key(t.q,t.r)))pops.push({q:t.q,r:t.r,txt:'焦土',col:'#e8743a',t:0});}}break;}
+    case 'wall':{const u=U(c.u);if(u&&u.mv>0&&UN[u.k].wk&&fac(o)===2){const t=T(u.q,u.r);if(t.own===o&&!cityAt(t.q,t.r)&&t.wall===undefined&&t.t!=='w'){u.work={k:'wall',left:2};u.mv=0;u.acted=1;}}break;}
+    case 'tp':{const u=U(c.u);const from=u&&cityAt(u.q,u.r);const to=G.cities[c.c];if(u&&u.mv>0&&isMil(u)&&fac(o)===3&&from&&from.owner===o&&to&&to.owner===o&&to!==from&&(u.tpT||0)<=G.turn){const spots=[T(to.q,to.r)].concat(nbrs(to.q,to.r));const sp=spots.find(t=>canEnter(u,t,true));if(sp){delete UAT[key(u.q,u.r)];u.q=sp.q;u.r=sp.r;UAT[key(sp.q,sp.r)]=u;u.vq=u.q;u.vr=u.r;u.mv=0;u.acted=1;u.tpT=G.turn+3;if(o===ME){SFX.tech();pops.push({q:u.q,r:u.r,txt:'传送',col:'#5b6fd6',t:0});}}}break;}
+    case 'pack':{const x=C(c.c);if(x)packCity(x);break;}
+    case 'unpack':{const u=U(c.u);if(u&&u.k==='caravan')unpackCity(u);break;}
+    case 'worship':{const u=U(c.u);const n=G.nests[c.n];if(u&&u.mv>0&&isMil(u)&&fac(o)===5&&n&&n.alive&&!(n.own>=0)&&hexDist(u.q,u.r,n.q,n.r)===1){worshipNest(n,o);u.mv=0;u.acted=1;}break;}
+    case 'drop':{const u=U(c.u);const t=T(c.q,c.r);if(u&&u.mv>0&&isMil(u)&&fac(o)===6&&dropOK(u,t)){delete UAT[key(u.q,u.r)];u.q=t.q;u.r=t.r;UAT[key(t.q,t.r)]=u;u.vq=u.q;u.vr=u.r;u.mv=0;u.acted=1;u.dropT=G.turn+(pp(o,'drop2')?2:4);if(o===ME){SFX.step();pops.push({q:t.q,r:t.r,txt:'空降',col:'#3e9cb8',t:0});}}break;}
+    case 'bribe':{const v=G.units[c.x];if(v&&fac(o)===7&&bribeOK(o,v)){const cost=bribeCost(o,v);if((cv.ep||0)>=cost){cv.ep-=cost;const was=v.owner;v.owner=o;v.gar=null;v.dest=null;v.fort=0;v.mv=0;v.work=null;if(o===ME||was===ME){pops.push({q:v.q,r:v.r,txt:'收买',col:'#c4508a',t:0});feed(o===ME?`花 ${cost} 开拓点收买了${UN[v.k].n}。`:`我们的${UN[v.k].n}被${civName(o)}收买了！`,o===ME?'good':'bad');}checkAlive(was);}}break;}
+    case 'bribeT':{const t=T(c.q,c.r);if(fac(o)===7&&bribeTileOK(o,t)){const cost=bribeTileCost(o,t);if((cv.ep||0)>=cost){cv.ep-=cost;const was=t.own;t.own=o;delete t.iso;delete t.tower;if(o===ME||was===ME)pops.push({q:t.q,r:t.r,txt:'收买',col:'#c4508a',t:0});}}break;}
     case 'ready':cv.ready=!!c.on;break;
     case 'ai':cv.ai=!!c.on;cv.dc=!!c.on;if(c.on)cv.ready=false;break;
   }}
@@ -979,9 +1188,17 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
       <div class="acts"><button class="b ${war?'warn':'main'}" id="aGo">${war?'宣战并进攻':'进攻'}</button><button class="b" id="aNo">取消</button></div>`;
     $('#aGo').onclick=confirmAttack;$('#aNo').onclick=()=>{pend=null;renderSel();};return;}
   if(sel.u){const u=sel.u,U=UN[u.k];const mine=u.owner===ME;const t=T(u.q,u.r);
-    const acts=[];if(mine){if(u.k==='settler')acts.push(`<button class="b main" id="aFound" ${canFound(u.q,u.r,ME)&&u.mv>0?'':'disabled'}>建据点</button>`);
+    const acts=[];if(mine){const F=fac(ME);
+      if(u.k==='caravan')acts.push(`<button class="b main" id="aUnpack" ${canFound(u.q,u.r,ME)?'':'disabled'}>落营（变回「${u.city?u.city.name:''}」）</button>`);
+      if(F===0&&UN[u.k].wk&&!u.work)acts.push(`<button class="b" id="aDam" ${u.mv>0?'':'disabled'}>引水 / 填湖</button>`);
+      if(F===2&&UN[u.k].wk&&!u.work&&t.own===ME&&!cityAt(t.q,t.r)&&t.wall===undefined&&t.t!=='w')acts.push(`<button class="b" id="aWall" ${u.mv>0?'':'disabled'}>修城墙（2 天）</button>`);
+      if(F===1&&isMil(u)&&!cityAt(t.q,t.r)&&t.own!==ME&&(t.own<0||atWar(ME,t.own)))acts.push(`<button class="b warn" id="aBurn" ${u.mv>0?'':'disabled'}>放火：变焦土</button>`);
+      if(F===3&&isMil(u)&&cityAt(u.q,u.r)&&civCities(ME).length>1)acts.push(`<button class="b" id="aTp" ${u.mv>0&&(u.tpT||0)<=G.turn?'':'disabled'}>电网传送${(u.tpT||0)>G.turn?'（'+(u.tpT-G.turn)+' 天后）':''}</button>`);
+      if(F===5&&isMil(u)&&Object.values(G.nests).some(n=>n.alive&&!(n.own>=0)&&hexDist(n.q,n.r,u.q,u.r)===1))acts.push(`<button class="b main" id="aWorship" ${u.mv>0?'':'disabled'}>供奉旁边的尸巢</button>`);
+      if(F===6&&isMil(u)&&T(u.q,u.r).own===ME)acts.push(`<button class="b" id="aDrop" ${u.mv>0&&(u.dropT||0)<=G.turn?'':'disabled'}>空降${(u.dropT||0)>G.turn?'（'+(u.dropT-G.turn)+' 天后）':''}</button>`);
+      if(u.k==='settler')acts.push(`<button class="b main" id="aFound" ${canFound(u.q,u.r,ME)&&u.mv>0?'':'disabled'}>建据点</button>`);
       if(isMil(u)&&t.bl!==undefined&&t.nest===undefined)acts.push(`<button class="b" id="aPurge" ${u.mv>0?'':'disabled'}>净化此地</button>`);
-      if(UN[u.k].wk){if(u.work)acts.push(`<button class="b" disabled>${u.work.k==='purge'?'净化中':u.work.k==='tower'?'修建哨塔中':'修建'+IMP[u.work.k].n+'中'} · 还要 ${u.work.left} 天</button>`);
+      if(UN[u.k].wk){if(u.work)acts.push(`<button class="b" disabled>${u.work.k==='purge'?'净化中':u.work.k==='tower'?'修建哨塔中':u.work.k==='wall'?'修建城墙中':'修建'+IMP[u.work.k].n+'中'} · 还要 ${u.work.left} 天</button>`);
         else if(t.bl!==undefined&&t.nest===undefined)acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>净化（1 天）</button>`);
         else{if(t.own===ME&&t.tower===undefined&&!cityAt(t.q,t.r)&&t.t!=='w')acts.push(`<button class="b" id="aTower" ${u.mv>0?'':'disabled'}>修哨塔（2 天）</button>`);const k=impFor(t);if(k&&!t.imp&&t.own===ME&&!cityAt(t.q,t.r))acts.push(`<button class="b main" id="aWork" ${u.mv>0?'':'disabled'}>修${IMP[k].n}（3 天，${IMP[k].d}）</button>`);}}
       if(isMil(u))acts.push(`<button class="b" id="aFort">${u.fort?'取消驻守':'驻守'}</button>`);
@@ -990,10 +1207,18 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     const fnote=wnote||(u.k==='settler'&&mine?(canFound(u.q,u.r,ME)?'这里可以建据点。据点之间至少隔 3 格，不能建在感染地和别人的领土上。':'这里不能建据点：离其他据点太近、在感染地上，或是别人的领土。'):'');
     el.innerHTML=`<div class="hd"><i style="background:${civCol(u.owner)}">${U.ch}</i><div><b>${U.n}</b> <small>${civName(u.owner)}</small><br><small>${U.d||'丧尸'}</small></div></div>
       <div class="row"><span>生命 <b>${Math.round(u.hp)}</b></span><span>${U.rs?'远程 <b>'+U.rs+'</b>（'+rngOf(u)+' 格）· ':''}近战 <b>${U.str}</b></span><span>移动 <b>${mine?u.mv+'/'+U.mv:U.mv}</b></span><span>${TERR[t.t].n}${TERR[t.t].def?' 防御+'+TERR[t.t].def+'%':''}</span></div>
-      ${fnote?`<p>${fnote}</p>`:''}${mine&&isMil(u)&&!UN[u.k].sc&&!cityAt(u.q,u.r)&&(t.own!==ME||t.iso)&&t.t!=='m'?`<p style="color:var(--sci)">${t.own>=0&&t.own!==ME?(atWar(ME,t.own)?(t.tower===t.own?'停在这里过一天会拆掉哨塔。':towerGuard(t,t.own)?'这里被敌方哨塔保护，插不了旗。':'停在这里过一天就会插旗，把这格抢过来。'):'这是别人的地，和平时插不了旗。'):'停在这里过一天就会插旗占领。'}</p>`:''}${mine&&isMil(u)&&!supplied(u)?'<p style="color:var(--bad)"><b>断了补给</b>：离自己领土太远，战力 −20%，每天 −8 血。退回领土旁边，或者把中间的地占下来。</p>':''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。走到敌军旁边会被拖住（控制区），几个友军围着打有包夹加成。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
+      ${fnote?`<p>${fnote}</p>`:''}${!mine&&fac(ME)===7&&u.owner>=0&&!UN[u.k].ace?(bribeOK(ME,u)?`<div class="acts"><button class="b main" id="aBribe" ${(G.civs[ME].ep||0)>=bribeCost(ME,u)?'':'disabled'}>收买（${bribeCost(ME,u)} 开拓点，现有 ${Math.floor(G.civs[ME].ep||0)}）</button></div>`:'<p>收买要求：交战中，而且它在我们领土旁边或我们部队旁边。</p>'):''}${mine&&isMil(u)&&!UN[u.k].sc&&!cityAt(u.q,u.r)&&(t.own!==ME||t.iso)&&t.t!=='m'?`<p style="color:var(--sci)">${t.own>=0&&t.own!==ME?(atWar(ME,t.own)?(t.tower===t.own?'停在这里过一天会拆掉哨塔。':towerGuard(t,t.own)?'这里被敌方哨塔保护，插不了旗。':'停在这里过一天就会插旗，把这格抢过来。'):'这是别人的地，和平时插不了旗。'):'停在这里过一天就会插旗占领。'}</p>`:''}${mine&&isMil(u)&&!supplied(u)?'<p style="color:var(--bad)"><b>断了补给</b>：离自己领土太远，战力 −20%，每天 −8 血。退回领土旁边，或者把中间的地占下来。</p>':''}${mine&&isMil(u)&&u.mv>0?'<p>点白色格子移动，点红圈目标进攻。走到敌军旁边会被拖住（控制区），几个友军围着打有包夹加成。点远处的格子会自动分几天走过去。</p>':''}<div class="acts">${acts.join('')}</div>`;
     const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f;};
     on('aFound',()=>{const q=u.q,r=u.r;postSel=()=>{const c=cityAt(q,r);if(c&&c.owner===ME){select({c});toast(`「${c.name}」建立了`,'在据点面板里选择要生产什么');}else select(sel);};doCmd({t:'found',u:u.id});});
     on('aPurge',()=>{postSel=()=>nextIdle();doCmd({t:'purge',u:u.id});});
+    on('aBribe',()=>{doCmd({t:'bribe',x:u.id});});
+    on('aUnpack',()=>{const q=u.q,r=u.r;postSel=()=>{const c=cityAt(q,r);if(c)select({c});};doCmd({t:'unpack',u:u.id});});
+    on('aDam',()=>{modeSel={k:'dam',u:u.id};hint('点它旁边一格自己的地：陆地变湖，湖变陆地。');renderSel();});
+    on('aWall',()=>{SFX.build();postSel=()=>nextIdle();doCmd({t:'wall',u:u.id});});
+    on('aBurn',()=>{doCmd({t:'burn',u:u.id});});
+    on('aWorship',()=>{const n=Object.values(G.nests).find(n=>n.alive&&!(n.own>=0)&&hexDist(n.q,n.r,u.q,u.r)===1);if(n)doCmd({t:'worship',u:u.id,n:n.id});});
+    on('aDrop',()=>{modeSel={k:'drop',u:u.id};hint('点一格亮着的地，把部队空降过去（2～8 格内，视野里看得到的空地）。');renderSel();});
+    on('aTp',()=>{const el=$('#sel');const others=civCities(ME).filter(c=>c!==cityAt(u.q,u.r));el.insertAdjacentHTML('beforeend',`<div class="blist">${others.map(c=>`<button data-tp="${c.id}">传送到「${c.name}」</button>`).join('')}</div>`);el.querySelectorAll('[data-tp]').forEach(b=>b.onclick=()=>doCmd({t:'tp',u:u.id,c:+b.dataset.tp}));});
     on('aTower',()=>{SFX.build();postSel=()=>nextIdle();doCmd({t:'tower',u:u.id});});
     on('aWork',()=>{SFX.build();postSel=()=>nextIdle();doCmd({t:'work',u:u.id});});
     on('aFort',()=>{const id=u.id;postSel=()=>{const v=G.units[id];if(v&&v.fort)nextIdle();else select(sel);};doCmd({t:'fort',u:id});});
@@ -1006,6 +1231,7 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
     let html=`<div class="hd"><i style="background:${civCol(c.owner)}">${c.pop}</i><div><b>${c.cap?'★ ':''}${c.name}</b> <small>${civName(c.owner)}</small><br><small>防御 ${cityStr(c).toFixed(1)} · 生命 ${Math.round(c.hp)}/${maxHP(c)}</small></div></div>`;
     if(mine){html+=`<div class="row"><span>口粮 <b>${net>=0?'+':''}${net.toFixed(0)}</b>${turns?`（${turns} 天后长居民）`:net<0?'（挨饿）':''}</span><span>物资 <b>${y.p.toFixed(1)}</b></span><span>蓝图 <b>${y.s.toFixed(1)}</b></span></div>`;
       html+=`<div class="seg" id="focusSeg" style="margin:4px 0 2px">${Object.keys(FOCUS).map(k=>`<button data-f="${k}" class="${(c.focus||'bal')===k?'on':''}" style="padding:6px 2px;font-size:12px">${FOCUS[k].n}</button>`).join('')}</div><p style="margin:0 0 4px">据点方针：决定居民优先耕作哪种地块。</p>`;
+      if(fac(ME)===4){const ok=G.turn-(c.born||0)>=8;html+=`<div class="acts" style="margin:4px 0"><button class="b" id="aPack" ${ok?'':'disabled'}>拔营（变成大篷车搬家）${ok?'':'· '+(8-(G.turn-(c.born||0)))+' 天后'}</button></div>`;}
       const opts=buildOptions(c);const cur=c.build;
       html+=`<div class="blist">${cur?'':'<p style="color:var(--bad);margin:0">还没选生产项目</p>'}<h5>单位</h5>`+opts.filter(b=>b.t==='u').map(b=>{const U=UN[b.k];const n=Math.max(1,Math.ceil((U.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="u:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${U.n}<span>${n} 天</span><small>${U.d}${U.str?' · 战力 '+(U.rs||U.str):''}${needOf(b.k)?` · <b style="color:${stratOK(ME,b.k,c)||(cur&&cur.k===b.k)?'var(--sub)':'var(--bad)'}">要${STRAT[needOf(b.k)]}（${stratUsed(ME,needOf(b.k),c)}/${stratHave(ME,needOf(b.k))}）</b>`:''}</small></button>`;}).join('')
         +(opts.some(b=>b.t==='b')?'<h5>建筑</h5>':'')+opts.filter(b=>b.t==='b').map(b=>{const B=BLD[b.k];const n=Math.max(1,Math.ceil((B.cost-(cur&&cur.k===b.k?c.prod:0))/Math.max(0.5,y.p)));return`<button data-b="b:${b.k}" class="${cur&&cur.k===b.k?'on':''}">${B.n}<span>${n} 天</span><small>${B.d}</small></button>`;}).join('')
@@ -1013,16 +1239,17 @@ function renderSel(){const el=$('#sel');if(!sel){el.hidden=true;return;}el.hidde
       const blds=Object.keys(c.blds).map(k=>BLD[k].n).concat(cityWons(c).map(k=>'★'+WON[k].n));if(blds.length)html+=`<p>已建：${blds.join('、')}</p>`;
       if(!c.shot&&atkTargets().length)html+='<p style="color:var(--bad)">据点可以射击 2 格内的敌人：点红圈目标。</p>';}
     else html+=`<p>${G.rel[ME][c.owner]==='war'?'<span class="tag war">交战中</span>':'<span class="tag peace">和平</span>'} 居民 ${c.pop}</p>`;
-    $('#sel').innerHTML=html;$('#sel').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{SFX.click();doCmd({t:'focus',c:c.id,f:b.dataset.f});});$('#sel').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const[t,k]=b.dataset.b.split(':');SFX.click();doCmd({t:'build',c:c.id,bt:t,k});});
+    $('#sel').innerHTML=html;{const b=$('#aPack');if(b)b.onclick=()=>showAsk('拔营？',`「${c.name}」会变成一辆大篷车，原地的领土会和据点断开。车被打掉的话，整个据点就没了。`,'拔营','算了',()=>{postSel=()=>{const v=unitAt(c.q,c.r);if(v&&v.k==='caravan')select({u:v});};doCmd({t:'pack',c:c.id});});}$('#sel').querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{SFX.click();doCmd({t:'focus',c:c.id,f:b.dataset.f});});$('#sel').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const[t,k]=b.dataset.b.split(':');SFX.click();doCmd({t:'build',c:c.id,bt:t,k});});
     return;}
-  if(sel.tile){const t=sel.tile;setTimeout(()=>{const b=$('#aClaim');if(b)b.onclick=()=>doCmd({t:'claim',q:t.q,r:t.r});},0);const y=tileYield(t);el.innerHTML=`<div class="hd"><i style="background:${TERR[t.t].c};color:#3a3a34">${TERR[t.t].n[0]}</i><div><b>${TERR[t.t].n}</b>${t.res?' · '+RES[t.res].n:''}${t.imp?' · '+IMP[t.imp].n:''}<br><small>${t.own>=0?civName(t.own)+'的领土':'无主之地'}</small></div></div>
+  if(sel.tile){const t=sel.tile;setTimeout(()=>{const b=$('#aClaim');if(b)b.onclick=()=>doCmd({t:'claim',q:t.q,r:t.r});const b2=$('#aBribeT');if(b2)b2.onclick=()=>doCmd({t:'bribeT',q:t.q,r:t.r});},0);const y=tileYield(t);el.innerHTML=`<div class="hd"><i style="background:${TERR[t.t].c};color:#3a3a34">${TERR[t.t].n[0]}</i><div><b>${TERR[t.t].n}</b>${t.res?' · '+RES[t.res].n:''}${t.imp?' · '+IMP[t.imp].n:''}<br><small>${t.own>=0?civName(t.own)+'的领土':'无主之地'}</small></div></div>
     <div class="row"><span>口粮 <b>${y.f}</b></span><span>物资 <b>${y.p}</b></span><span>蓝图 <b>${y.s}</b></span>${TERR[t.t].mv>50?'<span>无法通行</span>':`<span>移动消耗 <b>${TERR[t.t].mv}</b></span>`}</div>
-    ${claimable(ME,t)?`<div class="acts"><button class="b main" id="aClaim" ${(G.civs[ME].ep||0)>=claimCost(ME,t)?'':'disabled'}>开拓这一格（${claimCost(ME,t)} 开拓点，现有 ${Math.floor(G.civs[ME].ep||0)}）</button></div>`:t.own<0&&t.t!=='m'?'<p>无主之地。贴着自己领土、离据点 4 格以内才能开拓；也可以派军队过去站一天插旗。</p>':''}${t.iso&&t.own>=0?`<p style="color:var(--bad)">孤地：和据点断了联系，什么都不产，再过 ${Math.max(0,4-t.iso)} 天会丢。把中间的地占回来就能接上。</p>`:''}${t.tower!==undefined?`<p>${civName(t.tower)}的哨塔：周围一圈的地敌人插不了旗；敌军站在塔上过一天就能拆掉。</p>`:''}${t.res&&RES[t.res].strat?`<p>战略资源「${STRAT[t.res]}」：占下这格，可以多养 2 个需要${STRAT[t.res]}的单位（${t.res==='oil'?'快速、重型兵种':t.res==='bat'?'攻城兵种和王牌':'支援兵'}）。</p>`:''}${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
+    ${claimable(ME,t)?`<div class="acts"><button class="b main" id="aClaim" ${(G.civs[ME].ep||0)>=claimCost(ME,t)?'':'disabled'}>开拓这一格（${claimCost(ME,t)} 开拓点，现有 ${Math.floor(G.civs[ME].ep||0)}）</button></div>`:t.own<0&&t.t!=='m'?'<p>无主之地。贴着自己领土、离据点 4 格以内才能开拓；也可以派军队过去站一天插旗。</p>':''}${t.iso&&t.own>=0?`<p style="color:var(--bad)">孤地：和据点断了联系，什么都不产，再过 ${Math.max(0,4-t.iso)} 天会丢。把中间的地占回来就能接上。</p>`:''}${t.tower!==undefined?`<p>${civName(t.tower)}的哨塔：周围一圈的地敌人插不了旗；敌军站在塔上过一天就能拆掉。</p>`:''}${t.res&&RES[t.res].strat?`<p>战略资源「${STRAT[t.res]}」：占下这格，可以多养 2 个需要${STRAT[t.res]}的单位（${t.res==='oil'?'快速、重型兵种':t.res==='bat'?'攻城兵种和王牌':'支援兵'}）。</p>`:''}${fac(ME)===7&&bribeTileOK(ME,t)?`<div class="acts"><button class="b main" id="aBribeT" ${(G.civs[ME].ep||0)>=bribeTileCost(ME,t)?'':'disabled'}>收买这一格（${bribeTileCost(ME,t)} 开拓点）</button></div>`:''}${t.burn&&t.burn>G.turn?`<p style="color:var(--bad)">焦土：还要 ${t.burn-G.turn} 天才能恢复，什么都不产，敌人站上去每天 −8 血。</p>`:''}${t.wall!==undefined?`<p>${civName(t.wall)}的城墙（${Math.round(t.hp||0)}/60）：只有他们自己能通过，别人得把它打塌。</p>`:''}${t.bl!==undefined?'<p style="color:var(--bad)">被尸巢感染：什么都不产，单位停在这里每天掉血。军队可以「净化」它。</p>':''}${t.goody?'<p>遗迹：派单位走进去能搜刮到好东西。</p>':''}${nestAt(t.q,t.r)?`<p style="color:var(--bad)">尸巢：生命 ${Math.round(nestAt(t.q,t.r).hp)}，战力 ${nestStr(nestAt(t.q,t.r)).toFixed(1)}。会不断孵出丧尸、扩散感染。摧毁它奖励蓝图 +40。</p>`:''}`;}}
 function confirmAttack(){if(!pend)return;const{a,tg}=pend;pend=null;const id=a.o.id,at=a.type;
   postSel=()=>{if(G.over)return;if(at==='unit'&&G.units[id])select({u:G.units[id]});else if(at==='city'&&G.cities[id])select({c:G.cities[id]});else select(null);};
   doCmd({t:'atk',at,id,q:tg.o.q,r:tg.o.r});}
-let claimMode=false;
+let claimMode=false,modeSel=null;
 function tapTile(q,r){if(!G||G.over||busy)return;const t=T(q,r);if(!t){select(null);return;}const k=key(q,r);
+  if(modeSel){const m=modeSel;modeSel=null;const u=G.units[m.u];if(u){if(m.k==='dam'){if(hexDist(u.q,u.r,q,r)===1&&t.own===ME&&!unitAt(q,r)&&!cityAt(q,r)&&t.t!=='m'){tapFx={q,r,t:0};doCmd({t:'dam',u:u.id,q,r});return;}hint('要点它旁边一格自己的空地。');}else if(m.k==='drop'){if(dropOK(u,t)&&VIS.has(k)){tapFx={q,r,t:0};doCmd({t:'drop',u:u.id,q,r});return;}hint('那里不能空降：要 2～8 格内、看得到的空地。');}}renderSel();return;}
   if(claimMode){if(claimable(ME,t)){if((G.civs[ME].ep||0)>=claimCost(ME,t)){tapFx={q,r,t:0};doCmd({t:'claim',q,r});}else{hint(`开拓点不够：要 ${claimCost(ME,t)}，现在 ${Math.floor(G.civs[ME].ep||0)}。`);tapFx={q,r,t:0,bad:1};}}else{tapFx={q,r,t:0,bad:1};hint('这一格不能开拓：要贴着自己的领土、离据点 4 格以内，而且不能是山、感染地或别人的地。');}return;}
   if(pend){if(pend.tg.o.q===q&&pend.tg.o.r===r){confirmAttack();return;}pend=null;}
   const tg=VIS.has(k)?tgtAt(q,r):null;
@@ -1150,7 +1377,7 @@ function lobbyList(){const L=NET.list.slice(0,4);const asg=assignFacs(L);$('#lbL
   $('#lbOpt').textContent=`${o.n} 个阵营${o.n===4?'（大地图）':''} · ${['简单','普通','困难'][o.diff]} · ${o.timer?'每天限时 '+o.timer+' 秒':'每天不限时'} · 空位由电脑接管`;
   {const taken={};L.forEach((o,i)=>{if(o.id!==NET.me&&o.f!==undefined&&asg[i]===o.f)taken[o.f]=o.name;});const mine=L.findIndex(o=>o.id===NET.me);const cur=mine>=0?asg[mine]:NET.f;facCards($('#lbFac'),cur,taken,f=>{NET.f=f;try{localStorage.setItem('civ-fac',f);}catch(e){}SFX.click();NET.tr&&NET.tr.track({id:NET.me,name:NET.name,host:NET.host,t:NET.T0,f});});if(cur!==undefined)$('#lbFacInfo').textContent=`「${FAC[cur].ch}」${FAC[cur].ep}：${FAC[cur].trait}`;}
   $('#lbGo').disabled=!(NET.list.length>=2||FAKE);if(NET.list.length>o.n){o.n=4;}}
-function assignFacs(L){const out=[];const used=new Set();L.forEach((o,i)=>{if(o.f!==undefined&&!used.has(o.f)){out[i]=o.f;used.add(o.f);}});L.forEach((o,i)=>{if(out[i]===undefined){const f=[0,1,2,3].find(x=>!used.has(x));out[i]=f;used.add(f);}});return out;}
+function assignFacs(L){const out=[];const used=new Set();L.forEach((o,i)=>{if(o.f!==undefined&&!used.has(o.f)){out[i]=o.f;used.add(o.f);}});L.forEach((o,i)=>{if(out[i]===undefined){const f=[0,1,2,3,4,5,6,7].find(x=>!used.has(x));out[i]=f;used.add(f);}});return out;}
 function lobbyStart(){if(!NET.host)return;const L=NET.list.slice(0,4);const o=NET.opt;const n=Math.max(o.n,L.length);const asg=assignFacs(L);
   const st={seed:Math.floor(Math.random()*1e9),diff:o.diff,n,timer:o.timer,humans:L.map((p,i)=>({id:p.id,name:p.name,civ:i,f:asg[i]}))};NET.st=st;nsend('start',st);netOnStart(st);}
 function netOnStart(st){if(NET.started&&G&&G.seed===st.seed)return;const me=st.humans.find(h=>h.id===NET.me);if(!me){lbMsg('这一局已经开始了，你不在名单里。');return;}
@@ -1163,10 +1390,10 @@ function netOnCmd(c){if(!G||!NETON)return;if(c.seq<=G.seq)return;if(c.seq!==G.se
 function netOnReq(c){if(!NET.host||!G)return;const o=G.civs.findIndex(cv=>cv.pid===c.pid);if(o<0)return;delete c.pid;c.o=o;if(c.t==='end'||c.t==='ai')return;hostCmd(c);}
 function hostCheckEnd(){if(!NETON||!NET.host||!G||G.over||busy)return;const hum=CIV().filter(o=>isHum(o)&&G.civs[o].alive);const timeUp=G.timer>0&&G.dayT&&Date.now()-G.dayT>G.timer*1000;
   if(!hum.length||hum.every(o=>G.civs[o].ready)||timeUp)hostCmd({t:'end',o:ME});}
-function netSnap(){if(!NET.host||!G)return;const keys=Object.keys(G.tiles);const tl=keys.map(k=>{const t=G.tiles[k];return [t.t,t.own,t.bl===undefined?'':t.bl,t.imp||'',t.goody?1:'',t.nest===undefined?'':t.nest,t.res||'',t.tower===undefined?'':t.tower,t.iso||''].join(',');}).join(';');
+function netSnap(){if(!NET.host||!G)return;const keys=Object.keys(G.tiles);const tl=keys.map(k=>{const t=G.tiles[k];return [t.t,t.own,t.bl===undefined?'':t.bl,t.imp||'',t.goody?1:'',t.nest===undefined?'':t.nest,t.res||'',t.tower===undefined?'':t.tower,t.iso||'',t.burn||'',t.burnBy===undefined?'':t.burnBy,t.wall===undefined?'':t.wall,t.hp===undefined?'':Math.round(t.hp*10)/10].join(',');}).join(';');
   const g=Object.assign({},G,{tiles:null});nsend('s',{g:JSON.stringify(g,(k,v)=>k==='vq'||k==='vr'?undefined:v),tl});}
 function netOnSnap(sn){if(!G||!NETON||NET.host)return;const g=JSON.parse(sn.g);if(g.seq<G.seq)return;const tiles=G.tiles;const keys=Object.keys(tiles);const parts=sn.tl.split(';');
-  keys.forEach((k,i)=>{const t=tiles[k];const f=(parts[i]||'').split(',');t.t=f[0]||t.t;t.own=+f[1];if(f[2]==='')delete t.bl;else t.bl=+f[2];if(f[3])t.imp=f[3];else delete t.imp;if(f[4])t.goody=1;else delete t.goody;if(f[5]==='')delete t.nest;else t.nest=+f[5];if(f[6])t.res=f[6];else delete t.res;if(f[7]===undefined||f[7]==='')delete t.tower;else t.tower=+f[7];if(f[8])t.iso=+f[8];else delete t.iso;});
+  keys.forEach((k,i)=>{const t=tiles[k];const f=(parts[i]||'').split(',');t.t=f[0]||t.t;t.own=+f[1];if(f[2]==='')delete t.bl;else t.bl=+f[2];if(f[3])t.imp=f[3];else delete t.imp;if(f[4])t.goody=1;else delete t.goody;if(f[5]==='')delete t.nest;else t.nest=+f[5];if(f[6])t.res=f[6];else delete t.res;if(f[7]===undefined||f[7]==='')delete t.tower;else t.tower=+f[7];if(f[8])t.iso=+f[8];else delete t.iso;if(f[9])t.burn=+f[9];else delete t.burn;if(f[10]!==undefined&&f[10]!=='')t.burnBy=+f[10];else delete t.burnBy;if(f[11]!==undefined&&f[11]!=='')t.wall=+f[11];else delete t.wall;if(f[12]!==undefined&&f[12]!=='')t.hp=+f[12];else delete t.hp;});
   const vpos={};for(const id in G.units){const u=G.units[id];vpos[id]=[u.vq,u.vr];}
   g.tiles=tiles;const wasOver=G.over;G=g;for(const id in G.units){const v=vpos[id];if(v){G.units[id].vq=v[0];G.units[id].vr=v[1];}}
   MW=G.mw;MH=G.mh;RNG=gRand;reidx();spriteCache.clear();afterCmd();
@@ -1212,8 +1439,16 @@ const SFX={
   win(){if(!ok())return;const t=AU.ctx.currentTime;[0,2,4,7,9,7,4,9].forEach((k,i)=>note(PENTA[k],t+i*0.2,2.2,0.07));},
   lose(){if(!ok())return;const t=AU.ctx.currentTime;[440,415.3,392,329.63].forEach((f,i)=>note(f,t+i*0.45,2,0.07,'triangle'));},
 };
+// 每个阵营自己的曲风：音阶（相对根音的半音）、音色、节奏、根音
+const MUS={water:{sc:[0,2,4,7,9,12,14],w:'sine',sp:1.3,root:261.63,len:3.2},fire:{sc:[0,3,5,7,10,12,15],w:'triangle',sp:0.7,root:220,len:1.6,drum:1},earth:{sc:[0,2,5,7,9,12],w:'triangle',sp:1.4,root:196,len:2.8,drone:1},thunder:{sc:[0,2,3,7,8,12,14],w:'square',sp:0.9,root:246.94,len:1.2,vol:0.45},
+ nomad:{sc:[0,3,5,7,10,12],w:'sawtooth',sp:0.8,root:174.61,len:2,vol:0.4,drum:1,drone:1},cult:{sc:[0,1,4,5,7,8,11,12],w:'sine',sp:1.6,root:207.65,len:4,drone:1},sky:{sc:[0,2,4,6,7,9,11,12,14],w:'sine',sp:1.0,root:329.63,len:2.4},trade:{sc:[0,2,4,5,7,9,11,12],w:'triangle',sp:0.75,root:293.66,len:1.4}};
 function musicTick(){if(!ok())return;const C=AU.ctx,t=C.currentTime;const war=G&&G.civs&&CIV().some(o=>o!==ME&&atWar(ME,o));
-  while(AU.next<t+0.2){const tt=Math.max(AU.next,t);if(Math.random()<0.7){const sc=war?[0,1,2,4,5,7]:[0,1,2,3,4,5,6];const k=sc[Math.floor(Math.random()*sc.length)];note(PENTA[k]*(war?0.5:(Math.random()<0.25?0.5:1)),tt,2.6,0.032+Math.random()*0.02,war?'triangle':'sine');}AU.next+=war?0.6+Math.random()*0.8:0.9+Math.random()*1.6;}}
+  const M=(G&&G.civs&&G.civs[ME]&&MUS[FAC[fac(ME)].style])||MUS.water;
+  while(AU.next<t+0.2){const tt=Math.max(AU.next,t);AU.bar=(AU.bar||0)+1;
+    if(Math.random()<0.72){const k=M.sc[Math.floor(Math.random()*M.sc.length)];const f=M.root*Math.pow(2,k/12)*(war?0.5:(Math.random()<0.25?0.5:1));note(f,tt,M.len,(0.03+Math.random()*0.02)*(M.vol||1),war&&M.w==='sine'?'triangle':M.w);}
+    if(M.drone&&AU.bar%6===0)note(M.root/2,tt,M.len*2.2,0.025*(M.vol||1),'sine');
+    if((M.drum||war)&&AU.bar%2===0)note(M.root/4,tt,0.25,0.06,'sine');
+    AU.next+=(war?0.7:1)*M.sp*(0.8+Math.random()*0.8);}}
 $('#bSnd').onclick=()=>{AU.on=!AU.on;$('#bSnd').textContent=AU.on?'🔊':'🔇';if(AU.ctx)AU.m.gain.setTargetAtTime(AU.on?0.8:0,AU.ctx.currentTime,0.1);};
 
 /* ---------- 操作 ---------- */
