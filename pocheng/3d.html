@@ -669,13 +669,38 @@ function sprKey(u){const lk=UT[u.k].lk;if(lk==='hero'){const r=raceOf(u.o).k;con
 const SPR_H={inf:1.75,rng:1.75,sup:1.75,cav:2.1,sie:2.15};
 let _blob=null;function blobTex(){if(_blob)return _blob;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,4,32,32,30);g.addColorStop(0,'rgba(0,0,0,.5)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return _blob=new THREE.CanvasTexture(c);}
 function badgeTex(ch,col){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle=col;x.beginPath();x.arc(32,32,29,0,7);x.fill();x.lineWidth=4;x.strokeStyle='#fff';x.stroke();x.fillStyle='#fff';x.font='900 34px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(ch,32,34);return new THREE.CanvasTexture(c);}
-function spriteBody(sk,u){const U=UT[u.k];const g=new THREE.Group();const[tx]=sprTex(sk);const ar=SPR[sk][1];
-  const hgt=U.lk==='hero'?2.45:U.ace?2.6:(SPR_H[U.role]||1.75)*(U.fly?0.95:1);
-  const m=new THREE.SpriteMaterial({map:tx,transparent:true,alphaTest:0.12});const sp=new THREE.Sprite(m);sp.center.set(0.5,0.02);sp.scale.set(hgt*ar,hgt,1);g.add(sp);
-  g.userData.spr=sp;g.userData.sw=hgt*ar;g.userData.sh=hgt;g.userData.sk=sk;g.userData.flip=0;
-  const bl=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(2.4,hgt*ar*0.7),0.9),new THREE.MeshBasicMaterial({map:blobTex(),transparent:true,depthWrite:false}));bl.rotation.x=-Math.PI/2;bl.position.y=0.06;g.add(bl);g.userData.blob=bl;
+function makeCard(sk,hgt){const ar=SPR[sk][1];const w=hgt*ar;const geo=new THREE.PlaneGeometry(w,hgt,6,10);geo.translate(0,hgt/2,0);
+  const m=new THREE.MeshBasicMaterial({map:sprTex(sk)[0],transparent:true,alphaTest:0.3,side:THREE.DoubleSide});const mesh=new THREE.Mesh(geo,m);
+  mesh.userData.base=Float32Array.from(geo.attributes.position.array);mesh.userData.w=w;mesh.userData.h=hgt;mesh.frustumCulled=false;return mesh;}
+function animStyle(u){const U=UT[u.k];if(U.lk==='hero'){const w=u.wpn===undefined?-1:u.wpn;return w===1?'thrust':w===2||w===3?'shoot':w===4?'slam':'slash';}
+  if(['spear','horseL','horseH'].includes(U.lk)||u.k==='h_mil'||u.k==='y_jiaolong')return 'thrust';
+  if(U.role==='sie')return 'siege';if(U.role==='sup')return 'cast';if(U.role==='rng')return 'shoot';return 'slash';}
+function spriteBody(sk,u){const U=UT[u.k];const g=new THREE.Group();
+  const hgt=U.lk==='hero'?2.45:U.ace?2.6:(SPR_H[U.role]||1.75)*(U.fly?0.95:1);const card=makeCard(sk,hgt);g.add(card);
+  g.userData.spr=card;g.userData.sh=hgt;g.userData.sk=sk;g.userData.flip=0;g.userData.atk=9;g.userData.hitT=9;
+  const bl=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(2.4,card.userData.w*0.7),0.9),new THREE.MeshBasicMaterial({map:blobTex(),transparent:true,depthWrite:false}));bl.rotation.x=-Math.PI/2;bl.position.y=0.06;g.add(bl);g.userData.blob=bl;
   if(U.fly)g.userData.fly=1;if(['y_huodou','y_bifang'].includes(u.k))g.userData.fire=1;
   return g;}
+// 纸片变形：bend 上半身前倾（弧度）、shift 前后移动、rock 整体摇摆、sx/sy 挤压
+function poseCard(card,s,P){const b=card.userData.base,a=card.geometry.attributes.position.array,h=card.userData.h,py=h*0.3;
+  const cr=Math.cos(-s*P.rock),sr=Math.sin(-s*P.rock);
+  for(let i=0;i<a.length;i+=3){let x=b[i]*P.sx,y=b[i+1]*P.sy;const yn=b[i+1]/h;
+    const t=yn<=0.3?0:(yn-0.3)/0.7;const k=t*t*(3-2*t);const ang=-s*P.bend*k;if(ang){const c=Math.cos(ang),sn=Math.sin(ang);const dx=x,dy=y-py;x=dx*c-dy*sn;y=py+dx*sn+dy*c;}
+    if(P.rock){const x2=x*cr-y*sr,y2=x*sr+y*cr;x=x2;y=y2;}
+    a[i]=x+s*P.shift;a[i+1]=y+P.lift;}
+  card.geometry.attributes.position.needsUpdate=true;}
+const ease=(a,b,t)=>a+(b-a)*(t<0?0:t>1?1:t*t*(3-2*t));
+function attackPose(st,p,P){// p：攻击开始后的秒数
+  if(st==='slash'){if(p<0.1)P.bend=ease(0,-0.5,p/0.1);else if(p<0.22){P.bend=ease(-0.5,0.7,(p-0.1)/0.12);P.sx=ease(1,1.08,(p-0.1)/0.12);P.sy=ease(1,0.93,(p-0.1)/0.12);}else if(p<0.45){P.bend=ease(0.7,0,(p-0.22)/0.23);P.sx=ease(1.08,1,(p-0.22)/0.23);P.sy=ease(0.93,1,(p-0.22)/0.23);}P.shift=p<0.3?ease(0,0.25,p/0.2)*(1-Math.max(0,p-0.2)/0.25):0;}
+  else if(st==='slam'){if(p<0.18){P.bend=ease(0,-0.6,p/0.18);P.sy=ease(1,1.08,p/0.18);}else if(p<0.3){P.bend=ease(-0.6,0.7,(p-0.18)/0.12);P.sy=ease(1.08,0.82,(p-0.18)/0.12);P.sx=ease(1,1.15,(p-0.18)/0.12);}else if(p<0.6){P.bend=ease(0.7,0,(p-0.3)/0.3);P.sy=ease(0.82,1,(p-0.3)/0.3);P.sx=ease(1.15,1,(p-0.3)/0.3);}}
+  else if(st==='thrust'){if(p<0.08){P.shift=ease(0,-0.2,p/0.08);}else if(p<0.18){P.shift=ease(-0.2,0.65,(p-0.08)/0.1);P.sx=ease(1,1.14,(p-0.08)/0.1);P.bend=ease(0,0.15,(p-0.08)/0.1);}else if(p<0.42){P.shift=ease(0.65,0,(p-0.18)/0.24);P.sx=ease(1.14,1,(p-0.18)/0.24);P.bend=ease(0.15,0,(p-0.18)/0.24);}}
+  else if(st==='shoot'){if(p<0.05){P.sy=ease(1,0.96,p/0.05);}else if(p<0.12){P.shift=ease(0,-0.22,(p-0.05)/0.07);P.bend=ease(0,-0.18,(p-0.05)/0.07);}else if(p<0.4){P.shift=ease(-0.22,0,(p-0.12)/0.28);P.bend=ease(-0.18,0,(p-0.12)/0.28);}}
+  else if(st==='siege'){if(p<0.12){P.rock=ease(0,-0.12,p/0.12);P.sy=ease(1,0.94,p/0.12);}else if(p<0.5){P.rock=ease(-0.12,0,(p-0.12)/0.38)+Math.sin(p*60)*0.02*(1-p*2);P.sy=ease(0.94,1,(p-0.12)/0.38);}}
+  else if(st==='cast'){if(p<0.15){P.lift=ease(0,0.25,p/0.15);P.sy=ease(1,1.08,p/0.15);}else if(p<0.45){P.lift=ease(0.25,0,(p-0.15)/0.3);P.sy=ease(1.08,1,(p-0.15)/0.3);}}}
+const ATK_LEN={slash:0.45,slam:0.6,thrust:0.42,shoot:0.4,siege:0.5,cast:0.45};
+let _arc=null;function arcTex(){if(_arc)return _arc;const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,128,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(0.6,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,1)');x.strokeStyle=g;x.lineCap='round';
+  for(let i=0;i<6;i++){x.lineWidth=14-i*2;x.globalAlpha=0.35+i*0.13;x.beginPath();x.arc(64,64,50-i*1.2,-1.25,1.25);x.stroke();}return _arc=new THREE.CanvasTexture(c);}
 function makeUnit(u){const k=u.k;const U=UT[k];const col=new THREE.Color(colOf(u.o)).getHex();const lk=U.lk;const root=new THREE.Group();let body;
   const race=raceOf(u.o).k;const big=u.S.big||1;const sk=sprKey(u);
   if(sk)body=spriteBody(sk,u);
@@ -718,6 +743,7 @@ function fx3(kind,x,y,z,o){if(!R3)return;const S=R3.scene;o=o||{};let m;
   if(kind==='arrow'){m=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.05,0.6),new THREE.MeshBasicMaterial({color:o.fire?0xff7a2a:0x4a3a2a}));}
   else if(kind==='stone'){m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.2,0),M(0x6b6258));}
   else if(kind==='puff'||kind==='fire'||kind==='heal'||kind==='soul'){m=new THREE.Sprite(new THREE.SpriteMaterial({map:dustTex(),color:kind==='fire'?0xff8a3a:kind==='heal'?0x7ad98a:kind==='soul'?0xb08af0:(R3.theme==='fx'?0xb8c4d0:0xe8e0d0),transparent:true,opacity:0.8,depthWrite:false}));m.scale.setScalar(o.s||1.2);}
+  else if(kind==='arc'){m=new THREE.Sprite(new THREE.SpriteMaterial({map:arcTex(),color:new THREE.Color(o.col||'#ffffff'),transparent:true,opacity:0.95,depthWrite:false,blending:THREE.AdditiveBlending}));const sc=o.s||1.5;if(o.thr)m.scale.set(sc*1.3,sc*0.35,1);else m.scale.set(sc,sc,1);if(o.sgn<0)m.material.map=arcTex();}
   else if(kind==='swing'){m=new THREE.Mesh(new THREE.RingGeometry(1.2,1.9,16,1,-0.9,1.8),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.7,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;}
   else return;m.position.set(x,y,z);S.add(m);R3.fx.push(Object.assign({m,kind,t:0,d:o.d||0.6,x,y,z},o));}
 function fxPush(f){if(HEADLESS||!R3)return;const h=(q,r)=>{const t=T(q,r);return t?tileTop(t):0;};
@@ -737,16 +763,29 @@ function sync3d(dt){const S=R3.scene;const seen=new Set();const hero=heroOf(ME);
     o.position.x+=(x-o.position.x)*Math.min(1,dt*14);o.position.z+=(z-o.position.z)*Math.min(1,dt*14);o.position.y=y;
     const b=o.userData.body;const moving=u.hero?u.moving:u.mp<1;
     if(u.hero&&o.userData.badge&&o.userData.wpn!==u.wpn){const W=heroWpn(u);const ch=W.n[raceOf(u.o).k==='h'?0:1][0];const bd=o.userData.badge;if(bd.material.map)bd.material.map.dispose();bd.material.map=badgeTex(ch,u.wpn>=0?ELC[u.wpn]:'#6a6f78');bd.material.needsUpdate=true;o.userData.wpn=u.wpn;
-      if(b.userData.spr){const nk=sprKey(u);if(nk!==b.userData.sk){b.userData.sk=nk;b.userData.sw=b.userData.sh*SPR[nk][1];b.userData.spr.material.map=sprTex(nk)[b.userData.flip];b.userData.spr.material.needsUpdate=true;}}}
+      if(b.userData.spr){const nk=sprKey(u);if(nk!==b.userData.sk){b.userData.sk=nk;const old=b.userData.spr;const nc=makeCard(nk,b.userData.sh);nc.material.map=sprTex(nk)[b.userData.flip];b.remove(old);old.geometry.dispose();b.add(nc);b.userData.spr=nc;}}}
     if(u.hero&&b.userData.wg&&b.userData.wpn!==u.wpn){const wg=b.userData.wg;while(wg.children.length)wg.remove(wg.children[0]);weapon(wg,heroWpn(u).lk,1.35,0);b.userData.wpn=u.wpn;}
     // 朝向
     let yaw=u.hero?u.yaw:o.userData.yaw||0;if(!u.hero){if(u.mp<1){const[x0,z0]=w3(u.pq,u.pr),[x1,z1]=w3(u.q,u.r);yaw=Math.atan2(x1-x0,z1-z0);}else if(u.tgt){const tg=tgtObj(u.tgt);if(tg){const[tx,tz]=tg.o.hero?[tg.o.wx*SC,tg.o.wz*SC]:w3(tg.q,tg.r);yaw=Math.atan2(tx-x,tz-z);}}o.userData.yaw=yaw;}
-    if(b.userData.spr){const sp=b.userData.spr;const e=R3.camera.matrixWorld.elements;const fx=Math.sin(yaw),fz=Math.cos(yaw);const d=fx*e[0]+fz*e[2];
-      if(d<-0.12&&!b.userData.flip){b.userData.flip=1;sp.material.map=sprTex(b.userData.sk)[1];}else if(d>0.12&&b.userData.flip){b.userData.flip=0;sp.material.map=sprTex(b.userData.sk)[0];}
-      const at=u.hero?u.swing>0:u.cd>UT[u.k].cd-0.25;const ph=gt*10+u.id;
-      const lunge=at?0.35:0;b.userData.lp=(b.userData.lp||0)+(lunge-(b.userData.lp||0))*Math.min(1,dt*18);sp.position.set(fx*b.userData.lp,moving?Math.abs(Math.sin(ph))*0.12:0,fz*b.userData.lp);
-      const sq=at?1.08:1+(moving?Math.sin(ph*2)*0.025:Math.sin(gt*2.5+u.id)*0.015);sp.scale.set(b.userData.sw*sq,b.userData.sh/sq,1);sp.material.rotation=moving?Math.sin(ph)*0.06*(b.userData.flip?-1:1):0;
-      const hit=(o.userData.lhp!==undefined&&u.hp<o.userData.lhp-0.5);o.userData.lhp=u.hp;if(hit)o.userData.flash=0.12;if(o.userData.flash>0){o.userData.flash-=dt;sp.material.color.setRGB(1,0.55,0.55);}else sp.material.color.setRGB(1,1,1);
+    if(b.userData.spr){const card=b.userData.spr;const e=R3.camera.matrixWorld.elements;const fx=Math.sin(yaw),fz=Math.cos(yaw);const d=fx*e[0]+fz*e[2];
+      if(d<-0.12&&!b.userData.flip){b.userData.flip=1;card.material.map=sprTex(b.userData.sk)[1];}else if(d>0.12&&b.userData.flip){b.userData.flip=0;card.material.map=sprTex(b.userData.sk)[0];}
+      card.quaternion.copy(R3.camera.quaternion);const sgn=b.userData.flip?-1:1;
+      // 攻击开始：小兵看冷却跳上去，主将看挥砍
+      const st=animStyle(u);const cdNow=u.hero?u.swing:u.cd;if(cdNow>(o.userData.lcd||0)+0.05){b.userData.atk=0;b.userData.hitFx=0;}o.userData.lcd=cdNow;
+      b.userData.atk+=dt;const p=b.userData.atk;const ph=gt*9+u.id;
+      const P={bend:0,shift:0,rock:0,sx:1,sy:1,lift:0};
+      if(p<ATK_LEN[st])attackPose(st,p,P);
+      else if(moving){P.rock=Math.sin(ph)*0.07;P.lift=Math.abs(Math.sin(ph))*0.1;P.bend=0.08;}
+      else{P.sy=1+Math.sin(gt*2.4+u.id)*0.018;}
+      // 出招特效：砍 → 刀光弧，刺 → 直线，锤 → 地面尘土
+      const imp={slash:0.14,slam:0.26,thrust:0.13}[st];
+      if(imp&&p>=imp&&!b.userData.hitFx&&p<imp+0.2){b.userData.hitFx=1;const ux=x+fx*0.9,uz=z+fz*0.9;const col=u.hero?(u.wpn>=0?ELC[u.wpn]:'#ffffff'):(u.S.title?ELC[ELT.indexOf(u.S.title)]:'#ffffff');
+        fx3('arc',ux,y+b.userData.sh*(st==='slam'?0.35:0.5),uz,{d:st==='slam'?0.25:0.2,s:b.userData.sh*(u.hero?0.95:0.75),sgn,col,thr:st==='thrust'});
+        if(st==='slam')for(let k=0;k<6;k++)fx3('puff',ux+(Math.random()-0.5)*2,y+0.3,uz+(Math.random()-0.5)*2,{d:0.6,s:1.2,rise:0.5});}
+      // 受击：后仰 + 闪红
+      const hit=(o.userData.lhp!==undefined&&u.hp<o.userData.lhp-0.5);o.userData.lhp=u.hp;if(hit){b.userData.hitT=0;}b.userData.hitT+=dt;
+      if(b.userData.hitT<0.22){const k=1-b.userData.hitT/0.22;P.bend-=0.22*k;P.shift-=0.12*k;card.material.color.setRGB(1,0.55+0.45*(1-k),0.55+0.45*(1-k));}else card.material.color.setRGB(1,1,1);
+      poseCard(card,sgn,P);
       if(b.userData.fly){b.position.y=1.2+Math.sin(gt*3+u.id)*0.15;b.userData.blob.position.y=0.06-b.position.y;}
       if((b.userData.fire||u.burn>0)&&Math.random()<dt*6)fx3('fire',x+(Math.random()-0.5)*0.6,y+1+Math.random()*0.5,z+(Math.random()-0.5)*0.6,{d:0.5,s:0.5,rise:1.2});}
     else{
@@ -779,6 +818,7 @@ function sync3d(dt){const S=R3.scene;const seen=new Set();const hero=heroOf(ME);
   // 特效
   for(let i=R3.fx.length-1;i>=0;i--){const f=R3.fx[i];f.t+=dt;const p=f.t/f.d;if(p>=1){S.remove(f.m);R3.fx.splice(i,1);continue;}
     if(f.kind==='arrow'||f.kind==='stone'){const x=f.x+(f.x1-f.x)*p,z=f.z+(f.z1-f.z)*p,y=f.y+(f.y1-f.y)*p+Math.sin(p*Math.PI)*1.6;f.m.position.set(x,y,z);f.m.lookAt(f.x1,f.y1,f.z1);}
+    else if(f.kind==='arc'){f.m.material.opacity=0.95*(1-p);if(f.thr){f.m.material.rotation=f.sgn<0?Math.PI:0;}else{f.m.material.rotation=(f.sgn<0?Math.PI:0)+f.sgn*(0.9-p*1.8);}const k=1+p*0.25;f.m.scale.x=Math.abs(f.m.scale.x)*1;}
     else if(f.kind==='swing'){f.m.material.opacity=0.7*(1-p);f.m.rotation.z=-(f.yaw||0)+Math.PI/2+(p-0.5)*1.2;}
     else{f.m.material.opacity=0.8*(1-p);if(f.rise)f.m.position.y=f.y+p*f.rise;if(f.kind==='puff')f.m.scale.setScalar((f.s||1)*(1+p));}}
   for(const d of R3.dust){d.position.x+=d.userData.vx*dt;d.material.opacity=0.22+0.12*Math.sin(gt*0.5+d.userData.ph);}
