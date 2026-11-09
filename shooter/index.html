@@ -118,8 +118,8 @@ body.touch #pvpBar{top:52px}
 #mgTip{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);text-align:center;font-size:14px;text-shadow:0 1px 3px #000}
 #tThr{width:52px;height:52px;left:calc(26px + env(safe-area-inset-left));top:24%;background:rgba(90,110,40,.5)}
 #tThrS{width:34px;height:34px;left:calc(84px + env(safe-area-inset-left));top:24%;font-size:14px}
-#tKnife{width:50px;height:50px;right:calc(200px + env(safe-area-inset-right));bottom:200px}
-#tView{width:46px;height:46px;right:calc(200px + env(safe-area-inset-right));bottom:132px;font-size:12px}
+#tKnife{width:46px;height:46px;left:calc(50% + 150px);bottom:6px;font-size:13px}
+#tView{width:40px;height:40px;left:50%;margin-left:76px;top:8px;font-size:11px}
 #tBoard{width:40px;height:40px;left:50%;margin-left:28px;top:8px;font-size:13px}
 </style>
 </head>
@@ -313,7 +313,17 @@ function boneW(c,n,v){const b=c.bones[n];if(!b)return null;return b.getWorldPosi
 
 // ================= 地图 =================
 const COL=[];// {b:Box3, z:1(挡丧尸) p:1(挡玩家) r:1(挡子弹)}
-let DYN=false;function addCol(minX,minZ,maxX,maxZ,h,o={}){COL.push({b:new T.Box3(new T.Vector3(minX,0,minZ),new T.Vector3(maxX,h,maxZ)),z:o.z!==0,p:o.p!==0,r:o.r!==0,dyn:DYN})}
+let DYN=false;function addCol(minX,minZ,maxX,maxZ,h,o={}){COL.push({b:new T.Box3(new T.Vector3(minX,0,minZ),new T.Vector3(maxX,h,maxZ)),z:o.z!==0,p:o.p!==0,r:o.r!==0,dyn:DYN,
+ o:{cx:(minX+maxX)/2,cz:(minZ+maxZ)/2,hx:(maxX-minX)/2,hz:(maxZ-minZ)/2,c:1,s:0,h,rs:o.rs||0}})}
+// 斜放的车/集装箱：用旋转盒子碰撞（不再用外包大方框，避免隐形墙）
+function addColO(cx,cz,hx,hz,h,ry,o={}){const c=Math.cos(ry),s=Math.sin(ry);const ex=Math.abs(hx*c)+Math.abs(hz*s),ez=Math.abs(hx*s)+Math.abs(hz*c);
+ COL.push({b:new T.Box3(new T.Vector3(cx-ex,0,cz-ez),new T.Vector3(cx+ex,h,cz+ez)),z:o.z!==0,p:o.p!==0,r:o.r!==0,dyn:DYN,o:{cx,cz,hx,hz,c,s,h,rs:o.rs||0}})}
+const OBV={x:0,z:0};function obL(o,x,z){const dx=x-o.cx,dz=z-o.cz;OBV.x=dx*o.c-dz*o.s;OBV.z=dx*o.s+dz*o.c;return OBV}
+function obW(o,lx,lz,out){out.x=o.cx+lx*o.c+lz*o.s;out.z=o.cz-lx*o.s+lz*o.c;return out}
+const ORay=new T.Ray(),OBox=new T.Box3(),OHit=new T.Vector3();
+function rayCol(c,o,d,bullet){if(!ray.intersectsBox(c.b))return -1;const q=c.o;const L=obL(q,o.x,o.z);ORay.origin.set(L.x,o.y,L.z);ORay.direction.set(d.x*q.c-d.z*q.s,d.y,d.x*q.s+d.z*q.c);
+ const m=bullet?q.rs:0;OBox.min.set(-q.hx+m,0,-q.hz+m);OBox.max.set(q.hx-m,q.h*(bullet&&q.rs?.9:1),q.hz-m);const hit=ORay.intersectBox(OBox,OHit);return hit?hit.distanceTo(ORay.origin):-1}
+function topPt(c,x,z,ins,out){const q=c.o;const L=obL(q,x,z);return obW(q,clamp(L.x,-q.hx+ins,q.hx-ins),clamp(L.z,-q.hz+ins,q.hz-ins),out)}
 function uvBox(w,h,d,tw,th){const g=new T.BoxGeometry(w,h,d),uv=g.attributes.uv;const dims=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
  for(let f=0;f<6;f++)for(let i=0;i<4;i++){const j=f*4+i;uv.setXY(j,uv.getX(j)*dims[f][0]/tw,uv.getY(j)*dims[f][1]/th)}return g}
 function mat(t,o={}){return new T.MeshStandardMaterial(Object.assign({map:t||null,roughness:.92,metalness:.05,color:0xffffff},o))}
@@ -390,13 +400,13 @@ function placeProp(n,x,z,ry,len,collide){const src=PROPS[n];if(!src)return null;
  o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;if(/vehicle|bus|truck|forklift/.test(n)){m.material=m.material.clone();m.material.color&&m.material.color.multiplyScalar(.62)}}});
  const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,0,z);g.rotation.y=ry;scene.add(g);
- if(collide){g.updateMatrixWorld(true);const wb=new T.Box3().setFromObject(g);const c=wb.getCenter(new T.Vector3()),s=wb.getSize(new T.Vector3());const f=Math.abs(Math.sin(2*ry))>.15?.82:.94;
-  addCol(c.x-s.x*f/2,c.z-s.z*f/2,c.x+s.x*f/2,c.z+s.z*f/2,s.y)}return g}
-function groundH(p,r,y){let g=0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.3)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z&&h>g)g=h}return g}
+ if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),sz.y*k,ry,{rs:veh?.12:0})}return g}
+function groundH(p,r,y){let g=0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.3||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
 function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&&!c.p)continue;const b=c.b;if(y>0&&b.max.y<=y+.05)continue;
- const cx=clamp(p.x,b.min.x,b.max.x),cz=clamp(p.z,b.min.z,b.max.z);let dx=p.x-cx,dz=p.z-cz;const d2=dx*dx+dz*dz;
- if(d2<r*r){if(d2<1e-8){const l=p.x-b.min.x,rr=b.max.x-p.x,t=p.z-b.min.z,bt=b.max.z-p.z;const m=Math.min(l,rr,t,bt);if(m===l)p.x=b.min.x-r;else if(m===rr)p.x=b.max.x+r;else if(m===t)p.z=b.min.z-r;else p.z=b.max.z+r}
-  else{const d=Math.sqrt(d2);p.x=cx+dx/d*r;p.z=cz+dz/d*r}}}}
+ if(p.x+r<=b.min.x||p.x-r>=b.max.x||p.z+r<=b.min.z||p.z-r>=b.max.z)continue;const q=c.o;const L=obL(q,p.x,p.z);const lx=L.x,lz=L.z;
+ const cx=clamp(lx,-q.hx,q.hx),cz=clamp(lz,-q.hz,q.hz);let dx=lx-cx,dz=lz-cz;const d2=dx*dx+dz*dz;if(d2>=r*r)continue;let nx=lx,nz=lz;
+ if(d2<1e-8){const l=lx+q.hx,rr=q.hx-lx,t=lz+q.hz,bt=q.hz-lz;const mm=Math.min(l,rr,t,bt);if(mm===l)nx=-q.hx-r;else if(mm===rr)nx=q.hx+r;else if(mm===t)nz=-q.hz-r;else nz=q.hz+r}
+ else{const d=Math.sqrt(d2);nx=cx+dx/d*r;nz=cz+dz/d*r}obW(q,nx,nz,p)}}
 
 // ================= 武器：每把枪都有自己的模型、枪声、枪口火、后坐力、抛壳、换弹方式 =================
 // cat 类别决定持枪姿势；file 模型文件；len 真实长度(米)；gz/gy 握把位置；my 枪管高度；fz 护木位置
@@ -575,14 +585,14 @@ function placeGun(g,c,yaw,pitch){const hp=boneW(c,'mixamorigrighthand',v4);if(hp
 function updHumans(dt){const now=performance.now();
  for(const id in HUM){const H=HUM[id];
   if(!H.bot&&now-H.seen>8000){removeHuman(id);continue}
-  if(!(H.bot&&isHost())){if(H.pos.distanceToSquared(H.tgt)>16)H.pos.copy(H.tgt);else{const k=Math.min(1,dt*12);H.pos.x+=(H.tgt.x-H.pos.x)*k;H.pos.z+=(H.tgt.z-H.pos.z)*k}H.yaw+=wrapA(H.tyaw-H.yaw)*Math.min(1,dt*14)}
+  if(!(H.bot&&isHost())){const ex=Math.min(.18,(now-(H.snapT||0))/1000),gx=H.tgt.x+(H.vx||0)*ex,gz=H.tgt.z+(H.vz||0)*ex;if(H.pos.distanceToSquared(H.tgt)>16)H.pos.copy(H.tgt);else{const k=Math.min(1,dt*12);H.pos.x+=(gx-H.pos.x)*k;H.pos.z+=(gz-H.pos.z)*k}H.yaw+=wrapA(H.tyaw-H.yaw)*Math.min(1,dt*14)}
   H.c.wrap.rotation.y=H.yaw+Math.PI;H.pos.y+=((H.ty||0)-H.pos.y)*Math.min(1,dt*14);const onMG=H.u>=0&&MGS[H.u]&&!H.dead;
-  if(H.a===4&&!H.clb){H.clb=1;playOnce(H.c,'climb',1.5)}else if(H.a!==4&&H.clb){H.clb=0;revive(H.c)}
+  if(H.a===4&&!H.clb){H.clb=1;H.cly0=H.pos.y;H.clx=H.pos.x-Math.sin(H.yaw)*.5;H.clz=H.pos.z-Math.cos(H.yaw)*.5}else if(H.a!==4&&H.clb){H.clb=0}if(H.clb)setBase(H.c,'crouch',.8);
   if(!H.dead&&!H.clb){if(H.cr||H.dn)setBase(H.c,'crouch',H.a?1.3:.6);else if(onMG)setBase(H.c,'idle_gun',1);else animHuman(H.c,H.a)}
   updChar(H.c,dt);
   if(H.wShow===undefined)H.wShow=H.w;if(H.w!==H.wShow&&!H.swT)H.swT=.001;let low=0;
   if(H.swT){H.swT+=dt;if(H.swT>=.3&&H.wShow!==H.w)H.wShow=H.w;low=H.swT<.3?H.swT/.3:Math.max(0,(.6-H.swT)/.3);if(H.swT>=.6)H.swT=0}
-  if(onMG)poseOnMG(H.c,MGS[H.u]);else if(!H.dead&&H.a!==2&&H.pos.distanceToSquared(P.pos)<3600)poseArms(H.c,H.wShow,H.yaw,H.pitch,low,0);
+  if(H.clb&&H.ty>H.cly0+.3)mantleHands(H.c,H.yaw,H.clx,H.clz,H.ty,1);else if(onMG)poseOnMG(H.c,MGS[H.u]);else if(!H.dead&&H.a!==2&&H.pos.distanceToSquared(P.pos)<3600)poseArms(H.c,H.wShow,H.yaw,H.pitch,low,0);
   H.guns.forEach(g=>{if(g)g.visible=false});const g=H.dead||onMG?null:gunOf(H.guns,H.wShow);if(g)g.visible=true;if(g&&!H.dead)placeGun(g,H.c,H.yaw,H.pitch);
   if(H.ring)H.ring.material.opacity=H.dead?.15:.8;if(H.tag)H.tag.visible=!H.dead}}
 // 统一的“人”：自己 + HUM
@@ -593,7 +603,7 @@ function nameOf(id){if(id===NET.me)return myName;if(id==='Z')return '丧尸';if(
 function rost(id){return G.R[id]||(G.R[id]={n:nameOf(id),t:teamOf(id),k:0,d:0,b:id[0]==='b'?1:0})}
 
 // ---------- 开局 ----------
-function clearWorld(){for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
+function clearWorld(){for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG)dropTong(k);for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
  if(P.c){scene.remove(P.c.wrap);P.c=null}P.guns.forEach(g=>g&&scene.remove(g));P.guns=[]}
 function beginMatch(cfg){
  clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));if(cfg.seed!=null)buildLayout(cfg.seed);
@@ -620,9 +630,9 @@ function equip(i,force){if(!G.ws[i].own)return;if(P.mg&&!force)return;P.burst=0;
  if(P.sw?P.sw.to===i:i===G.cur)return;G.last=G.cur;P.relT=0;P.sw={t:0,d:WP[i].cat==='pistol'?.45:WP[i].cat==='sniper'?.85:.7,to:i,done:false};sClick()}
 function mashP(){if(!P.pin)return;P.mash++;P.shake=.15;if(P.mash>=8){const zid=P.pin;P.pin=null;popTxt('挣脱了！');if(isHost()){const z=zById(zid);if(z)z.hDmg=999}else nsend('brk',{z:zid,p:NET.me})}}
 function tryClimb(){const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);const o=new T.Vector3(P.pos.x,P.y+.6,P.pos.z);ray.origin.copy(o);ray.direction.set(fx,0,fz);let best=null,bt=1.15;
- for(const c of COL){if(!c.p||!c.r)continue;const h=c.b.max.y;if(h<P.y+1||h>P.y+3.4)continue;const hit=ray.intersectBox(c.b,v3);if(hit){const t=hit.distanceTo(o);if(t<bt){bt=t;best=c.b}}}
- if(!best)return false;const ex=clamp(P.pos.x+fx*(bt+.5),best.min.x+.3,best.max.x-.3),ez=clamp(P.pos.z+fz*(bt+.5),best.min.z+.3,best.max.z-.3);
- P.climb={t:0,d:1.05,x0:P.pos.x,z0:P.pos.z,y0:P.y,x1:ex,z1:ez,y1:best.max.y};playOnce(P.c,'climb',1.5);P.cr=false;$('tCrouch').classList.remove('on');P.vel.set(0,0,0);noise(400,.15,.2);return true}
+ for(const c of COL){if(!c.p||!c.r)continue;const h=c.b.max.y;if(h<P.y+1||h>P.y+3.4)continue;const t=rayCol(c,o,ray.direction,false);if(t>=0&&t<bt){bt=t;best=c}}
+ if(!best)return false;const E=topPt(best,P.pos.x+fx*(bt+.55),P.pos.z+fz*(bt+.55),.3,{x:0,z:0});const H=best.o.h;
+ P.climb={t:0,d:1.1,x0:P.pos.x,z0:P.pos.z,y0:P.y,x1:E.x,z1:E.z,y1:H,hx:P.pos.x+fx*bt,hz:P.pos.z+fz*bt,yaw:P.yaw};P.cr=false;$('tCrouch').classList.remove('on');P.vel.set(0,0,0);noise(400,.15,.2);return true}
 function doJump(){if(P.pin){mashP();return}if(P.dn)return;if(P.dead||P.mg||P.air||P.climb||P.grab||P.stun>0||G.paused)return;if(P.cr){P.cr=false;$('tCrouch').classList.remove('on');return}if(tryClimb())return;P.vy=6.2;P.air=true;noise(300,.08,.15)}
 function toggleCrouch(){if(P.dead||P.mg)return;P.cr=!P.cr;$('tCrouch').classList.toggle('on',P.cr);noise(500,.06,.1)}
 function swUpdate(dt){const s=P.sw;if(!s)return;s.t+=dt;if(!s.done&&s.t>=s.d/2){s.done=true;G.cur=s.to;P.guns.forEach(g=>{if(g)g.visible=false});if(!P.dead)gunOf(P.guns,G.cur).visible=true;sRack();hud(true)}if(s.t>=s.d)P.sw=null}
@@ -669,19 +679,20 @@ function charHit(c,o,d){if(c.custom)return mutantHit(c,o,d);const s=c.s*(TOUCH?1
  if(!hip){const t=raySph(o,d,v4.copy(c.wrap.position).setY(c.h*.6),.4*s);if(t>0)best={t,part:'body'}}
  return best}
 const WTV=new T.Vector3();
-function wallT(o,d,max){let tmin=max;ray.origin.copy(o);ray.direction.copy(d);for(const c of COL){if(!c.r)continue;const p=ray.intersectBox(c.b,WTV);if(p){const t=p.distanceTo(o);if(t<tmin)tmin=t}}
+function wallT(o,d,max){let tmin=max;ray.origin.copy(o);ray.direction.copy(d);for(const c of COL){if(!c.r)continue;const t=rayCol(c,o,d,true);if(t>=0&&t<tmin)tmin=t}
  if(d.y<-1e-4){const t=-o.y/d.y;if(t<tmin)tmin=t}return tmin}
 function targetsForMe(){const L=[];if(G.mode==='z'){for(const z of G.zs)if(!z.dead)L.push({k:'z',z,c:z.c,pos:z.c.wrap.position})}
  else for(const id in HUM){const H=HUM[id];if(!H.dead&&H.team!==P.team)L.push({k:'h',H,c:H.c,pos:H.pos})}return L}
+function predictZ(Z,d){if(Z.php===undefined||Z.dead)return;Z.php-=d;if(Z.php<=0){Z.dead=true;Z.deadT=0;Z.pdT=performance.now();playOnce(Z.c,'death',1.1);if(Z.c.die)Z.c.die();if(Z.c.tag)Z.c.tag.visible=false}}
 function queueHit(v,d,hd,wi){const h=NET.out.h.find(x=>x[0]===v);if(h){h[1]+=d;h[2]=h[2]||hd?1:0}else NET.out.h.push([v,d,hd?1:0,wi??G.cur])}
-const camF=new T.Vector3(),camR=new T.Vector3(),muz=new T.Vector3();
+const camF=new T.Vector3(),camR=new T.Vector3(),muz=new T.Vector3(),SHO=new T.Vector3();
 // 一发子弹的命中判定（手持枪械和重机枪共用）
-function shoot(d,dmgB,headM,pierce,push,wi,mz,tc){const o=camera.position;const wt=wallT(o,d,140);const TG=targetsForMe();const dm=G.mode==='pvp'?PVP_DMG:1;
+function shoot(d,dmgB,headM,pierce,push,wi,mz,tc){const o=camera.position;const t0=Math.max(0,(P.pos.x-o.x)*d.x+(P.y+1.3-o.y)*d.y+(P.pos.z-o.z)*d.z-.35);const wt=t0+wallT(SHO.copy(o).addScaledVector(d,t0),d,140-t0);const TG=targetsForMe();const dm=G.mode==='pvp'?PVP_DMG:1;
  const hits=[];for(const tg of TG){if(tg.pos.distanceTo(o)>wt+2)continue;const h=charHit(tg.c,o,d);if(h&&h.t<wt&&h.t>.5)hits.push([h,tg])}
  hits.sort((a,b)=>a[0].t-b[0].t);let end=wt,n=0,head=false;const maxN=1+(pierce||0);
  for(const [h,tg] of hits){if(n>=maxN)break;n++;end=h.t;const hd=h.part==='head';const dmg=dmgB*(hd?headM:h.part==='leg'?.7:1)*dm;if(hd)head=true;
   const hp=v2.copy(o).addScaledVector(d,h.t);emit(hp,hd?14:8,[.55,.03,.02],hd?4:2.6,.6);
-  if(tg.k==='z'){if(isHost())hurtZ(tg.z,dmg,hd,d,push||0,NET.me);else{tg.z.c.flash=.08;queueHit('z'+tg.z.id,dmg,hd,wi)}}
+  if(tg.k==='z'){if(isHost())hurtZ(tg.z,dmg,hd,d,push||0,NET.me);else{tg.z.c.flash=.08;queueHit('z'+tg.z.id,dmg,hd,wi);predictZ(tg.z,dmg)}}
   else{if(tg.H.bot&&isHost())hurtBot(tg.H,dmg,NET.me,hd,wi);else{tg.H.c.flash=.08;queueHit(tg.H.id,dmg,hd,wi)}}}
  const ep=v3.copy(o).addScaledVector(d,end);tracer(mz,ep,tc);if(n===0&&end<139)emit(ep,5,[1,.8,.4],3,.9,9.8,.35);
  return{any:n>0,head,ep}}
@@ -791,7 +802,7 @@ function useLabel(){if(P.mg)return['下枪',TOUCH?'点「下枪」离开':'E / �
  const n=nearMG();if(n)return['上枪',(TOUCH?'点「上枪」':'按 E ')+'操作重机枪'];
  const m=nearMach();if(!m)return null;
  if(m.k==='box')return BOX.st==='ready'?['拿枪','拿取 '+WP[BOX.gun].n]:BOX.st==='spin'?null:['开箱','神秘武器箱 $950（随机武器）'];
- if(m.k==='pap')return G.ws[G.cur].pap?null:['强化','强化 '+WP[G.cur].n+' $5000（伤害×2、弹匣×1.5）'];
+ if(m.k==='pap')return G.ws[G.cur].pap?null:['强化','强化 '+WP[G.cur].n+' $2000（伤害×2、弹匣×1.5）'];
  const pk=PERKS[m.k];if(PERK[m.k])return['已喝',pk.n+'（已拥有）'];return['购买',pk.n+' $'+pk.c+'：'+pk.d+(Object.keys(PERK).length>=4?'（最多 4 种）':'')]}
 function doUse(){if(P.mg)return dismount();if(P.dead||P.dn)return;if(nearDowned())return;const n=nearMG();if(n)return mount(n);const m=nearMach();if(!m)return;
  if(m.k==='box')useBox();else if(m.k==='pap')usePaP();else buyPerk(m.k)}
@@ -807,6 +818,11 @@ function updMGs(dt){for(const m of MGS){const mine=P.mg===m;const firing=mine&&I
   m.tur.rotation.y=m.yaw;m.tur.rotation.x=m.pitch;
   const e=m.heat;m.brl.material.emissive.setRGB(e*e*.9,e*e*.25,0);
   if(m.over&&Math.random()<dt*14){muz.set(0,.05,-.7);m.tur.localToWorld(muz);emit(muz,1,[.6,.6,.6],.6,1,-1.5,1)}}}
+// 翻上车顶：双手撑在边缘，身体蹲着翻上去（不再用爬梯子的动作）
+const MTL=new T.Vector3(),MTR=new T.Vector3();
+function mantleHands(c,yaw,ex,ez,ey,w){if(w<=0)return;c.wrap.updateMatrixWorld(true);const fx=-Math.sin(yaw),fz=-Math.cos(yaw);IK.r.set(Math.cos(yaw),0,-Math.sin(yaw));
+ MTL.set(ex+fx*.12-IK.r.x*.3,ey+.02,ez+fz*.12-IK.r.z*.3);MTR.set(ex+fx*.12+IK.r.x*.3,ey+.02,ez+fz*.12+IK.r.z*.3);armIK(c,'left',MTL,-1);armIK(c,'right',MTR,1)}
+function climbK(k){return{up:Math.min(1,Math.max(0,(k-.1)/.5)),fw:Math.max(0,(k-.58)/.42)}}
 function poseHands(c,R,L){c.wrap.updateMatrixWorld(true);IK.r.copy(camR);armIK(c,'right',R,1);armIK(c,'left',L,-1)}
 // 双手握住机枪把手
 function poseOnMG(c,m){const nk=c.bones.mixamorigneck;if(!nk)return;c.wrap.updateMatrixWorld(true);IK.r.set(Math.cos(m.yaw),0,-Math.sin(m.yaw));
@@ -834,7 +850,7 @@ function makeZChar(type,mi,tint){const t=ZT[type];if(type==='mutant'){const c=ma
  return{c,m}}
 // ---- 事件（房主产生，所有人显示；客户端根据事件处理自己被抓/被扑/被撞）
 function pushEv(e){applyEv(e);if(NET.on)(NET.H.ev||(NET.H.ev=[])).push(e)}
-const PROJ=[],POOLS=[],TONG={};
+const PROJ=[],POOLS=[],TONG={};function dropTong(zid){const T0=TONG[zid];if(T0&&T0.m)scene.remove(T0.m);delete TONG[zid]}
 const rockM=new T.MeshStandardMaterial({color:0x6a625a,roughness:1}),acidM=new T.MeshBasicMaterial({color:0x7dff3a}),poolM=new T.MeshBasicMaterial({color:0x5aff2a,transparent:true,opacity:.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3});
 const tongM=new T.MeshBasicMaterial({color:0x8a2030});
 function zById(id){return G.zs.find(z=>z.id===id)}
@@ -843,9 +859,9 @@ function applyEv(e){const k=e[0];
   decal(x,z,r*.9);const d=Math.hypot(P.pos.x-x,P.pos.z-z);if(AC){noise(160,1.1,1.2*clamp(1-d/60,.1,1));tone(70,30,.9,.7*clamp(1-d/60,.1,1))}P.shake=Math.max(P.shake,clamp(1-d/25,0,1)*.6)}
  else if(k==='pj'){const [,kind,x,y,z,vx,vy,vz]=e;const m=new T.Mesh(kind==='rock'?new T.DodecahedronGeometry(.32,0):new T.SphereGeometry(.2,8,6),kind==='rock'?rockM:acidM);m.position.set(x,y,z);m.castShadow=true;scene.add(m);PROJ.push({kind,m,v:new T.Vector3(vx,vy,vz),host:false,vis:true})}
  else if(k==='pool'){const [,x,y,z,r,life]=e;const m=new T.Mesh(new T.CircleGeometry(r,20),poolM);m.rotation.x=-Math.PI/2;m.position.set(x,y+.03,z);scene.add(m);POOLS.push({m,x,y,z,r,life,tick:0});emit(v1.set(x,y+.2,z),18,[.45,1,.2],3,.8,6,.7);if(AC)noise(1500,.4,.25,'bandpass')}
- else if(k==='tg'){const [,zid,pid]=e;TONG[zid]={pid,t:0,hold:false}}
- else if(k==='grab'){const [,zid,pid]=e;TONG[zid]={pid,t:1,hold:true};if(pid===NET.me&&!P.dead){P.grab=zid;P.cr=false;popTxt('被长手尸抓住了！快打它');say('你被抓住了')}}
- else if(k==='rel'){const [,zid,pid]=e;delete TONG[zid];if(pid===NET.me&&P.grab===zid)P.grab=null}
+ else if(k==='tg'){const [,zid,pid]=e;dropTong(zid);TONG[zid]={pid,t:0,hold:false}}
+ else if(k==='grab'){const [,zid,pid]=e;dropTong(zid);TONG[zid]={pid,t:1,hold:true};if(pid===NET.me&&!P.dead){P.grab=zid;P.cr=false;popTxt('被长手尸抓住了！快打它');say('你被抓住了')}}
+ else if(k==='rel'){const [,zid,pid]=e;dropTong(zid);if(pid===NET.me&&P.grab===zid)P.grab=null}
  else if(k==='pin'){const [,zid,pid]=e;if(pid===NET.me&&!P.dead){P.pin=zid;P.mash=0;P.cr=false;P.shake=.4;say('你被扑倒了')}}
  else if(k==='unpin'){const [,zid,pid]=e;if(pid===NET.me&&P.pin===zid)P.pin=null}
  else if(k==='kb'){const [,pid,vx,vz,st]=e;if(pid===NET.me&&!P.dead){P.kbv.set(vx,0,vz);P.vy=Math.max(P.vy,3);P.stun=Math.max(P.stun,st);P.shake=.5}}
@@ -964,7 +980,7 @@ function buildMachines(vends,bxp,ppp){const lab=(t,col,y)=>{const s=nameTag(t,co
  const b1=new T.Mesh(new T.BoxGeometry(1.5,1.9,1),pm);b1.position.y=.95;b1.castShadow=true;pp.add(b1);
  const sl=new T.Mesh(new T.BoxGeometry(1,.15,.05),new T.MeshBasicMaterial({color:0xb060ff}));sl.position.set(0,1.2,.52);pp.add(sl);
  const pg=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xa040ff,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.6}));pg.scale.set(2.4,2.4,1);pg.position.y=1.2;pp.add(pg);
- pp.add(lab('武器强化机 $5000','#d0a0ff',2.4));colOf(pp);MACH.push({k:'pap',pos:new T.Vector3(ppp[0]+Math.sin(ppp[2])*1.1,0,ppp[1]+Math.cos(ppp[2])*1.1),g:pp,glow:pg});
+ pp.add(lab('武器强化机 $2000','#d0a0ff',2.4));colOf(pp);MACH.push({k:'pap',pos:new T.Vector3(ppp[0]+Math.sin(ppp[2])*1.1,0,ppp[1]+Math.cos(ppp[2])*1.1),g:pp,glow:pg});
  // 能力饮料：直接改造地图上的贩卖机
  const keys=Object.keys(PERKS);vends.forEach((v,i)=>{if(!v||i>=keys.length)return;const k=keys[i],pk=PERKS[k];
   v.traverse(m=>{if(m.isMesh){m.material=m.material.clone();if(m.material.color)m.material.color.lerp(new T.Color(pk.col),.55);if(m.material.emissive)m.material.emissive.setHex(pk.col).multiplyScalar(.12)}});
@@ -977,9 +993,9 @@ function useBox(){if(BOX.st==='idle'){if(G.cash<950)return popTxt('资金不足 
  else if(BOX.st==='ready'){const i=BOX.gun;BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}giveGun(i);popTxt('获得 '+WP[i].n);sRack()}}
 function updBox(dt){if(!BOX)return;BOX.lid.position.y=.6+(BOX.st!=='idle'?.25:0);
  if(BOX.st==='spin'){BOX.t+=dt;if(!BOX.disp||(BOX.t*8|0)!==BOX.k){BOX.k=BOX.t*8|0;if(BOX.disp)scene.remove(BOX.disp);BOX.gun=Math.floor(Math.random()*WP.length);if(G.slots.includes(BOX.gun))BOX.gun=(BOX.gun+1)%WP.length;const g=GUNS[WP[BOX.gun].id];BOX.disp=g?g.clone(true):new T.Group();BOX.disp.position.copy(BOX.g.position).setY(1.1);scene.add(BOX.disp)}
-  BOX.disp.position.y=.9+Math.min(1,BOX.t/3)*.5;BOX.disp.rotation.y+=dt*3;if(BOX.t>=3.2){BOX.st='ready';BOX.t=0;sCash();popTxt('武器箱开出：'+WP[BOX.gun].n+'（按 E/使用 拿取）')}}
+  BOX.disp.position.y=.9+Math.min(1,BOX.t/3)*.5;BOX.disp.rotation.y+=dt*3;if(BOX.t>=3.2){BOX.st='ready';BOX.t=0;sCash();const nm=WP[BOX.gun].n;if(Math.hypot(P.pos.x-BOX.pos.x,P.pos.z-BOX.pos.z)<6&&!P.dead){useBox();banner('获得 '+nm,'已经拿在手上了。按「换枪」可以切回其他枪',3)}else popTxt('武器箱开出：'+nm+'（走过去'+(TOUCH?'点「拿取」':'按 E')+'）')}}
  else if(BOX.st==='ready'){BOX.t+=dt;BOX.disp.rotation.y+=dt;if(BOX.t>9){BOX.st='idle';scene.remove(BOX.disp);BOX.disp=null}}}
-function usePaP(){const i=G.cur,s=G.ws[i];if(s.pap)return popTxt('这把已经强化过了');if(G.cash<5000)return popTxt('资金不足 $5000');G.cash-=5000;P.papT=3;P.papI=i;sJingle(5);noise(400,2.5,.15,'lowpass');hud()}
+function usePaP(){const i=G.cur,s=G.ws[i];if(s.pap)return popTxt('这把已经强化过了');if(G.cash<2000)return popTxt('资金不足 $2000');G.cash-=2000;P.papT=3;P.papI=i;sJingle(5);noise(400,2.5,.15,'lowpass');hud()}
 function updPaP(dt){if(!(P.papT>0))return;P.papT-=dt;const m=MACH.find(x=>x.k==='pap');if(m)m.glow.material.opacity=.6+Math.sin(performance.now()/60)*.3;
  if(P.papT<=0){const i=P.papI,s=G.ws[i];s.pap=true;const st=wStat(i);s.mag=st.mag;s.res=st.res;papTint(gunOf(P.guns,i),true);banner('武器已强化','强化·'+WP[i].n+' · 伤害 ×2',2.2);sCash();hud(true)}}
 // 掉落道具（房主决定，所有人一起生效）
@@ -1248,7 +1264,7 @@ function hostSim(dt){
   for(const id in HUM){const H=HUM[id];if(H.bot)updBot(H,dt)}
   if(G.sc[0]>=PVP_KILLS||G.sc[1]>=PVP_KILLS||G.tl<=0)hostEnd()}}
 function climbBox(p,r,y,maxUp){let best=null;for(const c of COL){if(!c.p||!c.z)continue;const b=c.b,h=b.max.y;if(h<=y+.5||h>y+maxUp)continue;
- if(p.x+r+.2>b.min.x&&p.x-r-.2<b.max.x&&p.z+r+.2>b.min.z&&p.z-r-.2<b.max.z)if(!best||h>best.max.y)best=b}return best}
+ if(p.x+r+.2>b.min.x&&p.x-r-.2<b.max.x&&p.z+r+.2>b.min.z&&p.z-r-.2<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r+.25&&Math.abs(L.z)<c.o.hz+r+.25&&(!best||h>best.o.h))best=c}}return best}
 function updZ(z,dt){const c=z.c,p=c.wrap.position;
  if(z.dead){z.deadT+=dt;if(z.y>0){z.vy-=20*dt;z.y=Math.max(0,z.y+z.vy*dt)}p.y=z.y-(z.deadT>3?(z.deadT-3)*.35:0);z.st=4;updChar(c,dt);return}
  z.hitCd-=dt;z.atkT-=dt;if(z.buffT>0)z.buffT-=dt;
@@ -1256,8 +1272,8 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
  const lure=(!z.t.sp&&z.type!=='boss')?pipeTarget(p):null;if(lure&&td>2){tg={id:'pipe',pos:lure,dead:false};td=Math.hypot(lure.x-p.x,lure.z-p.z)+5}
  const tY=tg?(tg.me?P.y:(tg.pos.y||0)):0;
  // 攀爬（车顶、集装箱上没有安全点）
- if(z.climb){z.climb.t+=dt;const k=Math.min(1,z.climb.t/z.climb.d);p.x=z.climb.x0+(z.climb.x1-z.climb.x0)*Math.max(0,(k-.55)/.45);p.z=z.climb.z0+(z.climb.z1-z.climb.z0)*Math.max(0,(k-.55)/.45);z.y=z.climb.y0+(z.climb.y1-z.climb.y0)*Math.min(1,k/.55);
-  z.st=9;if(k>=1){z.climb=null;z.vy=0}updChar(c,dt);p.y=z.y;return}
+ if(z.climb){const C=z.climb;C.t+=dt;const k=Math.min(1,C.t/C.d),K=climbK(k);p.x=C.x0+(C.x1-C.x0)*K.fw;p.z=C.z0+(C.z1-C.z0)*K.fw;z.y=C.y0+(C.y1-C.y0)*(1-Math.pow(1-K.up,2));
+  z.st=9;if(k>=1){z.climb=null;z.vy=0}setBase(c,'idle',.6);updChar(c,dt);p.y=z.y;if(k>.04&&k<.88)mantleHands(c,c.wrap.rotation.y+Math.PI,C.ex,C.ez,C.y1,1);return}
  let mv=0;const reach=z.r+.75;const on=c.one&&c.one.n;const busy=on&&['punch','scream','hitreact','standup','idle_attack','climb'].includes(on);
  if(z.pend>0){z.pend-=dt;if(z.pend<=0){z.pend=-1;const a=actors().find(a=>a.id===z.tid);if(a&&!a.dead&&Math.hypot(a.pos.x-p.x,a.pos.z-p.z)<reach+.5&&Math.abs((a.me?P.y:(a.pos.y||0))-z.y)<1.3){dmgTo(a,z.dmg,p);if(z.t.sp==='tank'||z.type==='boss')knock(a,p,7,.4)}}}
  const own=z.type==='witch'||z.type==='mutant';const spec=own?(z.type==='witch'?witchAI(z,dt):mutantAI(z,tg,td,dt)):(!busy||z.wind>0||z.charge>0||z.leap||z.hold||z.fuse>0||z.daze>0)&&specialAI(z,tg,td,dt);if(z.gone)return;
@@ -1270,8 +1286,11 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
   if(canHit){z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);if(z.atkT<=0&&!busy){playOnce(c,'punch',z.type==='boss'||z.t.sp==='tank'?1.3:1.7);z.tid=tg.id;z.pend=z.type==='boss'||z.t.sp==='tank'?.55:.42;z.atkT=z.type==='brute'||z.t.sp==='tank'?1.7:z.type==='boss'?1.5:1.15}}
   else if(!busy){
    // 目标在高处：贴着车/箱子就爬上去
-   if(tg&&tY>z.y+.6&&td<6&&z.t.sp!=='tank'&&z.type!=='boss'){const b=climbBox(p,z.r,z.y,3.4);if(b){const cx=clamp(tg.pos.x,b.min.x+.4,b.max.x-.4),cz=clamp(tg.pos.z,b.min.z+.4,b.max.z-.4);const ex=clamp(p.x,b.min.x+.3,b.max.x-.3),ez=clamp(p.z,b.min.z+.3,b.max.z-.3);
-     z.climb={t:0,d:1.6,x0:p.x,z0:p.z,y0:z.y,x1:ex+(cx-ex)*.2,z1:ez+(cz-ez)*.2,y1:b.max.y};playOnce(c,'climb',1.3);updChar(c,dt);return}}
+   if(tg&&tY>z.y+.6&&td<6&&z.t.sp!=='tank'&&z.type!=='boss'){const b=climbBox(p,z.r,z.y,3.4);if(b){const C1=topPt(b,tg.pos.x,tg.pos.z,.4,{x:0,z:0}),E1=topPt(b,p.x,p.z,.3,{x:0,z:0});
+     z.climb={t:0,d:1.5,x0:p.x,z0:p.z,y0:z.y,x1:E1.x+(C1.x-E1.x)*.2,z1:E1.z+(C1.z-E1.z)*.2,y1:b.o.h,ex:E1.x,ez:E1.z};z.face=Math.atan2(E1.x-p.x,E1.z-p.z);c.wrap.rotation.y=z.face;c.one=null;updChar(c,dt);return}}
+   // 坦克尸/尸王爬不上车：砸车把车顶上的人震下来
+   if(tg&&tY>z.y+.6&&td<5.5&&(z.t.sp==='tank'||z.type==='boss')){z.slamCd=(z.slamCd||0)-dt;if(z.slamCd<=0&&climbBox(p,z.r+.6,z.y,4.5)){z.slamCd=3;playOnce(c,'punch',1.2);pushEv(['warn',z.t.name+'在砸车！']);
+     for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<5.5){dmgTo(a,16*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}if(AC){noise(160,.5,.7);tone(70,35,.4,.5)}P.shake=Math.max(P.shake,.3);z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);updChar(c,dt);p.y=z.y;return}}
    let sx=0,sz=0;for(const o of G.zs){if(o===z||o.dead)continue;const ox=p.x-o.c.wrap.position.x,oz=p.z-o.c.wrap.position.z;const d2=ox*ox+oz*oz,rr=z.r+o.r;if(d2<rr*rr&&d2>1e-6){const d=Math.sqrt(d2);sx+=ox/d*(rr-d);sz+=oz/d*(rr-d)}}
    let vx=dx,vz=dz;if(z.detT>0){z.detT-=dt;vx+=-dz*z.det*1.2;vz+=dx*z.det*1.2;const l=Math.hypot(vx,vz);vx/=l;vz/=l}
    const s=(tg?z.spd:z.spd*.4)*(z.buffT>0?1.4:1);p.x+=(vx*s)*dt+sx*Math.min(1,dt*8);p.z+=(vz*s)*dt+sz*Math.min(1,dt*8);pushOut(p,z.r*.8,'z',z.y);
@@ -1298,16 +1317,18 @@ function hostEnd(){if(G.ended)return;G.ended=true;const r=Object.entries(G.R).ma
 
 // ---------- 客户端：镜像丧尸 / 电脑 ----------
 function onZSnap(list){const seen=new Set();
- for(const e of list){const [id,ti,mi,x,z,ry,st,zy]=e;seen.add(id);let Z=G.zs.find(q=>q.id===id);
+ const now=performance.now();for(const e of list){const [id,ti,mi,x,z,ry,st,zy,hp]=e;seen.add(id);let Z=G.zs.find(q=>q.id===id);
   if(!Z){const type=ZTK[ti],t=ZT[type];const mz=makeZChar(type,mi);if(!mz)continue;const c=mz.c;c.wrap.position.set(x,0,z);c.wrap.rotation.y=ry;scene.add(c.wrap);
    Z={id,c,type,t,r:t.r,net:true,dead:false,deadT:0,tgt:new T.Vector3(x,0,z),ry,st:-1,groan:rand(2,8)};G.zs.push(Z);if(type==='mutant')c.wrap.position.y=zy||0;zEntrance(Z)}
-  Z.tgt.set(x,zy||0,z);Z.ry=ry;
-  if(st!==Z.st){const c=Z.c;if(Z.type==='witch')c.cry=st===11?1:0;if(st===4){if(!Z.dead){Z.dead=true;Z.deadT=0;playOnce(c,'death',1.1);if(c.die)c.die();if(c.tag)c.tag.visible=false;decal(x,z,rand(1,1.6)*c.s);const dr=dropRoll(id);if(dr)dropPick(c.wrap.position,dr)}}
-   else if(st===9)playOnce(c,'climb',1.3);else if(st===7&&Z.t.sp){const a={tank:['scream',1.6],witch:['scream',1.3],screamer:['scream',1],grabber:['idle_attack',1.4],thrower:['punch',.9],spitter:['punch',1.3]}[Z.t.sp];if(a)playOnce(c,a[0],a[1])}else if(st===2)playOnce(c,'punch',Z.type==='boss'?1.3:1.7);else if(st===3)playOnce(c,'hitreact',1.5);else if(st===6&&Z.st===-1)playOnce(c,Z.type==='boss'?'scream':'standup',Z.type==='boss'?1:1.5);
+  {const dtS=Z.snapT?Math.min(.3,Math.max(.03,(now-Z.snapT)/1000)):0;if(dtS){const vx=(x-Z.tgt.x)/dtS,vz=(z-Z.tgt.z)/dtS;const ok=vx*vx+vz*vz<200;Z.vx=ok?vx:0;Z.vz=ok?vz:0}Z.snapT=now}
+  Z.tgt.set(x,zy||0,z);Z.ry=ry;if(hp!==undefined){Z.hp=hp;Z.php=Math.min(Z.php??hp,hp)}
+  if(Z.pdT&&st!==4&&now-Z.pdT>900){Z.pdT=0;Z.dead=false;Z.php=hp;const c=Z.c;c.one=null;revive(c);if(c.tag)c.tag.visible=true;Z.st=-2}
+  if(st!==Z.st){const c=Z.c;if(Z.type==='witch')c.cry=st===11?1:0;if(st===4){Z.pdT=0;if(!Z.dead){Z.dead=true;Z.deadT=0;playOnce(c,'death',1.1);if(c.die)c.die();if(c.tag)c.tag.visible=false;decal(x,z,rand(1,1.6)*c.s);const dr=dropRoll(id);if(dr)dropPick(c.wrap.position,dr)}}
+   else if(st===9){c.one=null;Z.cly0=Z.tgt.y;Z.clx=Z.tgt.x+Math.sin(Z.ry)*.5;Z.clz=Z.tgt.z+Math.cos(Z.ry)*.5}else if(st===7&&Z.t.sp){const a={tank:['scream',1.6],witch:['scream',1.3],screamer:['scream',1],grabber:['idle_attack',1.4],thrower:['punch',.9],spitter:['punch',1.3]}[Z.t.sp];if(a)playOnce(c,a[0],a[1])}else if(st===2)playOnce(c,'punch',Z.type==='boss'?1.3:1.7);else if(st===3)playOnce(c,'hitreact',1.5);else if(st===6&&Z.st===-1)playOnce(c,Z.type==='boss'?'scream':'standup',Z.type==='boss'?1:1.5);
    if(st===1||st===8)setBase(c,'run',st===8?1.8:1.1);else if(st===5||st===7||st===10)setBase(c,'idle',1);else if(st===0)setBase(c,'walk',1.6);if(st===11)setBase(c,'idle',.35);else if(st===13)setBase(c,'run',2);Z.st=st}}
  for(let i=G.zs.length-1;i>=0;i--){const Z=G.zs[i];if(!seen.has(Z.id)){scene.remove(Z.c.wrap);G.zs.splice(i,1)}}}
-function updZMirror(dt){for(const Z of G.zs){const p=Z.c.wrap.position;if(Z.dead){Z.deadT+=dt;if(Z.deadT>3)p.y-=dt*.35}else{if(p.distanceToSquared(Z.tgt)>25)p.copy(Z.tgt);else{const k=Math.min(1,dt*10);p.x+=(Z.tgt.x-p.x)*k;p.z+=(Z.tgt.z-p.z)*k;p.y+=(Z.tgt.y-p.y)*k}if(Z.st===10)Z.c.flash=(performance.now()/60|0)%2?.05:0;if(Z.c.custom)Z.c.zst=Z.st;Z.c.wrap.rotation.y+=wrapA(Z.ry-Z.c.wrap.rotation.y)*Math.min(1,dt*10)}
- updChar(Z.c,dt);zAmb(Z,dt);
+function updZMirror(dt){for(const Z of G.zs){const p=Z.c.wrap.position;if(Z.dead){Z.deadT+=dt;if(Z.deadT>3)p.y-=dt*.35}else{const ex=Math.min(.18,(performance.now()-(Z.snapT||0))/1000),gx=Z.tgt.x+(Z.vx||0)*ex,gz=Z.tgt.z+(Z.vz||0)*ex;if(p.distanceToSquared(Z.tgt)>25)p.copy(Z.tgt);else{const k=Math.min(1,dt*12);p.x+=(gx-p.x)*k;p.z+=(gz-p.z)*k;p.y+=(Z.tgt.y-p.y)*k}if(Z.st===10)Z.c.flash=(performance.now()/60|0)%2?.05:0;if(Z.c.custom)Z.c.zst=Z.st;Z.c.wrap.rotation.y+=wrapA(Z.ry-Z.c.wrap.rotation.y)*Math.min(1,dt*10)}
+ if(Z.st===9)setBase(Z.c,'idle',.6);updChar(Z.c,dt);if(Z.st===9&&Z.tgt.y>Z.cly0+.3)mantleHands(Z.c,Z.c.wrap.rotation.y+Math.PI,Z.clx,Z.clz,Z.tgt.y,1);zAmb(Z,dt);
  if(!Z.dead){Z.groan-=dt;if(Z.groan<=0){Z.groan=rand(4,9);const pd=Math.hypot(P.pos.x-p.x,P.pos.z-p.z);if(pd<26&&AC){const a=Math.atan2(p.x-P.pos.x,p.z-P.pos.z)-(P.yaw+Math.PI);sGroan(.12*(1-pd/28)*(Z.type==='boss'?2.5:1),-Math.sin(a),Z.type==='boss'||Z.type==='brute')}}}}}
 function onBSnap(list){const seen=new Set();for(const e of list){const [id,t,x,z,y,pt,a,w,hp,d,sk,n]=e;seen.add(id);let H=HUM[id];if(!H){H=makeHuman(id,{name:n,team:t,sk,bot:true,w});H.pos.set(x,0,z);H.yaw=y}
   H.tgt.set(x,0,z);H.tyaw=y;H.pitch=pt;H.a=a;H.w=w;H.hp=hp;setDead(H,!!d);H.seen=performance.now()}
@@ -1356,6 +1377,7 @@ function onPresence(st){const list=[];for(const k in st){const o=st[k]&&st[k][0]
 function onStart(cfg){if(cfg.mid===G.mid&&G.state!=='lobby')return;if(!NET.on)return;NET.started=true;beginMatch(cfg)}
 function onP(s){if(s.m!==G.mid||s.i===NET.me||G.state==='lobby'||G.state==='menu')return;let H=HUM[s.i];
  if(!H){H=makeHuman(s.i,{name:s.n,team:s.t,sk:s.sk,w:s.w});H.pos.set(s.x,0,s.z);H.yaw=s.y}
+ {const now=performance.now(),dtS=H.snapT?Math.min(.3,Math.max(.03,(now-H.snapT)/1000)):0;if(dtS){const vx=(s.x-H.tgt.x)/dtS,vz=(s.z-H.tgt.z)/dtS;const ok=vx*vx+vz*vz<150;H.vx=ok?vx:0;H.vz=ok?vz:0}H.snapT=now}
  H.tgt.set(s.x,0,s.z);H.tyaw=s.y;H.pitch=s.pt;H.a=s.a;H.w=s.w;H.hp=s.hp;H.cr=!!s.c;H.ty=s.py||0;H.u=s.u??-1;if(!!s.dn!==!!H.dn){H.dn=!!s.dn;if(H.dnTag){H.c.wrap.remove(H.dnTag);H.dnTag=null}if(H.dn){H.dnTag=nameTag('救我！','#ff5a48');H.dnTag.position.y=1.4;H.c.wrap.add(H.dnTag)}}if(H.u>=0&&MGS[H.u]){MGS[H.u].ru=H.id;MGS[H.u].ruT=performance.now()}setDead(H,!!s.d);H.seen=performance.now();
  if(s.t!==H.team||s.n!==H.name){H.team=s.t;H.name=s.n;decorate(H)}
  if(isHost()){const r=rost(s.i);r.n=s.n;r.t=s.t}
@@ -1377,12 +1399,12 @@ function onH(h){if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.l
  if(h.r){for(const id in h.r){const [n,t,k,d,b]=h.r[id];G.R[id]={n,t,k,d,b}}}
  hudDirty=true}
 function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=0;for(const k in NET.H)NET.H[k].length=0;return}
- NET.sendT-=dt;if(NET.sendT>0)return;NET.sendT=.1;
+ NET.sendT-=dt;if(NET.sendT>0)return;NET.sendT=humanCount()<=4?.066:.1;
  const sp=Math.hypot(P.vel.x,P.vel.z);const back=(-(Math.sin(P.yaw)*P.vel.x+Math.cos(P.yaw)*P.vel.z))<-.3;
  const a=P.climb?4:sp<.25?0:back?3:P.c&&P.c.base==='run_gun'?2:1;
  nsend('p',{i:NET.me,n:myName,t:P.team,sk:skinI,x:r2(P.pos.x),z:r2(P.pos.z),y:r2(P.yaw),pt:r2(P.pitch+P.rec),a,w:G.cur,c:P.cr?1:0,py:r2(P.y),u:P.mg?P.mg.i:-1,dn:P.dn?1:0,hp:Math.ceil(P.hp),d:P.dead?1:0,f:NET.out.f.length?NET.out.f.splice(0):undefined,h:NET.out.h.length?NET.out.h.splice(0).map(x=>[x[0],r2(x[1]),x[2],x[3]]):undefined});
  if(NET.host){const H={g:{w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
-  if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0)]);
+  if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0),Math.ceil(z.hp)]);
   else{H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
   for(const k in NET.H)if(NET.H[k].length)H[k]=NET.H[k].splice(0);
   if(++NET.hn%5===0){H.r={};for(const id in G.R){const o=G.R[id];H.r[id]=[nameOf(id),o.t,o.k,o.d,o.b]}}
@@ -1404,7 +1426,7 @@ function update(dt){
  const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);
  const tvx=(fx*mz+rx*mx)*spd,tvz=(fz*mz+rz*mx)*spd;const ac=Math.min(1,dt*12);P.vel.x+=(tvx-P.vel.x)*ac;P.vel.z+=(tvz-P.vel.z)*ac;
  if(P.stun>0)P.stun-=dt;
- if(P.climb){const C=P.climb;C.t+=dt;const k=Math.min(1,C.t/C.d),up=Math.min(1,k/.6),fw=Math.max(0,(k-.6)/.4);P.y=C.y0+(C.y1-C.y0)*up;P.pos.x=C.x0+(C.x1-C.x0)*fw;P.pos.z=C.z0+(C.z1-C.z0)*fw;P.vy=0;P.air=false;P.vel.set(0,0,0);if(k>=1){P.climb=null;P.y=C.y1;revive(P.c)}}
+ if(P.climb){const C=P.climb;C.t+=dt;const k=Math.min(1,C.t/C.d),K=climbK(k),up=1-Math.pow(1-K.up,2),fw=K.fw;P.y=C.y0+(C.y1-C.y0)*up;setBase(P.c,'crouch',.8);P.pos.x=C.x0+(C.x1-C.x0)*fw;P.pos.z=C.z0+(C.z1-C.z0)*fw;P.vy=0;P.air=false;P.vel.set(0,0,0);if(k>=1){P.climb=null;P.y=C.y1;revive(P.c)}}
  else{
  P.pos.x+=(P.vel.x+P.kbv.x)*dt;P.pos.z+=(P.vel.z+P.kbv.z)*dt;P.kbv.multiplyScalar(Math.exp(-dt*5));
  if(P.grab){const z=zById(P.grab);if(!z||z.dead)P.grab=null;else{const zp=z.c.wrap.position;const dx=zp.x-P.pos.x,dz=zp.z-P.pos.z,d=Math.hypot(dx,dz);if(d>1.4){P.pos.x+=dx/d*3.3*dt;P.pos.z+=dz/d*3.3*dt}}}
@@ -1457,7 +1479,7 @@ function update(dt){
     if(W0.cat==='pistol')L=R.clone().addScaledVector(camR,-.04).addScaledVector(cu,-.025).addScaledVector(camF,.01);else L=g.localToWorld(g.userData.fore.clone());
     if(rk>0){const mg=g.localToWorld(new T.Vector3(0,-g.userData.H*.6,g.userData.L*.12));L.lerp(mg,rk)}if(pump>0)L.addScaledVector(camF,-pump*.08);
     poseHands(P.c,R,L)}}
-  else{if(!sprint&&!P.climb&&!P.pin)poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
+  else{if(P.climb){const C=P.climb,k=Math.min(1,C.t/C.d);mantleHands(P.c,C.yaw,C.hx,C.hz,C.y1,k>.04&&k<.88?1:0)}if(!sprint&&!P.climb&&!P.pin)poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
    if(relP>0&&(W0.rt==='revolver'||W0.rt==='break'))g.rotateX(rk*.6);g.rotateX(-P.vk*2)}}
  if(P.fireCd>0)P.fireCd-=dt;
  if(P.relT>0){P.relT-=dt;if(P.relT<=0){P.relT=0;finishReload()}}
