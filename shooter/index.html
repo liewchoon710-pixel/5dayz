@@ -504,7 +504,7 @@ const G={state:'load',mode:'z',wave:0,zs:[],queue:[],spawnT:0,cash:0,score:0,kil
 const P={kbv:new T.Vector3(),stun:0,grab:null,pin:null,mash:0,climb:null,y:0,vy:0,air:false,cr:false,crT:0,mg:null,pos:new T.Vector3(),vel:new T.Vector3(),yaw:0,pitch:-.08,rec:0,hp:100,ar:0,c:null,guns:[],aim:0,aimOn:false,fireCd:0,relT:0,dead:false,hurtT:0,regenT:0,spr:0,shake:0,team:0,respT:0,prot:0};
 const HUM={};// 远端玩家 + 电脑士兵
 let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';// tp=斜肩第三人称  fp=第一人称
-const VMO={pistol:[.1,-.1,.3],smg:[.13,-.125,.3],shotgun:[.14,-.13,.3],rifle:[.14,-.12,.3],sniper:[.14,-.12,.3]},ADS=[0,-.058,.24],VMS=.6;
+const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26]},ADS=[0,-.058,.24],VMS=.6;
 function setView(v){VIEW=v;LS.set('scqh-view',v);camera.near=v==='fp'?.03:.08;camera.updateProjectionMatrix();const b=$('tView');if(b)b.textContent=v==='fp'?'斜肩':'第一';popTxt(v==='fp'?'第一人称':'斜肩视角')}
 const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
 const isHost=()=>!NET.on||NET.host;
@@ -786,6 +786,7 @@ function updMGs(dt){for(const m of MGS){const mine=P.mg===m;const firing=mine&&I
   m.tur.rotation.y=m.yaw;m.tur.rotation.x=m.pitch;
   const e=m.heat;m.brl.material.emissive.setRGB(e*e*.9,e*e*.25,0);
   if(m.over&&Math.random()<dt*14){muz.set(0,.05,-.7);m.tur.localToWorld(muz);emit(muz,1,[.6,.6,.6],.6,1,-1.5,1)}}}
+function poseHands(c,R,L){c.wrap.updateMatrixWorld(true);IK.r.copy(camR);armIK(c,'right',R,1);armIK(c,'left',L,-1)}
 // 双手握住机枪把手
 function poseOnMG(c,m){const nk=c.bones.mixamorigneck;if(!nk)return;c.wrap.updateMatrixWorld(true);IK.r.set(Math.cos(m.yaw),0,-Math.sin(m.yaw));
  const R=m.tur.localToWorld(new T.Vector3(.1,-.03,.3)),L=m.tur.localToWorld(new T.Vector3(-.1,-.03,.3));armIK(c,'right',R,1);armIK(c,'left',L,-1)}
@@ -1263,10 +1264,13 @@ function update(dt){
  const ap=clamp(P.pitch+P.rec,-1.1,.85);const cp=Math.cos(ap),spp=Math.sin(ap);camF.set(-Math.sin(P.yaw)*cp,spp,-Math.cos(P.yaw)*cp);camR.set(Math.cos(P.yaw),0,-Math.sin(P.yaw));
  // 阵亡观战（打丧尸）
  let fp=P.pos;if(P.dead&&G.mode==='z'){const al=Object.values(HUM).find(H=>!H.bot&&!H.dead);if(al)fp=al.pos}
- const FPV=VIEW==='fp'&&!P.dead;P.c.wrap.visible=!FPV;
+ const FPV=VIEW==='fp'&&!P.dead;P.c.wrap.visible=true;
+ // 真·第一人称：隐藏头部，相机放在角色眼睛位置，能看到自己的手臂和身体
+ {const hb=P.c.bones.mixamorighead;if(hb){const k=(FPV&&!P.mg)?.001:1;if(hb.scale.x!==k)hb.scale.setScalar(k)}}
  P.bobT=(P.bobT||0)+sp*dt*1.7;const bob=Math.min(1,sp/4)*(1-P.aim*.8);
  const eyeY=P.y-P.crT*.62;
- if(FPV||(P.aim>.85&&WP[G.cur].scope&&!P.mg&&!P.dead)){camera.position.set(P.pos.x,(P.mg?1.45:1.62)+eyeY+Math.sin(P.bobT*2)*.025*bob,P.pos.z).addScaledVector(camF,.1)}
+ if(FPV||(P.aim>.85&&WP[G.cur].scope&&!P.mg&&!P.dead)){let eh=null;if(FPV&&!P.mg){P.c.wrap.updateMatrixWorld(true);eh=boneW(P.c,'mixamorighead',PV3)}
+  if(eh){camera.position.set(P.pos.x,eh.y+.09*P.c.s,P.pos.z).addScaledVector(v1.set(-Math.sin(P.yaw),0,-Math.cos(P.yaw)),.14)}else camera.position.set(P.pos.x,(P.mg?1.45:1.62)+eyeY+Math.sin(P.bobT*2)*.025*bob,P.pos.z).addScaledVector(camF,.1)}
  else{const pv=PV3.set(fp.x,1.58-P.aim*.06+(fp===P.pos?eyeY:0),fp.z);const sh=.58-P.aim*.12;pv.addScaledVector(camR,sh);
   let dist=(P.dead?3.6:2.7)-P.aim*1.35;const back3=v2.copy(camF).multiplyScalar(-1);const wt=wallT(pv,back3,dist+.3);dist=Math.max(.35,Math.min(dist,wt-.25));
   camera.position.copy(pv).addScaledVector(back3,dist)}
@@ -1278,15 +1282,20 @@ function update(dt){
  swUpdate(dt);const low=swLow(),W0=WP[G.cur],relP=P.relT>0?clamp(1-P.relT/(P.relD||1),0,1):0,cycP=P.cyc>0?clamp(1-P.cyc/(P.cycD||1),0,1):0;
  if(P.cyc>0)P.cyc-=dt;P.vk=(P.vk||0)*Math.exp(-dt*14);
  updMGs(dt);if(P.mg&&!P.dead){P.guns.forEach(q=>{if(q)q.visible=false});if(!FPV)poseOnMG(P.c,P.mg)}
- $('scope').style.display=P.scoped?'':'none';if(P.scoped)P.c.wrap.visible=false;
+ $('scope').style.display=P.scoped?'':'none';if(P.scoped||(VIEW!=='fp'&&false))P.c.wrap.visible=false;
  const g=P.dead||P.mg?null:gunOf(P.guns,G.cur);if(g){P.guns.forEach(q=>{if(q)q.visible=q===g});g.visible=!P.scoped&&!(P.knife>0)&&!(P.thr>0);
-  const fpv=FPV||P.scoped;g.scale.setScalar(fpv?({pistol:1,smg:.85,rifle:.72,shotgun:.68,sniper:.66}[W0.cat]):1);g.children.forEach(m=>{if(m.userData.fp)m.visible=fpv});
+  const fpv=FPV||P.scoped;g.scale.setScalar(1);g.children.forEach(m=>{if(m.userData.fp)m.visible=fpv});
   // 泵动 / 拉栓 / 换弹 的动作幅度
   const pump=W0.mode==='pump'?Math.sin(Math.PI*cycP):0,bolt=W0.mode==='bolt'?Math.sin(Math.PI*cycP):0,rk=Math.sin(Math.PI*relP);
-  if(fpv){const H=VMO[W0.cat];const ads=P.aim;const ox=H[0]*(1-ads),oy=H[1]*(1-ads)+ADS[1]*ads-low*.28-rk*.1-bolt*.03,oz=H[2]*(1-ads)+ADS[2]*ads-P.rec*1.2-P.vk-pump*.05;
+  if(fpv){const H=VMO[W0.cat];const ads=P.aim;const adsY=-(g.userData.H*(1-W0.gy)+.012),adsZ=W0.cat==='pistol'?.42:W0.cat==='smg'?.28:.32;const ox=H[0]*(1-ads),oy=H[1]*(1-ads)+adsY*ads-low*.28-rk*.1-bolt*.03,oz=H[2]*(1-ads)+adsZ*ads-P.rec*1.2-P.vk-pump*.05;
    const cu=v4.crossVectors(camR,camF);g.position.copy(camera.position).addScaledVector(camR,ox+Math.cos(P.bobT)*.012*bob).addScaledVector(cu,oy+Math.abs(Math.sin(P.bobT))*.012*bob).addScaledVector(camF,oz);
    g.lookAt(v3.copy(camera.position).addScaledVector(camF,60));g.rotateX(-P.vk*1.5);
-   if(relP>0){if(W0.rt==='revolver'||W0.rt==='break')g.rotateX(rk*.7);else g.rotateZ(rk*.6)}if(bolt)g.rotateZ(bolt*.25);if(low>0)g.rotateX(low*.7)}
+   if(relP>0){if(W0.rt==='revolver'||W0.rt==='break')g.rotateX(rk*.7);else g.rotateZ(rk*.6)}if(bolt)g.rotateZ(bolt*.25);if(low>0)g.rotateX(low*.7)
+   // 双手握在枪上
+   if(FPV&&!P.scoped){g.updateMatrixWorld(true);const R=g.position.clone();let L;
+    if(W0.cat==='pistol')L=R.clone().addScaledVector(camR,-.04).addScaledVector(cu,-.025).addScaledVector(camF,.01);else L=g.localToWorld(g.userData.fore.clone());
+    if(rk>0){const mg=g.localToWorld(new T.Vector3(0,-g.userData.H*.6,g.userData.L*.12));L.lerp(mg,rk)}if(pump>0)L.addScaledVector(camF,-pump*.08);
+    poseHands(P.c,R,L)}}
   else{if(!sprint&&!P.climb&&!P.pin)poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
    if(relP>0&&(W0.rt==='revolver'||W0.rt==='break'))g.rotateX(rk*.6);g.rotateX(-P.vk*2)}}
  if(P.fireCd>0)P.fireCd-=dt;
