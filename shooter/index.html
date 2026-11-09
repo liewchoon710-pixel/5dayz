@@ -98,6 +98,34 @@ body.pvp .zOnly{display:none!important}body:not(.pvp) .pOnly{display:none!import
 #pvpBar{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-size:15px;text-shadow:0 1px 3px #000;white-space:nowrap;background:rgba(0,0,0,.35);padding:3px 14px;border-radius:14px}
 #pvpBar b{font-size:24px;margin:0 6px}
 body.touch #pvpBar{top:52px}
+#hitm{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;opacity:0}
+#hitm i{position:absolute;width:3px;height:13px;background:#fff;left:-1.5px;top:-6.5px;box-shadow:0 0 3px #000;border-radius:1px}
+#hitm i:nth-child(1){transform:rotate(45deg) translateY(-15px)}#hitm i:nth-child(2){transform:rotate(135deg) translateY(-15px)}#hitm i:nth-child(3){transform:rotate(225deg) translateY(-15px)}#hitm i:nth-child(4){transform:rotate(315deg) translateY(-15px)}
+#hitm.h i{background:#ff3a2a;height:15px}#hitm.k i{background:#ff2010;height:20px;width:4px;left:-2px;top:-10px}
+#hitm.k i:nth-child(1){transform:rotate(45deg) translateY(-20px)}#hitm.k i:nth-child(2){transform:rotate(135deg) translateY(-20px)}#hitm.k i:nth-child(3){transform:rotate(225deg) translateY(-20px)}#hitm.k i:nth-child(4){transform:rotate(315deg) translateY(-20px)}
+.dnum{position:absolute;pointer-events:none;font-weight:800;font-size:17px;color:#fff;text-shadow:0 0 3px #000,0 1px 2px #000;transform:translate(-50%,-50%);white-space:nowrap}
+.dnum.h{color:#ffd23a;font-size:21px}.dnum.k{color:#ff5a3a;font-size:23px}
+#kbig{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
+#kbig b{display:block;font-size:34px;letter-spacing:.12em;color:#ff4a30;text-shadow:0 0 12px rgba(255,40,10,.8),0 2px 3px #000}
+#kbig span{font-size:15px;color:#fff;text-shadow:0 1px 3px #000}
+#kbadge{position:absolute;left:50%;bottom:26%;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;opacity:0}
+#kbadge .em{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#fff;position:relative;
+ background:radial-gradient(circle at 50% 38%,#8a8f96,#3a3d42 70%);border:3px solid #c9ccd1;box-shadow:0 0 14px rgba(0,0,0,.7);text-shadow:0 2px 3px #000}
+#kbadge .em:before{content:'☠';position:absolute;font-size:30px;opacity:.28}
+#kbadge .em span{position:relative}
+#kbadge.t2 .em{background:radial-gradient(circle at 50% 38%,#d08a4a,#5a2a0e 70%);border-color:#f0b070}
+#kbadge.t3 .em{background:radial-gradient(circle at 50% 38%,#e8e8f0,#5a5a6a 70%);border-color:#fff}
+#kbadge.t4 .em{background:radial-gradient(circle at 50% 38%,#ffd84a,#7a5200 70%);border-color:#ffe890;box-shadow:0 0 22px rgba(255,200,40,.8)}
+#kbadge.t5 .em{background:radial-gradient(circle at 50% 38%,#ff6a3a,#6a0800 70%);border-color:#ffb080;box-shadow:0 0 30px rgba(255,60,10,.95)}
+#kbadge.hs .em{border-color:#ffd23a;box-shadow:0 0 18px rgba(255,210,60,.9)}
+#kbadge .nm{margin-top:6px;font-size:22px;font-weight:900;letter-spacing:.12em;color:#fff;text-shadow:0 0 10px rgba(255,80,30,.9),0 2px 3px #000}
+#kbadge .tag{font-size:13px;color:#ffd23a;text-shadow:0 1px 2px #000;min-height:16px}
+#intro{position:fixed;inset:0;z-index:40;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;color:#ddd;text-align:center}
+#intro h2{font-size:46px;letter-spacing:.35em;color:#c8342a;text-shadow:0 0 18px rgba(200,30,20,.7);margin:0;opacity:0;transform:scale(1.15);transition:opacity 1s,transform 2.4s ease-out}
+#intro p{margin-top:10px;font-size:15px;letter-spacing:.3em;color:#aaa;opacity:0;transition:opacity 1s .6s}
+#intro .rd{margin-top:22px;font-size:14px;color:#8fd08a;font-family:monospace;opacity:0;transition:opacity .6s 1.2s;max-width:80vw}
+#intro.on h2{opacity:1;transform:scale(1)}#intro.on p,#intro.on .rd{opacity:1}
+#rot{position:fixed;inset:0;z-index:60;background:#0b0b0d;display:none;flex-direction:column;align-items:center;justify-content:center;color:#eee;font-size:18px;gap:14px;text-align:center}
 #feed{display:flex;flex-direction:column;align-items:flex-end;position:absolute;right:max(14px,env(safe-area-inset-right));top:62px;text-align:right;font-size:13px;line-height:1.7;text-shadow:0 1px 3px #000}
 #feed div{background:rgba(0,0,0,.35);padding:0 8px;border-radius:4px;margin-bottom:2px;display:inline-block}
 #feed i{font-style:normal;opacity:.7;margin:0 4px}
@@ -130,7 +158,7 @@ body.touch #pvpBar{top:52px}
   <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
   <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span></div></div>
   <div id="pvpBar" class="pOnly"></div>
-  <div id="feed"></div>
+  <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="kbadge"><div class="em"><span>1</span></div><div class="nm"></div><div class="tag"></div></div><div id="dnums"></div>
   <div class="bl">
     <div id="perkHud" style="font-size:12px;margin-bottom:4px;text-shadow:0 1px 2px #000"></div>
     <div style="font-size:13px">生命 <span id="hpT">100</span></div><div class="bar"><i id="hpf"></i></div>
@@ -162,6 +190,8 @@ body.touch #pvpBar{top:52px}
   <div class="tb zOnly" id="tThr">手雷</div><div class="tb zOnly" id="tThrS">⇄</div><div class="tb" id="tKnife">刀</div>
 </div>
 
+<div id="intro"><h2>尸城枪火</h2><p id="inSub"></p><div class="rd" id="inRd"></div></div>
+<div id="rot"><div style="font-size:54px">📱↻</div><div>请把手机横过来玩</div><button class="btn" id="bRot">切换横屏</button></div>
 <div id="load" class="ov"><h1>尸城枪火</h1><div class="sub">尸城五日 · 尸潮射击</div><div id="loadT">正在载入素材…</div><div id="loadbar"><div id="loadfill"></div></div></div>
 
 <div id="menu" class="ov hid" style="overflow:auto;justify-content:flex-start;padding:18px 0">
@@ -304,7 +334,7 @@ function makeChar(name,prefix,height,tint){
  return {wrap,root,mixer,act,bones,mats,base,ts:1,one:null,w:{},flash:0,h:height,s:height/1.8}}
 function setBase(c,n,ts){if(!c.act[n])n=c.act.idle?'idle':n;c.base=n;c.ts=ts==null?1:ts}
 function playOnce(c,n,ts=1){const a=c.act[n];if(!a)return 0;a.reset();a.timeScale=ts;a.setEffectiveWeight(1);a.play();c.one={n,t:a.getClip().duration/ts};return c.one.t}
-function updChar(c,dt){if(c.custom){c.upd(dt);return}const k=Math.min(1,dt*10);
+function updChar(c,dt){if(c.custom){c.upd(dt);if(c.kk>0){c.kk=Math.max(0,c.kk-dt*7);c.root.position.x=c.kx*c.kk;c.root.position.z=c.kz*c.kk}return}if(c.kk>0){c.kk=Math.max(0,c.kk-dt*7);c.root.position.x=c.kx*c.kk;c.root.position.z=c.kz*c.kk}const k=Math.min(1,dt*10);
  for(const n of LOOPS){const a=c.act[n];if(!a)continue;let tw=(!c.one&&c.base===n)?1:0;const cw=c.w[n]||0;const nw=cw+(tw-cw)*k;c.w[n]=nw;a.setEffectiveWeight(nw);if(c.base===n)a.timeScale=c.ts}
  if(c.one){c.one.t-=dt;if(c.one.t<=0&&c.one.n!=='death'){const a=c.act[c.one.n];a.setEffectiveWeight(0);a.stop();c.one=null}}
  if(c.flash>0){c.flash-=dt;const on=c.flash>0;if(c.fl!==on){c.fl=on;for(const m of c.mats)m.emissive&&m.emissive.setHex(on?0x7a0c04:0)}}
@@ -521,7 +551,8 @@ function sRack(){noise(2400,.05,.25,'highpass');setTimeout(()=>noise(900,.07,.3,
 function sClick(){noise(3000,.03,.2,'highpass')}function sHurt(){tone(110,45,.25,.5);noise(300,.2,.4)}
 function sHorn(){tone(180,170,1.4,.18,'sawtooth');setTimeout(()=>tone(135,128,1.6,.18,'sawtooth'),500)}
 function sCash(){tone(1300,1800,.08,.12,'square');setTimeout(()=>tone(1800,2400,.1,.1,'square'),70)}
-let VOICE=null;function say(t){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/female|女|xiaoxiao|ting|mei|yaoyao|huihui|xiaoyi/i.test(v.name))||vs[0]||null}const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=1.05;u.pitch=1.15;s.cancel();s.speak(u)}catch(e){}}
+let VOICE=null;function say(t){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/yunxi|yunyang|yunjian|kangkang|male|男|li-mu|liang|zhiwei/i.test(v.name)&&!/female|女/i.test(v.name))||vs.find(v=>!/xiaoxiao|ting|mei|yaoyao|huihui|xiaoyi|female|女/i.test(v.name))||vs[0]||null;VOICE_M=!!VOICE&&!/xiaoxiao|ting|mei|yaoyao|huihui|xiaoyi|female|女/i.test(VOICE.name)}const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.98;u.pitch=VOICE_M?.85:.62;sRadio();s.cancel();s.speak(u)}catch(e){}}
+let VOICE_M=false;function sRadio(){if(!AC)return;noise(2400,.09,.12,'bandpass',0,3);tone(1900,1900,.04,.05,'square')}
 
 
 // ================= 游戏状态 =================
@@ -605,7 +636,18 @@ function rost(id){return G.R[id]||(G.R[id]={n:nameOf(id),t:teamOf(id),k:0,d:0,b:
 // ---------- 开局 ----------
 function clearWorld(){for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG)dropTong(k);for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
  if(P.c){scene.remove(P.c.wrap);P.c=null}P.guns.forEach(g=>g&&scene.remove(g));P.guns=[]}
-function beginMatch(cfg){
+// 开场：黑屏 → 标题 → 无线电呼叫 → 画面淡入（代替原来的欢迎语音）
+const ZONES=['东区十字路口','旧城商业街','第七号检查站','中央大道','港湾路口'];
+function sIntro(){if(!AC)return;tone(55,38,3.2,.5,'sine');noise(120,2.8,.35,'lowpass');setTimeout(()=>{tone(220,880,1.6,.06,'sawtooth');noise(3000,1.5,.08,'highpass')},400);
+ for(let i=0;i<4;i++)setTimeout(()=>{tone(62,48,.3,.45,'sine');noise(90,.2,.3,'lowpass')},1300+i*620);setTimeout(()=>{for(let i=0;i<2;i++)setTimeout(()=>{tone(420,780,.9,.05,'sawtooth');setTimeout(()=>tone(780,420,.9,.05,'sawtooth'),900)},i*1800)},800)}
+function playIntro(mode){const el=$('intro');const zone=ZONES[(G.layoutSeed||0)%ZONES.length];
+ const lines=mode==='pvp'?['各小队注意，敌方已进入交战区。行动开始。','这里是指挥部，清除敌方小队，完毕。']:['指挥部呼叫幸存者，尸潮正在逼近，守住这个路口。','这里是指挥部，撤离直升机还没到，坚持住。','所有幸存者注意，城市已经失守，活下去，完毕。'];
+ const line=lines[Math.floor(Math.random()*lines.length)];$('inSub').textContent=(mode==='pvp'?'两队对打 · ':'打丧尸 · ')+zone;$('inRd').textContent='📻 '+line;
+ el.style.transition='none';el.style.opacity=1;el.style.display='flex';el.classList.remove('on');void el.offsetWidth;el.classList.add('on');G.introT=3.6;sIntro();
+ setTimeout(()=>say(line),700);
+ setTimeout(()=>{el.style.transition='opacity 1.2s';el.style.opacity=0},2600);setTimeout(()=>{el.style.display='none';el.classList.remove('on')},3900);
+ if(mode==='pvp')[3,2,1].forEach((n,i)=>setTimeout(()=>{popTxt(String(n));if(AC)tone(880,880,.12,.2,'square')},2700+i*700)),setTimeout(()=>{popTxt('开始！');if(AC)tone(1320,1320,.35,.22,'square')},4800)}
+function beginMatch(cfg){G.introT=3.6;
  clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));if(cfg.seed!=null)buildLayout(cfg.seed);
  G.cfg=cfg;G.mode=cfg.mode;G.mid=cfg.mid;diffI=cfg.diff;document.body.classList.toggle('pvp',G.mode==='pvp');
  Object.assign(G,{wave:0,queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:PVP_TIME,zid:1,R:{},paused:false,botT:0,allDeadT:0,ended:false});
@@ -618,7 +660,8 @@ function beginMatch(cfg){
  $('hud').classList.remove('hid');if(TOUCH)$('touch').classList.remove('hid');$('tShop').style.display='none';
  G.state='play';NET.lastH=performance.now();
  if(G.mode==='z'){if(isHost())nextWave()}
- else{banner('两队对打',(TEAM_N[P.team])+' · 先到 '+PVP_KILLS+' 杀获胜',3);say('对战开始，你在'+TEAM_N[P.team]);if(isHost())syncBots()}
+ else{setTimeout(()=>banner('两队对打',(TEAM_N[P.team])+' · 先到 '+PVP_KILLS+' 杀获胜',3),3600);if(isHost())syncBots()}
+ playIntro(G.mode);
  if(!TOUCH)lock()}
 function respawnP(first){P.dn=false;P.selfRev=0;if(P.mg)dismount();P.grab=P.pin=P.climb=null;P.stun=0;P.kbv.set(0,0,0);P.y=0;P.vy=0;P.cr=false;P.dead=false;P.hp=100;P.hurtT=0;if(P.c)revive(P.c);
  if(G.mode==='pvp'){const s=P.team===0?1:-1;P.pos.set(s*rand(BAR-6,BAR-3),0,rand(-7,7));P.yaw=s>0?Math.PI/2:-Math.PI/2;P.pitch=-.05;P.prot=2;
@@ -647,7 +690,8 @@ function nextWave(){G.wave++;G.inter=0;const w=G.wave,n=humanCount(),q=[];
  G.queue=q;G.spawnT=3;G.sl=specText(SL);if(w>=3&&Math.random()<.45)setTimeout(()=>{if(G.state==='play'&&G.wave===w)spawnWitch()},rand(6000,15000));onWaveStart(w,G.sl)}
 function onWaveStart(w,sl){G.wave=w;G.inter=0;G.puWave=0;$('cards').classList.add('hid');if(CARD.thr)THR.inv.nade=Math.min(6,THR.inv.nade+CARD.thr);if(P.dn)reviveMe();closeShop();$('tShop').style.display='none';$('msg').textContent='';
  if(G.mode==='z'&&P.dead){respawnP();popTxt('你已复活')}
- const hb=sl&&/异变体|尸王|坦克尸/.test(sl);banner('第 '+w+' 波',(hb?'强敌出没！':'尸潮来袭')+(sl?'<br>本波：'+sl:''),3.5);sHorn();say(hb?'警告，第'+w+'波尸潮，有强敌出现':'第'+w+'波尸潮来袭')}
+ const hb=sl&&/异变体|尸王|坦克尸/.test(sl);if(w===1&&(G.introT||0)>0){setTimeout(()=>{if(G.wave===1)onWaveBanner(w,sl,hb)},G.introT*1000);return}onWaveBanner(w,sl,hb)}
+function onWaveBanner(w,sl,hb){banner('第 '+w+' 波',(hb?'强敌出没！':'尸潮来袭')+(sl?'<br>本波：'+sl:''),3.5);sHorn();say(hb?'警告，第'+w+'波尸潮，有强敌出现':'第'+w+'波尸潮来袭')}
 function onWaveClear(w){if(isHost())for(const z of G.zs)if(z.type==='witch'&&!z.dead&&z.mode==='cry'&&!z.fled){z.fled=1;z.fleeT=3;z.fleeDir=rand(0,6.28);setBase(z.c,'walk',.8);z.c.cry=0}addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
  $('tShop').style.display='';const best=+(LS.get('scqh-best')||0);if(w>best)LS.set('scqh-best',w);hud(true);}
 function spawnSpot(){const hs=actors().filter(a=>!a.dead&&!a.bot);
@@ -683,7 +727,7 @@ function wallT(o,d,max){let tmin=max;ray.origin.copy(o);ray.direction.copy(d);fo
  if(d.y<-1e-4){const t=-o.y/d.y;if(t<tmin)tmin=t}return tmin}
 function targetsForMe(){const L=[];if(G.mode==='z'){for(const z of G.zs)if(!z.dead)L.push({k:'z',z,c:z.c,pos:z.c.wrap.position})}
  else for(const id in HUM){const H=HUM[id];if(!H.dead&&H.team!==P.team)L.push({k:'h',H,c:H.c,pos:H.pos})}return L}
-function predictZ(Z,d){if(Z.php===undefined||Z.dead)return;Z.php-=d;if(Z.php<=0){Z.dead=true;Z.deadT=0;Z.pdT=performance.now();playOnce(Z.c,'death',1.1);if(Z.c.die)Z.c.die();if(Z.c.tag)Z.c.tag.visible=false}}
+function predictZ(Z,d,hd){if(Z.php===undefined||Z.dead)return;Z.php-=d;if(Z.php<=0){killFx(hd,'',G.cur);G.lastPred=performance.now();if(hd)headPop(Z.c);Z.dead=true;Z.deadT=0;Z.pdT=performance.now();playOnce(Z.c,'death',1.1);if(Z.c.die)Z.c.die();if(Z.c.tag)Z.c.tag.visible=false}}
 function queueHit(v,d,hd,wi){const h=NET.out.h.find(x=>x[0]===v);if(h){h[1]+=d;h[2]=h[2]||hd?1:0}else NET.out.h.push([v,d,hd?1:0,wi??G.cur])}
 const camF=new T.Vector3(),camR=new T.Vector3(),muz=new T.Vector3(),SHO=new T.Vector3();
 // 一发子弹的命中判定（手持枪械和重机枪共用）
@@ -691,9 +735,10 @@ function shoot(d,dmgB,headM,pierce,push,wi,mz,tc){const o=camera.position;const 
  const hits=[];for(const tg of TG){if(tg.pos.distanceTo(o)>wt+2)continue;const h=charHit(tg.c,o,d);if(h&&h.t<wt&&h.t>.5)hits.push([h,tg])}
  hits.sort((a,b)=>a[0].t-b[0].t);let end=wt,n=0,head=false;const maxN=1+(pierce||0);
  for(const [h,tg] of hits){if(n>=maxN)break;n++;end=h.t;const hd=h.part==='head';const dmg=dmgB*(hd?headM:h.part==='leg'?.7:1)*dm;if(hd)head=true;
-  const hp=v2.copy(o).addScaledVector(d,h.t);emit(hp,hd?14:8,[.55,.03,.02],hd?4:2.6,.6);
-  if(tg.k==='z'){if(isHost())hurtZ(tg.z,dmg,hd,d,push||0,NET.me);else{tg.z.c.flash=.08;queueHit('z'+tg.z.id,dmg,hd,wi);predictZ(tg.z,dmg)}}
+  const hp=v2.copy(o).addScaledVector(d,h.t);emit(hp,hd?22:12,[.55,.03,.02],hd?5:3.2,.7);emit(hp,hd?8:4,[.35,.01,.01],1.2,.3,2,.9);hitFx(hd,hp,dmg);zKick(tg.c,d,hd?.16:.1);
+  if(tg.k==='z'){if(isHost())hurtZ(tg.z,dmg,hd,d,push||0,NET.me);else{tg.z.c.flash=.08;queueHit('z'+tg.z.id,dmg,hd,wi);predictZ(tg.z,dmg,hd)}}
   else{if(tg.H.bot&&isHost())hurtBot(tg.H,dmg,NET.me,hd,wi);else{tg.H.c.flash=.08;queueHit(tg.H.id,dmg,hd,wi)}}}
+ if(n>0)P.hitT=.12;
  const ep=v3.copy(o).addScaledVector(d,end);tracer(mz,ep,tc);if(n===0&&end<139)emit(ep,5,[1,.8,.4],3,.9,9.8,.35);
  return{any:n>0,head,ep}}
 function spreadDir(base){const d=new T.Vector3().copy(camF);d.x+=rand(-1,1)*base;d.y+=rand(-1,1)*base;d.z+=rand(-1,1)*base;return d.normalize()}
@@ -744,20 +789,41 @@ function remoteShot(f){const [w,ox,oy,oz,ex,ey,ez]=f;const W=w===99?MGW:(WP[w]||
  if(W.fl&&!flashS.visible){flashS.material.map=flashTex(W.fl.sh);flashS.material.color.setHex(W.fl.c);flashS.position.copy(v1);flashS.scale.setScalar(W.fl.s);flashS.visible=true;flashS.userData.t=.04}
  const d=v1.distanceTo(P.pos);if(d<80&&AC){const a=Math.atan2(ox-P.pos.x,oz-P.pos.z)-(P.yaw+Math.PI);(W.snd&&W.snd.c?sGunW:sGun)(W,clamp(1-d/80,.06,.8),-Math.sin(a))}}
 function hurtZ(z,dmg,head,dir,push,killer,wi){if(z.dead)return false;z.lastW=wi;z.lastBy=killer;if(G.ik>0&&z.type!=='boss'&&z.t.sp!=='tank'&&z.type!=='mutant'&&killer!=='X')dmg=z.hp+1;if(z.daze>0&&z.t.sp==='tank')dmg*=1.6;z.hp-=dmg;z.hDmg=(z.hDmg||0)+dmg;z.c.flash=.08;
- if(push&&dir){z.c.wrap.position.x+=dir.x*push*.4;z.c.wrap.position.z+=dir.z*push*.4}
+ {let dx=dir?dir.x:0,dz=dir?dir.z:0;if(!dir&&killer&&killer!=='X'){const a=actors().find(q=>q.id===killer);if(a){const zp=z.c.wrap.position;const l=Math.hypot(zp.x-a.pos.x,zp.z-a.pos.z)||1;dx=(zp.x-a.pos.x)/l;dz=(zp.z-a.pos.z)/l}}
+  const wt=z.type==='boss'||z.t.sp==='tank'||z.type==='mutant'?.15:z.type==='brute'?.45:1;const kb=Math.min(4.5,(dmg/28+(push||0)*1.6)*wt);z.kbx=(z.kbx||0)+dx*kb;z.kbz=(z.kbz||0)+dz*kb;z.slowT=Math.max(z.slowT||0,.22*wt+(head?.15*wt:0));if(dx||dz)zKick(z.c,{x:dx,z:dz},(head?.18:.1)*wt)}
  if(z.hp<=0){killZ(z,head,killer,wi);return true}
  if(z.type!=='boss'&&z.type!=='tank'&&z.type!=='mutant'&&z.type!=='witch'&&!z.wind&&!z.charge&&!z.leap&&!z.hold&&!z.fuse&&z.hitCd<=0&&!(z.c.one&&(z.c.one.n==='punch'||z.c.one.n==='standup'))&&(head||z.type!=='brute')){z.hitCd=z.type==='brute'?1.4:.55;playOnce(z.c,'hitreact',1.5)}
  return false}
 function dropRoll(id){const r=(id*7919+13)%100;return r<8?'ammo':r<12?'med':null}
-function killZ(z,head,killer,wi){if(z.dead)return;z.dead=true;z.deadT=0;releaseHolds(z);z.leap=null;z.hopv=null;z.charge=0;playOnce(z.c,'death',1.1);if(z.c.die)z.c.die();if(z.type==='mutant'){WX.flick=0;banner('异变体已击杀！','',2.5);say('异变体已消灭')}if(z.c.tag)z.c.tag.visible=false;const t=z.t;let cash=t.cash,pts=t.pts;if(head){cash=Math.round(cash*1.5);pts=Math.round(pts*1.5)}
+function killZ(z,head,killer,wi){if(z.dead)return;z.dead=true;z.deadT=0;if(head&&!z.c.custom){headPop(z.c);pushEv(['hk',z.id])}releaseHolds(z);z.leap=null;z.hopv=null;z.charge=0;playOnce(z.c,'death',1.1);if(z.c.die)z.c.die();if(z.type==='mutant'){WX.flick=0;banner('异变体已击杀！','',2.5);say('异变体已消灭')}if(z.c.tag)z.c.tag.visible=false;const t=z.t;let cash=t.cash,pts=t.pts;if(head){cash=Math.round(cash*1.5);pts=Math.round(pts*1.5)}
  if(t.sp==='bomber'&&!z.boomed)explode(z);
  const sp=t.sp||z.type==='boss'||z.type==='brute'?1:0;if(killer!=='X'){if(killer===NET.me)zReward(head,cash,pts,wi,sp,z.type);else NET.H.zk.push([killer,head?1:0,cash,pts,wi??-1,sp,z.type]);rost(killer).k++}
  if(isHost())spawnPU(z.c.wrap.position);
  const p=z.c.wrap.position;decal(p.x,p.z,rand(1,1.6)*z.c.s);const dr=dropRoll(z.id);if(dr)dropPick(p,dr);
  if(z.type==='boss'){say('尸王已被击杀');banner('尸王倒下',nameOf(killer)+' 完成击杀',2.5)}hud()}
-function zReward(hd,cash,pts,wi,sp,ty){if(G.x2>0)cash*=2;missionEv('kz');if(hd)missionEv('hs');if(sp)missionEv('sp');const W=WP[wi];if(W)missionEv(W.cat==='shotgun'?'k_shotgun':W.cat==='sniper'?'k_sniper':W.cat==='smg'?'k_smg':'-');if(wi===98)missionEv('k_thr');if(wi===97)missionEv('k_knife');if(wi===99)missionEv('k_mg');
+function zReward(hd,cash,pts,wi,sp,ty){if(!(performance.now()-(G.lastPred||0)<700))killFx(hd,'',wi);if(G.x2>0)cash*=2;missionEv('kz');if(hd)missionEv('hs');if(sp)missionEv('sp');const W=WP[wi];if(W)missionEv(W.cat==='shotgun'?'k_shotgun':W.cat==='sniper'?'k_sniper':W.cat==='smg'?'k_smg':'-');if(wi===98)missionEv('k_thr');if(wi===97)missionEv('k_knife');if(wi===99)missionEv('k_mg');
  addXP(ty==='boss'||ty==='tank'?150:sp?25:8);G.cash+=cash;G.score+=pts;G.kills++;if(hd){G.heads++;popTxt('爆头！+$'+cash)}hud()}
 function hitMark(head){const h=$('hm');h.classList.toggle('hs',head);h.style.opacity=1;clearTimeout(h._t);h._t=setTimeout(()=>h.style.opacity=0,110)}
+// ================= 打击感：命中标记 / 爆头声 / 伤害数字 / 击杀提示 / 连杀 =================
+function sHitB(){if(!AC)return;noise(1800,.05,.28,'bandpass',0,2);tone(260,140,.06,.18,'square')}
+function sHitH(){if(!AC)return;tone(2400,2300,.22,.22,'triangle');tone(3600,3500,.14,.12,'sine');noise(5000,.05,.2,'highpass')}
+function sKillC(hd){if(!AC)return;tone(160,60,.18,.45,'sine');noise(700,.12,.35,'lowpass');setTimeout(()=>{tone(hd?1500:1100,hd?1500:1100,.12,.18,'triangle');setTimeout(()=>tone(hd?2000:1500,hd?2000:1500,.18,.16,'triangle'),70)},40)}
+let HMT=null;function hitMark(k){const e=$('hitm');e.className=k;e.style.transition='none';e.style.opacity=1;e.style.transform='scale(1.25)';void e.offsetWidth;e.style.transition='opacity .35s ease-out .08s, transform .12s';e.style.transform='scale(1)';e.style.opacity=0}
+const DN=[];function dmgNum(pos,d,k){const L=DN[DN.length-1];if(L&&L.t<.07&&L.p.distanceTo(pos)<.9){L.v+=d;L.el.textContent=Math.round(L.v);if(k)L.el.className='dnum '+k;return}if(DN.length>14){const o=DN.shift();o.el.remove()}const el=document.createElement('div');el.className='dnum '+k;el.textContent=Math.round(d);$('dnums').appendChild(el);DN.push({el,p:pos.clone(),t:0,vx:rand(-.4,.4),v:d})}
+function updDN(dt){for(let i=DN.length-1;i>=0;i--){const o=DN[i];o.t+=dt;o.p.y+=dt*.9;o.p.x+=o.vx*dt;const v=v4.copy(o.p).project(camera);if(o.t>.8||v.z>1){o.el.remove();DN.splice(i,1);continue}
+ o.el.style.left=((v.x+1)/2*innerWidth)+'px';o.el.style.top=((1-v.y)/2*innerHeight)+'px';o.el.style.opacity=Math.min(1,(.8-o.t)*3);o.el.style.fontSize='';if(o.t<.08)o.el.style.transform='translate(-50%,-50%) scale(1.4)';else o.el.style.transform='translate(-50%,-50%)'}}
+// 连杀（参考 M.A.T / 穿越火线：4 秒内连续击杀累加，徽章逐级升级，语音播报）
+const MK={n:0,t:0};const MKN=['','击杀','双杀','三杀','四杀','五杀','六杀','七杀','八杀'];const MKS=['','','双杀','三杀','四杀','五杀 暴走','六杀 主宰','七杀 无人能挡','八杀 超神'];
+function killBig(t,sub){const e=$('kbig');e.querySelector('b').textContent=t;e.querySelector('span').textContent=sub||'';e.style.transition='none';e.style.opacity=1;e.style.transform='translate(-50%,-50%) scale(1.3)';void e.offsetWidth;e.style.transition='opacity .4s ease .9s, transform .15s';e.style.transform='translate(-50%,-50%) scale(1)';e.style.opacity=0}
+function sStreak(n,hd){if(!AC)return;const b=440*Math.pow(1.12,Math.min(n,9));tone(90,40,.3,.5,'sine');noise(900,.15,.3,'lowpass');[0,.07,.14].slice(0,Math.min(3,n)).forEach((d,i)=>setTimeout(()=>tone(b*(1+i*.25),b*(1+i*.25),.14,.13,'triangle'),d*1000));if(hd)setTimeout(()=>tone(2600,2500,.25,.16,'sine'),60)}
+function killFx(hd,name,wi){hitMark('k');P.shake=Math.max(P.shake,.08);const now=performance.now();MK.n=now-MK.t<4000?MK.n+1:1;MK.t=now;const n=MK.n;
+ const e=$('kbadge');e.className=(n>=8?'t5':n>=5?'t4':n>=3?'t3':n>=2?'t2':'')+(hd?' hs':'');e.querySelector('.em span').textContent=n>=8?'8+':n;
+ e.querySelector('.nm').textContent=n>=2?MKN[Math.min(n,8)]:(hd?'爆头':'击杀');e.querySelector('.tag').textContent=[hd&&n>=2?'爆头':'',wi===97?'刀杀':wi===98?'爆炸':'',name||''].filter(Boolean).join(' · ');
+ e.style.transition='none';e.style.opacity=1;e.style.transform='translateX(-50%) scale(1.5)';void e.offsetWidth;e.style.transition='opacity .45s ease 1.4s, transform .18s cubic-bezier(.2,1.6,.4,1)';e.style.transform='translateX(-50%) scale(1)';e.style.opacity=0;
+ sStreak(n,hd);if(n>=2)say(MKS[Math.min(n,8)].split(' ')[0]+(n>=5?'，'+MKS[Math.min(n,8)].split(' ')[1]:''));else if(hd)say('爆头')}
+function hitFx(hd,pos,d){hitMark(hd?'h':'b');const now=performance.now();if(now-(G.hsT||0)>45){G.hsT=now;if(hd)sHitH();else sHitB()}if(pos)dmgNum(pos,d,hd?'h':'')}
+function zKick(c,dir,amt){if(!dir||!c.root)return;const ry=c.wrap.rotation.y,cs=Math.cos(ry),sn=Math.sin(ry);c.kx=(dir.x*cs-dir.z*sn)*amt;c.kz=(dir.x*sn+dir.z*cs)*amt;c.kk=1}
+function headPop(c){const hb=c.bones&&c.bones.mixamorighead;if(!hb)return;const hp=hb.getWorldPosition(new T.Vector3());hb.scale.setScalar(.001);c.popped=1;emit(hp,40,[.6,.02,.02],5,1.2,9.8,.8);emit(hp,14,[.85,.75,.7],3,1,9.8,.5);if(AC)noise(500,.25,.5,'lowpass')}
 function popTxt(t){const p=$('pop');p.textContent=t;p.style.opacity=1;clearTimeout(p._t);p._t=setTimeout(()=>p.style.opacity=0,800)}
 const pkM={ammo:new T.MeshStandardMaterial({color:0x6a7a3a,emissive:0x2a3a08,roughness:.6}),med:new T.MeshStandardMaterial({color:0xe8e4dc,emissive:0x5a1010,roughness:.6})};
 function dropPick(p,k){const m=new T.Mesh(new T.BoxGeometry(.42,.26,.3),pkM[k]);m.position.set(p.x,.3,p.z);m.castShadow=true;scene.add(m);const gl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:k==='med'?0xff6050:0xc8ff70,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.6}));gl.scale.setScalar(1.1);m.add(gl);PICKUPS.push({m,k,t:25})}
@@ -867,6 +933,7 @@ function applyEv(e){const k=e[0];
  else if(k==='kb'){const [,pid,vx,vz,st]=e;if(pid===NET.me&&!P.dead){P.kbv.set(vx,0,vz);P.vy=Math.max(P.vy,3);P.stun=Math.max(P.stun,st);P.shake=.5}}
  else if(k==='scr'){const [,zid]=e;const z=zById(zid);if(z){v1.copy(z.c.wrap.position);v1.y=1.8;emit(v1,25,[1,.3,.3],5,.4,0,.8);const d=v1.distanceTo(P.pos);if(AC){sGroan(.5*clamp(1-d/50,.15,1),0,false);tone(900,1500,1.2,.12*clamp(1-d/50,.15,1),'sawtooth')}if(d<40)popTxt('尖叫尸在召唤尸群！')}}
  else if(k==='warn'){popTxt(e[1])}
+ else if(k==='hk'){const z=zById(e[1]);if(z&&!z.c.popped)headPop(z.c)}
  else if(k==='mrg'){const z=zById(e[1]);if(z&&z.c.custom)z.c.rage=1}
  else if(k==='wit'){const [,zid,pid]=e;const z=zById(zid);const d=z?Math.hypot(P.pos.x-z.c.wrap.position.x,P.pos.z-z.c.wrap.position.z):30;sShriek(.25*clamp(1-d/60,.2,1));P.shake=Math.max(P.shake,.25);if(z)z.c.cry=0;if(pid===NET.me){banner('女鬼被你惹怒了！','快跑！她会追着你一个人',2.5);say('快跑')}else popTxt('女鬼被惊动了！')}
  else if(k==='pu'){const [,id,t,x,z]=e;const g=new T.Group();g.position.set(x,.9,z);const sp=puSprite(t);g.add(sp);const gl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:PU[t].c,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.7}));gl.scale.setScalar(1.2);g.add(gl);scene.add(g);PUS.push({id,k:t,x,z,g,t:25})}
@@ -1201,7 +1268,8 @@ function hurtP(d,from,attacker,hd,w){if(P.dead||P.prot>0||G.state!=='play')retur
 function emitKill(o){nsend('kill',o);onKill(o)}
 function onKill(o){if(o.m&&o.m!==G.mid)return;addFeed(o);
  if(isHost()){const kv=rost(o.v);kv.d++;if(o.k!=='Z'&&o.k!==o.v){const kk=rost(o.k);const tk=teamOf(o.k),tv=teamOf(o.v);if(G.mode!=='pvp'||tk!==tv){kk.k++;if(G.mode==='pvp'&&tk>=0)G.sc[tk]++}}}
- if(o.k===NET.me&&o.v!==NET.me){if(G.mode==='pvp'){missionEv('pk');addXP(30)}G.kills++;if(o.hd)G.heads++;popTxt((o.hd?'爆头击杀 ':'击杀 ')+nameOf(o.v));sCash()}
+ if(o.k===NET.me&&o.v!==NET.me){if(G.mode==='pvp'){missionEv('pk');addXP(30)}G.kills++;if(o.hd)G.heads++;killFx(o.hd,nameOf(o.v),o.w);sCash()}
+ if(o.v===NET.me&&o.k!=='Z'&&o.k!==NET.me&&G.mode==='pvp')killBig('你被击杀','击杀者：'+nameOf(o.k)+(o.hd?'（爆头）':''));
  hud(true)}
 function addFeed(o){const f=$('feed');const d=document.createElement('div');
  const nc=id=>`<span style="color:${G.mode==='pvp'&&teamOf(id)>=0?TEAM_CSS[teamOf(id)]:'#ddd'}">${nameOf(id)}</span>`;
@@ -1293,7 +1361,7 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
      for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<5.5){dmgTo(a,16*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}if(AC){noise(160,.5,.7);tone(70,35,.4,.5)}P.shake=Math.max(P.shake,.3);z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);updChar(c,dt);p.y=z.y;return}}
    let sx=0,sz=0;for(const o of G.zs){if(o===z||o.dead)continue;const ox=p.x-o.c.wrap.position.x,oz=p.z-o.c.wrap.position.z;const d2=ox*ox+oz*oz,rr=z.r+o.r;if(d2<rr*rr&&d2>1e-6){const d=Math.sqrt(d2);sx+=ox/d*(rr-d);sz+=oz/d*(rr-d)}}
    let vx=dx,vz=dz;if(z.detT>0){z.detT-=dt;vx+=-dz*z.det*1.2;vz+=dx*z.det*1.2;const l=Math.hypot(vx,vz);vx/=l;vz/=l}
-   const s=(tg?z.spd:z.spd*.4)*(z.buffT>0?1.4:1);p.x+=(vx*s)*dt+sx*Math.min(1,dt*8);p.z+=(vz*s)*dt+sz*Math.min(1,dt*8);pushOut(p,z.r*.8,'z',z.y);
+   const s=(tg?z.spd:z.spd*.4)*(z.buffT>0?1.4:1)*(z.slowT>0?.3:1);p.x+=(vx*s)*dt+sx*Math.min(1,dt*8);p.z+=(vz*s)*dt+sz*Math.min(1,dt*8);pushOut(p,z.r*.8,'z',z.y);
    const moved=Math.hypot(p.x-z.last.x,p.z-z.last.y);mv=moved/dt;
    if(mv<s*.35&&td>reach+.3){z.stuck+=dt;if(z.stuck>.45){z.stuck=0;z.det=Math.random()<.5?1:-1;z.detT=rand(.8,1.6)}}else z.stuck=Math.max(0,z.stuck-dt);
    z.face=Math.atan2(vx,vz)}
@@ -1301,6 +1369,7 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
   if(z.type==='runner'||z.spd>2||z.buffT>0)setBase(c,'run',clamp(z.spd/3.1,.7,1.4));else setBase(c,'walk',clamp(z.spd/.62,.8,2.2)*(z.type==='brute'||z.t.sp==='tank'?.75:1));
   if(canHit&&!busy)setBase(c,'idle',1)}
  else if(spec&&!own){mv=Math.hypot(p.x-z.last.x,p.z-z.last.y)/dt;if(z.st===8)setBase(c,'run',z.t.sp==='tank'?1.8:1.2);else if(z.st===5||z.st===7||z.st===10||z.st===2)setBase(c,'idle',1);else setBase(c,mv>.5?'walk':'idle',1.4)}
+ if(z.kbx||z.kbz){p.x+=z.kbx*dt;p.z+=z.kbz*dt;const f=Math.exp(-dt*7);z.kbx*=f;z.kbz*=f;if(Math.abs(z.kbx)+Math.abs(z.kbz)<.05)z.kbx=z.kbz=0;pushOut(p,z.r*.8,'z',z.y)}if(z.slowT>0)z.slowT-=dt;
  z.last.set(p.x,p.z);
  // 重力（从车顶掉下来）
  if(c.custom)c.zst=z.st;
@@ -1322,7 +1391,7 @@ function onZSnap(list){const seen=new Set();
    Z={id,c,type,t,r:t.r,net:true,dead:false,deadT:0,tgt:new T.Vector3(x,0,z),ry,st:-1,groan:rand(2,8)};G.zs.push(Z);if(type==='mutant')c.wrap.position.y=zy||0;zEntrance(Z)}
   {const dtS=Z.snapT?Math.min(.3,Math.max(.03,(now-Z.snapT)/1000)):0;if(dtS){const vx=(x-Z.tgt.x)/dtS,vz=(z-Z.tgt.z)/dtS;const ok=vx*vx+vz*vz<200;Z.vx=ok?vx:0;Z.vz=ok?vz:0}Z.snapT=now}
   Z.tgt.set(x,zy||0,z);Z.ry=ry;if(hp!==undefined){Z.hp=hp;Z.php=Math.min(Z.php??hp,hp)}
-  if(Z.pdT&&st!==4&&now-Z.pdT>900){Z.pdT=0;Z.dead=false;Z.php=hp;const c=Z.c;c.one=null;revive(c);if(c.tag)c.tag.visible=true;Z.st=-2}
+  if(Z.pdT&&st!==4&&now-Z.pdT>900){Z.pdT=0;Z.dead=false;Z.php=hp;const c=Z.c;c.one=null;revive(c);if(c.popped&&c.bones.mixamorighead){c.bones.mixamorighead.scale.setScalar(1);c.popped=0}if(c.tag)c.tag.visible=true;Z.st=-2}
   if(st!==Z.st){const c=Z.c;if(Z.type==='witch')c.cry=st===11?1:0;if(st===4){Z.pdT=0;if(!Z.dead){Z.dead=true;Z.deadT=0;playOnce(c,'death',1.1);if(c.die)c.die();if(c.tag)c.tag.visible=false;decal(x,z,rand(1,1.6)*c.s);const dr=dropRoll(id);if(dr)dropPick(c.wrap.position,dr)}}
    else if(st===9){c.one=null;Z.cly0=Z.tgt.y;Z.clx=Z.tgt.x+Math.sin(Z.ry)*.5;Z.clz=Z.tgt.z+Math.cos(Z.ry)*.5}else if(st===7&&Z.t.sp){const a={tank:['scream',1.6],witch:['scream',1.3],screamer:['scream',1],grabber:['idle_attack',1.4],thrower:['punch',.9],spitter:['punch',1.3]}[Z.t.sp];if(a)playOnce(c,a[0],a[1])}else if(st===2)playOnce(c,'punch',Z.type==='boss'?1.3:1.7);else if(st===3)playOnce(c,'hitreact',1.5);else if(st===6&&Z.st===-1)playOnce(c,Z.type==='boss'?'scream':'standup',Z.type==='boss'?1:1.5);
    if(st===1||st===8)setBase(c,'run',st===8?1.8:1.1);else if(st===5||st===7||st===10)setBase(c,'idle',1);else if(st===0)setBase(c,'walk',1.6);if(st===11)setBase(c,'idle',.35);else if(st===13)setBase(c,'run',2);Z.st=st}}
@@ -1416,7 +1485,7 @@ const clock=new T.Clock();let hudDirty=true;const PV3=new T.Vector3();
 function aimAssist(dt){if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
  for(const tg of targetsForMe()){const ch=chestOf(tg,v2);const d=v1.subVectors(ch,o);const L=d.length();if(L>45||L<1)continue;d.divideScalar(L);const ang=Math.acos(clamp(d.dot(camF),-1,1));if(ang<ba&&wallT(o,d,L)>=L-.3){ba=ang;best={yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}}
  if(best){const k=Math.min(1,dt*(IN.fire?5:3));P.yaw+=wrapA(best.yaw-P.yaw)*k;P.pitch+=(best.pitch-P.rec-P.pitch)*k}}
-function update(dt){
+function update(dt){if(G.introT>0)G.introT-=dt;
  const inp=!(G.paused||P.dead);const k=IN.k;let mx=0,mz=0;
  if(inp){mx=(k.KeyD?1:0)-(k.KeyA?1:0);mz=(k.KeyW?1:0)-(k.KeyS?1:0);if(TOUCH){mx=IN.joy.x;mz=-IN.joy.y}}
  const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml}
@@ -1518,7 +1587,7 @@ function update(dt){
  $('rel').textContent=P.dead?'':P.relT>0?'换弹中…':(G.ws[G.cur].mag===0&&G.ws[G.cur].res===0?'弹药耗尽！换手枪':'');
  if(G.mode==='pvp'){const t=Math.max(0,Math.ceil(G.tl));const s=`<b style="color:${TEAM_CSS[0]}">${G.sc[0]}</b> 蓝队　${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}　红队 <b style="color:${TEAM_CSS[1]}">${G.sc[1]}</b>`;hset('pvpBar',s)}
  if(hudDirty)hud()}
-function fxUpdate(dt){updParts(dt);updWeather(dt);for(const q of TRC){if(q.t>0){q.t-=dt;q.l.material.opacity=Math.max(0,q.t/.06)*.85}}
+function fxUpdate(dt){updParts(dt);updWeather(dt);updDN(dt);for(const q of TRC){if(q.t>0){q.t-=dt;q.l.material.opacity=Math.max(0,q.t/.06)*.85}}
  if(flashS.visible){flashS.userData.t-=dt;if(flashS.userData.t<=0){flashS.visible=false;flashL.intensity=0}}
  for(const f of FIRES){f.t+=dt;const fl=.8+Math.sin(f.t*13)*.12+Math.sin(f.t*31)*.08;f.f.scale.set(1.1*fl,1.5*fl,1);if(f.li)f.li.intensity=2*fl}
  for(const s of SMOKES)s.sp.material.rotation+=s.v*dt}
@@ -1618,8 +1687,11 @@ function hostStart(){if(!NET.host)return;const o=NET.opt;const teams={};const L=
  for(const p of L.slice(0,MAXP)){let t=o.mode==='pvp'?(p.team|0):0;if(o.mode==='pvp'&&cnt[t]>=TEAM_MAX)t=1-t;cnt[t]++;teams[p.id]=t}
  const cfg={mid:'m'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),mode:o.mode,diff:o.diff,ai:o.ai,teams};NET.started=true;G.mid=cfg.mid;nsend('start',cfg);beginMatch(cfg)}
 $('bSolo').onclick=startSolo;
-$('bCreate').onclick=()=>{audioInit();enterRoom(roomCode(),true)};
-$('bJoin').onclick=()=>{const c=($('code').value||'').trim().toUpperCase();if(c.length<4){menuMsg('请输入房间号');return}audioInit();enterRoom(c,false)};
+$('bRot').onclick=()=>{fullscreen();setTimeout(chkRot,600)};
+function chkRot(){const need=TOUCH&&(G.state==='play'||G.state==='lobby')&&innerHeight>innerWidth*1.05;$('rot').style.display=need?'flex':'none'}
+addEventListener('resize',()=>setTimeout(chkRot,200));setInterval(chkRot,1000);
+$('bCreate').onclick=()=>{audioInit();fullscreen();enterRoom(roomCode(),true)};
+$('bJoin').onclick=()=>{const c=($('code').value||'').trim().toUpperCase();if(c.length<4){menuMsg('请输入房间号');return}audioInit();fullscreen();enterRoom(c,false)};
 $('bLbStart').onclick=()=>{audioInit();fullscreen();hostStart()};
 $('bLeave').onclick=toMenu;
 $('bTeam').onclick=()=>{NET.team=1-(NET.team|0);if(NET.tr)NET.tr.track(myPres());lobbyRender()};
