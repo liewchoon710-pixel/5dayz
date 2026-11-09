@@ -1,0 +1,7 @@
+mp7 / uzi / ak47 / m4a1 / f2000 / m870 / sawedoff / awm / dmr
+  — "Ultimate Gun Pack" by Quaternius, CC0 1.0 (public domain). https://quaternius.com
+glock / p226 / revolver
+  — from 99-weapon-3-pack (repo root), simplified for the web. Original credits.txt:
+    glock texture + reference = The national interest (Google images)
+    pistol texture + reference = Pinterest (Google images)
+    revolver texture + reference = Fallout wiki - Fandom (Google images)
