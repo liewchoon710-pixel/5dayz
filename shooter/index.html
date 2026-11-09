@@ -1029,25 +1029,40 @@ function prepMutant(g){const root=g.scene;root.rotation.y=-Math.PI/2;const w=new
   for(let i=0;i<P2.length;i+=2){sx+=P2[i];sz+=P2[i+1];n++}sx/=n||1;sz/=n||1;for(let i=0;i<P2.length;i+=2)if(Math.abs(P2[i]-sx)<.06)fz=Math.max(fz,P2[i+1]);
   w.position.x=-sx;w.position.z=-sz;GUNS.__mutantCoreZ=fz>-9?fz-sz-.01:.08}
  root.traverse(m=>{if(m.isMesh){m.castShadow=true;m.frustumCulled=false}});GUNS.__mutant=w}
+const TX_FLAMES=[0,1,2,3].map(k=>ctex(64,(g,s)=>{const N=[];for(let i=0;i<81;i++)N.push(Math.random());const nz=(x,y)=>{const xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi,a=N[(yi%9)*9+xi%9],b=N[(yi%9)*9+(xi+1)%9],c=N[((yi+1)%9)*9+xi%9],d=N[((yi+1)%9)*9+(xi+1)%9],sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy};
+ const id=g.createImageData(s,s);for(let y=0;y<s;y++)for(let x=0;x<s;x++){let u=(x+.5)/s*2-1;const v=(y+.5)/s;u+=(nz(2+v*5,1+k*2)-.5)*.55*(1-v)+(nz(4+v*11,3+k)-.5)*.25*(1-v);
+  const w=.55*Math.pow(v,.9)*(1-Math.pow(v,5));const d=Math.abs(u)/Math.max(.001,w);let a=Math.max(0,1-d*d*d)*Math.min(1,v*2.5)*(.7+.6*nz(x/7+k*3,y/6));a*=Math.min(1,(1-v)*8);
+  const core=Math.max(0,1-d*2.2)*Math.min(1,v*1.4)*Math.min(1,(1-v)*4);const i=(y*s+x)*4;id.data[i]=255;id.data[i+1]=255;id.data[i+2]=255;id.data[i+3]=Math.min(255,255*(a*.8+core*.35))}g.putImageData(id,0,0)}));
 function makeMutantChar(h){const wrap=new T.Group(),piv=new T.Group();wrap.add(piv);const src=GUNS.__mutant;const o=src?src.clone(true):new T.Mesh(new T.BoxGeometry(.4,1,.3),new T.MeshStandardMaterial({color:0x803030}));if(!src)o.position.y=.5;
  o.scale.multiplyScalar(h);o.position.multiplyScalar(h);piv.add(o);const mats=[];o.traverse(m=>{if(m.isMesh){m.material=m.material.clone();mats.push(m.material)}});
- const core=new T.Mesh(new T.SphereGeometry(.09*h,14,10),new T.MeshBasicMaterial({color:0x3dff7a,transparent:true,opacity:.75}));core.position.set(0,.64*h,(GUNS.__mutantCoreZ??.08)*h);piv.add(core);
- const cg=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0x30ff70,blending:T.AdditiveBlending,transparent:true,opacity:.55,depthWrite:false}));cg.scale.setScalar(.32*h);core.add(cg);
- const cl=new T.PointLight(0x30ff70,3,9,2);cl.position.copy(core.position);piv.add(cl);
+ const core=new T.Mesh(new T.SphereGeometry(.09*h,14,10),new T.MeshBasicMaterial({color:0x3dff7a,transparent:true,opacity:.75}));core.position.set(0,.62*h,((GUNS.__mutantCoreZ??.08)+.06)*h);piv.add(core);
+ core.visible=false;const cg=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0x22e060,blending:T.AdditiveBlending,transparent:true,opacity:.35,depthWrite:false}));cg.scale.setScalar(.32*h);cg.position.copy(core.position);piv.add(cg);
+ const FL=[];for(let i=0;i<34;i++){const sp=new T.Sprite(new T.SpriteMaterial({map:TX_FLAMES[i%4],color:0x40ff80,blending:T.AdditiveBlending,transparent:true,opacity:0,depthWrite:false}));sp.center.set(.5,.15);sp.visible=false;piv.add(sp);FL.push({sp,t:1,life:1,x:0,y:0,z:0,vx:0,vy:0,ph:0,sz:1,ember:0})}
+ const FCOL=[new T.Color(0x9dffb8),new T.Color(0x22ff5a),new T.Color(0x00b870),new T.Color(0x003a28)],fc=new T.Color();
+ const cl=new T.PointLight(0x30ff70,1.5,5,2);cl.position.copy(core.position);piv.add(cl);
  const blob=new T.Mesh(new T.CircleGeometry(h*.3,16),new T.MeshBasicMaterial({map:TX_DOT,color:0,transparent:true,opacity:.55,depthWrite:false}));blob.rotation.x=-Math.PI/2;blob.position.y=.02;wrap.add(blob);
- const c={wrap,root:piv,custom:'mutant',mats,act:{},bones:{},w:{},base:'idle',ts:1,one:null,flash:0,h,s:h/1.8,core,cg,cl,t:rand(0,9),py:0,sq:0,spin:0,dying:0};
+ const c={wrap,root:piv,custom:'mutant',mats,act:{},bones:{},w:{},base:'idle',ts:1,one:null,flash:0,h,s:h/1.8,core,cg,cl,FL,FCOL,fc,fsp:0,fvis:1,t:rand(0,9),py:0,sq:0,spin:0,dying:0};
  c.upd=dt=>{c.t+=dt;const st=c.zst||0,y=wrap.position.y;const air=y>.15;
-  if(c.dying){c.dying+=dt;piv.rotation.x=Math.min(1.5,c.dying*1.4);piv.position.y=-Math.max(0,c.dying-2)*.4;c.cl.intensity=Math.max(0,3-c.dying*2);c.cg.material.opacity=Math.max(0,1-c.dying);return}
+  if(c.dying){c.dying+=dt;piv.rotation.x=Math.min(1.5,c.dying*1.4);piv.position.y=-Math.max(0,c.dying-2)*.4;c.cl.intensity=Math.max(0,3-c.dying*2);c.cg.material.opacity=Math.max(0,.35-c.dying*.3);updFlame(c,dt,Math.max(0,1-c.dying*.6));return}
   // 起跳前下蹲、空中拉伸、落地压扁
   const tsq=st===14?1:air?-.6:0;c.sq+=(tsq-c.sq)*Math.min(1,dt*12);piv.scale.set(1+c.sq*.12,1-c.sq*.22,1+c.sq*.12);
   piv.rotation.x=air?-.3:(.08+c.sq*.2);
   if(st===7){c.spin+=dt*14;piv.rotation.y=c.spin}else{c.spin=0;piv.rotation.y+= (0-piv.rotation.y)*Math.min(1,dt*8)}
   piv.rotation.z=Math.sin(c.t*23)*.02+(Math.random()<.04?rand(-.08,.08):0);piv.position.y=air?0:Math.abs(Math.sin(c.t*6))*.03*h;
-  const pulse=.8+Math.sin(c.t*(c.rage?14:7))*.25;c.core.scale.setScalar(pulse);c.cl.intensity=(c.rage?5:3)*pulse;c.cg.material.color.setHex(c.rage?0x10ffb0:0x22e060);c.cl.color.setHex(c.rage?0x00ffa0:0x30ff70);{const ry=wrap.rotation.y,cx=camera.position.x-wrap.position.x,cz=camera.position.z-wrap.position.z,cl=Math.hypot(cx,cz)||1;const fr=(Math.sin(ry)*cx+Math.cos(ry)*cz)/cl;c.cg.material.opacity=.08+.5*clamp(fr+.25,0,1)}const fk=.85+Math.random()*.3;c.cg.scale.set(.32*c.h*fk,.4*c.h*fk*(1+Math.sin(c.t*9)*.12),1);c.cg.material.rotation=Math.sin(c.t*5)*.2;
+  {const ry=wrap.rotation.y,cx=camera.position.x-wrap.position.x,cz=camera.position.z-wrap.position.z,cl=Math.hypot(cx,cz)||1;c.fvis=.12+.88*clamp((Math.sin(ry)*cx+Math.cos(ry)*cz)/cl+.3,0,1)}updFlame(c,dt,1);
   if(c.py>.5&&y<.12){landFx(wrap.position,c.h)}c.py=y;
   if(c.flash>0){c.flash-=dt;const on=c.flash>0;if(c.fl!==on){c.fl=on;for(const m of c.mats)m.emissive&&m.emissive.setHex(on?0x7a0c04:0)}}};
  c.die=()=>{c.dying=.01;if(AC){tone(90,30,2,.6,'sawtooth');noise(200,2,.5)}};
  return c}
+function updFlame(c,dt,k){const h=c.h,R=c.rage?1.35:1,cp=c.core.position;c.fsp-=dt*(c.rage?40:28)*k;
+ while(c.fsp<0){c.fsp+=1;const f=c.FL.find(q=>q.t>=q.life);if(!f)break;f.ember=Math.random()<.18;f.t=0;f.life=f.ember?rand(.7,1.2):rand(.35,.7);f.x=cp.x+rand(-.05,.05)*h;f.y=cp.y+rand(-.03,.02)*h;f.z=cp.z+rand(0,.02)*h;f.vx=rand(-.05,.05)*h;f.vy=(f.ember?rand(.25,.45):rand(.12,.24))*h*R;f.ph=rand(0,6.28);f.sz=(f.ember?rand(.012,.02):rand(.09,.15))*h*R}
+ for(const f of c.FL){const sp=f.sp;if(f.t>=f.life){sp.visible=false;continue}f.t+=dt;const u=Math.min(1,f.t/f.life);
+  f.x+=(f.vx+Math.sin(c.t*9+f.ph)*.08*h)*dt;f.y+=f.vy*dt;f.vx*=1-dt*2;sp.position.set(f.x,f.y,f.z);
+  const g=f.ember?1-u:Math.sin(Math.min(1,u*2.2+.15)*Math.PI*.5)*(1-u*u);const w=f.sz*(f.ember?1:(.75+.25*Math.sin(c.t*25+f.ph)));sp.scale.set(w*g,(f.ember?w:w*2.6)*g,1);
+  const ci=Math.min(2.999,u*3*(f.ember?.4:1)),i0=ci|0;c.fc.copy(c.FCOL[i0]).lerp(c.FCOL[i0+1],ci-i0);if(c.rage)c.fc.lerp(c.FCOL[2],.3);sp.material.color.copy(c.fc);
+  sp.material.opacity=(f.ember?.95:.7)*(1-u*.45)*c.fvis*k;sp.material.rotation=Math.sin(c.t*6+f.ph)*.25;sp.visible=true}
+ const fk=.75+Math.random()*.25+Math.sin(c.t*17)*.1;c.cl.color.setHex(c.rage?0x10ffb0:0x30ff70);c.cl.intensity=(c.rage?2.4:1.5)*fk*k*(.4+.6*c.fvis);c.cl.position.set(cp.x,cp.y+.06*h,cp.z+.05*h);
+ c.cg.material.opacity=(.12+.08*fk)*c.fvis*k;c.cg.scale.setScalar(.3*h*fk*R);c.cg.position.set(cp.x,cp.y+.05*h,cp.z)}
 function landFx(p,h){emit(v1.set(p.x,.2,p.z),24,[.4,.35,.3],6,.5,6,.9);const d=Math.hypot(P.pos.x-p.x,P.pos.z-p.z);P.shake=Math.max(P.shake,clamp(1-d/30,0,1)*.45);if(AC){noise(120,.5,.8*clamp(1-d/60,.05,1));tone(60,30,.4,.5*clamp(1-d/60,.05,1))}decal(p.x,p.z,h*.4)}
 function mutantHit(c,o,d){const s=TOUCH?1.35:1.08;const cw=c.core.getWorldPosition(v4);const t=raySph(o,d,cw,.13*c.h*s);if(t>0)return{t,part:'head',core:1};
  const p=c.wrap.position;const a=new T.Vector3(p.x,p.y+.2*c.h,p.z),b=new T.Vector3(p.x,p.y+.92*c.h,p.z);const r=raySeg(o,d,a,b);if(r.d<.16*c.h*s)return{t:r.t,part:'body'};return null}
