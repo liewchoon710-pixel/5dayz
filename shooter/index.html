@@ -308,7 +308,7 @@ function updChar(c,dt){if(c.custom){c.upd(dt);return}const k=Math.min(1,dt*10);
  for(const n of LOOPS){const a=c.act[n];if(!a)continue;let tw=(!c.one&&c.base===n)?1:0;const cw=c.w[n]||0;const nw=cw+(tw-cw)*k;c.w[n]=nw;a.setEffectiveWeight(nw);if(c.base===n)a.timeScale=c.ts}
  if(c.one){c.one.t-=dt;if(c.one.t<=0&&c.one.n!=='death'){const a=c.act[c.one.n];a.setEffectiveWeight(0);a.stop();c.one=null}}
  if(c.flash>0){c.flash-=dt;const on=c.flash>0;if(c.fl!==on){c.fl=on;for(const m of c.mats)m.emissive&&m.emissive.setHex(on?0x7a0c04:0)}}
- c.mixer.update(dt)}
+ c.mixer.update(dt);if(c.cry){const b=c.bones;if(b.mixamorigspine2)b.mixamorigspine2.rotation.x+=.3;if(b.mixamorigneck)b.mixamorigneck.rotation.x+=.45;if(b.mixamorighead)b.mixamorighead.rotation.x+=.35;const sh=Math.sin(performance.now()/180)*.04;if(b.mixamorigspine1)b.mixamorigspine1.rotation.x+=.15+sh}}
 function boneW(c,n,v){const b=c.bones[n];if(!b)return null;return b.getWorldPosition(v)}
 
 // ================= 地图 =================
@@ -632,7 +632,7 @@ function spawnZ(type,at){const t=ZT[type],D=DIFF[diffI],w=G.wave,n=humanCount();
  const hpm=(1+.15*(w-1))*D.hp*(1+.15*(n-1))*1.3;const spm=Math.min(1.55,1+.035*(w-1))*D.spd;
  const z={id:G.zid++,ti:ZTK.indexOf(type),mi:t.m.indexOf(m),c,type,t,hp:t.hp*hpm,max:t.hp*hpm,spd:t.spd*spm*rand(.88,1.12),dmg:t.dmg*D.dmg*(1+.04*(w-1)),r:t.r,dead:false,deadT:0,atkT:rand(0,.5),pend:-1,hitCd:0,groan:rand(1,6),stuck:0,det:0,detT:0,face:c.wrap.rotation.y,last:new T.Vector2(c.wrap.position.x,c.wrap.position.z),tid:null,st:0,y:0,vy:0,cd:rand(2,4),buffT:0};
  if(type==='walker'&&w>=4&&Math.random()<Math.min(.5,.08*w))z.spd*=1.9;
- G.zs.push(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.5,0,true);say(type==='boss'?'尸王出现':'坦克尸出现')}else playOnce(c,'standup',1.5);
+ G.zs.push(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.5,0,true);say(type==='boss'?'尸王出现':'坦克尸出现')}else if(type!=='witch')playOnce(c,'standup',1.5);
  if(type==='mutant'){z.rise=2.5;z.y=-c.h;c.wrap.position.y=-c.h}if(type==='witch'){z.mode='cry';z.anger=0;z.face=rand(0,6.28)}
  zEntrance(z);emit(v1.set(c.wrap.position.x,.2,c.wrap.position.z),10,[.35,.3,.25],2,.8,6,.8)}
 function aliveZ(){let n=0;for(const z of G.zs)if(!z.dead&&z.type!=='witch')n++;return n}
@@ -806,6 +806,7 @@ function makeZChar(type,mi,tint){const t=ZT[type];if(type==='mutant'){const c=ma
  const c=makeChar(m,'z_',t.h,t.tint?1:(type==='brute'?.8:tint??rand(.8,1)));
  if(t.tint){const col=new T.Color(t.tint);for(const mm of c.mats)if(mm.color)mm.color.multiply(col)}
  if(t.sc){c.root.scale.x*=t.sc[0];c.root.scale.z*=t.sc[0];c.root.scale.y*=t.sc[1]}
+ if(type==='witch'){const C=clipsFor(MODELS[m]);if(C.h_idle){c.act.idle.stop();const a=c.mixer.clipAction(C.h_idle);a.play();a.setEffectiveWeight(0);c.act.idle=a}}
  if(type==='witch'){const hb=c.bones.mixamorighead;const e=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff1010,blending:T.AdditiveBlending,transparent:true,depthWrite:false,depthTest:false}));e.scale.setScalar(.22);if(hb){e.position.set(0,8,9);e.scale.setScalar(22);hb.add(e)}else{e.position.set(0,t.h*.92,.12);c.wrap.add(e)}c.eyes=e}
  if(t.sp){const tg=nameTag(t.name,t.col||'#ffb070');tg.position.y=t.h*(t.sc?t.sc[1]:1)+.35;tg.scale.set(1.3,.24,1);c.wrap.add(tg);c.tag=tg}
  return{c,m}}
@@ -828,7 +829,8 @@ function applyEv(e){const k=e[0];
  else if(k==='kb'){const [,pid,vx,vz,st]=e;if(pid===NET.me&&!P.dead){P.kbv.set(vx,0,vz);P.vy=Math.max(P.vy,3);P.stun=Math.max(P.stun,st);P.shake=.5}}
  else if(k==='scr'){const [,zid]=e;const z=zById(zid);if(z){v1.copy(z.c.wrap.position);v1.y=1.8;emit(v1,25,[1,.3,.3],5,.4,0,.8);const d=v1.distanceTo(P.pos);if(AC){sGroan(.5*clamp(1-d/50,.15,1),0,false);tone(900,1500,1.2,.12*clamp(1-d/50,.15,1),'sawtooth')}if(d<40)popTxt('尖叫尸在召唤尸群！')}}
  else if(k==='warn'){popTxt(e[1])}
- else if(k==='wit'){const [,zid,pid]=e;const z=zById(zid);const d=z?Math.hypot(P.pos.x-z.c.wrap.position.x,P.pos.z-z.c.wrap.position.z):30;sShriek(.25*clamp(1-d/60,.2,1));P.shake=Math.max(P.shake,.25);if(z&&z.c.root)z.c.root.rotation.x=0;if(pid===NET.me){banner('女鬼被你惹怒了！','快跑！她会追着你一个人',2.5);say('快跑')}else popTxt('女鬼被惊动了！')}
+ else if(k==='mrg'){const z=zById(e[1]);if(z&&z.c.custom)z.c.rage=1}
+ else if(k==='wit'){const [,zid,pid]=e;const z=zById(zid);const d=z?Math.hypot(P.pos.x-z.c.wrap.position.x,P.pos.z-z.c.wrap.position.z):30;sShriek(.25*clamp(1-d/60,.2,1));P.shake=Math.max(P.shake,.25);if(z)z.c.cry=0;if(pid===NET.me){banner('女鬼被你惹怒了！','快跑！她会追着你一个人',2.5);say('快跑')}else popTxt('女鬼被惊动了！')}
  else if(k==='pu'){const [,id,t,x,z]=e;const g=new T.Group();g.position.set(x,.9,z);const sp=puSprite(t);g.add(sp);const gl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:PU[t].c,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.7}));gl.scale.setScalar(1.2);g.add(gl);scene.add(g);PUS.push({id,k:t,x,z,g,t:25})}
  else if(k==='pug'){const [,id,t,pid]=e;const i=PUS.findIndex(u=>u.id===id);if(i>=0){scene.remove(PUS[i].g);PUS.splice(i,1)}applyPU(t,pid)}
  else if(k==='fire')addFire(e)}
@@ -1125,11 +1127,11 @@ function zAmb(z,dt){if(z.dead)return;const p=z.c.wrap.position;const d=Math.hypo
 function witchAI(z,dt){const p=z.c.wrap.position;const c=z.c;
  if(z.fled){z.fleeT-=dt;const a=z.fleeDir;p.x+=Math.sin(a)*7*dt;p.z+=Math.cos(a)*7*dt;z.face=a;z.st=1;setBase(c,'run',2);z.c.wrap.traverse(m=>{if(m.material&&m.material.transparent!==undefined){m.material.transparent=true;m.material.opacity=Math.max(0,z.fleeT/2)}});
   if(z.fleeT<=0)z.gone=true;return true}
- if(z.mode==='cry'){z.st=11;setBase(c,'idle',.35);c.root.rotation.x=.35;
+ if(z.mode==='cry'){z.st=11;setBase(c,'idle',.35);c.cry=1;
   let who=null;for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<3.5){who=a;z.anger=2}else if(d<10)z.anger=(z.anger||0)+dt*(10-d)/10*.9}
   if(z.hDmg>0&&z.lastBy&&z.lastBy!=='X'){who=actors().find(a=>a.id===z.lastBy)||who;z.anger=2}
   if((z.anger||0)>=1){if(!who){let bd=1e9;for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<bd){bd=d;who=a}}}
-   if(who){z.mode='scream';z.wt=who.id;z.wind=1.1;c.root.rotation.x=0;playOnce(c,'scream',1.3);pushEv(['wit',z.id,who.id])}}
+   if(who){z.mode='scream';z.wt=who.id;z.wind=1.1;c.cry=0;playOnce(c,'scream',1.3);pushEv(['wit',z.id,who.id])}}
   return true}
  if(z.mode==='scream'){z.st=7;z.wind-=dt;const a=actors().find(q=>q.id===z.wt);if(a)z.face=Math.atan2(a.pos.x-p.x,a.pos.z-p.z);if(z.wind<=0)z.mode='chase';return true}
  if(z.mode==='chase'){const a=actors().find(q=>q.id===z.wt);if(!a||a.dead||a.dn){z.fled=1;z.fleeT=2.5;z.fleeDir=rand(0,6.28);return true}
@@ -1139,7 +1141,7 @@ function witchAI(z,dt){const p=z.c.wrap.position;const c=z.c;
 // ---- 异变体 AI（房主）：袋鼠式弹跳、甩尾、跳砸
 function mutantAI(z,tg,td,dt){const p=z.c.wrap.position;const c=z.c;c.zst=z.st;
  if(z.rise>0){z.rise-=dt;z.y=-c.h*Math.max(0,z.rise/2.5);z.st=6;if(z.rise<=0)z.y=0;return true}
- if(!c.rage&&z.hp<z.max*.5){c.rage=1;pushEv(['warn','异变体狂暴了！']);if(AC)sShriek(.2)}
+ if(!c.rage&&z.hp<z.max*.5){c.rage=1;pushEv(['warn','异变体狂暴了！']);pushEv(['mrg',z.id]);if(AC)sShriek(.2)}
  if(z.hopv){const H=z.hopv;H.vy-=18*dt;p.x+=H.vx*dt;p.z+=H.vz*dt;z.y+=H.vy*dt;pushOut(p,z.r*.8,'z',z.y);z.st=15;const g=groundH(p,.3,z.y);
   if(z.y<=g&&H.vy<0){z.y=g;z.hopv=null;z.st=0;const R=H.big?5.5:3.2,D=(H.big?45:22)*DIFF[diffI].dmg;for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<R){dmgTo(a,D*(1-d/R*.5),p);knock(a,p,H.big?12:7,.5)}}
    z.cd2=c.rage?.25:.5}return true}
@@ -1178,7 +1180,7 @@ function addBot(t){const used=new Set(Object.values(HUM).map(h=>h.name));const n
 function respawnBot(B){const s=B.team===0?1:-1;B.pos.set(s*rand(BAR-6.5,BAR-2.5),0,rand(-8,8));B.yaw=s>0?Math.PI/2:-Math.PI/2;B.hp=100;B.prot=2;setDead(B,false);B.ai.tgt=null;B.ai.goal=null}
 function hurtBot(B,d,k,hd,w){if(B.dead||B.prot>0)return;B.hp-=d;B.c.flash=.08;if(B.ai)B.ai.scan=0;
  if(B.hp<=0){B.hp=0;setDead(B,true);B.respT=5;emitKill({k,v:B.id,hd:hd?1:0,w:w|0})}}
-function chestOf(a,out){const h=a.c&&boneW(a.c,'mixamorigspine2',out);if(h)return out;return out.set(a.pos.x,1.25,a.pos.z)}
+function chestOf(a,out){if(a.c&&a.c.custom)return a.c.core.getWorldPosition(out);const h=a.c&&boneW(a.c,'mixamorigspine2',out);if(h)return out;return out.set(a.pos.x,1.25,a.pos.z)}
 function canSee(from,a){const e=v1.set(from.x,1.5,from.z);const t=chestOf(a,new T.Vector3());const d=t.clone().sub(e);const L=d.length();d.divideScalar(L);return wallT(e,d,L)>=L-.4}
 function findEnemy(B){let best=null,bd=55;for(const a of actors()){if(a.dead||a.team===B.team||a.id===B.id)continue;const d=Math.hypot(a.pos.x-B.pos.x,a.pos.z-B.pos.z);if(d<bd&&canSee(B.pos,a)){bd=d;best=a}}return best}
 const GOALS=[[0,0],[18,0],[-18,0],[0,18],[0,-18],[32,6],[-32,-6],[6,32],[-6,-32],[10,10],[-10,-10],[0,40],[0,-40],[22,-8],[-22,8]];
@@ -1278,7 +1280,7 @@ function onZSnap(list){const seen=new Set();
   if(!Z){const type=ZTK[ti],t=ZT[type];const mz=makeZChar(type,mi);if(!mz)continue;const c=mz.c;c.wrap.position.set(x,0,z);c.wrap.rotation.y=ry;scene.add(c.wrap);
    Z={id,c,type,t,r:t.r,net:true,dead:false,deadT:0,tgt:new T.Vector3(x,0,z),ry,st:-1,groan:rand(2,8)};G.zs.push(Z);if(type==='mutant')c.wrap.position.y=zy||0;zEntrance(Z)}
   Z.tgt.set(x,zy||0,z);Z.ry=ry;
-  if(st!==Z.st){const c=Z.c;if(c.root&&Z.type==='witch')c.root.rotation.x=st===11?.35:0;if(st===4){if(!Z.dead){Z.dead=true;Z.deadT=0;playOnce(c,'death',1.1);if(c.die)c.die();if(c.tag)c.tag.visible=false;decal(x,z,rand(1,1.6)*c.s);const dr=dropRoll(id);if(dr)dropPick(c.wrap.position,dr)}}
+  if(st!==Z.st){const c=Z.c;if(Z.type==='witch')c.cry=st===11?1:0;if(st===4){if(!Z.dead){Z.dead=true;Z.deadT=0;playOnce(c,'death',1.1);if(c.die)c.die();if(c.tag)c.tag.visible=false;decal(x,z,rand(1,1.6)*c.s);const dr=dropRoll(id);if(dr)dropPick(c.wrap.position,dr)}}
    else if(st===9)playOnce(c,'climb',1.3);else if(st===7&&Z.t.sp){const a={tank:['scream',1.6],witch:['scream',1.3],screamer:['scream',1],grabber:['idle_attack',1.4],thrower:['punch',.9],spitter:['punch',1.3]}[Z.t.sp];if(a)playOnce(c,a[0],a[1])}else if(st===2)playOnce(c,'punch',Z.type==='boss'?1.3:1.7);else if(st===3)playOnce(c,'hitreact',1.5);else if(st===6&&Z.st===-1)playOnce(c,Z.type==='boss'?'scream':'standup',Z.type==='boss'?1:1.5);
    if(st===1||st===8)setBase(c,'run',st===8?1.8:1.1);else if(st===5||st===7||st===10)setBase(c,'idle',1);else if(st===0)setBase(c,'walk',1.6);if(st===11)setBase(c,'idle',.35);else if(st===13)setBase(c,'run',2);Z.st=st}}
  for(let i=G.zs.length-1;i>=0;i--){const Z=G.zs[i];if(!seen.has(Z.id)){scene.remove(Z.c.wrap);G.zs.splice(i,1)}}}
