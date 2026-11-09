@@ -170,7 +170,7 @@ body.touch #pvpBar{top:52px}
   <div class="lbl">角色</div><div class="row" id="skinRow"></div>
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
   <div class="lbl">难度</div><div class="row" id="diffRow"></div>
-  <div class="lbl">视角</div><div class="row" id="viewRow"></div>
+  <div class="lbl">视角<span class="aaL">　　　　　　　辅助瞄准</span></div><div class="row" style="flex-wrap:wrap"><div class="row" id="viewRow" style="margin:0"></div><div id="aaWrap" class="row" style="margin:0 0 0 18px;gap:inherit"><div class="row" id="aaRow" style="margin:0"></div></div></div>
   <div id="aiWrap"><div class="lbl">电脑补位（凑满 4v4）</div><div class="row" id="aiRow"></div></div>
   <div id="pvpWRow" class="row"></div>
   <div class="row" style="margin-top:12px"><button class="btn g" id="bProf" onclick="$('profBox').innerHTML=profHTML();$('prof').classList.remove('hid')">档案 / 任务</button><button class="btn" id="bSolo">单人开始</button><button class="btn" id="bCreate">创建房间</button></div>
@@ -506,7 +506,7 @@ let myName=LS.get('scqh-name')||('幸存者'+Math.floor(10+Math.random()*90));
 const G={state:'load',mode:'z',wave:0,zs:[],queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,ws:null,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:0,zid:1,bid:0,mid:'',cfg:null,R:{},paused:false,botT:0,allDeadT:0,ended:false};
 const P={kbv:new T.Vector3(),stun:0,grab:null,pin:null,mash:0,climb:null,y:0,vy:0,air:false,cr:false,crT:0,mg:null,pos:new T.Vector3(),vel:new T.Vector3(),yaw:0,pitch:-.08,rec:0,hp:100,ar:0,c:null,guns:[],aim:0,aimOn:false,fireCd:0,relT:0,dead:false,hurtT:0,regenT:0,spr:0,shake:0,team:0,respT:0,prot:0};
 const HUM={};// 远端玩家 + 电脑士兵
-let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';// tp=斜肩第三人称  fp=第一人称
+let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';let AA=LS.get('scqh-aa')!=='0';// tp=斜肩第三人称  fp=第一人称
 const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26]},ADS=[0,-.058,.24],VMS=.6;
 function setView(v){VIEW=v;LS.set('scqh-view',v);camera.near=v==='fp'?.03:.08;camera.updateProjectionMatrix();const b=$('tView');if(b)b.textContent=v==='fp'?'斜肩':'第一';popTxt(v==='fp'?'第一人称':'斜肩视角')}
 const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
@@ -622,7 +622,7 @@ function nextWave(){G.wave++;G.inter=0;const w=G.wave,n=humanCount(),q=[];
 function onWaveStart(w,sl){G.wave=w;G.inter=0;G.puWave=0;$('cards').classList.add('hid');if(CARD.thr)THR.inv.nade=Math.min(6,THR.inv.nade+CARD.thr);if(P.dn)reviveMe();closeShop();$('tShop').style.display='none';$('msg').textContent='';
  if(G.mode==='z'&&P.dead){respawnP();popTxt('你已复活')}
  banner('第 '+w+' 波',(w%5===0?'尸王出没！':w%3===0?'巨尸来袭！':'尸潮来袭')+(sl?'<br>特异：'+sl:''),3.5);sHorn();say(w%5===0?'警告，第'+w+'波尸潮，尸王出现':'第'+w+'波尸潮来袭')}
-function onWaveClear(w){addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
+function onWaveClear(w){if(isHost())for(const z of G.zs)if(z.type==='witch'&&!z.dead&&z.mode==='cry'&&!z.fled){z.fled=1;z.fleeT=3;z.fleeDir=rand(0,6.28);setBase(z.c,'walk',.8);z.c.cry=0}addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
  $('tShop').style.display='';const best=+(LS.get('scqh-best')||0);if(w>best)LS.set('scqh-best',w);hud(true);}
 function spawnSpot(){const hs=actors().filter(a=>!a.dead&&!a.bot);
  for(let i=0;i<20;i++){const ax=Math.random()<.5,s=(Math.random()<.5?1:-1)*rand(10,BAR-3),l=rand(-12.5,12.5);const x=ax?s:l,z=ax?l:s;
@@ -1369,7 +1369,7 @@ function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=0;for(const k
 
 // ---------- 每帧 ----------
 const clock=new T.Clock();let hudDirty=true;const PV3=new T.Vector3();
-function aimAssist(dt){if(!TOUCH||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
+function aimAssist(dt){if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
  for(const tg of targetsForMe()){const ch=chestOf(tg,v2);const d=v1.subVectors(ch,o);const L=d.length();if(L>45||L<1)continue;d.divideScalar(L);const ang=Math.acos(clamp(d.dot(camF),-1,1));if(ang<ba&&wallT(o,d,L)>=L-.3){ba=ang;best={yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}}
  if(best){const k=Math.min(1,dt*(IN.fire?5:3));P.yaw+=wrapA(best.yaw-P.yaw)*k;P.pitch+=(best.pitch-P.rec-P.pitch)*k}}
 function update(dt){
@@ -1549,10 +1549,11 @@ function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;
  chips($('modeRow'),['打丧尸（合作）','两队对打 4v4'],modeS==='pvp'?1:0,i=>{modeS=i?'pvp':'z';LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
  chips($('viewRow'),['斜肩（第三人称）','第一人称'],VIEW==='fp'?1:0,i=>{VIEW=i?'fp':'tp';LS.set('scqh-view',VIEW);showMenu()});
+ chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
  {const L=WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol');const cur=pvpPrimary();const el=$('pvpWRow');el.style.display=modeS==='pvp'?'':'none';el.innerHTML='';if(modeS==='pvp'){el.innerHTML='<div class="lbl" style="width:100%">对战主武器</div>';L.forEach(i=>{const w=WP[i];const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.style.opacity=w.lvl<=PROF.lvl?1:.35;b.textContent=w.n+(w.lvl>PROF.lvl?' Lv'+w.lvl:'');b.onclick=()=>{if(w.lvl>PROF.lvl)return;LS.set('scqh-pvpw',w.id);showMenu()};el.appendChild(b)})}}
  chips($('aiRow'),['开','关'],aiS?0:1,i=>{aiS=!i;LS.set('scqh-ai',aiS?'1':'0');showMenu()});$('aiWrap').style.display=modeS==='pvp'?'':'none';
  const best=+(LS.get('scqh-best')||0);$('best').textContent=best?'打丧尸最佳：清除 '+best+' 波':'';
- $('helpTxt').innerHTML=(TOUCH?'左半屏拖动 = 移动（推到底冲刺）　右半屏拖动 = 转视角　按住「开火」可边打边瞄（自带辅助瞄准）　「跳」「蹲」「上枪」按钮在右边':
+ $('helpTxt').innerHTML=(TOUCH?'左半屏拖动 = 移动（推到底冲刺）　右半屏拖动 = 转视角　按住「开火」可边打边瞄（辅助瞄准可在主菜单关闭）　「跳」「蹲」「上枪」按钮在右边':
   'WASD 移动　Shift 冲刺　左键开火　右键瞄准/开镜　R 换弹　1-3/滚轮 换枪　F 刀　G 投掷　H 换投掷物　E 使用/救人　V 视角　空格 跳/攀爬　C 蹲　B 商店　Tab 排行榜')+
   '<br>打丧尸：随机地点冒出、节奏固定——每 3 波巨尸、每 4 波坦克尸、每 5 波尸王；特异丧尸第 2 波自爆、第 3 波吐酸/投石、第 4 波长手、第 5 波扑脸、第 6 波尖叫；第 3 波起单数波会出现「女鬼」（听到哭声别靠近、别开枪）；每 8 波「异变体」（会跳，打胸口的绿色鬼火）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
 function startSolo(){myName=($('nm').value||'').trim().slice(0,8)||myName;LS.set('scqh-name',myName);netLeave();audioInit();fullscreen();
