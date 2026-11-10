@@ -1482,7 +1482,7 @@ function netTransport(room){if(FAKE)return fakeTransport(room);
   for(const [ev,fn] of hs)ch.on('broadcast',{event:ev},m=>{try{fn(m.payload)}catch(e){console.warn('net',ev,e)}});
   if(pres)ch.on('presence',{event:'sync'},()=>{try{pres(ch.presenceState())}catch(e){}});
   ch.subscribe(st=>{if(priv&&(st==='CHANNEL_ERROR'||st==='TIMED_OUT')){try{sb.removeChannel(ch)}catch(e){}open(false,cb);return}cb(st)},8000)};
- return{send(ev,p){if(ch)ch.send({type:'broadcast',event:ev,payload:p})},on(ev,fn){hs.push([ev,fn])},presence(fn){pres=fn},track(o){return ch&&ch.track(o)},
+ return{joined(){return !!ch&&ch.state==='joined'},send(ev,p){if(ch)ch.send({type:'broadcast',event:ev,payload:p})},on(ev,fn){hs.push([ev,fn])},presence(fn){pres=fn},track(o){return ch&&ch.track(o)},
   async subscribe(cb){let priv=false;try{const s=await netAuth();if(s&&s.access_token){priv=true;sb.realtime.setAuth(s.access_token)}}catch(e){priv=false}open(priv,cb)},
   close(){try{ch&&ch.untrack();ch&&sb.removeChannel(ch)}catch(e){}}}}
 const ROOM_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -1499,6 +1499,7 @@ function enterRoom(code,host){netLeave();myName=($('nm').value||'').trim().slice
  Tr.subscribe(st=>{if(st==='SUBSCRIBED'){Tr.track(myPres());lbMsg(host?'把房号或邀请链接发给朋友（最多 '+MAXP+' 人）':'已连上，等房主开始');lobbyRender()}
   else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')lbMsg('连接失败，请检查网络后重试')})}
 function netLeave(){try{NET.tr&&NET.tr.close()}catch(e){}NET.tr=null;NET.on=false;NET.host=true;NET.started=false;NET.me='me';NET.list=[]}
+function hostPresent(){return NET.list.some(o=>o.host&&o.id!==NET.me)}
 function onPresence(st){const list=[];for(const k in st){const o=st[k]&&st[k][0];if(o&&o.id)list.push(o)}list.sort((a,b)=>(b.host?1:0)-(a.host?1:0)||a.t-b.t);
  const prev=NET.list.map(o=>o.id);NET.list=list;
  if(NET.host&&NET.started&&G.cfg){let resend=false;for(const o of list)if(!prev.includes(o.id)&&o.id!==NET.me){const hum=[0,0];hum[P.team]++;for(const id in HUM)if(!HUM[id].bot)hum[HUM[id].team]++;G.cfg.teams[o.id]=G.mode==='pvp'?(hum[0]<=hum[1]?0:1):0;resend=true}
@@ -1519,7 +1520,7 @@ function applyHit(h,s){const [v,d,hd,w]=h;
  if(!isHost())return;
  if(v[0]==='z'){const z=G.zs.find(q=>q.id===+v.slice(1));if(z&&!z.dead)hurtZ(z,d,hd,null,0,s,w)}
  else{const B=HUM[v];if(B&&B.bot)hurtBot(B,d,s,hd,w)}}
-function onH(h){if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();const g=h.g;
+function onH(h){if(h.ps){h.ps.m=h.m;try{onP(h.ps)}catch(e){}}if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();if(NET.lagShown){NET.lagShown=0;popTxt('连接已恢复')}const g=h.g;
  G.sc=g.sc;G.tl=g.tl;G.left=g.q;
  if(G.mode==='z'){if(g.w>G.wave)onWaveStart(g.w,g.sl);if(g.it>0&&!(G.inter>0))onWaveClear(g.w);G.inter=g.it}
  if(h.z)onZSnap(h.z);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
@@ -1530,17 +1531,19 @@ function onH(h){if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.l
  if(h.r){for(const id in h.r){const [n,t,k,d,b]=h.r[id];G.R[id]={n,t,k,d,b}}}
  hudDirty=true}
 function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=0;for(const k in NET.H)NET.H[k].length=0;return}
- NET.sendT-=dt;if(NET.sendT>0)return;NET.sendT=humanCount()<=4?.066:.1;
+ NET.sendT-=dt;if(NET.sendT>0)return;{const n=Math.max(2,humanCount());const hz=NET.host?(n<=2?10:n<=4?8:5):(n<=2?10:n<=4?5:3);NET.sendT=1/hz}
+ if(NET.tr&&NET.tr.joined&&!NET.tr.joined()){NET.slow=(NET.slow||0)+1;if(NET.slow%4)return}
  const sp=Math.hypot(P.vel.x,P.vel.z);const back=(-(Math.sin(P.yaw)*P.vel.x+Math.cos(P.yaw)*P.vel.z))<-.3;
  const a=P.climb?4:sp<.25?0:back?3:P.c&&P.c.base==='run_gun'?2:1;
- nsend('p',{i:NET.me,n:myName,t:P.team,sk:skinI,x:r2(P.pos.x),z:r2(P.pos.z),y:r2(P.yaw),pt:r2(P.pitch+P.rec),a,w:G.cur,c:P.cr?1:0,py:r2(P.y),u:P.mg?P.mg.i:-1,dn:P.dn?1:0,hp:Math.ceil(P.hp),d:P.dead?1:0,f:NET.out.f.length?NET.out.f.splice(0):undefined,h:NET.out.h.length?NET.out.h.splice(0).map(x=>[x[0],r2(x[1]),x[2],x[3]]):undefined});
- if(NET.host){const H={g:{w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
+ const PS={i:NET.me,n:myName,t:P.team,sk:skinI,x:r2(P.pos.x),z:r2(P.pos.z),y:r2(P.yaw),pt:r2(P.pitch+P.rec),a,w:G.cur,c:P.cr?1:0,py:r2(P.y),u:P.mg?P.mg.i:-1,dn:P.dn?1:0,hp:Math.ceil(P.hp),d:P.dead?1:0,f:NET.out.f.length?NET.out.f.splice(0):undefined,h:NET.out.h.length?NET.out.h.splice(0).map(x=>[x[0],r2(x[1]),x[2],x[3]]):undefined};
+ if(!NET.host)nsend('p',PS);
+ if(NET.host){const H={ps:PS,g:{w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
   if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0),Math.ceil(z.hp)]);
   else{H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
   for(const k in NET.H)if(NET.H[k].length)H[k]=NET.H[k].splice(0);
   if(++NET.hn%5===0){H.r={};for(const id in G.R){const o=G.R[id];H.r[id]=[nameOf(id),o.t,o.k,o.d,o.b]}}
   nsend('H',H)}
- else if(G.state==='play'&&performance.now()-NET.lastH>8000){showEnd({m:G.mid,mode:G.mode,sc:G.sc,w:G.wave,r:[],gone:1})}}
+ else if(G.state==='play'){const gap=performance.now()-NET.lastH;if(gap>3500&&!NET.lagShown){NET.lagShown=1;popTxt('连接不稳定，正在重连房主…')}if(gap>30000&&!hostPresent())showEnd({m:G.mid,mode:G.mode,sc:G.sc,w:G.wave,r:[],gone:1});else if(gap>90000)showEnd({m:G.mid,mode:G.mode,sc:G.sc,w:G.wave,r:[],gone:1})}}
 
 // ---------- 每帧 ----------
 const clock=new T.Clock();let hudDirty=true;const PV3=new T.Vector3();
