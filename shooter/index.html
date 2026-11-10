@@ -208,7 +208,7 @@ body.touch #pvpBar{top:52px}
   <div id="aiWrap"><div class="lbl">电脑补位（凑满 4v4）</div><div class="row" id="aiRow"></div></div>
   <div id="pvpWRow" class="row"></div>
   <div class="row" style="margin-top:12px"><button class="btn g" id="bProf" onclick="$('profBox').innerHTML=profHTML();$('prof').classList.remove('hid')">档案 / 任务</button><button class="btn" id="bSolo">单人开始</button><button class="btn" id="bCreate">创建房间</button></div>
-  <div class="row"><input id="code" maxlength="5" placeholder="房间号" style="text-transform:uppercase;width:110px"><button class="btn g" id="bJoin" style="min-width:110px">加入房间</button></div>
+  <div class="row"><input id="code" maxlength="5" placeholder="房间号" style="text-transform:uppercase;width:110px"><button class="btn g" id="bJoin" style="min-width:110px">加入房间</button><button class="btn" id="bRejoin" style="display:none"></button></div>
   <div id="menuMsg" class="lbl" style="color:#ffb08a;opacity:1"></div>
   <div id="best" class="lbl"></div>
   <div class="help" id="helpTxt" style="margin-bottom:auto"></div>
@@ -672,7 +672,7 @@ function respawnP(first){P.dn=false;P.selfRev=0;if(P.mg)dismount();P.grab=P.pin=
   const pw=pvpPrimary();if(G.slots[1]!==pw){if(G.slots[1]>=0)G.ws[G.slots[1]].own=false;G.slots[1]=pw;G.ws[pw].own=true}G.slots.forEach(i=>{if(i>=0){const st=wStat(i);G.ws[i].mag=st.mag;G.ws[i].res=st.res}});P.relT=0;G.slot=1;equip(pw,true)}
  else{P.pos.set(rand(-2.5,2.5),0,rand(1,4));if(first){P.yaw=0;P.pitch=-.08}}pushOut(P.pos,.45,'p');
  P.hp=mods().hp;P.guns.forEach(g=>{if(g)g.visible=false});gunOf(P.guns,G.cur).visible=true;hud(true)}
-function equip(i,force){if(!G.ws[i].own)return;if(P.mg&&!force)return;P.burst=0;P.cyc=0;
+function equip(i,force){if(!G.ws[i].own)return;if(P.mg&&!force)return;P.burst=0;P.cyc=0;{const sc=!!WP[i].scope;$('tAim').style.display=sc?'':'none';if(!sc){P.aimT=false;$('tAim').classList.remove('on')}}
  if(force){G.cur=i;P.sw=null;P.relT=0;P.guns.forEach((g,j)=>{if(g)g.visible=false});if(!P.dead)gunOf(P.guns,i).visible=true;hud(true);return}
  if(P.sw?P.sw.to===i:i===G.cur)return;G.last=G.cur;P.relT=0;P.sw={t:0,d:WP[i].cat==='pistol'?.45:WP[i].cat==='sniper'?.85:.7,to:i,done:false};sClick()}
 function mashP(){if(!P.pin)return;P.mash++;P.shake=.15;if(P.mash>=8){const zid=P.pin;P.pin=null;popTxt('挣脱了！');if(isHost()){const z=zById(zid);if(z)z.hDmg=999}else nsend('brk',{z:zid,p:NET.me})}}
@@ -1491,9 +1491,10 @@ function nsend(ev,p){if(NET.on&&NET.tr)try{if(p&&typeof p==='object'&&!p.m)p.m=G
 function netId(room){const k='gun-id-'+room;let id=null;try{id=sessionStorage.getItem(k)}catch(e){}if(!id){id='p'+Math.random().toString(36).slice(2,8);try{sessionStorage.setItem(k,id)}catch(e){}}return id}
 function myPres(){return{id:NET.me,name:myName,host:NET.host,t:NET.T0,team:NET.team|0,sk:skinI}}
 function enterRoom(code,host){netLeave();myName=($('nm').value||'').trim().slice(0,8)||myName;LS.set('scqh-name',myName);
+ LS.set('scqh-last',JSON.stringify({c:code,t:Date.now(),h:host?1:0}));
  Object.assign(NET,{on:true,host,me:netId(code),room:code,started:false,list:[],T0:Date.now(),team:0,opt:{mode:modeS,diff:diffI,ai:aiS}});
  try{NET.tr=netTransport(code)}catch(e){NET.on=false;menuMsg(e.message);return}
- const Tr=NET.tr;Tr.on('p',onP);Tr.on('H',onH);Tr.on('kill',onKill);Tr.on('start',onStart);Tr.on('end',p=>{if(p.m===G.mid)showEnd(p)});
+ const Tr=NET.tr;Tr.on('p',onP);Tr.on('H',onH);Tr.on('kill',onKill);Tr.on('start',onStart);Tr.on('pz',o=>{if(o.m===G.mid)setHostPause(o.v)});Tr.on('end',p=>{if(p.m===G.mid)showEnd(p)});
  Tr.on('th',e=>{if(G.state==='play'&&e[7]!==NET.me)spawnThrow(e)});Tr.on('rv',o=>{if(o.v===NET.me)reviveMe(o.by)});Tr.on('brk',o=>{if(!NET.host)return;const z=zById(o.z);if(z&&z.hold===o.p){z.hDmg=999}});Tr.on('opt',o=>{if(!NET.host){NET.opt=o;lobbyRender()}});Tr.on('team',o=>{});Tr.presence(onPresence);
  showLobby();lbMsg('连接中……');
  Tr.subscribe(st=>{if(st==='SUBSCRIBED'){Tr.track(myPres());lbMsg(host?'把房号或邀请链接发给朋友（最多 '+MAXP+' 人）':'已连上，等房主开始');lobbyRender()}
@@ -1506,7 +1507,7 @@ function onPresence(st){const list=[];for(const k in st){const o=st[k]&&st[k][0]
   if(resend)nsend('start',G.cfg)}
  if(NET.host&&!NET.started)nsend('opt',Object.assign({},NET.opt));
  if(!NET.started||G.state==='lobby')lobbyRender()}
-function onStart(cfg){if(cfg.mid===G.mid&&G.state!=='lobby')return;if(!NET.on)return;NET.started=true;beginMatch(cfg)}
+function onStart(cfg){if(cfg.mid===G.mid&&(G.state==='play'||G.state==='over'))return;if(!NET.on)return;NET.started=true;beginMatch(cfg)}
 function onP(s){if(s.m!==G.mid||s.i===NET.me||G.state==='lobby'||G.state==='menu')return;let H=HUM[s.i];
  if(!H){H=makeHuman(s.i,{name:s.n,team:s.t,sk:s.sk,w:s.w});H.pos.set(s.x,0,s.z);H.yaw=s.y}
  {const now=performance.now(),dtS=H.snapT?Math.min(.3,Math.max(.03,(now-H.snapT)/1000)):0;if(dtS){const vx=(s.x-H.tgt.x)/dtS,vz=(s.z-H.tgt.z)/dtS;const ok=vx*vx+vz*vz<150;H.vx=ok?vx:0;H.vz=ok?vz:0}H.snapT=now}
@@ -1520,7 +1521,7 @@ function applyHit(h,s){const [v,d,hd,w]=h;
  if(!isHost())return;
  if(v[0]==='z'){const z=G.zs.find(q=>q.id===+v.slice(1));if(z&&!z.dead)hurtZ(z,d,hd,null,0,s,w)}
  else{const B=HUM[v];if(B&&B.bot)hurtBot(B,d,s,hd,w)}}
-function onH(h){if(h.ps){h.ps.m=h.m;try{onP(h.ps)}catch(e){}}if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();if(NET.lagShown){NET.lagShown=0;popTxt('连接已恢复')}const g=h.g;
+function onH(h){if(h.g&&h.m===G.mid)setHostPause(h.g.hp);if(h.ps){h.ps.m=h.m;try{onP(h.ps)}catch(e){}}if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();if(NET.lagShown){NET.lagShown=0;popTxt('连接已恢复')}const g=h.g;
  G.sc=g.sc;G.tl=g.tl;G.left=g.q;
  if(G.mode==='z'){if(g.w>G.wave)onWaveStart(g.w,g.sl);if(g.it>0&&!(G.inter>0))onWaveClear(g.w);G.inter=g.it}
  if(h.z)onZSnap(h.z);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
@@ -1537,7 +1538,7 @@ function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=0;for(const k
  const a=P.climb?4:sp<.25?0:back?3:P.c&&P.c.base==='run_gun'?2:1;
  const PS={i:NET.me,n:myName,t:P.team,sk:skinI,x:r2(P.pos.x),z:r2(P.pos.z),y:r2(P.yaw),pt:r2(P.pitch+P.rec),a,w:G.cur,c:P.cr?1:0,py:r2(P.y),u:P.mg?P.mg.i:-1,dn:P.dn?1:0,hp:Math.ceil(P.hp),d:P.dead?1:0,f:NET.out.f.length?NET.out.f.splice(0):undefined,h:NET.out.h.length?NET.out.h.splice(0).map(x=>[x[0],r2(x[1]),x[2],x[3]]):undefined};
  if(!NET.host)nsend('p',PS);
- if(NET.host){const H={ps:PS,g:{w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
+ if(NET.host){const H={ps:PS,g:{hp:G.hostPause?1:0,w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
   if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0),Math.ceil(z.hp)]);
   else{H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
   for(const k in NET.H)if(NET.H[k].length)H[k]=NET.H[k].splice(0);
@@ -1715,8 +1716,11 @@ function showEnd(p){if(G.state==='over')return;G.state='over';$('cards').classLi
  if(p.r&&p.r.length){for(const [n,t,k,d,b,id] of p.r)if(id)G.R[id]={n,t,k,d,b};$('overTable').innerHTML=boardHTML(rosterRows())}else $('overTable').innerHTML='';
  $('bAgain').style.display=(!NET.on||NET.host)&&!p.gone?'':'none';$('bAgain').textContent=NET.on?'再来一局（全房间）':'再来一局';
  $('over').classList.remove('hid')}
-function pause(on){if(on){if(G.state!=='play'||G.paused)return;G.paused=true;IN.fire=false;$('pauseT').textContent=NET.on?'菜单（游戏仍在进行）':'已暂停';$('pause').classList.remove('hid')}
- else{if(!G.paused)return;G.paused=false;$('pause').classList.add('hid');clock.getDelta()}}
+function pause(on){if(on){if(G.state!=='play'||G.paused)return;G.paused=true;IN.fire=false;if(NET.on&&NET.host){G.hostPause=1;nsend('pz',{v:1})}
+  $('pauseT').textContent=!NET.on?'已暂停':NET.host?'已暂停（全部玩家都暂停）':(G.hostPause?'房主暂停了游戏':'菜单（游戏仍在进行）');$('bResume').style.display=(!NET.on||NET.host||!G.hostPause)?'':'none';$('pause').classList.remove('hid')}
+ else{if(!G.paused)return;G.paused=false;if(NET.on&&NET.host){G.hostPause=0;nsend('pz',{v:0})}$('pause').classList.add('hid');clock.getDelta()}}
+function setHostPause(v){if(NET.host||G.state!=='play')return;v=v?1:0;if(v===(G.hostPause||0))return;G.hostPause=v;
+ if(v){G.paused=false;pause(true);IN.fire=false}else{if(G.paused){G.paused=false;$('pause').classList.add('hid')}popTxt('房主继续了游戏');clock.getDelta()}}
 $('bResume').onclick=()=>{pause(false);if(!TOUCH)lock()};
 function toMenu(){netLeave();clearWorld();G.state='menu';G.paused=false;['pause','over','hud','touch','lobby','board'].forEach(i=>$(i).classList.add('hid'));closeShop();document.body.classList.remove('pvp');showMenu()}
 $('bQuit').onclick=toMenu;$('bMenu').onclick=toMenu;
@@ -1725,7 +1729,7 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 // ---------- 菜单 / 大厅 ----------
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
-function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;
+function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
  chips($('skinRow'),HUMANS.map(h=>h.n),skinI,i=>{if(!MODELS[HUMANS[i].id])return;skinI=i;LS.set('scqh-skin',i);showMenu()});
  chips($('modeRow'),['打丧尸（合作）','两队对打 4v4'],modeS==='pvp'?1:0,i=>{modeS=i?'pvp':'z';LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
@@ -1814,7 +1818,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&!NET.on)pa
 // ---------- 主循环 ----------
 let menuZ=[];
 function loop(){requestAnimationFrame(loop);let dt=clock.getDelta();dt=Math.min(dt,.05);
- if(G.state==='play'){if(!(G.paused&&!NET.on))update(dt);netTick(dt)}
+ if(G.state==='play'){if(!(G.paused&&!NET.on)&&!G.hostPause)update(dt);netTick(dt)}
  else if(G.state==='menu'||G.state==='lobby'){const t=performance.now()/1000;camera.position.set(Math.sin(t*.08)*22,7+Math.sin(t*.2),Math.cos(t*.08)*22);camera.lookAt(0,1.5,0);fxUpdate(dt);for(const c of menuZ)updChar(c,dt)}
  else if(G.state==='over'){updHumans(dt);for(const z of G.zs)updChar(z.c,dt);P.c&&updChar(P.c,dt);fxUpdate(dt)}
  renderer.render(scene,camera)}
