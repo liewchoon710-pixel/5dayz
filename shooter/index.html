@@ -1695,7 +1695,10 @@ function renderShop(){$('shopCash').textContent='资金 $'+G.cash;const gr=$('sh
  const mh=mods().hp;const it=[['医疗包','恢复 60 点生命',150,()=>P.hp=Math.min(mh,P.hp+60),P.hp>=mh],['防弹护甲','护甲补满 100，吸收 60% 伤害',300,()=>P.ar=100,P.ar>=100],
   ['手雷','+1 颗（最多 4）',250,()=>THR.inv.nade++,THR.inv.nade>=4],['燃烧瓶','+1 个（最多 3）',300,()=>THR.inv.molo++,THR.inv.molo>=3],['哔哔炸弹','+1 个，引开丧尸后爆炸（最多 2）',400,()=>THR.inv.pipe++,THR.inv.pipe>=2]];
  for(const [n,ds,c0,fn,dis] of it){const c=cost(c0);const d=document.createElement('div');d.className='card';d.innerHTML=`<h3>${n}</h3><p>${ds}</p>`;const b=document.createElement('button');b.className='btn';b.textContent='购买 $'+c;b.disabled=dis||G.cash<c;b.onclick=()=>{if(buy(c)){fn();renderShop();hud()}};d.appendChild(b);gr.appendChild(d)}}
-$('bShopClose').onclick=$('bShopX').onclick=()=>{closeShop();if(!TOUCH)lock()};$('bNext').onclick=()=>{if(!isHost())return;G.inter=0;nextWave();if(!TOUCH)lock()};
+$('bShopClose').onclick=$('bShopX').onclick=()=>{closeShop();if(!TOUCH)lock()};
+// 手机：关闭按钮直接用触摸结束触发（不依赖 click），点商店外面的暗处也会关
+for(const id of ['bShopClose','bShopX'])$(id).addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();closeShop()},{passive:false});
+$('shop').addEventListener('click',e=>{if(e.target.id==='shop')closeShop()});$('shop').addEventListener('touchend',e=>{if(e.target.id==='shop'){e.preventDefault();closeShop()}},{passive:false});$('bNext').onclick=()=>{if(!isHost())return;G.inter=0;nextWave();if(!TOUCH)lock()};
 $('tShop').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();openShop()},{passive:false});
 
 // ---------- 结束 / 暂停 ----------
@@ -1796,7 +1799,8 @@ tBtn('tBoard',()=>showBoard($('board').classList.contains('hid')));
 document.addEventListener('touchstart',e=>{if(G.state!=='play'||!TOUCH||G.paused)return;if(e.target.closest&&(e.target.closest('.tb')||e.target.closest('#shop')||e.target.closest('#board')))return;
  for(const t of e.changedTouches){if(t.clientX<innerWidth*.42&&!TT.joy){TT.joy={id:t.identifier,x:t.clientX,y:t.clientY};const b=$('joyB');b.style.display='block';b.style.left=(t.clientX-60)+'px';b.style.top=(t.clientY-60)+'px'}
   else if(!TT.look)TT.look={id:t.identifier,x:t.clientX,y:t.clientY}}},{passive:true});
-document.addEventListener('touchmove',e=>{if(!TOUCH)return;if(G.state==='play')e.preventDefault();
+const UIW='#shop,#cards,#board,#prof,#lobby,#over,#pause,.lbBox';
+document.addEventListener('touchmove',e=>{if(!TOUCH)return;if(G.state==='play'&&!(e.target.closest&&e.target.closest(UIW)))e.preventDefault();
  for(const t of e.changedTouches){if(TT.joy&&t.identifier===TT.joy.id){let dx=t.clientX-TT.joy.x,dy=t.clientY-TT.joy.y;const l=Math.hypot(dx,dy),m=55;if(l>m){dx*=m/l;dy*=m/l}IN.joy.set(dx/m,dy/m);$('joyK').style.transform=`translate(${dx}px,${dy}px)`}
   const L=(TT.look&&t.identifier===TT.look.id)?TT.look:(TT.fire&&t.identifier===TT.fire.id)?TT.fire:null;
   if(L&&G.state==='play'&&!G.paused){const s=.0058*(P.aimOn?.55:1);P.yaw-=(t.clientX-L.x)*s;P.pitch=clamp(P.pitch-(t.clientY-L.y)*s*.8,-1.05,.75);L.x=t.clientX;L.y=t.clientY}}},{passive:false});
