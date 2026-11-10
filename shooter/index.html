@@ -112,7 +112,21 @@ body.touch #pvpBar{top:52px}
 #kbadge svg{width:130px;height:96px;overflow:visible;filter:drop-shadow(0 4px 6px rgba(0,0,0,.8))}
 #kbadge .tag{font:700 11px/1.2 system-ui,sans-serif;color:#ffe08a;text-shadow:0 1px 2px #000;letter-spacing:.08em;margin-top:-6px;min-height:16px}
 @keyframes kbShine{0%{transform:translateX(-160px) skewX(-20deg)}100%{transform:translateX(200px) skewX(-20deg)}}
-#kbadge .shine{animation:kbShine .7s ease-out .12s 1 both}
+#kbadge .shine{animation:kbShine .45s ease-out .05s 1 both}
+#kbadge .kfl,#kbadge .krg,#kbadge .ksp,#kbadge .kry{transform-box:fill-box}
+@keyframes kbFlash{0%{opacity:.95;transform:scale(.3)}100%{opacity:0;transform:scale(1.7)}}
+@keyframes kbRing{0%{opacity:.9;transform:scale(.25);stroke-width:7}100%{opacity:0;transform:scale(1.9);stroke-width:1}}
+@keyframes kbSpark{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}}
+@keyframes kbRays{0%{opacity:0;transform:rotate(0) scale(.6)}25%{opacity:.85}100%{opacity:0;transform:rotate(55deg) scale(1.25)}}
+@keyframes kbWingL{0%{transform:scaleX(.15)}70%{transform:scaleX(1.08)}100%{transform:scaleX(1)}}
+@keyframes kbFlame{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.12) scaleX(.95)}}
+#kbadge .kfl{transform-origin:center;animation:kbFlash .26s ease-out both}
+#kbadge .krg{transform-origin:center;animation:kbRing .42s cubic-bezier(.1,.7,.3,1) both}
+#kbadge .ksp{transform-origin:center;animation:kbSpark .45s cubic-bezier(.1,.8,.3,1) both}
+#kbadge .kry{transform-origin:center;animation:kbRays .75s ease-out both}
+#kbadge .kwg{transform-origin:110px 78px;transform-box:view-box;animation:kbWingL .3s cubic-bezier(.2,1.5,.4,1) both}
+#kbadge .kfm{transform-box:view-box;transform-origin:110px 135px;animation:kbFlame .18s ease-in-out 4}
+#edgeF{position:absolute;inset:0;pointer-events:none;opacity:0;box-shadow:inset 0 0 90px 30px var(--ec,#ff3010)}
 #rot{position:fixed;inset:0;z-index:60;background:#0b0b0d;display:none;flex-direction:column;align-items:center;justify-content:center;color:#eee;font-size:18px;gap:14px;text-align:center}
 #feed{display:flex;flex-direction:column;align-items:flex-end;position:absolute;right:max(14px,env(safe-area-inset-right));top:62px;text-align:right;font-size:13px;line-height:1.7;text-shadow:0 1px 3px #000}
 #feed div{background:rgba(0,0,0,.35);padding:0 8px;border-radius:4px;margin-bottom:2px;display:inline-block}
@@ -146,7 +160,7 @@ body.touch #pvpBar{top:52px}
   <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
   <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span></div></div>
   <div id="pvpBar" class="pOnly"></div>
-  <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="kbadge"><div class="sv"></div><div class="tag"></div></div><div id="dnums"></div>
+  <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="edgeF"></div><div id="kbadge"><div class="sv"></div><div class="tag"></div></div><div id="dnums"></div>
   <div class="bl">
     <div id="perkHud" style="font-size:12px;margin-bottom:4px;text-shadow:0 1px 2px #000"></div>
     <div style="font-size:13px">生命 <span id="hpT">100</span></div><div class="bar"><i id="hpf"></i></div>
@@ -841,9 +855,12 @@ function badgeSVG(n,hd){const t=Math.min(n,8),C=KBC[t],id='kb'+t+(hd?'h':'');con
   <radialGradient id="${id}e" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#000"/><stop offset=".8" stop-color="#15110a"/><stop offset="1" stop-color="#4a4030"/></radialGradient>
   <radialGradient id="${id}i" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#0a0a0a"/></radialGradient>
   <linearGradient id="${id}t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C[1]}"/><stop offset=".45" stop-color="${C[2]}"/><stop offset="1" stop-color="#000"/></linearGradient>
+  <radialGradient id="${id}g"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="${C[0]}" stop-opacity=".8"/><stop offset="1" stop-color="${C[0]}" stop-opacity="0"/></radialGradient>
   <radialGradient id="${id}f" cx=".5" cy=".95" r="1"><stop offset="0" stop-color="#fff6b0"/><stop offset=".35" stop-color="#ffa020"/><stop offset=".7" stop-color="${t>=7?'#c040ff':'#ff2a00'}"/><stop offset="1" stop-color="#ff1a00" stop-opacity="0"/></radialGradient>
   <clipPath id="${id}c"><path d="${SH}"/></clipPath></defs>
-  ${flame}${wing?wpath(1)+wpath(-1):''}
+  ${t>=3?`<g class="kry">${Array.from({length:12},(_,i)=>{const a=i*30*Math.PI/180;return `<path d="M110 78 L${(110+Math.cos(a-.08)*130).toFixed(1)} ${(78+Math.sin(a-.08)*130).toFixed(1)} L${(110+Math.cos(a+.08)*130).toFixed(1)} ${(78+Math.sin(a+.08)*130).toFixed(1)}Z" fill="${C[0]}" opacity=".35"/>`}).join('')}</g>`:''}
+  <circle class="kfl" cx="110" cy="78" r="60" fill="url(#${id}g)"/>
+  ${flame?`<g class="kfm">${flame}</g>`:''}${wing?`<g class="kwg">${wpath(1)+wpath(-1)}</g>`:''}
   <path d="${SH}" fill="url(#${id}m)" stroke="${C[2]}" stroke-width="2.5" filter="url(#${id}x)"/>
   <path d="${SI}" fill="url(#${id}i)" stroke="${C[2]}" stroke-width="1"/><path d="M110 35 L141 47 L141 91 Q141 111 110 124 Q79 111 79 91 L79 47Z" fill="none" stroke="${C[0]}" stroke-width=".8" stroke-dasharray="2 2" opacity=".55"/>
   ${rivet(72,42)}${rivet(148,42)}${rivet(72,90)}${rivet(148,90)}${rivet(110,130)}
@@ -854,12 +871,15 @@ function badgeSVG(n,hd){const t=Math.min(n,8),C=KBC[t],id='kb'+t+(hd?'h':'');con
   <path d="M36 132 L184 132 L184 156 L36 156Z" fill="url(#${id}t)" stroke="${C[0]}" stroke-width="1.6"/><path d="M36 136 H184 M36 152 H184" stroke="${C[0]}" stroke-width=".6" opacity=".5"/></g>
   <text x="110" y="150.5" text-anchor="middle" font-family="'Arial Black',Impact,'Roboto Condensed',sans-serif" font-weight="900" font-style="italic" font-size="${fs}" letter-spacing="1.5" fill="${C[0]}" stroke="#000" stroke-width="2.6" paint-order="stroke">${name}</text>
   <g filter="url(#${id}d)"><circle cx="150" cy="120" r="14" fill="url(#${id}m)" stroke="${C[2]}" stroke-width="2" filter="url(#${id}x)"/><circle cx="150" cy="120" r="10.5" fill="none" stroke="${C[2]}" stroke-width=".7" opacity=".7"/>
-  <text x="150" y="125.5" text-anchor="middle" font-family="'Arial Black',Impact,sans-serif" font-weight="900" font-size="${n>=10?12:15}" fill="#111">${n}</text></g></svg>`}
+  <text x="150" y="125.5" text-anchor="middle" font-family="'Arial Black',Impact,sans-serif" font-weight="900" font-size="${n>=10?12:15}" fill="#111">${n}</text></g>
+  <circle class="krg" cx="110" cy="78" r="58" fill="none" stroke="${C[0]}"/>
+  ${Array.from({length:8+t*2},(_,i)=>{const a=Math.random()*6.283,d=60+Math.random()*50+t*6,l=4+Math.random()*7;return `<path class="ksp" style="--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d).toFixed(0)}px;animation-delay:${(Math.random()*.06).toFixed(2)}s" d="M${(110+Math.cos(a)*18).toFixed(1)} ${(78+Math.sin(a)*18).toFixed(1)} l${(Math.cos(a)*l).toFixed(1)} ${(Math.sin(a)*l).toFixed(1)}" stroke="${i%3?C[0]:'#fff'}" stroke-width="2.2" stroke-linecap="round"/>`}).join('')}</svg>`}
 let VOICE_EN=null;function sayEn(t){try{const s=speechSynthesis;if(!s)return;if(!VOICE_EN){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_EN=vs.find(v=>/male|david|mark|guy|daniel|alex|fred|george|james|ryan|christopher|eric|uk english male/i.test(v.name)&&!/female/i.test(v.name))||vs[0]||null;VOICE_EN&&(VOICE_EN._m=/male|david|mark|guy|daniel|alex|fred|george|james|ryan|christopher|eric/i.test(VOICE_EN.name)&&!/female/i.test(VOICE_EN.name))}
  const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(VOICE_EN)u.voice=VOICE_EN;u.rate=.92;u.pitch=VOICE_EN&&VOICE_EN._m?.7:.45;u.volume=1;s.cancel();s.speak(u)}catch(e){}}
 function killFx(hd,name,wi){hitMark('k');P.shake=Math.max(P.shake,.08);const now=performance.now();MK.n=now-MK.t<4000?MK.n+1:1;MK.t=now;const n=MK.n;
  const e=$('kbadge');e.querySelector('.sv').innerHTML=badgeSVG(n,hd);e.querySelector('.tag').textContent=[hd&&n>=2?'HEADSHOT':'',wi===97?'KNIFE':wi===98?'EXPLOSIVE':'',name||''].filter(Boolean).join(' · ');
- e.style.transition='none';e.style.opacity=1;e.style.transform='scale(1.6)';void e.offsetWidth;e.style.transition='opacity .45s ease 1.5s, transform .2s cubic-bezier(.2,1.7,.4,1)';e.style.transform='scale(1)';e.style.opacity=0;
+ e.style.transition='none';e.style.opacity=1;e.style.transform='scale(1.6)';void e.offsetWidth;e.style.transition='opacity .3s ease .75s, transform .18s cubic-bezier(.2,1.7,.4,1)';e.style.transform='scale(1)';e.style.opacity=0;
+ if(n>=6){const f=$('edgeF');f.style.setProperty('--ec',n>=8?'rgba(255,190,40,.55)':n>=7?'rgba(170,60,255,.5)':'rgba(255,40,20,.5)');f.style.transition='none';f.style.opacity=1;void f.offsetWidth;f.style.transition='opacity .45s ease-out';f.style.opacity=0;P.shake=Math.max(P.shake,.14)}
  sStreak(n,hd);if(n>=2)setTimeout(()=>sayEn(KBN[Math.min(n,8)].toLowerCase()),120);else if(hd)setTimeout(()=>sayEn('headshot'),80)}
 function hitFx(hd,pos,d){hitMark(hd?'h':'b');const now=performance.now();if(now-(G.hsT||0)>45){G.hsT=now;if(hd)sHitH();else sHitB()}if(pos)dmgNum(pos,d,hd?'h':'')}
 function zKick(c,dir,amt){if(!dir||!c.root)return;const ry=c.wrap.rotation.y,cs=Math.cos(ry),sn=Math.sin(ry);c.kx=(dir.x*cs-dir.z*sn)*amt;c.kz=(dir.x*sn+dir.z*cs)*amt;c.kk=1}
