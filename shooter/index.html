@@ -80,8 +80,10 @@ body.touch .bl{width:min(200px,26vw)}
 #joyK{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.35);left:34px;top:34px}
 /* shop */
 #shop{position:fixed;inset:0;z-index:25;background:rgba(6,6,8,.82);display:flex;align-items:center;justify-content:center}
-#shopIn{width:min(860px,96vw);max-height:94vh;overflow:auto;background:#17161a;border:1px solid #4a3a30;border-radius:10px;padding:14px 16px}
-#shopHd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+#shopIn{position:relative;width:min(800px,88vw);max-height:82vh;max-height:82dvh;display:flex;flex-direction:column;background:#17161a;border:1px solid #4a3a30;border-radius:10px;padding:12px 14px}
+#shopGrid{flex:1 1 auto;min-height:0;overflow:auto;padding-right:2px}
+.xbtn{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;border:1px solid #6a5a50;background:#2a2428;color:#fff;font-size:18px;line-height:34px;text-align:center;cursor:pointer;z-index:2;padding:0}
+#shopHd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;padding-right:44px;flex:0 0 auto}
 #shopHd h2{font-size:20px;letter-spacing:.15em;color:#f0c08a}
 #shopCash{font-size:18px;color:#9fe08a}
 #shopGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
@@ -89,7 +91,7 @@ body.touch .bl{width:min(200px,26vw)}
 .card h3{font-size:16px;margin-bottom:3px}
 .card p{font-size:12px;opacity:.7;line-height:1.5;min-height:36px}
 .card .btn{min-width:0;width:100%;padding:7px 6px;font-size:13px;margin:5px 0 0;letter-spacing:.05em}
-#shopFt{display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px}
+#shopFt{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px;flex:0 0 auto}
 #shopT{font-size:15px;opacity:.85}
 .stat{font-size:15px;line-height:2;text-align:center}
 .stat b{color:#f0c08a}
@@ -131,10 +133,10 @@ body.touch #pvpBar{top:52px}
 #feed{display:flex;flex-direction:column;align-items:flex-end;position:absolute;right:max(14px,env(safe-area-inset-right));top:62px;text-align:right;font-size:13px;line-height:1.7;text-shadow:0 1px 3px #000}
 #feed div{background:rgba(0,0,0,.35);padding:0 8px;border-radius:4px;margin-bottom:2px;display:inline-block}
 #feed i{font-style:normal;opacity:.7;margin:0 4px}
-#board{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;background:rgba(14,13,16,.9);border:1px solid #4a3a30;border-radius:10px;padding:12px 16px;min-width:min(520px,92vw);max-height:84vh;overflow:auto}
+#board{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:15;background:rgba(14,13,16,.9);border:1px solid #4a3a30;border-radius:10px;padding:12px 16px;min-width:min(520px,86vw);max-width:90vw;max-height:78vh;max-height:78dvh;overflow:auto}
 #board table{width:100%;border-collapse:collapse;font-size:14px}#board td,#board th{padding:4px 8px;text-align:left}#board th{opacity:.6;font-weight:400;font-size:12px}
 #board tr.me td{color:#ffd28a}
-.lbBox{background:#17161a;border:1px solid #4a3a30;border-radius:10px;padding:14px 18px;width:min(560px,94vw);max-height:92vh;overflow:auto;text-align:center}
+.lbBox{position:relative;background:#17161a;border:1px solid #4a3a30;border-radius:10px;padding:14px 18px;width:min(540px,88vw);max-height:82vh;max-height:82dvh;overflow:auto;text-align:center}
 #lbList{margin:10px 0;text-align:left}
 #lbList .pl{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #2a2630;font-size:15px}
 #lbLink{font-size:12px;opacity:.7;word-break:break-all;margin-top:4px}
@@ -227,8 +229,8 @@ body.touch #pvpBar{top:52px}
 <div id="over" class="ov hid"><div class="lbBox"><h1 style="font-size:40px" id="overT">你倒下了</h1><div class="stat" id="overStat"></div><div id="overTable"></div><div class="row" style="margin-top:14px"><button class="btn" id="bAgain">再来一局</button><button class="btn g" id="bMenu">返回菜单</button></div></div></div>
 
 <div id="cards" class="ov hid" style="z-index:26"></div>
-<div id="prof" class="ov hid" style="z-index:30;overflow:auto"><div class="lbBox"><h1 style="font-size:32px">档案</h1><div id="profBox"></div><div class="row" style="margin-top:12px"><button class="btn g" onclick="$('prof').classList.add('hid')">关闭</button></div></div></div>
-<div id="shop" class="hid"><div id="shopIn">
+<div id="prof" class="ov hid" style="z-index:30;overflow:auto"><div class="lbBox"><button class="xbtn" onclick="$('prof').classList.add('hid')">✕</button><h1 style="font-size:32px">档案</h1><div id="profBox"></div><div class="row" style="margin-top:12px"><button class="btn g" onclick="$('prof').classList.add('hid')">关闭</button></div></div></div>
+<div id="shop" class="hid"><div id="shopIn"><button class="xbtn" id="bShopX">✕</button>
   <div id="shopHd"><h2>补给站</h2><div id="shopCash">资金 $0</div></div>
   <div id="shopGrid"></div>
   <div id="shopFt"><div id="shopT"></div><div><button class="btn g" id="bShopClose">关闭商店</button><button class="btn" id="bNext">立即开始下一波</button></div></div>
@@ -1185,7 +1187,7 @@ function knifeHit(){const M=mods();let any=false;const o=P.pos;const f=v1.set(-M
 const CARDS={dmg:['弹无虚发','伤害 +15%'],hp:['铁胃','生命上限 +25'],rel:['快速装填','换弹快 20%'],hs:['爆头专家','爆头伤害 +30%'],mag:['大弹匣','弹匣 +25%'],spd:['疾行','移动速度 +10%'],knife:['吸血刀','刀伤 +50%，刀中回血 10'],
  medic:['战地医生','救人快 50%，被救后多 20 血'],thr:['投弹手','每波开始得 1 颗手雷'],shop:['守财奴','商店 -15%'],res:['弹药专家','后备弹药 +40%'],dr:['坚韧','受到伤害 -10%'],regen:['再生','回血速度翻倍'],pierce:['穿甲弹','子弹多穿透 1 个']};
 function showCards(){if(G.mode!=='z'||P.dead)return;const ks=Object.keys(CARDS).filter(k=>(CARD[k]||0)<3);const pickc=[];while(pickc.length<3&&ks.length)pickc.push(ks.splice(Math.floor(Math.random()*ks.length),1)[0]);
- const el=$('cards');el.innerHTML='<h2 style="color:#f0c08a;letter-spacing:.15em;margin-bottom:10px">选一张技能卡</h2><div class="row">'+pickc.map(k=>`<div class="card" style="width:170px;cursor:pointer" onclick="takeCard('${k}')"><h3>${CARDS[k][0]}${CARD[k]?' +'+(CARD[k]+1):''}</h3><p>${CARDS[k][1]}</p></div>`).join('')+'</div><div class="lbl">可以叠加，本局有效</div>';
+ const el=$('cards');el.innerHTML='<div class="lbBox" style="width:min(620px,88vw)"><button class="xbtn" onclick="$(\'cards\').classList.add(\'hid\')">✕</button><h2 style="color:#f0c08a;letter-spacing:.15em;margin-bottom:10px">选一张技能卡</h2><div class="row" style="flex-wrap:wrap;justify-content:center">'+pickc.map(k=>`<div class="card" style="width:min(170px,26vw);cursor:pointer" onclick="takeCard('${k}')"><h3>${CARDS[k][0]}${CARD[k]?' +'+(CARD[k]+1):''}</h3><p>${CARDS[k][1]}</p></div>`).join('')+'</div><div class="lbl">可以叠加，本局有效（不想选可按 ✕ 跳过）</div></div>';
  el.classList.remove('hid');if(document.pointerLockElement)document.exitPointerLock()}
 function takeCard(k){CARD[k]=(CARD[k]||0)+1;$('cards').classList.add('hid');popTxt('获得技能：'+CARDS[k][0]);sJingle(2);if(k==='hp')P.hp+=25;hud(true);if(!TOUCH&&!G.shop)setTimeout(()=>{if(G.inter>0)openShop()},300)}
 
@@ -1693,7 +1695,7 @@ function renderShop(){$('shopCash').textContent='资金 $'+G.cash;const gr=$('sh
  const mh=mods().hp;const it=[['医疗包','恢复 60 点生命',150,()=>P.hp=Math.min(mh,P.hp+60),P.hp>=mh],['防弹护甲','护甲补满 100，吸收 60% 伤害',300,()=>P.ar=100,P.ar>=100],
   ['手雷','+1 颗（最多 4）',250,()=>THR.inv.nade++,THR.inv.nade>=4],['燃烧瓶','+1 个（最多 3）',300,()=>THR.inv.molo++,THR.inv.molo>=3],['哔哔炸弹','+1 个，引开丧尸后爆炸（最多 2）',400,()=>THR.inv.pipe++,THR.inv.pipe>=2]];
  for(const [n,ds,c0,fn,dis] of it){const c=cost(c0);const d=document.createElement('div');d.className='card';d.innerHTML=`<h3>${n}</h3><p>${ds}</p>`;const b=document.createElement('button');b.className='btn';b.textContent='购买 $'+c;b.disabled=dis||G.cash<c;b.onclick=()=>{if(buy(c)){fn();renderShop();hud()}};d.appendChild(b);gr.appendChild(d)}}
-$('bShopClose').onclick=()=>{closeShop();if(!TOUCH)lock()};$('bNext').onclick=()=>{if(!isHost())return;G.inter=0;nextWave();if(!TOUCH)lock()};
+$('bShopClose').onclick=$('bShopX').onclick=()=>{closeShop();if(!TOUCH)lock()};$('bNext').onclick=()=>{if(!isHost())return;G.inter=0;nextWave();if(!TOUCH)lock()};
 $('tShop').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();openShop()},{passive:false});
 
 // ---------- 结束 / 暂停 ----------
