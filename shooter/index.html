@@ -205,6 +205,7 @@ body.touch #pvpBar{top:52px}
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
   <div class="lbl">难度</div><div class="row" id="diffRow"></div>
   <div class="lbl">视角<span class="aaL">　　　　　　　辅助瞄准</span></div><div class="row" style="flex-wrap:wrap"><div class="row" id="viewRow" style="margin:0"></div><div id="aaWrap" class="row" style="margin:0 0 0 18px;gap:inherit"><div class="row" id="aaRow" style="margin:0"></div></div></div>
+  <div class="lbl">画质</div><div class="row" id="gfxRow"></div>
   <div id="aiWrap"><div class="lbl">电脑补位（凑满 4v4）</div><div class="row" id="aiRow"></div></div>
   <div id="pvpWRow" class="row"></div>
   <div class="row" style="margin-top:12px"><button class="btn g" id="bProf" onclick="$('profBox').innerHTML=profHTML();$('prof').classList.remove('hid')">档案 / 任务</button><button class="btn" id="bSolo">单人开始</button><button class="btn" id="bCreate">创建房间</button></div>
@@ -242,7 +243,7 @@ body.touch #pvpBar{top:52px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 'use strict';
-const T=THREE,$=id=>document.getElementById(id);
+const T=THREE,$=id=>document.getElementById(id);let GFX=null;
 const TOUCH=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window&&navigator.maxTouchPoints>0&&!matchMedia('(pointer:fine)').matches);
 // 素材来源：放在 5dayz 仓库里时直接读 ../assets/，其它地方读 jsDelivr 上的 cdn 分支
 const BASE=(()=>{try{const m=document.querySelector('meta[name=asset-base]');if(m&&m.content)return m.content;const h=location.hostname;if(/github\.io$/.test(h)||h==='localhost'||h==='127.0.0.1')return '../assets/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@0614e26d28c75290e999d2d535d0b2b2e5b9f74e/'})();
@@ -282,7 +283,7 @@ const FAILS=[];
 function loadGLB(p){ldN++;return getBuf(BASE+p).then(b=>new Promise((res,rej)=>GL.parse(b,'',res,rej))).then(g=>{ldTick();return g}).catch(e=>{console.warn('载入失败',p,e);FAILS.push(p);ldTick();return null})}
 const GUNBASE=(()=>{try{const h=location.hostname;if(/github\.io$/.test(h)||h==='localhost'||h==='127.0.0.1')return './guns/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@main/shooter/guns/'})();
 function loadGun(w){ldN++;return getBuf(GUNBASE+w.file+'.glb').then(b=>new Promise((res,rej)=>GL.parse(b,'',res,rej))).then(g=>{prepGun(w,g);ldTick()}).catch(e=>{console.warn('枪模型载入失败',w.file,e);ldTick()})}
-function loadTex(p){ldN++;return getBuf(BASE+p).then(b=>{const blob=new Blob([b],{type:'image/webp'});const u=URL.createObjectURL(blob);return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=u})}).then(im=>{const t=new T.Texture(im);t.needsUpdate=true;t.encoding=T.sRGBEncoding;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=TOUCH?2:8;ldTick();return t}).catch(e=>{console.warn('载入失败',p,e);FAILS.push(p);ldTick();return null})}
+function loadTex(p){ldN++;return getBuf(BASE+p).then(b=>{const blob=new Blob([b],{type:'image/webp'});const u=URL.createObjectURL(blob);return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=u})}).then(im=>{const t=new T.Texture(im);t.needsUpdate=true;t.encoding=T.sRGBEncoding;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=TOUCH?2:8;GFX&&GFX.nrm(t,im);ldTick();return t}).catch(e=>{console.warn('载入失败',p,e);FAILS.push(p);ldTick();return null})}
 const HUMANS=[{id:'swat',n:'特警'},{id:'ch17nonpbr',n:'幸存者'},{id:'brute',n:'壮汉'},{id:'erikaarcher',n:'女猎手'}];
 const ZT={
  walker:{m:['warzombiefpedroso','zombiestandup1','yakujignite','zombiegirlwkurniawan','ch30nonpbr','copzombielactisdato'],hp:100,spd:1.35,dmg:12,h:1.78,r:.38,cash:10,pts:100,name:'丧尸'},
@@ -310,7 +311,7 @@ async function loadAll(){
  for(const w of WP)jobs.push(loadGun(w));
  jobs.push(getBuf(GUNBASE+'mutant.glb').then(b=>b&&new Promise(r=>GL.parse(b,'',g=>{prepMutant(g);r()},()=>r()))).catch(()=>{}));
  for(const n of TEX_LIST)jobs.push(loadTex('mx/env/'+n+'.webp').then(t=>{TEX[n]=t}));
- await Promise.all(jobs);
+ await Promise.all(jobs);GFX&&GFX.props();
 }
 const REST=1.0613;
 function prepMX(g,n){const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});rm.forEach(o=>o.parent&&o.parent.remove(o));
@@ -335,7 +336,7 @@ function makeChar(name,prefix,height,tint){
  for(const k of LOOPS)if(act[k]){act[k].play();act[k].setEffectiveWeight(0)}
  const base=act.idle_gun?'idle_gun':'idle';if(act[base])act[base].setEffectiveWeight(1);
  const blob=new T.Mesh(new T.CircleGeometry(height*.24,16),new T.MeshBasicMaterial({map:TX_DOT,color:0,transparent:true,opacity:.5,depthWrite:false}));blob.rotation.x=-Math.PI/2;blob.position.y=.02;wrap.add(blob);
- return {wrap,root,mixer,act,bones,mats,base,ts:1,one:null,w:{},flash:0,h:height,s:height/1.8}}
+ const CH={wrap,root,mixer,act,bones,mats,base,ts:1,one:null,w:{},flash:0,h:height,s:height/1.8};return GFX?GFX.ch(CH,prefix):CH}
 function setBase(c,n,ts){if(!c.act[n])n=c.act.idle?'idle':n;c.base=n;c.ts=ts==null?1:ts}
 function playOnce(c,n,ts=1){const a=c.act[n];if(!a)return 0;a.reset();a.timeScale=ts;a.setEffectiveWeight(1);a.play();c.one={n,t:a.getClip().duration/ts};return c.one.t}
 function updChar(c,dt){if(c.custom){c.upd(dt);if(c.kk>0){c.kk=Math.max(0,c.kk-dt*7);c.root.position.x=c.kx*c.kk;c.root.position.z=c.kz*c.kk}return}if(c.kk>0){c.kk=Math.max(0,c.kk-dt*7);c.root.position.x=c.kx*c.kk;c.root.position.z=c.kz*c.kk}const k=Math.min(1,dt*10);
@@ -360,7 +361,7 @@ function rayCol(c,o,d,bullet){if(!ray.intersectsBox(c.b))return -1;const q=c.o;c
 function topPt(c,x,z,ins,out){const q=c.o;const L=obL(q,x,z);return obW(q,clamp(L.x,-q.hx+ins,q.hx-ins),clamp(L.z,-q.hz+ins,q.hz-ins),out)}
 function uvBox(w,h,d,tw,th){const g=new T.BoxGeometry(w,h,d),uv=g.attributes.uv;const dims=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];
  for(let f=0;f<6;f++)for(let i=0;i<4;i++){const j=f*4+i;uv.setXY(j,uv.getX(j)*dims[f][0]/tw,uv.getY(j)*dims[f][1]/th)}return g}
-function mat(t,o={}){return new T.MeshStandardMaterial(Object.assign({map:t||null,roughness:.92,metalness:.05,color:0xffffff},o))}
+function mat(t,o={}){return new T.MeshStandardMaterial(Object.assign({map:t||null,roughness:.92,metalness:.05,color:0xffffff},GFX&&GFX.matX(t),o))}
 const PICKUPS=[],DECALS=[];let FIRES=[],SMOKES=[];
 // 地图尺寸：马路半宽 RW，楼房起点 SW，路障 BAR，地图尽头 EDGE
 const VENDS=[];const RW=11,SW=14,BAR=48,EDGE=72,ZSP=62;
@@ -536,7 +537,7 @@ function buildMapById(id){if(!MAPS[id])id='cross';if(MAP&&MAP.id===id)return;for
  if(MAP.id==='cross')MAP.links=null;applyEnv()}
 const FLASH=new T.SpotLight(0xfff2d8,0,34,.42,.5,1.2);FLASH.castShadow=false;scene.add(FLASH);scene.add(FLASH.target);
 function applyEnv(){const E=MAP.env;scene.fog.color.setHex(E.col);scene.background&&scene.background.setHex?scene.background.setHex(E.col):scene.background=new T.Color(E.col);
- FLASH.intensity=E.dark?2.4:0;FLASH.visible=!!E.dark;sun.color.setHex(E.dusk?0xffa070:0xfff1dc);sun.visible=!E.dark}
+ FLASH.intensity=E.dark?2.4:0;FLASH.visible=!!E.dark;sun.color.setHex(E.dusk?0xffa070:0xfff1dc);sun.visible=!E.dark;GFX&&GFX.env()}
 // 每 10 局换一张图（房主/单人这边记录）
 function pickMap(){const q=new URLSearchParams(location.search).get('map');if(q&&MAPS[q])return q;let R={i:0,n:0};try{R=JSON.parse(LS.get('scqh-maprot')||'{"i":0,"n":0}')}catch(e){}
  R.n++;if(R.n>10){R.n=1;R.i=(R.i+1)%MAPIDS.length}LS.set('scqh-maprot',JSON.stringify(R));G.mapLeft=10-R.n;return MAPIDS[R.i]}
@@ -725,7 +726,7 @@ const flashL=new T.PointLight(0xffb060,0,9,2);scene.add(flashL);
 const TRC=[];for(let i=0;i<24;i++){const g=new T.BufferGeometry().setFromPoints([new T.Vector3(),new T.Vector3()]);const l=new T.Line(g,new T.LineBasicMaterial({color:0xffe6a8,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}));l.frustumCulled=false;scene.add(l);TRC.push({l,t:0})}
 let trI=0;function tracer(a,b,col){const q=TRC[trI];q.l.material.color.setHex(col||0xffe6a8);trI=(trI+1)%TRC.length;const p=q.l.geometry.attributes.position;p.setXYZ(0,a.x,a.y,a.z);p.setXYZ(1,b.x,b.y,b.z);p.needsUpdate=true;q.t=.06;q.l.material.opacity=.85}
 const decM=new T.MeshBasicMaterial({map:TX_BLOOD,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
-function decal(x,z,s){let d;if(DECALS.length>40){d=DECALS.shift()}else{d=new T.Mesh(new T.PlaneGeometry(1,1),decM);d.rotation.x=-Math.PI/2;scene.add(d)}d.position.set(x,.025,z);d.scale.set(s,s,1);d.rotation.z=rand(0,6);DECALS.push(d)}
+function decal(x,z,s){if(GFX){GFX.pool(x,z,s*1.2);return}let d;if(DECALS.length>40){d=DECALS.shift()}else{d=new T.Mesh(new T.PlaneGeometry(1,1),decM);d.rotation.x=-Math.PI/2;scene.add(d)}d.position.set(x,.025,z);d.scale.set(s,s,1);d.rotation.z=rand(0,6);DECALS.push(d)}
 
 // ================= 声音（全部合成，无需音频文件） =================
 let AC=null,NB=null,MG=null;
@@ -927,13 +928,13 @@ function shoot(d,dmgB,headM,pierce,push,wi,mz,tc){const o=camera.position;const 
  const hits=[];for(const tg of TG){if(tg.pos.distanceTo(o)>wt+2)continue;const h=charHit(tg.c,o,d);if(h&&h.t<wt&&h.t>.5)hits.push([h,tg])}
  hits.sort((a,b)=>a[0].t-b[0].t);let end=wt,n=0,head=false;const maxN=1+(pierce||0);
  for(const [h,tg] of hits){if(n>=maxN)break;n++;end=h.t;const hd=h.part==='head';const dmg=dmgB*(hd?headM:h.part==='leg'?.7:1)*dm;if(hd)head=true;
-  const hp=v2.copy(o).addScaledVector(d,h.t);emit(hp,hd?22:12,[.55,.03,.02],hd?5:3.2,.7);emit(hp,hd?8:4,[.35,.01,.01],1.2,.3,2,.9);hitFx(hd,hp,dmg);zKick(tg.c,d,hd?.16:.1);
+  const hp=v2.copy(o).addScaledVector(d,h.t);emit(hp,hd?22:12,[.55,.03,.02],hd?5:3.2,.7);emit(hp,hd?8:4,[.35,.01,.01],1.2,.3,2,.9);hitFx(hd,hp,dmg);GFX&&GFX.bloodHit(hp,d,hd);zKick(tg.c,d,hd?.16:.1);
   if(tg.k==='z'){if(isHost())hurtZ(tg.z,dmg,hd,d,push||0,NET.me);else{tg.z.c.flash=.08;queueHit('z'+tg.z.id,dmg,hd,wi);predictZ(tg.z,dmg,hd)}}
   else{if(tg.H.bot&&isHost())hurtBot(tg.H,dmg,NET.me,hd,wi);else{tg.H.c.flash=.08;queueHit(tg.H.id,dmg,hd,wi)}}}
  if(n>0)P.hitT=.12;
  {let bx=null,bt=end+.4;for(const e of EXPL){if(e.dead)continue;v4.subVectors(e.p,o);const tc2=v4.dot(d);if(tc2<.5||tc2>bt)continue;const d2=v4.lengthSq()-tc2*tc2;if(d2<e.r*e.r){bt=tc2;bx=e}}
   if(bx){end=Math.min(end,bt);const dmg=dmgB*dm;hitMark&&hitMark(false);if(isHost())hitExpl(bx.id,dmg,NET.me);else queueHit('x'+bx.id,dmg,0,wi)}}
- const ep=v3.copy(o).addScaledVector(d,end);tracer(mz,ep,tc);if(n===0&&end<139)emit(ep,5,[1,.8,.4],3,.9,9.8,.35);
+ const ep=v3.copy(o).addScaledVector(d,end);tracer(mz,ep,tc);if(n===0&&end<139){emit(ep,5,[1,.8,.4],3,.9,9.8,.35);GFX&&GFX.impact(ep,d)}
  return{any:n>0,head,ep}}
 function spreadDir(base){const d=new T.Vector3().copy(camF);d.x+=rand(-1,1)*base;d.y+=rand(-1,1)*base;d.z+=rand(-1,1)*base;return d.normalize()}
 // ---- 加成：能力饮料(PERK) + 技能卡(CARD)
@@ -948,7 +949,7 @@ function fire(){if(P.mg)return mgFire();const i=G.cur,w=WP[i],s=G.ws[i],st=wStat
  if(w.mode==='burst'){P.burst=(P.burst||0)+1;if(P.burst>=3||s.mag<=0){P.burst=0;P.fireCd=.3}}
  const g=gunOf(P.guns,i);g.updateMatrixWorld(true);muz.copy(g.userData.tip);g.localToWorld(muz);
  const pap=s.pap;flashS.material.map=flashTex(w.fl.sh);flashS.material.color.setHex(pap?0xc080ff:w.fl.c);flashS.position.copy(muz);flashS.scale.setScalar(w.fl.s*.6*(pap?1.25:1)*(P.scoped?.4:1)*((VIEW==='fp'||P.scoped)?.7:1));flashS.material.rotation=rand(0,6);flashS.visible=true;flashS.userData.t=.045;flashL.color.setHex(pap?0xa060ff:0xffb060);flashL.position.copy(muz);flashL.intensity=2+w.fl.s*3;
- if(w.fl.smoke)emit(muz,4,[.5,.5,.5],.8,.6,-1,.9);
+ if(w.fl.smoke)emit(muz,4,[.5,.5,.5],.8,.6,-1,.9);GFX&&GFX.muzzle(muz,!!w.fl.smoke);
  sGunW(w);
  if(w.mode==='pump'||w.mode==='bolt'){P.cyc=w.cyc*M.rate;P.cycD=P.cyc;sMech(w.mode);ejectShell(g,w,w.mode==='pump'?.32:.55)}else if(w.sh)ejectShell(g,w,0);
  const moving=P.vel.lengthSq()>1;const sp0=P.scoped&&w.sspr?w.sspr:w.spr*(P.aimOn?(w.cat==='sniper'?.5:.45):1);
@@ -1439,11 +1440,11 @@ function updWeather(dt){let wantRain=0,tank=0,mut=0;for(const z of G.zs){if(z.de
  if(G.state!=='play')wantRain=0,tank=0;WX.rain+=(wantRain-WX.rain)*Math.min(1,dt*.6);
  if(!!wantRain!==!!WX.was){WX.was=wantRain;rainSound(!!wantRain);if(wantRain)popTxt('下雨了……')}
  rainPts.material.opacity=.55*WX.rain;rainPts.visible=WX.rain>.02;if(rainPts.visible){rainPts.position.set(camera.position.x,0,camera.position.z);for(let i=0;i<RN;i++){rPos[i*3+1]-=dt*14;if(rPos[i*3+1]<0)rPos[i*3+1]+=18}rGeo.attributes.position.needsUpdate=true}
- const EV=(MAP||MAPS.cross).env;scene.fog.density=EV.fog+.014*WX.rain;let si=EV.sun*(1-.55*WX.rain),hi=EV.hemi*(1-.4*WX.rain);
+ const EV=(MAP||MAPS.cross).env;scene.fog.density=EV.fog*(GFX&&!EV.dark?.5:1)+.014*WX.rain;let si=EV.sun*(1-.55*WX.rain),hi=EV.hemi*(1-.4*WX.rain);
  if(WX.rain>.5){WX.thunderT-=dt;if(WX.thunderT<=0){WX.thunderT=rand(6,14);WX.light=.25;if(AC)setTimeout(()=>{noise(90,2.5,.6);noise(400,.6,.3)},rand(200,900))}}
  if(WX.light>0){WX.light-=dt;si+=4*Math.max(0,WX.light);hi+=2*Math.max(0,WX.light)}
  if(WX.flick>0){WX.flick-=dt;const on=(performance.now()/90|0)%3!==0;si*=on?.15:1;hi*=on?.3:1;amb.color.setHex(on?0xff2010:0x404048);amb.intensity=on?.9:.25}else{amb.color.setHex(0x404048);amb.intensity=.25}
- sun.intensity=si;hemi.intensity=hi;
+ sun.intensity=si;hemi.intensity=hi*(GFX?GFX.hk:1);
  // 坦克尸战鼓
  if(tank&&AC){WX.drumT-=dt;if(WX.drumT<=0){WX.drumT=.42;const b=WX.beat++%8;if(b===0||b===3||b===4)tone(70,38,.35,.45);if(b===2||b===6)noise(900,.18,.25,'bandpass')}}else WX.beat=0;
  if(mut&&AC){WX.hbT=(WX.hbT||0)-dt;if(WX.hbT<=0){WX.hbT=.95;tone(55,40,.15,.35);setTimeout(()=>tone(50,38,.18,.3),220)}}}
@@ -1928,6 +1929,7 @@ function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let 
  chips($('modeRow'),['打丧尸（合作）','两队对打 4v4'],modeS==='pvp'?1:0,i=>{modeS=i?'pvp':'z';LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
  chips($('viewRow'),['斜肩（第三人称）','第一人称'],VIEW==='fp'?1:0,i=>{VIEW=i?'fp':'tp';LS.set('scqh-view',VIEW);showMenu()});
+ if(GFX)chips($('gfxRow'),['电影级','均衡','省电'],2-GFX.q,i=>{GFX.setQ(2-i);showMenu()});
  chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
  {const L=WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol');const cur=pvpPrimary();const el=$('pvpWRow');el.style.display=modeS==='pvp'?'':'none';el.innerHTML='';if(modeS==='pvp'){el.innerHTML='<div class="lbl" style="width:100%">对战主武器</div>';L.forEach(i=>{const w=WP[i];const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.style.opacity=w.lvl<=PROF.lvl?1:.35;b.textContent=w.n+(w.lvl>PROF.lvl?' Lv'+w.lvl:'');b.onclick=()=>{if(w.lvl>PROF.lvl)return;LS.set('scqh-pvpw',w.id);showMenu()};el.appendChild(b)})}}
  chips($('aiRow'),['开','关'],aiS?0:1,i=>{aiS=!i;LS.set('scqh-ai',aiS?'1':'0');showMenu()});$('aiWrap').style.display=modeS==='pvp'?'':'none';
@@ -2009,13 +2011,142 @@ function tEnd(e){for(const t of e.changedTouches){if(TT.joy&&t.identifier===TT.j
 document.addEventListener('touchend',tEnd);document.addEventListener('touchcancel',tEnd);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!NET.on)pause(true)});
 
+// ================= 写实画面：天空 / 环境反射 / 后期（泛光·调色·暗角·颗粒）/ 法线贴图 / 血肉与弹着 =================
+GFX=(()=>{
+ let q=(()=>{const s=LS.get('scqh-gfx');return s==null?(TOUCH?1:2):clamp(+s||0,0,2)})();
+ const hf=renderer.capabilities.isWebGL2?renderer.extensions.has('EXT_color_buffer_float')||renderer.extensions.has('EXT_color_buffer_half_float'):renderer.extensions.has('EXT_color_buffer_half_float');
+ if(!hf)q=0;
+ const G_={q,hk:1,lock:false};
+ // ---------- 天空 ----------
+ const NOISE='float h1(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h1(i),h1(i+vec2(1.,0.)),f.x),mix(h1(i+vec2(0.,1.)),h1(i+vec2(1.,1.)),f.x),f.y);}float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<OCT;i++){s+=a*n2(p);p=p*2.03+vec2(17.,9.);a*=.5;}return s;}';
+ const skyU={uHor:{value:new T.Color()},uZen:{value:new T.Color()},uSun:{value:new T.Vector3(40,60,-26).normalize()},uSunC:{value:new T.Color()},uCov:{value:.4},uT:{value:0},uRain:{value:0},uFlash:{value:0}};
+ const skyM=new T.ShaderMaterial({uniforms:skyU,side:T.BackSide,depthWrite:false,depthTest:false,fog:false,defines:{OCT:TOUCH?4:5},
+  vertexShader:'varying vec3 vD;void main(){vD=position;vec4 p=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*p;}',
+  fragmentShader:'varying vec3 vD;uniform vec3 uHor,uZen,uSun,uSunC;uniform float uCov,uT,uRain,uFlash;'+NOISE+
+  'void main(){vec3 d=normalize(vD);float y=d.y;vec3 col=mix(uHor,uZen,pow(clamp(y,0.,1.),.42));col=mix(col,uHor*.6,smoothstep(0.,-.3,y));'+
+  'float sd=max(dot(d,uSun),0.);float dry=1.-uRain;col+=uSunC*(pow(sd,420.)*9.+pow(sd,24.)*.5+pow(sd,4.)*.14)*dry;'+
+  'if(y>.015){vec2 p=d.xz/(y+.14)*1.25+uT*vec2(.007,.003);float n=fbm(p);float cv=mix(uCov,.08,uRain);float c=smoothstep(cv,cv+.38,n);'+
+  'float lit=smoothstep(-.15,.35,n-fbm(p+uSun.xz*.22));vec3 cc=mix(uZen*.55,uHor*1.25+uSunC*.22*dry,lit);cc+=uSunC*pow(sd,8.)*.6*dry*(1.-c*.6);col=mix(col,cc,c*smoothstep(.015,.22,y));}'+
+  'col*=1.-.5*uRain;col+=vec3(.7,.75,.9)*uFlash;gl_FragColor=vec4(col,1.);}'});
+ const sky=new T.Mesh(new T.SphereGeometry(190,32,16),skyM);sky.renderOrder=-100;sky.frustumCulled=false;scene.add(sky);
+ const SKY={cross:{hor:0x77818a,zen:0x333f4e,sun:0xffd6ae,cov:.36},plaza:{hor:0x8a8d8c,zen:0x414b58,sun:0xffe2c0,cov:.42},docks:{hor:0x7c8a8f,zen:0x35434c,sun:0xe9eef0,cov:.26},
+  bridge:{hor:0xa39078,zen:0x46505e,sun:0xffcf9a,cov:.44},gas:{hor:0xb8693a,zen:0x262a46,sun:0xff8f48,cov:.5}};
+ const TX_FADE=ctex(64,(g,s)=>{const r=g.createLinearGradient(0,0,0,s);r.addColorStop(0,'#000');r.addColorStop(.45,'#777');r.addColorStop(.8,'#fff');r.addColorStop(1,'#fff');g.fillStyle=r;g.fillRect(0,0,s,s)});
+ const fogBase=new T.Color(),tmpC=new T.Color();let pm=null,envRT=null,dark=false;
+ function env(){if(!MAP)return;const E=MAP.env,S=SKY[MAP.id]||SKY.cross;dark=!!E.dark;sky.visible=!dark;
+  if(dark){fogBase.setHex(E.col);skyU.uHor.value.setHex(E.col);skyU.uZen.value.setHex(E.col);skyU.uSunC.value.setHex(0)}
+  else{skyU.uHor.value.setHex(S.hor);skyU.uZen.value.setHex(S.zen);skyU.uSunC.value.setHex(S.sun);skyU.uCov.value=S.cov;fogBase.setHex(S.hor).multiplyScalar(.9);sun.color.setHex(S.sun)}
+  scene.fog.color.copy(fogBase);if(scene.background&&scene.background.isColor)scene.background.copy(fogBase);
+  // 地图尽头的黑幕改成雾色，和天空接上
+  for(const o of MAPOBJ)if(o.isMesh&&o.material&&o.material.isMeshBasicMaterial&&o.material.fog===false&&!o.material.map){o.userData.edge=1;o.material.color.copy(skyU.uHor.value);if(!dark){o.material.alphaMap=TX_FADE;o.material.transparent=true;o.material.depthWrite=false;o.material.needsUpdate=true}}
+  for(const s of SMOKES)if(!dark){s.sp.material.color.copy(fogBase).multiplyScalar(.42);s.sp.material.opacity=.5}
+  // 环境反射：把天空烘成反射贴图，车漆、玻璃幕墙、湿路面、枪身会映出天色
+  try{pm=pm||new T.PMREMGenerator(renderer);const sc=new T.Scene();const m=new T.Mesh(sky.geometry,skyM);sc.add(m);const tm=renderer.toneMapping;renderer.toneMapping=T.NoToneMapping;const rt=pm.fromScene(sc,0,1,500);renderer.toneMapping=tm;
+   if(envRT)envRT.dispose();envRT=rt;scene.environment=rt.texture;G_.hk=dark?1:.5}catch(e){console.warn('env',e);G_.hk=1}}
+ // ---------- 法线贴图（由照片贴图自动算出凹凸） ----------
+ function nrm(t,im){try{const s=TOUCH?256:512,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,s,s);const d=g.getImageData(0,0,s,s),p=d.data,H=new Float32Array(s*s);
+   for(let i=0;i<s*s;i++)H[i]=(p[i*4]*.3+p[i*4+1]*.59+p[i*4+2]*.11)/255;const o=g.createImageData(s,s),q2=o.data,K=2.6;
+   for(let y=0;y<s;y++)for(let x=0;x<s;x++){const xl=(x+s-1)%s,xr=(x+1)%s,yu=(y+s-1)%s,yd=(y+1)%s;const dx=(H[y*s+xr]-H[y*s+xl])*K,dy=(H[yd*s+x]-H[yu*s+x])*K;const l=1/Math.hypot(dx,dy,1);const i=(y*s+x)*4;q2[i]=(-dx*l*.5+.5)*255;q2[i+1]=(dy*l*.5+.5)*255;q2[i+2]=(l*.5+.5)*255;q2[i+3]=255}
+   g.putImageData(o,0,0);const n=new T.CanvasTexture(c);n.wrapS=n.wrapT=T.RepeatWrapping;n.anisotropy=t.anisotropy;t.userData.nrm=n}catch(e){}}
+ function matX(t){if(!t)return null;const o={};if(t.userData.nrm){o.normalMap=t.userData.nrm;o.normalScale=new T.Vector2(1,1)}
+  if(t===TEX.fac_glass_a||t===TEX.fac_glass_b){o.roughness=.22;o.metalness=.7;o.envMapIntensity=1.3}
+  else if(t===TEX.road){o.roughness=.58;o.metalness=.02;o.envMapIntensity=.9}
+  else if(t===TEX.metal_a){o.roughness=.6;o.metalness=.55}
+  else if(t===TEX.walk){o.roughness=.78}
+  return o}
+ function props(){for(const n in PROPS){const car=/vehicle|bus|forklift|container|vending/.test(n);PROPS[n].traverse(o=>{if(!o.isMesh)return;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(!m||!('roughness' in m))continue;
+   if(car){m.roughness=Math.min(m.roughness,.48);m.metalness=Math.max(m.metalness,.45);m.envMapIntensity=1.1}}})}}
+ // ---------- 人物 / 丧尸材质：尸斑肤色 + 越打越血肉模糊 ----------
+ function ch(c,prefix){const zb=prefix==='z_';const gore={value:zb?rand(.1,.26):0},off={value:new T.Vector2(rand(0,60),rand(0,60))},dead={value:zb?1:0};c.gore=gore;
+  for(const m of c.mats){if(!m.isMeshStandardMaterial||!m.map)continue;m.envMapIntensity=.55;
+   m.onBeforeCompile=sh=>{sh.uniforms.uGore=gore;sh.uniforms.uGoreO=off;sh.uniforms.uDead=dead;
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uGore,uDead;uniform vec2 uGoreO;float gMask=0.;float gH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float gN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gH(i),gH(i+vec2(1.,0.)),f.x),mix(gH(i+vec2(0.,1.)),gH(i+vec2(1.,1.)),f.x),f.y);}float gF(vec2 p){return gN(p)*.55+gN(p*2.3)*.3+gN(p*5.1)*.15;}')
+     .replace('#include <map_fragment>','#include <map_fragment>\n{float gl=dot(diffuseColor.rgb,vec3(.3,.59,.11));diffuseColor.rgb=mix(diffuseColor.rgb,vec3(gl)*vec3(.8,.9,.76),uDead*.42);float gn=gF(vUv*13.+uGoreO);float gt=1.-uGore*.5;gMask=smoothstep(gt,gt+.09,gn)*step(.001,uGore);vec3 gb=mix(vec3(.09,.003,.003),vec3(.24,.012,.009),gN(vUv*70.+uGoreO));diffuseColor.rgb=mix(diffuseColor.rgb,gb,gMask*.94);}')
+     .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.26,gMask);')};
+   m.customProgramCacheKey=()=>'gore';m.needsUpdate=true}
+  if(q===2&&!TOUCH)c.root.traverse(o=>{if(o.isMesh||o.isSkinnedMesh)o.receiveShadow=true});
+  return c}
+ // ---------- 贴图：血溅 / 尘烟 / 弹孔 ----------
+ function splat(seed0){return ctex(256,(g,s)=>{let sd=seed0*9973+7;const R=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};g.translate(s/2,s/2);
+   for(let k=0;k<3;k++){g.fillStyle=k?'rgba(70,3,2,.9)':'rgba(40,1,1,.95)';let x=0,y=0;for(let i=0;i<46;i++){x+=(R()-.5)*s*.12;y+=(R()-.5)*s*.12;x*=.9;y*=.9;g.beginPath();g.arc(x,y,s*(.03+R()*.075),0,7);g.fill()}}
+   g.fillStyle='rgba(62,2,2,.92)';for(let i=0;i<34;i++){const a=R()*6.283,d=s*(.16+R()*R()*.32),r=s*(.004+R()*.018);g.beginPath();g.ellipse(Math.cos(a)*d,Math.sin(a)*d,r*(1+R()*2.5),r,a,0,7);g.fill()}
+   g.globalCompositeOperation='source-atop';g.fillStyle='rgba(150,14,8,.35)';for(let i=0;i<10;i++){g.beginPath();g.arc((R()-.5)*s*.4,(R()-.5)*s*.4,s*.04*R(),0,7);g.fill()}})}
+ const SPL=[1,2,3,4].map(splat);
+ const TX_PUFF=ctex(128,(g,s)=>{for(let i=0;i<16;i++){const x=rand(.32,.68)*s,y=rand(.32,.68)*s,rr=rand(.16,.32)*s;const r=g.createRadialGradient(x,y,0,x,y,rr);r.addColorStop(0,'rgba(255,255,255,.34)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,s,s)}});
+ const TX_HOLE=ctex(64,(g,s)=>{const r=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);r.addColorStop(0,'rgba(0,0,0,1)');r.addColorStop(.28,'rgba(8,7,6,.95)');r.addColorStop(.5,'rgba(40,36,32,.55)');r.addColorStop(1,'rgba(60,55,50,0)');g.fillStyle=r;g.fillRect(0,0,s,s);
+  g.strokeStyle='rgba(15,13,12,.7)';g.lineWidth=1;for(let i=0;i<7;i++){const a=rand(0,6.28);g.beginPath();g.moveTo(s/2+Math.cos(a)*5,s/2+Math.sin(a)*5);g.lineTo(s/2+Math.cos(a+rand(-.3,.3))*rand(12,24),s/2+Math.sin(a+rand(-.3,.3))*rand(12,24));g.stroke()}});
+ // 精灵池：血雾、尘烟、枪口烟
+ const SP=[];const NSP=TOUCH?28:56;for(let i=0;i<NSP;i++){const s=new T.Sprite(new T.SpriteMaterial({map:TX_PUFF,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);SP.push({s,t:0,life:0,v:new T.Vector3(),s0:0,s1:0,op:0,g:0})}
+ let spI=0;function puff(p,map,col,s0,s1,life,op,vx,vy,vz,g){const o=SP[spI];spI=(spI+1)%NSP;const m=o.s.material;m.map=map;m.color.setHex(col);m.rotation=rand(0,6.28);o.s.position.copy(p);o.t=0;o.life=life;o.s0=s0;o.s1=s1;o.op=op;o.v.set(vx,vy,vz);o.g=g||0;o.s.visible=true;o.s.scale.setScalar(s0);m.opacity=op}
+ // 地面血迹池
+ const splM=SPL.map(t=>new T.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:.22,metalness:0,polygonOffset:true,polygonOffsetFactor:-3,envMapIntensity:1.2}));
+ const GS=[];const NGS=TOUCH?36:80;let gsI=0;const sGeo=new T.PlaneGeometry(1,1);
+ function gsplat(x,y,z,s){let d=GS[gsI];if(!d){d=new T.Mesh(sGeo,pick(splM));d.rotation.x=-Math.PI/2;d.receiveShadow=true;scene.add(d);GS[gsI]=d}gsI=(gsI+1)%NGS;d.material=pick(splM);d.position.set(x,y+.03+gsI*.0004,z);d.rotation.z=rand(0,6.28);d.userData.s=s;d.userData.t=0;d.scale.set(s*.4,s*.4,1);d.visible=true}
+ // 弹孔池
+ const BH=[];const NBH=TOUCH?24:60;let bhI=0;const bhM=()=>new T.SpriteMaterial({map:TX_HOLE,transparent:true,depthWrite:false,color:0xffffff});
+ const gv=new T.Vector3(),gv2=new T.Vector3();
+ function bloodHit(hp,d,hd){const n=hd?3:2;for(let i=0;i<n;i++)puff(hp,pick(SPL),0x9a1410,.12,rand(.55,.95)*(hd?1.5:1),rand(.22,.36),.9,d.x*rand(1,3.2)+rand(-.6,.6),rand(.2,1.4),d.z*rand(1,3.2)+rand(-.6,.6),5);
+  puff(hp,TX_PUFF,0x6a0a08,.2,hd?1.3:.8,.45,.5,d.x*.8,.3,d.z*.8,0);
+  // 子弹穿出后的地面喷溅
+  const k=hd?4:2;for(let i=0;i<k;i++){const r=rand(.5,2.6);gv.set(hp.x+d.x*r+rand(-.35,.35),hp.y,hp.z+d.z*r+rand(-.35,.35));const gy=groundH(gv,.05,hp.y+.2);gsplat(gv.x,gy,gv.z,rand(.25,.6)*(hd?1.35:1))}}
+ function impact(ep,d){gv.copy(ep).addScaledVector(d,-.06);puff(gv,TX_PUFF,0xa59d92,.12,rand(.7,1.1),rand(.5,.8),.55,-d.x*.9,rand(.3,.8),-d.z*.9,0);
+  let b=BH[bhI];if(!b){b=new T.Sprite(bhM());scene.add(b);BH[bhI]=b}bhI=(bhI+1)%NBH;b.position.copy(ep).addScaledVector(d,-.03);const s=rand(.1,.17);b.scale.set(s,s,1);b.material.rotation=rand(0,6.28);b.material.opacity=1;b.userData.t=0;b.visible=true}
+ function muzzle(p,big){gv2.copy(camF||gv2.set(0,0,-1));puff(p,TX_PUFF,0xb8b4ac,.08,big?.9:.5,big?.9:.55,.32,gv2.x*1.4,.35,gv2.z*1.4,0)}
+ function pool(x,z,s,y){gsplat(x,y||0,z,s);const d=GS[(gsI+NGS-1)%NGS];d.userData.t=-.2;d.userData.slow=1}
+ function fx(dt){for(const o of SP){if(!o.s.visible)continue;o.t+=dt;const k=o.t/o.life;if(k>=1){o.s.visible=false;continue}o.v.y-=o.g*dt;o.s.position.addScaledVector(o.v,dt);o.v.multiplyScalar(1-Math.min(1,dt*2.5));const e=1-(1-k)*(1-k);o.s.scale.setScalar(o.s0+(o.s1-o.s0)*e);o.s.material.opacity=o.op*(1-k)}
+  for(const d of GS){if(!d||!d.visible)continue;const u=d.userData;if(u.t<1){u.t=Math.min(1,u.t+dt*(u.slow?.35:5));const e=Math.max(0,u.t);const s=u.s*(.4+.6*(1-(1-e)*(1-e)));d.scale.set(s,s,1)}}
+  for(const b of BH){if(!b||!b.visible)continue;b.userData.t+=dt;if(b.userData.t>22){b.material.opacity=Math.max(0,1-(b.userData.t-22)/4);if(b.userData.t>26)b.visible=false}}
+  if(G&&G.zs)for(const z of G.zs){const g=z.c&&z.c.gore;if(!g||!(z.max>0))continue;const tg=clamp(.14+(1-z.hp/z.max)*.86,0,1);if(tg>g.value)g.value=Math.min(tg,g.value+dt*2.5)}}
+ function clearFx(){for(const o of SP)o.s.visible=false;for(const d of GS)if(d)d.visible=false;for(const b of BH)if(b)b.visible=false}
+ // ---------- 后期处理 ----------
+ const pc=new T.OrthographicCamera(-1,1,1,-1,0,1),ps=new T.Scene(),pq=new T.Mesh(new T.PlaneGeometry(2,2));pq.frustumCulled=false;ps.add(pq);
+ const VS='varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}';
+ const mk=(fs,u)=>new T.ShaderMaterial({vertexShader:VS,fragmentShader:fs,uniforms:u,depthTest:false,depthWrite:false,toneMapped:false});
+ const mBright=mk('varying vec2 vUv;uniform sampler2D t;uniform vec2 px;uniform float ex;void main(){vec3 c=(texture2D(t,vUv+px*vec2(-1.,-1.)).rgb+texture2D(t,vUv+px*vec2(1.,-1.)).rgb+texture2D(t,vUv+px*vec2(-1.,1.)).rgb+texture2D(t,vUv+px*vec2(1.,1.)).rgb)*.25*ex;c=min(c,vec3(12.));float l=max(c.r,max(c.g,c.b));gl_FragColor=vec4(c*smoothstep(.78,1.5,l),1.);}',{t:{value:null},px:{value:new T.Vector2()},ex:{value:1}});
+ const mBlur=mk('varying vec2 vUv;uniform sampler2D t;uniform vec2 d;void main(){vec3 c=texture2D(t,vUv).rgb*.227027;c+=(texture2D(t,vUv+d*1.3846).rgb+texture2D(t,vUv-d*1.3846).rgb)*.316216;c+=(texture2D(t,vUv+d*3.2308).rgb+texture2D(t,vUv-d*3.2308).rgb)*.070270;gl_FragColor=vec4(c,1.);}',{t:{value:null},d:{value:new T.Vector2()}});
+ const fU={t:{value:null},b:{value:null},b2:{value:null},res:{value:new T.Vector2()},uT:{value:0},ex:{value:1},bl:{value:.55},gr:{value:.022},vg:{value:.42},ca:{value:0},sat:{value:.9}};
+ const mFinal=mk('varying vec2 vUv;uniform sampler2D t,b,b2;uniform vec2 res;uniform float uT,ex,bl,gr,vg,ca,sat;'+
+  'vec3 rrt(vec3 v){vec3 a=v*(v+.0245786)-.000090537;vec3 b=v*(.983729*v+.4329510)+.238081;return a/b;}'+
+  'vec3 aces(vec3 c){const mat3 mi=mat3(.59719,.07600,.02840,.35458,.90834,.13383,.04823,.01566,.83777);const mat3 mo=mat3(1.60475,-.10208,-.00327,-.53108,1.10813,-.07276,-.07367,-.00605,1.07602);c*=1./.6;c=mi*c;c=rrt(c);c=mo*c;return clamp(c,0.,1.);}'+
+  'float hh(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}'+
+  'void main(){vec2 c=vUv-.5;float r2=dot(c,c);vec3 col;'+
+  '\n#ifdef CA\ncol.r=texture2D(t,vUv+c*ca*r2).r;col.g=texture2D(t,vUv).g;col.b=texture2D(t,vUv-c*ca*r2).b;\n#else\ncol=texture2D(t,vUv).rgb;\n#endif\n'+
+  'col+=(texture2D(b,vUv).rgb*.6+texture2D(b2,vUv).rgb*.4)*bl/ex;col=aces(col*ex);'+
+  'float l=dot(col,vec3(.2126,.7152,.0722));col=mix(vec3(l),col,sat);col+=vec3(-.014,.002,.022)*(1.-l)+vec3(.022,.008,-.018)*l;col=mix(col,col*col*(3.-2.*col),.3);'+
+  'col*=1.-vg*smoothstep(.12,.8,r2*1.7);col=mix(col*12.92,1.055*pow(max(col,vec3(1e-5)),vec3(.41666))-.055,step(.0031308,col));'+
+  'col+=(hh(vUv*res+fract(uT)*91.7)-.5)*gr;gl_FragColor=vec4(col,1.);}',fU);
+ let rt=null,rA=null,rB=null,rC=null,rD=null,W=0,H=0,rq=-1;const sz=new T.Vector2();
+ function alloc(){renderer.getDrawingBufferSize(sz);const w=Math.max(2,sz.x|0),h=Math.max(2,sz.y|0);if(w===W&&h===H&&rq===q)return;W=w;H=h;rq=q;for(const r of[rt,rA,rB,rC,rD])r&&r.dispose();
+  const ms=renderer.capabilities.isWebGL2?(q===2?(TOUCH?2:4):(TOUCH?0:2)):0;
+  rt=new T.WebGLRenderTarget(w,h,{type:T.HalfFloatType,samples:ms,depthBuffer:true,minFilter:T.LinearFilter,magFilter:T.LinearFilter});
+  const o={type:T.HalfFloatType,depthBuffer:false,minFilter:T.LinearFilter,magFilter:T.LinearFilter};const w4=Math.max(2,w>>2),h4=Math.max(2,h>>2),w8=Math.max(2,w>>3),h8=Math.max(2,h>>3);
+  rA=new T.WebGLRenderTarget(w4,h4,o);rB=new T.WebGLRenderTarget(w4,h4,o);rC=new T.WebGLRenderTarget(w8,h8,o);rD=new T.WebGLRenderTarget(w8,h8,o);
+  fU.res.value.set(w,h);if(q===2&&!TOUCH){mFinal.defines.CA='';fU.ca.value=.005}else{delete mFinal.defines.CA;fU.ca.value=0}mFinal.needsUpdate=true}
+ function pass(m,target){pq.material=m;renderer.setRenderTarget(target);renderer.render(ps,pc)}
+ let fT=0,fN=0,tAll=0;
+ function frame(dt){tAll+=dt;skyU.uT.value=tAll;sky.position.copy(camera.position);
+  const rain=(typeof WX!=='undefined'&&WX.rain)||0,li=(typeof WX!=='undefined'&&WX.light>0)?WX.light:0;skyU.uRain.value=dark?0:rain;skyU.uFlash.value=dark?0:li*1.6;
+  tmpC.copy(fogBase).multiplyScalar(1-.45*(dark?0:rain));if(li>0&&!dark)tmpC.addScalar(li*.5);scene.fog.color.copy(tmpC);if(scene.background&&scene.background.isColor)scene.background.copy(tmpC);
+  fx(dt);
+  if(q===0){if(renderer.toneMapping!==T.ACESFilmicToneMapping)renderer.toneMapping=T.ACESFilmicToneMapping;renderer.setRenderTarget(null);renderer.render(scene,camera);return}
+  if(renderer.toneMapping!==T.NoToneMapping)renderer.toneMapping=T.NoToneMapping;
+  alloc();renderer.setRenderTarget(rt);renderer.render(scene,camera);
+  const ex=renderer.toneMappingExposure;mBright.uniforms.t.value=rt.texture;mBright.uniforms.px.value.set(1/W,1/H);mBright.uniforms.ex.value=ex;pass(mBright,rA);
+  mBlur.uniforms.t.value=rA.texture;mBlur.uniforms.d.value.set(1/rA.width,0);pass(mBlur,rB);mBlur.uniforms.t.value=rB.texture;mBlur.uniforms.d.value.set(0,1/rA.height);pass(mBlur,rA);
+  mBlur.uniforms.t.value=rA.texture;mBlur.uniforms.d.value.set(1.5/rC.width,0);pass(mBlur,rC);mBlur.uniforms.t.value=rC.texture;mBlur.uniforms.d.value.set(0,1.5/rC.height);pass(mBlur,rD);
+  fU.t.value=rt.texture;fU.b.value=rA.texture;fU.b2.value=rD.texture;fU.uT.value=tAll;fU.ex.value=ex;pass(mFinal,null);
+  // 太卡就自动降一档
+  if(!G_.lock&&G&&G.state==='play'&&!G.paused){fT+=dt;fN++;if(fT>5){const fps=fN/fT;fT=0;fN=0;if(fps<21&&q>0){setQ(q-1);try{popTxt('画面太卡，已自动降低画质')}catch(e){}}}}}
+ function setQ(v){q=clamp(v|0,0,hf?2:0);G_.q=q;LS.set('scqh-gfx',String(q))}
+ Object.assign(G_,{env,nrm,matX,props,ch,bloodHit,impact,muzzle,pool,frame,setQ,clearFx,sky});return G_})();
+
 // ---------- 主循环 ----------
 let menuZ=[];
 function loop(){requestAnimationFrame(loop);let dt=clock.getDelta();dt=Math.min(dt,.05);
  if(G.state==='play'){if(!(G.paused&&!NET.on)&&!G.hostPause)update(dt);netTick(dt)}
  else if(G.state==='menu'||G.state==='lobby'){const t=performance.now()/1000;camera.position.set(Math.sin(t*.08)*22,7+Math.sin(t*.2),Math.cos(t*.08)*22);camera.lookAt(0,1.5,0);fxUpdate(dt);for(const c of menuZ)updChar(c,dt)}
  else if(G.state==='over'){updHumans(dt);for(const z of G.zs)updChar(z.c,dt);P.c&&updChar(P.c,dt);fxUpdate(dt)}
- renderer.render(scene,camera)}
+ GFX?GFX.frame(dt):renderer.render(scene,camera)}
 (async()=>{try{await loadAll()}catch(e){console.error(e)}
  if(!ANIMS||!ANIMS.length||!HUMANS.some(h=>MODELS[h.id])){$('loadT').innerHTML='素材载入失败（'+FAILS.length+' 个文件）<br><span style="font-size:13px;opacity:.75">请检查网络，或用浏览器（Chrome）直接打开本页面</span><br><button class="btn" onclick="location.reload()" style="margin-top:12px">重新载入</button>';return}
  if(!MODELS[HUMANS[skinI].id])skinI=Math.max(0,HUMANS.findIndex(h=>MODELS[h.id]));
