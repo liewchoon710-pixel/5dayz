@@ -153,14 +153,20 @@ body.touch #pvpBar{top:52px}
 #tKnife{width:46px;height:46px;left:calc(50% + 150px);bottom:6px;font-size:13px}
 #tView{width:40px;height:40px;left:50%;margin-left:76px;top:8px;font-size:11px}
 #tBoard{width:40px;height:40px;left:50%;margin-left:28px;top:8px;font-size:13px}
+#tBuild{width:50px;height:50px;right:calc(200px + env(safe-area-inset-right));bottom:130px;font-size:12px;background:rgba(40,90,60,.55)}
+#bbar{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:12;display:flex;gap:6px;pointer-events:none}
+.bi{pointer-events:auto;min-width:72px;padding:6px 8px;border-radius:8px;background:rgba(16,16,18,.74);border:1px solid rgba(255,255,255,.22);color:#fff;text-align:center;text-shadow:0 1px 2px #000;cursor:pointer}
+.bi b{display:block;font-size:13px;white-space:nowrap}.bi span{font-size:11px;opacity:.75}.bi.on{border-color:#ffd27a;background:rgba(96,70,20,.85)}.bi.no b{color:#ff9a8a}
+body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 6px}
+.mk{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);white-space:nowrap;pointer-events:none;display:none;text-shadow:0 1px 2px #000}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 
 <div id="hud" class="hid">
-  <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
-  <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span></div></div>
+  <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div class="zOnly" style="font-size:13px;margin-top:4px">📻 电台 <span id="hRad">100%</span><div class="bar" style="width:150px;height:8px;margin-top:3px"><i id="hRadF" style="background:#6cc8ff"></i></div></div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
+  <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span>　物资 <span id="hSup" style="color:#ffd27a;font-weight:700;opacity:1">0</span></div></div>
   <div id="pvpBar" class="pOnly"></div>
   <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="edgeF"></div><div id="kbadge"><div class="sv"></div><div class="tag"></div></div><div id="dnums"></div>
   <div class="bl">
@@ -170,12 +176,13 @@ body.touch #pvpBar{top:52px}
   </div>
   <div class="br"><div id="wname">手枪</div><div id="ammo">12 <small>/ ∞</small></div><div id="slots"></div></div>
   <div id="xh"><i class="dot"></i><i id="x1"></i><i id="x2"></i><i id="x3"></i><i id="x4"></i></div>
-  <div id="hm"></div><div id="pop"></div>
+  <div id="hm"></div><div id="pop"></div><div id="mkR" class="mk"></div><div id="mkT" class="mk"></div>
   <div id="banner"></div><div id="msg"></div><div id="rel"></div><div id="mgTip" style="display:none"></div><div id="scope" style="display:none"></div>
   <div id="vig"></div><div class="dmg" id="dF"></div><div class="dmg" id="dB"></div><div class="dmg" id="dL"></div><div class="dmg" id="dR"></div>
   <div id="portrait" class="hid">建议横屏游玩</div>
 </div>
 <div id="board" class="hid"></div>
+<div id="bbar" class="hid"></div>
 
 <div id="touch" class="hid">
   <div id="joyB"><div id="joyK"></div></div>
@@ -191,6 +198,7 @@ body.touch #pvpBar{top:52px}
   <div class="tb" id="tJump">跳</div>
   <div class="tb" id="tCrouch">蹲</div>
   <div class="tb" id="tMG" style="display:none">上枪</div>
+  <div class="tb zOnly" id="tBuild">工事</div>
   <div class="tb zOnly" id="tThr">手雷</div><div class="tb zOnly" id="tThrS">⇄</div><div class="tb" id="tKnife">刀</div>
 </div>
 
@@ -760,7 +768,7 @@ const HUM={};// 远端玩家 + 电脑士兵
 let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';let AA=LS.get('scqh-aa')!=='0';// tp=斜肩第三人称  fp=第一人称
 const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26]},ADS=[0,-.058,.24],VMS=.6;
 function setView(v){VIEW=v;LS.set('scqh-view',v);camera.near=v==='fp'?.03:.08;camera.updateProjectionMatrix();const b=$('tView');if(b)b.textContent=v==='fp'?'斜肩':'第一';popTxt(v==='fp'?'第一人称':'斜肩视角')}
-const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
+const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[],rq:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
 const isHost=()=>!NET.on||NET.host;
 const v1=new T.Vector3(),v2=new T.Vector3(),v3=new T.Vector3(),v4=new T.Vector3(),ray=new T.Ray();
 
@@ -826,14 +834,14 @@ function nameOf(id){if(id===NET.me)return myName;if(id==='Z')return '丧尸';if(
 function rost(id){return G.R[id]||(G.R[id]={n:nameOf(id),t:teamOf(id),k:0,d:0,b:id[0]==='b'?1:0})}
 
 // ---------- 开局 ----------
-function clearWorld(){for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG)dropTong(k);for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
+function clearWorld(){stClear();for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG)dropTong(k);for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
  if(P.c){scene.remove(P.c.wrap);P.c=null}P.guns.forEach(g=>g&&scene.remove(g));P.guns=[]}
 // 开场：黑屏 → 标题 → 无线电呼叫 → 画面淡入（代替原来的欢迎语音）
 const ZONES=['东区十字路口','旧城商业街','第七号检查站','中央大道','港湾路口'];
 function sIntro(){if(!AC)return;tone(55,38,3.2,.5,'sine');noise(120,2.8,.35,'lowpass');setTimeout(()=>{tone(220,880,1.6,.06,'sawtooth');noise(3000,1.5,.08,'highpass')},400);
  for(let i=0;i<4;i++)setTimeout(()=>{tone(62,48,.3,.45,'sine');noise(90,.2,.3,'lowpass')},1300+i*620);setTimeout(()=>{for(let i=0;i<2;i++)setTimeout(()=>{tone(420,780,.9,.05,'sawtooth');setTimeout(()=>tone(780,420,.9,.05,'sawtooth'),900)},i*1800)},800)}
 function playIntro(mode){const el=$('intro');const zone=MAP.id==='cross'?ZONES[(G.layoutSeed||0)%ZONES.length]:MAP.name;
- const lines=mode==='pvp'?['各小队注意，敌方已进入交战区。行动开始。','这里是指挥部，清除敌方小队，完毕。']:['指挥部呼叫幸存者，尸潮正在逼近，守住这个路口。','这里是指挥部，撤离直升机还没到，坚持住。','所有幸存者注意，城市已经失守，活下去，完毕。'];
+ const lines=mode==='pvp'?['各小队注意，敌方已进入交战区。行动开始。','这里是指挥部，清除敌方小队，完毕。']:['指挥部呼叫幸存者，尸潮正在逼近，守住电台。','这里是指挥部，撤离直升机还没到，电台不能丢，坚持住。','所有幸存者注意，补给车队会分批送物资，保住电台，完毕。'];
  const line=lines[Math.floor(Math.random()*lines.length)];$('inSub').textContent=(mode==='pvp'?'两队对打 · ':'打丧尸 · ')+zone+(G.cfg&&G.cfg.ml!=null?(G.cfg.ml>0?' · 本图还有 '+G.cfg.ml+' 局':' · 下局换新地图'):'');$('inRd').textContent='📻 '+line;
  el.style.transition='none';el.style.opacity=1;el.style.display='flex';el.classList.remove('on');void el.offsetWidth;el.classList.add('on');G.introT=3.6;sIntro();
  setTimeout(()=>say(line),700);
@@ -842,7 +850,7 @@ function playIntro(mode){const el=$('intro');const zone=MAP.id==='cross'?ZONES[(
 function beginMatch(cfg){G.introT=3.6;
  clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));buildMapById(cfg.map||'cross');if(MAP.train){MAP.train.act=0;MAP.train.g.visible=false;MAP.train.next=rand(35,55)}if(MAP.crane){const C=MAP.crane;C.st=0;C.box.position.y=-10.3;C.tx=C.x;C.tz=C.z}if(cfg.seed!=null)buildLayout(cfg.seed);
  G.cfg=cfg;G.mode=cfg.mode;G.mid=cfg.mid;diffI=cfg.diff;document.body.classList.toggle('pvp',G.mode==='pvp');
- Object.assign(G,{wave:0,queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:PVP_TIME,zid:1,R:{},paused:false,botT:0,allDeadT:0,ended:false});
+ Object.assign(G,{wave:0,queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:PVP_TIME,zid:1,R:{},paused:false,botT:0,allDeadT:0,ended:false,sup:8,radDead:0,trkT:0,stDirty:1,stN:0,radWarn:0});
  P.team=(cfg.teams&&cfg.teams[NET.me])|0;rost(NET.me);
  G.ws=WP.map((w,i)=>({own:false,lv:1,mag:w.mag,res:w.res,pap:false}));G.slots=[WI.glock,-1,-1];G.slot=0;G.ws[WI.glock].own=true;for(const k in PERK)delete PERK[k];for(const k in CARD)delete CARD[k];
  P.c=makeChar(skinId(skinI),'h_',1.8);scene.add(P.c.wrap);
@@ -851,7 +859,7 @@ function beginMatch(cfg){G.introT=3.6;
  if(G.mode==='pvp'){const pw=pvpPrimary();G.slots[1]=pw;G.ws[pw].own=true;G.slot=1;equip(pw,true)}else{applyArmory();equip(G.slots[G.slot],true)}respawnP(true);hudClear();hud(true);
  $('hud').classList.remove('hid');if(TOUCH)$('touch').classList.remove('hid');$('tShop').style.display='none';
  G.state='play';NET.lastH=performance.now();
- if(G.mode==='z'){if(isHost())nextWave()}
+ if(G.mode==='z'){if(isHost()){stInitHost();nextWave()}const mid=G.mid;setTimeout(()=>{if(G.state==='play'&&G.mid===mid&&G.wave<=1)banner('守住电台',(TOUCH?'点「工事」':'按 X ')+'部署防御工事 · 补给卡车会送来物资和弹药',5)},8400)}
  else{setTimeout(()=>banner('两队对打',(TEAM_N[P.team])+' · 先到 '+PVP_KILLS+' 杀获胜',3),3600);if(isHost())syncBots()}
  playIntro(G.mode);
  if(!TOUCH)lock()}
@@ -879,12 +887,12 @@ function nextWave(){G.wave++;G.inter=0;const w=G.wave,n=humanCount(),q=[];
  const cnt=Math.round((6+w*4)*(1+.5*(n-1))*1.25);const rr=w<2?0:Math.min(.4,.1+.05*(w-2));
  for(let i=0;i<cnt;i++)q.push(Math.random()<rr?'runner':'walker');
  const SL=specList(w);for(const [k2,n2] of SL)for(let i=0;i<n2;i++)q.splice(Math.floor(rand(q.length*.15,q.length)),0,k2);
- G.queue=q;G.spawnT=3;G.sl=specText(SL);if(w>=3&&Math.random()<.45)setTimeout(()=>{if(G.state==='play'&&G.wave===w)spawnWitch()},rand(6000,15000));onWaveStart(w,G.sl)}
+ G.queue=q;G.spawnT=3;G.trkT=w===1?15:7;G.sl=specText(SL);if(w>=3&&Math.random()<.45)setTimeout(()=>{if(G.state==='play'&&G.wave===w)spawnWitch()},rand(6000,15000));onWaveStart(w,G.sl)}
 function onWaveStart(w,sl){G.wave=w;G.inter=0;G.puWave=0;$('cards').classList.add('hid');if(CARD.thr)THR.inv.nade=Math.min(6,THR.inv.nade+CARD.thr);if(P.dn)reviveMe();closeShop();$('tShop').style.display='none';$('msg').textContent='';
  if(G.mode==='z'&&P.dead){respawnP();popTxt('你已复活')}
  const hb=sl&&/异变体|尸王|坦克尸/.test(sl);if(w===1&&(G.introT||0)>0){setTimeout(()=>{if(G.wave===1)onWaveBanner(w,sl,hb)},G.introT*1000);return}onWaveBanner(w,sl,hb)}
 function onWaveBanner(w,sl,hb){banner('第 '+w+' 波',(hb?'强敌出没！':'尸潮来袭')+(sl?'<br>本波：'+sl:''),3.5);sHorn();say(hb?'警告，第'+w+'波尸潮，有强敌出现':'第'+w+'波尸潮来袭')}
-function onWaveClear(w){if(isHost())for(const z of G.zs)if(z.type==='witch'&&!z.dead&&z.mode==='cry'&&!z.fled){z.fled=1;z.fleeT=3;z.fleeDir=rand(0,6.28);setBase(z.c,'walk',.8);z.c.cry=0}addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
+function onWaveClear(w){if(isHost())for(const z of G.zs)if(z.type==='witch'&&!z.dead&&z.mode==='cry'&&!z.fled){z.fled=1;z.fleeT=3;z.fleeDir=rand(0,6.28);setBase(z.c,'walk',.8);z.c.cry=0}addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.sup=Math.min(SUP_MAX,(G.sup||0)+2);if(isHost()&&RADIO){RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.15);G.stDirty=1}G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
  $('tShop').style.display='';const best=+(LS.get('scqh-best')||0);if(w>best)LS.set('scqh-best',w);hud(true);}
 function spawnSpot(){const hs=actors().filter(a=>!a.dead&&!a.bot);
  if(MAP.zs){if(Math.random()<.3){const p=rndOpen(.5,0);if(p.lengthSq()>1&&!hs.some(h=>Math.hypot(h.pos.x-p.x,h.pos.z-p.z)<18))return p}const q=pick(MAP.zs);const v=new T.Vector3(q[0]+rand(-2,2),0,q[1]+rand(-2,2));v.y=q[2]||0;return v}
@@ -895,7 +903,7 @@ function spawnZ(type,at){const t=ZT[type],D=DIFF[diffI],w=G.wave,n=humanCount();
  const hpm=(1+.15*(w-1))*D.hp*(1+.15*(n-1))*1.3;const spm=Math.min(1.55,1+.035*(w-1))*D.spd;
  const z={id:G.zid++,ti:ZTK.indexOf(type),mi:t.m.indexOf(m),c,type,t,hp:t.hp*hpm,max:t.hp*hpm,spd:t.spd*spm*rand(.88,1.12),dmg:t.dmg*D.dmg*(1+.04*(w-1)),r:t.r,dead:false,deadT:0,atkT:rand(0,.5),pend:-1,hitCd:0,groan:rand(1,6),stuck:0,det:0,detT:0,face:c.wrap.rotation.y,last:new T.Vector2(c.wrap.position.x,c.wrap.position.z),tid:null,st:0,y:at.y||0,vy:0,cd:rand(2,4),buffT:0};
  if(type==='walker'&&w>=4&&Math.random()<Math.min(.5,.08*w))z.spd*=1.9;
- G.zs.push(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.5,0,true);say(type==='boss'?'尸王出现':'坦克尸出现')}else if(type!=='witch')playOnce(c,'standup',1.5);
+ G.zs.push(z);stGoal(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.5,0,true);say(type==='boss'?'尸王出现':'坦克尸出现')}else if(type!=='witch')playOnce(c,'standup',1.5);
  if(type==='mutant'){z.rise=2.5;z.y=-c.h;c.wrap.position.y=-c.h}if(type==='witch'){z.mode='cry';z.anger=0;z.face=rand(0,6.28)}
  zEntrance(z);emit(v1.set(c.wrap.position.x,.2,c.wrap.position.z),10,[.35,.3,.25],2,.8,6,.8)}
 function aliveZ(){let n=0;for(const z of G.zs)if(!z.dead&&z.type!=='witch')n++;return n}
@@ -1119,12 +1127,13 @@ function nearDowned(){for(const id in HUM){const H=HUM[id];if(H.dn&&!H.dead&&!H.
 function useLabel(){if(P.mg)return['下枪',TOUCH?'点「下枪」离开':'E / 空格 离开机枪'];if(P.dead||P.dn)return null;
  const dn=nearDowned();if(dn)return['救人',(TOUCH?'按住「救人」':'按住 E ')+'救起 '+dn.name];
  const n=nearMG();if(n)return['上枪',(TOUCH?'点「上枪」':'按 E ')+'操作重机枪'];
+ const sl=stUseLabel();if(sl)return sl;
  const m=nearMach();if(!m)return null;
  if(m.k==='crane')return MAP.crane&&MAP.crane.st?null:['吊车','$500 放下集装箱，砸扁丧尸最多的地方'];
  if(m.k==='box')return BOX.st==='ready'?['拿枪','拿取 '+WP[BOX.gun].n]:BOX.st==='spin'?null:['开箱','神秘武器箱 $950（随机武器）'];
  if(m.k==='pap')return G.ws[G.cur].pap?null:['强化','强化 '+WP[G.cur].n+' $2000（伤害×2、弹匣×1.5）'];
  const pk=PERKS[m.k];if(PERK[m.k])return['已喝',pk.n+'（已拥有）'];return['购买',pk.n+' $'+pk.c+'：'+pk.d+(Object.keys(PERK).length>=4?'（最多 4 种）':'')]}
-function doUse(){if(P.mg)return dismount();if(P.dead||P.dn)return;if(nearDowned())return;const n=nearMG();if(n)return mount(n);const m=nearMach();if(!m)return;
+function doUse(){if(P.mg)return dismount();if(P.dead||P.dn)return;if(nearDowned())return;const n=nearMG();if(n)return mount(n);if(stUse())return;const m=nearMach();if(!m)return;
  if(m.k==='crane')useCrane();else if(m.k==='box')useBox();else if(m.k==='pap')usePaP();else buyPerk(m.k)}
 function mgUI(){const tip=$('mgTip');const L=useLabel();
  if(P.mg){const m=P.mg;tip.innerHTML=`<div style="font-size:12px;margin-bottom:3px">${m.over?'<b style="color:#ff5a3a">过热！等待散热</b>':'枪管温度'}</div><div class="bar" style="width:180px;margin:0 auto"><i style="width:${m.heat*100}%;background:linear-gradient(90deg,#e8b040,#ff3a1a)"></i></div><div style="font-size:11px;opacity:.7;margin-top:3px">${L[1]}</div>`;tip.style.display=''}
@@ -1174,7 +1183,7 @@ const PROJ=[],POOLS=[],TONG={};function dropTong(zid){const T0=TONG[zid];if(T0&&
 const rockM=new T.MeshStandardMaterial({color:0x6a625a,roughness:1}),acidM=new T.MeshBasicMaterial({color:0x7dff3a}),poolM=new T.MeshBasicMaterial({color:0x5aff2a,transparent:true,opacity:.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3});
 const tongM=new T.MeshBasicMaterial({color:0x8a2030});
 function zById(id){return G.zs.find(z=>z.id===id)}
-function applyEv(e){const k=e[0];
+function applyEv(e){const k=e[0];if(k[0]==='$'){stEv(e);return}
  if(k==='xb'){explGone(e[1]);return}if(k==='trn'){trainEv(e[1]);return}if(k==='crn'){craneEv(e[1],e[2],e[3]);return}
  if(k==='ex'){const [,x,y,z,r]=e;v1.set(x,y+.6,z);emit(v1,40,[1,.55,.15],9,1,6,.9);emit(v1,30,[.25,.22,.2],5,1.2,2,1.4);emit(v1,20,[.45,.6,.15],6,1,8,.8);flashS.position.copy(v1);flashS.scale.setScalar(5);flashS.visible=true;flashS.userData.t=.12;flashL.position.copy(v1);flashL.intensity=12;
   decal(x,z,r*.9);const d=Math.hypot(P.pos.x-x,P.pos.z-z);if(AC){noise(160,1.1,1.2*clamp(1-d/60,.1,1));tone(70,30,.9,.7*clamp(1-d/60,.1,1))}P.shake=Math.max(P.shake,clamp(1-d/25,0,1)*.6)}
@@ -1217,7 +1226,7 @@ function launch(z,kind,a,spd){const s=v1.copy(z.c.wrap.position);s.y=z.y+z.t.h*.
  const tx=a.pos.x+(a.me?P.vel.x:0)*.4,tz=a.pos.z+(a.me?P.vel.z:0)*.4,ty=ay+.9;const dx=tx-s.x,dz=tz-s.z,d=Math.hypot(dx,dz);const t=clamp(d/spd,.55,1.9);
  const vx=dx/t,vz=dz/t,vy=(ty-s.y+.5*14*t*t)/t;pushEv(['pj',kind,r2(s.x),r2(s.y),r2(s.z),r2(vx),r2(vy),r2(vz)]);
  const q=PROJ[PROJ.length-1];q.host=true;q.dmg=(kind==='rock'?26:8)*DIFF[diffI].dmg}
-function explode(z){if(z.boomed)return;z.boomed=true;const p=z.c.wrap.position;const R=4.6;pushEv(['ex',r2(p.x),r2(z.y),r2(p.z),R]);
+function explode(z){if(z.boomed)return;z.boomed=true;const p=z.c.wrap.position;const R=4.6;pushEv(['ex',r2(p.x),r2(z.y),r2(p.z),R]);stBlast(p.x,z.y,p.z,R,240);
  for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<R){dmgTo(a,55*DIFF[diffI].dmg*Math.pow(1-d/R,.6),p);knock(a,p,10*(1-d/R)+3,.5)}}
  for(const o of G.zs){if(o===z||o.dead)continue;const d=o.c.wrap.position.distanceTo(p);if(d<R)hurtZ(o,260*(1-d/R),false,null,0,'X')}}
 function releaseHolds(z){if(z.hold){pushEv([z.t.sp==='pouncer'?'unpin':'rel',z.id,z.hold]);z.hold=null}}
@@ -1352,7 +1361,7 @@ function spawnThrow(e){const [k,x,y,z,vx,vy,vz,pid,tid]=e;const geo=k==='nade'?n
  const m=new T.Mesh(geo,thrM[k]);m.position.set(x,y,z);m.castShadow=true;scene.add(m);let li=null;if(k==='pipe'){li=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff2020,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));li.scale.setScalar(.5);m.add(li)}
  if(k==='molo'){const f=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff8030,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));f.scale.setScalar(.35);f.position.y=.12;m.add(f)}
  THR.list.push({k,m,v:new T.Vector3(vx,vy,vz),pid,tid,t:k==='nade'?2.3:k==='pipe'?6.5:9,li,rest:false,beep:0})}
-function boomAt(p,R,dmg,pid){pushEv(['ex',r2(p.x),r2(p.y),r2(p.z),R]);for(const e of EXPL){if(!e.dead&&Math.hypot(e.p.x-p.x,e.p.z-p.z)<R*.8){const id=e.id;setTimeout(()=>hitExpl(id,9999,pid),140)}}for(const z of G.zs){if(z.dead)continue;const d=z.c.wrap.position.distanceTo(p);if(d<R)hurtZ(z,dmg*Math.pow(1-d/R,.5),false,null,0,pid,98)}}
+function boomAt(p,R,dmg,pid){pushEv(['ex',r2(p.x),r2(p.y),r2(p.z),R]);stBlast(p.x,p.y,p.z,R*.7,dmg*.2,1);for(const e of EXPL){if(!e.dead&&Math.hypot(e.p.x-p.x,e.p.z-p.z)<R*.8){const id=e.id;setTimeout(()=>hitExpl(id,9999,pid),140)}}for(const z of G.zs){if(z.dead)continue;const d=z.c.wrap.position.distanceTo(p);if(d<R)hurtZ(z,dmg*Math.pow(1-d/R,.5),false,null,0,pid,98)}}
 function updThrows(dt){for(let i=THR.list.length-1;i>=0;i--){const q=THR.list[i];const p=q.m.position;q.t-=dt;
   if(!q.rest){q.v.y-=14*dt;const ox=p.x,oz=p.z;p.addScaledVector(q.v,dt);q.m.rotation.x+=dt*8;const tmp=new T.Vector3(p.x,0,p.z);pushOut(tmp,.08,'p',p.y);if(tmp.x!==p.x||tmp.z!==p.z){if(q.k==='molo'){q.t=0}p.x=tmp.x;p.z=tmp.z;q.v.x*=-.4;q.v.z*=-.4}
    const g=groundH(p,.05,p.y+.2);if(p.y<=g+.06){p.y=g+.06;if(q.k==='molo')q.t=0;else{q.v.y*=-.35;q.v.x*=.6;q.v.z*=.6;if(Math.abs(q.v.y)<.8){q.rest=true}if(AC&&p.distanceTo(P.pos)<20)tone(900,600,.05,.06,'triangle')}}}
@@ -1580,6 +1589,7 @@ function hostSim(dt){
  if(G.mode==='z'){
   if(G.queue.length){G.spawnT-=dt;const cap=TOUCH?14:22;if(G.spawnT<=0&&aliveZ()<cap){const at=spawnSpot();const pack=Math.min(G.queue.length,G.wave<3?2:G.wave<6?3:4);for(let i=0;i<pack;i++)spawnZ(G.queue.shift(),at);G.spawnT=Math.max(1.2,3.2-G.wave*.15)}}
   for(let i=G.zs.length-1;i>=0;i--){const z=G.zs[i];updZ(z,dt);if(z.gone||(z.dead&&z.deadT>5)){scene.remove(z.c.wrap);G.zs.splice(i,1)}}
+  stHost(dt);
   if(!G.queue.length&&aliveZ()===0&&!G.inter&&G.wave>0){G.inter=20;onWaveClear(G.wave)}
   if(G.inter>0){G.inter-=dt;if(G.inter<=0){G.inter=0;nextWave()}}
   const allDead=actors().filter(a=>!a.bot).every(a=>a.dead||a.dn);if(allDead){G.allDeadT+=dt;if(G.allDeadT>2)hostEnd()}else G.allDeadT=0}
@@ -1593,12 +1603,13 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
  z.hitCd-=dt;z.atkT-=dt;if(z.buffT>0)z.buffT-=dt;
  let tg=null,td=1e9;for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<td){td=d;tg=a}}
  const lure=(!z.t.sp&&z.type!=='boss')?pipeTarget(p):null;if(lure&&td>2){tg={id:'pipe',pos:lure,dead:false};td=Math.hypot(lure.x-p.x,lure.z-p.z)+5}
+ {const sT=stTarget(z,p,td,dt);if(sT){tg=sT;td=sT.d}}
  const tY=tg?(tg.me?P.y:(tg.pos.y||0)):0;
  // 攀爬（车顶、集装箱上没有安全点）
  if(z.climb){const C=z.climb;C.t+=dt;const k=Math.min(1,C.t/C.d),K=climbK(k);p.x=C.x0+(C.x1-C.x0)*K.fw;p.z=C.z0+(C.z1-C.z0)*K.fw;z.y=C.y0+(C.y1-C.y0)*(1-Math.pow(1-K.up,2));
   z.st=9;if(k>=1){z.climb=null;z.vy=0}setBase(c,'idle',.6);updChar(c,dt);p.y=z.y;if(k>.04&&k<.88)mantleHands(c,c.wrap.rotation.y+Math.PI,C.ex,C.ez,C.y1,1);return}
  let mv=0;const reach=z.r+.75;const on=c.one&&c.one.n;const busy=on&&['punch','scream','hitreact','standup','idle_attack','climb'].includes(on);
- if(z.pend>0){z.pend-=dt;if(z.pend<=0){z.pend=-1;const a=actors().find(a=>a.id===z.tid);if(a&&!a.dead&&Math.hypot(a.pos.x-p.x,a.pos.z-p.z)<reach+.5&&Math.abs((a.me?P.y:(a.pos.y||0))-z.y)<1.3){dmgTo(a,z.dmg,p);if(z.t.sp==='tank'||z.type==='boss')knock(a,p,7,.4)}}}
+ if(z.pend>0){z.pend-=dt;if(z.pend<=0){z.pend=-1;const a=stActor(z.tid,p)||actors().find(a=>a.id===z.tid);if(a&&!a.dead&&Math.hypot(a.pos.x-p.x,a.pos.z-p.z)<reach+.5&&Math.abs((a.me?P.y:(a.pos.y||0))-z.y)<1.3){if(a.st)stHurt(a.st,z.dmg*(z.t.sp==='tank'||z.type==='boss'?4:z.type==='brute'?2:1)*(a.st.k===4?.5:a.st.k>=5?.6:1));else{dmgTo(a,z.dmg,p);if(z.t.sp==='tank'||z.type==='boss')knock(a,p,7,.4)}}}}
  const own=z.type==='witch'||z.type==='mutant';const spec=own?(z.type==='witch'?witchAI(z,dt):mutantAI(z,tg,td,dt)):(!busy||z.wind>0||z.charge>0||z.leap||z.hold||z.fuse>0||z.daze>0)&&specialAI(z,tg,td,dt);if(z.gone)return;
  if(!spec&&!z.wind&&!z.charge&&!z.leap&&!z.hold&&!z.fuse&&!(z.daze>0)){
   let tx=tg?tg.pos.x:0,tz=tg?tg.pos.z:0;
@@ -1615,15 +1626,17 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
    // 坦克尸/尸王爬不上车：砸车把车顶上的人震下来
    if(tg&&tY>z.y+.6&&td<5.5&&(z.t.sp==='tank'||z.type==='boss')){z.slamCd=(z.slamCd||0)-dt;if(z.slamCd<=0&&climbBox(p,z.r+.6,z.y,4.5)){z.slamCd=3;playOnce(c,'punch',1.2);pushEv(['warn',z.t.name+'在砸车！']);
      for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<5.5){dmgTo(a,16*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}if(AC){noise(160,.5,.7);tone(70,35,.4,.5)}P.shake=Math.max(P.shake,.3);z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);updChar(c,dt);p.y=z.y;return}}
+   // 被玩家的工事挡住：砸，或者踩着同伴翻过去
+   const FE=fortEngage(z,p,dx,dz,tg,c,dt);if(FE===2){updChar(c,dt);return}if(!FE){
    let sx=0,sz=0;for(const o of G.zs){if(o===z||o.dead)continue;const ox=p.x-o.c.wrap.position.x,oz=p.z-o.c.wrap.position.z;const d2=ox*ox+oz*oz,rr=z.r+o.r;if(d2<rr*rr&&d2>1e-6){const d=Math.sqrt(d2);sx+=ox/d*(rr-d);sz+=oz/d*(rr-d)}}
    let vx=dx,vz=dz;if(z.detT>0){z.detT-=dt;vx+=-dz*z.det*1.2;vz+=dx*z.det*1.2;const l=Math.hypot(vx,vz);vx/=l;vz/=l}
    const s=(tg?z.spd:z.spd*.4)*(z.buffT>0?1.4:1)*(z.slowT>0?.3:1);p.x+=(vx*s)*dt+sx*Math.min(1,dt*8);p.z+=(vz*s)*dt+sz*Math.min(1,dt*8);pushOut(p,z.r*.8,'z',z.y);
    const moved=Math.hypot(p.x-z.last.x,p.z-z.last.y);mv=moved/dt;
    if(mv<s*.35&&td>reach+.3){z.stuck+=dt;if(z.stuck>.45){z.stuck=0;z.det=Math.random()<.5?1:-1;z.detT=rand(.8,1.6)}}else z.stuck=Math.max(0,z.stuck-dt);
-   z.face=Math.atan2(vx,vz)}
+   z.face=Math.atan2(vx,vz)}}
   if(z.t.sp==='bomber'||z.t.sp==='pouncer')z.st=1;
   if(z.type==='runner'||z.spd>2||z.buffT>0)setBase(c,'run',clamp(z.spd/3.1,.7,1.4));else setBase(c,'walk',clamp(z.spd/.62,.8,2.2)*(z.type==='brute'||z.t.sp==='tank'?.75:1));
-  if(canHit&&!busy)setBase(c,'idle',1)}
+  if(canHit&&!busy)setBase(c,'idle',1);if(z.engF){z.engF=0;setBase(c,'idle',1)}}
  else if(spec&&!own){mv=Math.hypot(p.x-z.last.x,p.z-z.last.y)/dt;if(z.st===8)setBase(c,'run',z.t.sp==='tank'?1.8:1.2);else if(z.st===5||z.st===7||z.st===10||z.st===2)setBase(c,'idle',1);else setBase(c,mv>.5?'walk':'idle',1.4)}
  if(z.kbx||z.kbz){p.x+=z.kbx*dt;p.z+=z.kbz*dt;const f=Math.exp(-dt*7);z.kbx*=f;z.kbz*=f;if(Math.abs(z.kbx)+Math.abs(z.kbz)<.05)z.kbx=z.kbz=0;pushOut(p,z.r*.8,'z',z.y)}if(z.slowT>0)z.slowT-=dt;
  z.last.set(p.x,p.z);
@@ -1638,7 +1651,7 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
  z.groan-=dt;if(z.groan<=0){z.groan=rand(4,9);const pd=Math.hypot(P.pos.x-p.x,P.pos.z-p.z);if(pd<26&&AC){const a=Math.atan2(p.x-P.pos.x,p.z-P.pos.z)-(P.yaw+Math.PI);sGroan(.12*(1-pd/28)*(z.type==='boss'||z.t.sp==='tank'?2.5:1),-Math.sin(a),z.type==='boss'||z.type==='brute'||z.t.sp==='tank')}}
  zAmb(z,dt)}
 function hostEnd(){if(G.ended)return;G.ended=true;const r=Object.entries(G.R).map(([id,o])=>[nameOf(id)||o.n,o.t,o.k,o.d,o.b,id]);
- const pl={m:G.mid,mode:G.mode,sc:G.sc,w:G.wave,r};nsend('end',pl);showEnd(pl)}
+ const pl={m:G.mid,mode:G.mode,sc:G.sc,w:G.wave,r,rd:G.radDead?1:0};nsend('end',pl);showEnd(pl)}
 
 // ---------- 客户端：镜像丧尸 / 电脑 ----------
 function onZSnap(list){const seen=new Set();
@@ -1709,7 +1722,8 @@ function onP(s){if(s.m!==G.mid||s.i===NET.me||G.state==='lobby'||G.state==='menu
  if(s.t!==H.team||s.n!==H.name){H.team=s.t;H.name=s.n;decorate(H)}
  if(isHost()){const r=rost(s.i);r.n=s.n;r.t=s.t}
  if(s.f)for(const f of s.f)remoteShot(f);
- if(s.h)for(const h of s.h)applyHit(h,s.i)}
+ if(s.h)for(const h of s.h)applyHit(h,s.i);
+ if(s.rq&&isHost())for(const q of s.rq)stReq(q,s.i)}
 function applyHit(h,s){const [v,d,hd,w]=h;
  if(v===NET.me){if(G.mode!=='pvp')return;const A=HUM[s];if(A&&A.team===P.team)return;hurtP(d,A?A.pos:null,s,hd,w);return}
  if(!isHost())return;
@@ -1719,23 +1733,24 @@ function applyHit(h,s){const [v,d,hd,w]=h;
 function onH(h){if(h.g&&h.m===G.mid)setHostPause(h.g.hp);if(h.ps){h.ps.m=h.m;try{onP(h.ps)}catch(e){}}if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();if(NET.lagShown){NET.lagShown=0;popTxt('连接已恢复')}const g=h.g;
  G.sc=g.sc;G.tl=g.tl;G.left=g.q;
  if(G.mode==='z'){if(g.w>G.wave)onWaveStart(g.w,g.sl);if(g.it>0&&!(G.inter>0))onWaveClear(g.w);G.inter=g.it}
- if(h.z)onZSnap(h.z);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
+ if(h.z)onZSnap(h.z);if(h.st)onST(h.st);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
  if(h.zh)for(const [v,d,x,z] of h.zh)if(v===NET.me)hurtP(d,{x,z},'Z');
  if(h.bh)for(const [v,d,hd,s,w] of h.bh)if(v===NET.me)hurtP(d,HUM[s]?HUM[s].pos:null,s,hd,w);
  if(h.f)for(const f of h.f)remoteShot(f);
  if(h.zk)for(const [k,hd,c,p,wi,sp,ty] of h.zk)if(k===NET.me)zReward(hd,c,p,wi,sp,ty);
  if(h.r){for(const id in h.r){const [n,t,k,d,b]=h.r[id];G.R[id]={n,t,k,d,b}}}
  hudDirty=true}
-function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=0;for(const k in NET.H)NET.H[k].length=0;return}
+function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=NET.out.rq.length=0;for(const k in NET.H)NET.H[k].length=0;return}
  NET.sendT-=dt;if(NET.sendT>0)return;{const n=Math.max(2,humanCount());const hz=NET.host?(n<=2?10:n<=4?8:5):(n<=2?10:n<=4?5:3);NET.sendT=1/hz}
  if(NET.tr&&NET.tr.joined&&!NET.tr.joined()){NET.slow=(NET.slow||0)+1;if(NET.slow%4)return}
  const sp=Math.hypot(P.vel.x,P.vel.z);const back=(-(Math.sin(P.yaw)*P.vel.x+Math.cos(P.yaw)*P.vel.z))<-.3;
  const a=P.climb?4:sp<.25?0:back?3:P.c&&P.c.base==='run_gun'?2:1;
- const PS={i:NET.me,n:myName,t:P.team,sk:skinI,x:r2(P.pos.x),z:r2(P.pos.z),y:r2(P.yaw),pt:r2(P.pitch+P.rec),a,w:G.cur,c:P.cr?1:0,py:r2(P.y),u:P.mg?P.mg.i:-1,dn:P.dn?1:0,hp:Math.ceil(P.hp),d:P.dead?1:0,f:NET.out.f.length?NET.out.f.splice(0):undefined,h:NET.out.h.length?NET.out.h.splice(0).map(x=>[x[0],r2(x[1]),x[2],x[3]]):undefined};
+ const PS={i:NET.me,n:myName,t:P.team,sk:skinI,x:r2(P.pos.x),z:r2(P.pos.z),y:r2(P.yaw),pt:r2(P.pitch+P.rec),a,w:G.cur,c:P.cr?1:0,py:r2(P.y),u:P.mg?P.mg.i:-1,dn:P.dn?1:0,hp:Math.ceil(P.hp),d:P.dead?1:0,f:NET.out.f.length?NET.out.f.splice(0):undefined,h:NET.out.h.length?NET.out.h.splice(0).map(x=>[x[0],r2(x[1]),x[2],x[3]]):undefined,rq:NET.out.rq.length?NET.out.rq.splice(0):undefined};
  if(!NET.host)nsend('p',PS);
  if(NET.host){const H={ps:PS,g:{hp:G.hostPause?1:0,w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
   if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0),Math.ceil(z.hp)]);
-  else{H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
+  if(G.mode==='z'&&(++G.stN%8===0||G.stDirty&&G.stN%2===0)){H.st=stSnap();G.stDirty=0}
+  if(G.mode!=='z'){H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
   for(const k in NET.H)if(NET.H[k].length)H[k]=NET.H[k].splice(0);
   if(++NET.hn%5===0){H.r={};for(const id in G.R){const o=G.R[id];H.r[id]=[nameOf(id),o.t,o.k,o.d,o.b]}}
   nsend('H',H)}
@@ -1815,7 +1830,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;
  if(P.relT>0){P.relT-=dt;if(P.relT<=0){P.relT=0;finishReload()}}
  if(P.pin&&IN.fire&&!P.firePrev)mashP();P.firePrev=IN.fire;
  if(P.burst>0&&P.fireCd<=0&&!P.dead)fire();
- if(IN.fire&&!G.paused&&!P.dead&&!P.pin&&!(P.stun>0)&&!P.climb){const w=WP[G.cur];if(P.mg||w.auto||!IN.fireHeld||(TOUCH&&!P.burst)){if(!P.burst)fire();IN.fireHeld=true}}
+ if(IN.fire&&!BLD.on&&!G.paused&&!P.dead&&!P.pin&&!(P.stun>0)&&!P.climb){const w=WP[G.cur];if(P.mg||w.auto||!IN.fireHeld||(TOUCH&&!P.burst)){if(!P.burst)fire();IN.fireHeld=true}}
  mgUI();
  // 倒地 / 救人 / 近战 / 投掷 / 武器箱 / 强化机 / 掉落
  if(P.dn){P.dnT-=dt;if(P.selfRev>0){P.selfRev-=dt;if(P.selfRev<=0)reviveMe()}else if(P.dnT<=0)bleedOut();if(P.dn)$('msg').textContent='倒地了！'+(P.selfRev>0?'自救中…':'等待队友救援 '+Math.ceil(P.dnT)+' 秒')+'（只能用手枪）'}
@@ -1847,6 +1862,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;
  xh(P.scoped?0:6+(WP[G.cur].spr*(P.aimOn?.45:1)*(P.vel.lengthSq()>1?1.5:1)+P.spr*.5)*420);$('xh').style.display=P.scoped?'none':'';
  $('rel').textContent=P.dead?'':P.relT>0?'换弹中…':(G.ws[G.cur].mag===0&&G.ws[G.cur].res===0?'弹药耗尽！换手枪':'');
  if(G.mode==='pvp'){const t=Math.max(0,Math.ceil(G.tl));const s=`<b style="color:${TEAM_CSS[0]}">${G.sc[0]}</b> 蓝队　${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}　红队 <b style="color:${TEAM_CSS[1]}">${G.sc[1]}</b>`;hset('pvpBar',s)}
+ stFrame(dt);
  if(hudDirty)hud()}
 function fxUpdate(dt){updParts(dt);updWeather(dt);if(!(G.paused&&!NET.on)&&!G.hostPause)updMapMech(dt);updDN(dt);for(const q of TRC){if(q.t>0){q.t-=dt;q.l.material.opacity=Math.max(0,q.t/.06)*.85}}
  if(flashS.visible){flashS.userData.t-=dt;if(flashS.userData.t<=0){flashS.visible=false;flashL.intensity=0}}
@@ -1860,7 +1876,7 @@ function hud(force){hudDirty=false;if(!G.ws)return;const i=G.cur,s=G.ws[i];
  hset('hWave',G.wave);hset('hLeft',isHost()?G.queue.length+aliveZ():G.left);
  hset('hKill',G.mode==='pvp'?'击杀 '+G.kills+' · 死亡 '+G.deaths:'击杀 '+G.kills+' · 爆头 '+G.heads);
  hset('hTeam',`<span style="color:${TEAM_CSS[P.team]}">你在${TEAM_N[P.team]}</span>`);
- hset('hCash','$'+G.cash);hset('hScore',G.score);
+ hset('hCash','$'+G.cash);hset('hScore',G.score);hset('hSup',G.sup|0);
  const MH=mods().hp;hset('hpT',Math.ceil(P.hp)+(MH>100?' / '+MH:''));$('hpf').style.width=(100*P.hp/MH)+'%';$('hpf').style.background=P.dn?'#ff2a10':'';hset('arT',Math.ceil(P.ar));$('arf').style.width=P.ar+'%';
  hset('wname',(s.pap?'强化·':'')+WP[i].n+(s.lv>1?' Lv.'+s.lv:'')+' <span style="opacity:.6;font-size:12px">'+MODEN[WP[i].mode]+'</span>');hset('ammo',s.mag+' <small>/ '+(s.res===Infinity?'∞':s.res)+'</small>');
  hset('slots',G.slots.map((j,k)=>j<0?'':`<span class="own ${k===G.slot?'cur':''}">${k+1} ${WP[j].n}</span>`).join('')+thrHud());
@@ -1901,12 +1917,12 @@ $('shop').addEventListener('click',e=>{if(e.target.id==='shop')closeShop()});$('
 $('tShop').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();openShop()},{passive:false});
 
 // ---------- 结束 / 暂停 ----------
-function showEnd(p){if(G.state==='over')return;G.state='over';$('cards').classList.add('hid');if(!p.gone){if(p.mode==='pvp'){const w=p.sc[0]>p.sc[1]?0:p.sc[1]>p.sc[0]?1:-1;addXP(w===P.team?300:120)}else addXP(G.wave*30)}G.ended=true;closeShop();showBoard(false);$('touch').classList.add('hid');if(document.pointerLockElement)document.exitPointerLock();
+function showEnd(p){if(G.state==='over')return;G.state='over';bldSet(false);$('mkR').style.display=$('mkT').style.display='none';$('cards').classList.add('hid');if(!p.gone){if(p.mode==='pvp'){const w=p.sc[0]>p.sc[1]?0:p.sc[1]>p.sc[0]?1:-1;addXP(w===P.team?300:120)}else addXP(G.wave*30)}G.ended=true;closeShop();showBoard(false);$('touch').classList.add('hid');if(document.pointerLockElement)document.exitPointerLock();
  let title,stat;
  if(p.gone){title='房主已离开';stat='本局结束'}
  else if(p.mode==='pvp'){const w=p.sc[0]>p.sc[1]?0:p.sc[1]>p.sc[0]?1:-1;title=w<0?'平局':(w===P.team?'胜利！':'失败');stat=`<span style="color:${TEAM_CSS[0]}">蓝队 ${p.sc[0]}</span> : <span style="color:${TEAM_CSS[1]}">${p.sc[1]} 红队</span><br>你：击杀 ${G.kills} · 死亡 ${G.deaths}`;say(w<0?'平局':w===P.team?'我方胜利':'我方失败')}
  else{const best=Math.max(+(LS.get('scqh-best')||0),p.w-1);LS.set('scqh-best',best);const bs=Math.max(+(LS.get('scqh-bests')||0),G.score);LS.set('scqh-bests',bs);
-  title=NET.on?'全员阵亡':'你倒下了';stat=`坚持到第 <b>${p.w}</b> 波<br>击杀 <b>${G.kills}</b>　爆头 <b>${G.heads}</b>　分数 <b>${G.score}</b><br><span style="opacity:.7">最佳纪录：清除 ${best} 波</span>`;if(NET.on)say('全员阵亡')}
+  title=p.rd?'电台被毁':NET.on?'全员阵亡':'你倒下了';stat=`坚持到第 <b>${p.w}</b> 波<br>击杀 <b>${G.kills}</b>　爆头 <b>${G.heads}</b>　分数 <b>${G.score}</b><br><span style="opacity:.7">最佳纪录：清除 ${best} 波</span>`;if(NET.on&&!p.rd)say('全员阵亡')}
  $('overT').textContent=title;$('overStat').innerHTML=stat;
  if(p.r&&p.r.length){for(const [n,t,k,d,b,id] of p.r)if(id)G.R[id]={n,t,k,d,b};$('overTable').innerHTML=boardHTML(rosterRows())}else $('overTable').innerHTML='';
  $('bAgain').style.display=(!NET.on||NET.host)&&!p.gone?'':'none';$('bAgain').textContent=NET.on?'再来一局（全房间）':'再来一局';
@@ -1935,8 +1951,8 @@ function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let 
  chips($('aiRow'),['开','关'],aiS?0:1,i=>{aiS=!i;LS.set('scqh-ai',aiS?'1':'0');showMenu()});$('aiWrap').style.display=modeS==='pvp'?'':'none';
  const best=+(LS.get('scqh-best')||0);$('best').textContent=best?'打丧尸最佳：清除 '+best+' 波':'';
  $('helpTxt').innerHTML=(TOUCH?'左半屏拖动 = 移动（推到底冲刺）　右半屏拖动 = 转视角　按住「开火」可边打边瞄（辅助瞄准可在主菜单关闭）　「跳」「蹲」「上枪」按钮在右边':
-  'WASD 移动　Shift 冲刺　左键开火　右键瞄准/开镜　R 换弹　1-3/滚轮 换枪　F 刀　G 投掷　H 换投掷物　E 使用/救人　V 视角　空格 跳/攀爬　C 蹲　B 商店　Tab 排行榜')+
-  '<br>打丧尸：每局地图摆设（车、路障、机枪位、贩卖机、武器箱）都不一样；每波的特异丧尸种类、数量也随机，越后面越可能出现巨尸、坦克尸、尸王、异变体；女鬼随机出现（听到哭声别靠近、别开枪）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
+  'WASD 移动　Shift 冲刺　左键开火　右键瞄准/开镜　R 换弹　1-3/滚轮 换枪　F 刀　G 投掷　H 换投掷物　E 使用/救人　V 视角　空格 跳/攀爬　C 蹲　B 商店　X 部署工事　Tab 排行榜')+
+  '<br>打丧尸：守住电台（被拆掉就输）；用物资部署沙袋墙、铁丝网、拒马栅栏、地雷，丧尸会砸工事，数量够了还会踩着同伴翻过去；物资和弹药要去补给卡车搬。每局地图摆设（车、路障、机枪位、贩卖机、武器箱）都不一样；每波的特异丧尸种类、数量也随机，越后面越可能出现巨尸、坦克尸、尸王、异变体；女鬼随机出现（听到哭声别靠近、别开枪）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
 function startSolo(){myName=($('nm').value||'').trim().slice(0,8)||myName;LS.set('scqh-name',myName);netLeave();audioInit();fullscreen();
  beginMatch({mid:'s'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickMap(),ml:G.mapLeft,mode:modeS,diff:diffI,ai:modeS==='pvp'?true:aiS,teams:{me:0}})}
 function fullscreen(){if(!TOUCH)return;try{const de=document.documentElement;const r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de);r&&r.then&&r.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
@@ -1977,6 +1993,7 @@ document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockEleme
 addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT'){if(e.key==='Enter'&&e.target.id==='code')$('bJoin').click();return}IN.k[e.code]=true;
  if(e.code==='Tab'){e.preventDefault();if(G.state==='play')showBoard(true)}
  if(G.state!=='play'||G.paused)return;
+ if(BLD.on&&/^Digit[1-4]$/.test(e.code)){BLD.sel=+e.code.slice(5)-1;sClick();return}if(e.code==='KeyX'&&G.mode==='z'){bldSet(!BLD.on);return}
  if(e.code==='Space'){e.preventDefault();if(P.mg)dismount();else doJump()}
  if(e.code==='KeyC'||e.code==='ControlLeft')toggleCrouch();
  if(e.code==='KeyE')doUse();if(e.code==='KeyG')throwIt();if(e.code==='KeyH'||e.code==='KeyT')cycleThr();if(e.code==='KeyF')knife();
@@ -1997,9 +2014,10 @@ tBtn('tRel',()=>reload());
 tBtn('tSw',()=>cycleSlot(1));
 tBtn('tPause',()=>pause(true));
 tBtn('tJump',()=>{if(P.mg)dismount();else doJump()});tBtn('tCrouch',()=>toggleCrouch());tBtn('tMG',()=>{IN.use=true;doUse()},()=>{IN.use=false});tBtn('tThr',()=>throwIt());tBtn('tThrS',()=>cycleThr());tBtn('tKnife',()=>knife());
-tBtn('tView',()=>setView(VIEW==='fp'?'tp':'fp'));
+tBtn('tView',()=>setView(VIEW==='fp'?'tp':'fp'));tBtn('tBuild',()=>bldSet(!BLD.on));
+{const bb=$('bbar');const pickB=e=>{const t=e.target.closest&&e.target.closest('.bi');if(!t)return;e.preventDefault();e.stopPropagation();const i=t.dataset.i;if(i==='x')bldSet(false);else{BLD.sel=+i;bldBar();sClick()}};bb.addEventListener('touchstart',pickB,{passive:false});bb.addEventListener('mousedown',pickB)}
 tBtn('tBoard',()=>showBoard($('board').classList.contains('hid')));
-document.addEventListener('touchstart',e=>{if(G.state!=='play'||!TOUCH||G.paused)return;if(e.target.closest&&(e.target.closest('.tb')||e.target.closest('#shop')||e.target.closest('#board')))return;
+document.addEventListener('touchstart',e=>{if(G.state!=='play'||!TOUCH||G.paused)return;if(e.target.closest&&(e.target.closest('.tb')||e.target.closest('#bbar')||e.target.closest('#shop')||e.target.closest('#board')))return;
  for(const t of e.changedTouches){if(t.clientX<innerWidth*.42&&!TT.joy){TT.joy={id:t.identifier,x:t.clientX,y:t.clientY};const b=$('joyB');b.style.display='block';b.style.left=(t.clientX-60)+'px';b.style.top=(t.clientY-60)+'px'}
   else if(!TT.look)TT.look={id:t.identifier,x:t.clientX,y:t.clientY}}},{passive:true});
 const UIW='#shop,#cards,#board,#prof,#lobby,#over,#pause,.lbBox';
@@ -2139,6 +2157,220 @@ GFX=(()=>{
   if(!G_.lock&&G&&G.state==='play'&&!G.paused){fT+=dt;fN++;if(fT>5){const fps=fN/fT;fT=0;fN=0;if(fps<21&&q>0){setQ(q-1);try{popTxt('画面太卡，已自动降低画质')}catch(e){}}}}}
  function setQ(v){q=clamp(v|0,0,hf?2:0);G_.q=q;LS.set('scqh-gfx',String(q))}
  Object.assign(G_,{env,nrm,matX,props,ch,bloodHit,impact,muzzle,pool,frame,setQ,clearFx,sky});return G_})();
+
+// ================= 防线：电台 / 防御工事 / 补给卡车 / 叠人墙（房主权威，联机同步） =================
+// 种类：0 沙袋墙 1 铁丝网 2 拒马栅栏 3 地雷 4 电台 5 补给卡车 6 补给托盘（地铁站）
+const FK=[{n:'沙袋墙',c:2,hp:320,hx:1.2,hz:.31,h:.96,solid:1,need:1},{n:'铁丝网',c:2,hp:260,hx:1.5,hz:.65,h:.8,solid:0},{n:'拒马栅栏',c:4,hp:850,hx:1.5,hz:.3,h:2.05,solid:1,need:3},{n:'地雷',c:2,hp:1,hx:.2,hz:.2,h:.08,solid:0},
+ {n:'电台',hp:1000,hx:.95,hz:.6,h:1.15,solid:1},{n:'补给卡车',hp:520,hx:1.2,hz:3,h:2.4,solid:1},{n:'补给托盘',hp:300,hx:.75,hz:.75,h:.9,solid:1}];
+const ST=[];let STID=1,RADIO=null,TRUCK=null;const SUP_MAX=20,FORT_MAX=36,SID=s=>'#'+s.id;
+const BLD={on:false,sel:0,prev:false,ghost:[],ok:false,p:new T.Vector3(),ry:0,cd:0};
+// ---------- 模型（一次做好，所有同类工事共用几何体和材质） ----------
+function mergeG(list){let nv=0,ni=0;for(const [g] of list){nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
+ const Pp=new Float32Array(nv*3),Nn=new Float32Array(nv*3),Uu=new Float32Array(nv*2),Ii=new (nv>65535?Uint32Array:Uint16Array)(ni);let vo=0,io=0;const v=new T.Vector3(),nm=new T.Matrix3();
+ for(const [g,m] of list){const p=g.attributes.position,n=g.attributes.normal,u=g.attributes.uv;nm.getNormalMatrix(m);
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).applyMatrix4(m);Pp[(vo+i)*3]=v.x;Pp[(vo+i)*3+1]=v.y;Pp[(vo+i)*3+2]=v.z;v.fromBufferAttribute(n,i).applyMatrix3(nm).normalize();Nn[(vo+i)*3]=v.x;Nn[(vo+i)*3+1]=v.y;Nn[(vo+i)*3+2]=v.z;if(u){Uu[(vo+i)*2]=u.getX(i);Uu[(vo+i)*2+1]=u.getY(i)}}
+  if(g.index){for(let i=0;i<g.index.count;i++)Ii[io+i]=g.index.getX(i)+vo;io+=g.index.count}else{for(let i=0;i<p.count;i++)Ii[io+i]=vo+i;io+=p.count}vo+=p.count}
+ const o=new T.BufferGeometry();o.setAttribute('position',new T.BufferAttribute(Pp,3));o.setAttribute('normal',new T.BufferAttribute(Nn,3));o.setAttribute('uv',new T.BufferAttribute(Uu,2));o.setIndex(new T.BufferAttribute(Ii,1));return o}
+const SM4=(x,y,z,rx,ry,rz,sx,sy,sz)=>new T.Matrix4().compose(new T.Vector3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx,ry,rz)),new T.Vector3(sx,sy,sz));
+class Helix extends T.Curve{constructor(L,R,n,ph){super();this.L=L;this.R=R;this.n=n;this.ph=ph||0}getPoint(t,o=new T.Vector3()){const a=t*this.n*6.2832+this.ph;return o.set((t-.5)*this.L,this.R+Math.cos(a)*this.R,Math.sin(a)*this.R)}}
+function coilG(L,R,n,x,y,z,seed){const cv=new Helix(L,R,n,seed);const list=[[new T.TubeGeometry(cv,n*(TOUCH?9:15),.011,4,false),SM4(x,y,z,0,0,0,1,1,1)]];
+ const bg=new T.BoxGeometry(.07,.007,.007),nb=n*(TOUCH?3:6);let sd=seed*977+3;const R1=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+ for(let i=0;i<nb;i++){const p=cv.getPoint((i+.5)/nb);list.push([bg,SM4(x+p.x,y+p.y,z+p.z,R1()*6,R1()*6,R1()*6,1,1,1)])}return list}
+const SG={};
+function stTex(){if(SG.tx)return SG.tx;const rep=t=>{t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=TOUCH?2:8;return t};
+ const burlap=rep(ctex(256,(g,s)=>{g.fillStyle='#8f8262';g.fillRect(0,0,s,s);for(let i=0;i<s;i+=3){g.fillStyle=`rgba(${i%6?40:76},${i%6?34:64},22,${.16+Math.random()*.14})`;g.fillRect(0,i,s,1);g.fillRect(i,0,1,s)}
+  for(let i=0;i<3200;i++){g.fillStyle=Math.random()<.5?'rgba(40,34,22,.24)':'rgba(196,182,146,.2)';g.fillRect(Math.random()*s,Math.random()*s,1.6,1.6)}
+  for(let i=0;i<12;i++){const x=Math.random()*s,y=Math.random()*s,r=18+Math.random()*52;const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,'rgba(50,42,28,.42)');q.addColorStop(1,'rgba(50,42,28,0)');g.fillStyle=q;g.fillRect(0,0,s,s)}
+  g.strokeStyle='rgba(58,48,32,.6)';g.lineWidth=2;g.setLineDash([5,4]);for(const y of[.5]){g.beginPath();g.moveTo(0,s*y);g.lineTo(s,s*y);g.stroke()}}));
+ if(GFX)GFX.nrm(burlap,burlap.image);
+ const link=rep(ctex(64,(g,s)=>{g.clearRect(0,0,s,s);g.strokeStyle='#c4c8cc';g.lineWidth=5;g.lineCap='round';g.beginPath();g.moveTo(-4,-4);g.lineTo(s+4,s+4);g.moveTo(-4,s+4);g.lineTo(s+4,-4);g.stroke()}));link.repeat.set(13,5.5);
+ const panel=ctex(256,(g,s)=>{g.fillStyle='#2e3524';g.fillRect(0,0,s,s);g.fillStyle='#252b1d';g.fillRect(6,6,s-12,s-12);g.strokeStyle='#11140d';g.lineWidth=3;g.strokeRect(6,6,s-12,s-12);
+  g.fillStyle='#07140a';g.fillRect(24,26,112,44);g.fillStyle='#5cff8a';g.font='bold 30px monospace';g.fillText('147.250',30,58);g.font='10px monospace';g.fillStyle='#b9c2a8';g.fillText('MHz  CH-07  TX',26,84);
+  for(let i=0;i<2;i++){const x=176+i*0,y=58+i*86;g.fillStyle='#14170f';g.beginPath();g.arc(x+16,y,30,0,7);g.fill();g.strokeStyle='#8a927a';g.lineWidth=2;for(let a=0;a<12;a++){g.beginPath();g.moveTo(x+16+Math.cos(a*.52)*30,y+Math.sin(a*.52)*30);g.lineTo(x+16+Math.cos(a*.52)*36,y+Math.sin(a*.52)*36);g.stroke()}g.fillStyle='#3d4433';g.beginPath();g.arc(x+16,y,20,0,7);g.fill();g.strokeStyle='#e8e2c8';g.lineWidth=3;g.beginPath();g.moveTo(x+16,y);g.lineTo(x+16+Math.cos(-.9+i*1.7)*18,y+Math.sin(-.9+i*1.7)*18);g.stroke()}
+  for(let i=0;i<5;i++){g.fillStyle='#12150d';g.fillRect(28+i*22,104,12,26);g.fillStyle=i===1?'#ff5a3a':'#9aa28a';g.fillRect(31+i*22,i%2?106:116,6,10)}
+  g.fillStyle='#0c0e09';for(let y=150;y<232;y+=9)g.fillRect(26,y,112,4);g.fillStyle='#c9c2a2';g.font='bold 12px sans-serif';g.fillText('AN/PRC-77',150,232)});
+ const crate=ctex(256,(g,s)=>{g.fillStyle='#4a5234';g.fillRect(0,0,s,s);for(let i=0;i<1800;i++){g.fillStyle=Math.random()<.5?'rgba(20,24,12,.25)':'rgba(130,140,100,.14)';g.fillRect(Math.random()*s,Math.random()*s,2,2)}
+  g.strokeStyle='#2a3020';g.lineWidth=10;g.strokeRect(5,5,s-10,s-10);g.lineWidth=6;g.beginPath();g.moveTo(0,s*.5);g.lineTo(s,s*.5);g.stroke();
+  g.fillStyle='#e9e2c0';g.font='bold 34px sans-serif';g.textAlign='center';g.fillText('补 给',s/2,s*.34);g.font='bold 18px monospace';g.fillText('SUPPLY  7.62 / 5.56',s/2,s*.8);g.fillStyle='#d8c040';g.fillRect(20,s*.56,s-40,8)});
+ if(GFX)GFX.nrm(crate,crate.image);
+ const beam=ctex(64,(g,s)=>{const r=g.createLinearGradient(0,0,0,s);r.addColorStop(0,'rgba(255,255,255,0)');r.addColorStop(.75,'rgba(255,255,255,.55)');r.addColorStop(1,'rgba(255,255,255,.9)');g.fillStyle=r;g.fillRect(0,0,s,s)});
+ const glow=ctex(64,(g,s)=>{const r=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.3,'rgba(255,255,255,.5)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,s,s)});
+ return SG.tx={burlap,link,panel,crate,beam,glow}}
+function stGeo(){if(SG.g)return SG.g;const X=stTex();
+ // 沙袋：一袋一袋错缝码起来
+ const bag=new T.SphereGeometry(1,TOUCH?8:11,TOUCH?6:8);{const p=bag.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);p.setXYZ(i,Math.sign(x)*Math.pow(Math.abs(x),.55),Math.sign(y)*Math.pow(Math.abs(y),.8),Math.sign(z)*Math.pow(Math.abs(z),.6))}bag.computeVertexNormals()}
+ let sd=4711;const R1=()=>{sd=(sd*16807)%2147483647;return sd/2147483647},J=a=>(R1()-.5)*2*a;const bags=[];
+ [.105,.295,.485,.675,.855].forEach((y,r)=>{const xs=r%2?[[-1.05,.15],[-.6,.3],[0,.3],[.6,.3],[1.05,.15]]:[[-.9,.3],[-.3,.3],[.3,.3],[.9,.3]];for(const [x,sx] of xs)bags.push([bag,SM4(x+J(.02),y+J(.006),J(.03),J(.05),J(.09),J(.05),sx,.112,r===4?.235:.265)])});
+ const sand=mergeG(bags);
+ const metal=new T.MeshStandardMaterial({color:0x878b8e,roughness:.42,metalness:.9,envMapIntensity:.8});
+ const post=new T.CylinderGeometry(.018,.018,.95,5);
+ const wire=mergeG([...coilG(3,.3,10,0,0,-.31,1),...coilG(3,.3,10,0,0,.31,2.3),...coilG(3,.27,10,0,.44,0,4.1),[post,SM4(-1.46,.47,0,0,0,.06,1,1,1)],[post,SM4(0,.47,0,0,0,-.04,1,1,1)],[post,SM4(1.46,.47,0,0,0,.05,1,1,1)]]);
+ // 拒马栅栏：水泥墩 + 钢柱铁网 + 顶上一圈刺网
+ const sh=new T.Shape();[[-.3,0],[-.3,.14],[-.15,.34],[-.1,.8],[.1,.8],[.15,.34],[.3,.14],[.3,0]].forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));
+ const jer=new T.ExtrudeGeometry(sh,{depth:3,bevelEnabled:false,steps:1});jer.translate(0,0,-1.5);jer.rotateY(Math.PI/2);
+ const pb=new T.BoxGeometry(.06,1.25,.06),rb=new T.BoxGeometry(2.9,.04,.04);
+ const frame=mergeG([[pb,SM4(-1.42,1.425,0,0,0,0,1,1,1)],[pb,SM4(-.47,1.425,0,0,0,0,1,1,1)],[pb,SM4(.47,1.425,0,0,0,0,1,1,1)],[pb,SM4(1.42,1.425,0,0,0,0,1,1,1)],[rb,SM4(0,2.03,0,0,0,0,1,1,1)],[rb,SM4(0,.84,0,0,0,0,1,1,1)],...coilG(2.9,.15,11,0,2.0,0,6.6)]);
+ const mesh=new T.PlaneGeometry(2.84,1.18);mesh.translate(0,1.435,0);
+ const mine=mergeG([[new T.CylinderGeometry(.17,.19,.07,16),SM4(0,.035,0,0,0,0,1,1,1)],[new T.CylinderGeometry(.085,.085,.03,12),SM4(0,.082,0,0,0,0,1,1,1)]]);
+ const M_={sand:new T.MeshStandardMaterial({map:X.burlap,normalMap:X.burlap.userData.nrm||null,normalScale:new T.Vector2(1.4,1.4),roughness:.96,metalness:0,color:0xd8cdb0}),metal,
+  conc:mat(TEX.wall_conc,{color:0xa6a198,roughness:.9}),steel:new T.MeshStandardMaterial({color:0x4a4f55,roughness:.55,metalness:.8}),
+  link:new T.MeshStandardMaterial({map:X.link,alphaTest:.25,side:T.DoubleSide,roughness:.45,metalness:.85,color:0xc8ccd0}),
+  mine:new T.MeshStandardMaterial({color:0x2c3520,roughness:.8,metalness:0,envMapIntensity:.3}),led:new T.MeshBasicMaterial({color:0xff2a18}),
+  olive:new T.MeshStandardMaterial({color:0x48502f,roughness:.72,metalness:.25}),dark:new T.MeshStandardMaterial({color:0x1c1e1a,roughness:.6,metalness:.5}),
+  panel:new T.MeshStandardMaterial({map:X.panel,roughness:.6,metalness:.3,emissiveMap:X.panel,emissive:0x2a3a2a}),
+  crate:new T.MeshStandardMaterial({map:X.crate,normalMap:X.crate.userData.nrm||null,roughness:.85,metalness:.05}),
+  table:mat(TEX.metal_a,{color:0x5d6248,roughness:.7,metalness:.3}),
+  beam:new T.MeshBasicMaterial({map:X.beam,color:0x58ff8a,transparent:true,opacity:.5,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,fog:false}),
+  glowR:new T.SpriteMaterial({map:X.glow,color:0xff3020,transparent:true,depthWrite:false,blending:T.AdditiveBlending}),glowG:new T.SpriteMaterial({map:X.glow,color:0x50ff80,transparent:true,depthWrite:false,blending:T.AdditiveBlending}),
+  ok:new T.MeshBasicMaterial({color:0x5cff8a,transparent:true,opacity:.42,depthWrite:false}),no:new T.MeshBasicMaterial({color:0xff4a3a,transparent:true,opacity:.42,depthWrite:false})};
+ return SG.g={sand,wire,jer,frame,mesh,mine,M:M_}}
+function sh1(m){m.castShadow=true;m.receiveShadow=true;return m}
+function stModel(k,ex){const Gg=stGeo(),M_=Gg.M,g=new T.Group();const B=(w,h,d,x,y,z,m,ry=0)=>{const b=sh1(new T.Mesh(new T.BoxGeometry(w,h,d),m));b.position.set(x,y,z);b.rotation.y=ry;g.add(b);return b};
+ if(k===0)g.add(sh1(new T.Mesh(Gg.sand,M_.sand)));
+ else if(k===1){const m=new T.Mesh(Gg.wire,M_.metal);m.castShadow=true;g.add(m)}
+ else if(k===2){g.add(sh1(new T.Mesh(Gg.jer,M_.conc)));g.add(sh1(new T.Mesh(Gg.frame,M_.steel)));const m=new T.Mesh(Gg.mesh,M_.link);m.castShadow=true;g.add(m)}
+ else if(k===3){g.add(sh1(new T.Mesh(Gg.mine,M_.mine)));const l=new T.Mesh(new T.SphereGeometry(.02,6,5),M_.led);l.position.set(.1,.085,0);g.add(l);g.userData.led=l}
+ else if(k===4){// 野战电台：折叠桌 + 电台主机 + 功放 + 天线 + 弹药箱
+  B(1.7,.05,.85,0,.78,0,M_.table);for(const [x,z] of[[-.78,-.36],[.78,-.36],[-.78,.36],[.78,.36]])B(.05,.76,.05,x,.38,z,M_.dark);B(1.6,.03,.03,0,.3,-.36,M_.dark);B(1.6,.03,.03,0,.3,.36,M_.dark);
+  B(.74,.4,.42,-.3,1.005,-.05,M_.olive);const fp=new T.Mesh(new T.PlaneGeometry(.7,.36),M_.panel);fp.position.set(-.3,1.005,.162);g.add(fp);B(.78,.03,.46,-.3,1.22,-.05,M_.dark);
+  for(const sx of[-1,1]){const h=new T.Mesh(new T.TorusGeometry(.05,.012,5,10,Math.PI),M_.dark);h.position.set(-.3+sx*.3,1.235,-.05);g.add(h)}
+  B(.42,.26,.36,.42,.935,-.08,M_.olive);B(.36,.2,.02,.42,.935,.105,M_.dark);B(.16,.05,.07,.42,.83,.26,M_.dark);
+  const an=new T.Mesh(new T.CylinderGeometry(.006,.014,3.1,6),M_.dark);an.position.set(-.58,2.77,-.2);g.add(an);const ab=new T.Mesh(new T.CylinderGeometry(.03,.03,.14,8),M_.dark);ab.position.set(-.58,1.29,-.2);g.add(ab);
+  const gl=new T.Sprite(M_.glowR);gl.position.set(-.58,4.34,-.2);gl.scale.setScalar(.7);g.add(gl);g.userData.bea=gl;
+  const c1=B(.62,.34,.4,1.25,.17,.1,M_.crate,.25),c2=B(.62,.34,.4,1.22,.51,.12,M_.crate,-.12);B(.5,.3,.36,-1.22,.15,-.15,M_.crate,-.3);
+  if(PROPS.laptop){const o=PROPS.laptop.clone(true);const b=new T.Box3().setFromObject(o),s=b.getSize(new T.Vector3());const kk=.36/Math.max(s.x,s.z,.01);o.scale.multiplyScalar(kk);o.position.set(.42-(b.min.x+b.max.x)/2*kk,1.07-b.min.y*kk,-.08-(b.min.z+b.max.z)/2*kk);g.add(o)}}
+ else if(k===5||k===6){const n=k===5?'k_vehicle_truck_armored':'k_pallet',src=PROPS[n]||PROPS.k_vehicle_truck;const D=truckDim(k);
+  if(src){const o=src.clone(true);o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});const b=new T.Box3().setFromObject(o);o.scale.multiplyScalar(D.k);o.position.set(-(b.min.x+b.max.x)/2*D.k,-b.min.y*D.k,-(b.min.z+b.max.z)/2*D.k);g.add(o)}
+  const pile=new T.Group();pile.position.set(k===5?D.hx+.75:0,k===5?0:D.h*.55,0);g.add(pile);g.userData.pile=pile;
+  const bm=new T.Mesh(new T.CylinderGeometry(.35,.35,k===5?16:4,10,1,true),M_.beam);bm.position.set(pile.position.x,(k===5?8:2),0);g.add(bm);g.userData.beam=bm;
+  const gl=new T.Sprite(M_.glowG);gl.position.set(pile.position.x,1.6,0);gl.scale.setScalar(1.6);g.add(gl);stCrates(g,ex)}
+ return g}
+function stCrates(g,n){const pile=g.userData.pile;if(!pile)return;const M_=stGeo().M;while(pile.children.length>n)pile.remove(pile.children[pile.children.length-1]);
+ while(pile.children.length<n){const i=pile.children.length;const b=sh1(new T.Mesh(new T.BoxGeometry(.62,.34,.42),M_.crate));const col=i%3,row=Math.floor(i/3);b.position.set(((i*37)%5-2)*.012,.17+row*.345,(col-1)*.5);b.rotation.y=((i*53)%7-3)*.04;pile.add(b)}
+ if(g.userData.beam)g.userData.beam.visible=n>0}
+const TD={};function truckDim(k){if(TD[k])return TD[k];const src=PROPS[k===5?'k_vehicle_truck_armored':'k_pallet']||PROPS.k_vehicle_truck;let d={k:1,hx:FK[k].hx,hz:FK[k].hz,h:FK[k].h};
+ if(src){const b=new T.Box3().setFromObject(src),s=b.getSize(new T.Vector3());const kk=(k===5?6.2:1.5)/Math.max(s.x,s.z,.01);d={k:kk,hx:s.x*kk/2*.95,hz:s.z*kk/2*.95,h:k===5?s.y*kk:Math.max(.5,s.y*kk+.5)}}return TD[k]=d}
+// ---------- 增删 ----------
+function stCol(S,hx,hz,y0,h,o){addColO(S.x,S.z,hx,hz,h,S.ry,Object.assign({y0},o));const c=COL[COL.length-1];c.dyn=false;c.mp=false;c.st=S;S.cols.push(c);return c}
+function stAdd(id,k,x,y,z,ry,hp,ex,own){const K=FK[k];const S={id,k,K,x,y,z,ry,hp,max:k===4?(G.radMax||K.hp):K.hp,ex:ex||0,own:own||null,cols:[],dead:false,shk:0,hx:K.hx,hz:K.hz,h:K.h,clT:0,acc:0};
+ if(k>=5){const D=truckDim(k);S.hx=D.hx;S.hz=D.hz;S.h=D.h}
+ S.g=stModel(k,S.ex);S.g.position.set(x,y,z);S.g.rotation.y=ry;scene.add(S.g);
+ if(K.solid){if(k===2){S.col=stCol(S,S.hx,S.hz,y,y+.8,{r:1});S.top=stCol(S,S.hx,.12,y+.8,y+S.h,{r:0})}else{S.col=S.top=stCol(S,S.hx,S.hz,y,y+S.h,{r:k===0||k>=5?1:0,rs:k===5?.12:0})}}
+ ST.push(S);if(k===4)RADIO=S;if(k>=5)TRUCK=S;return S}
+function stDel(S){S.dead=true;scene.remove(S.g);for(const c of S.cols){const i=COL.indexOf(c);if(i>=0)COL.splice(i,1)}const i=ST.indexOf(S);if(i>=0)ST.splice(i,1);if(RADIO===S)RADIO=null;if(TRUCK===S)TRUCK=null}
+function stClear(){while(ST.length)stDel(ST[0]);RADIO=TRUCK=null;STID=1;bldSet(false)}
+function stById(id){for(const s of ST)if(s.id===id)return s;return null}
+function stLocal(S,x,z,out){const c=Math.cos(S.ry),s=Math.sin(S.ry),dx=x-S.x,dz=z-S.z;out.x=dx*c-dz*s;out.z=dx*s+dz*c;return out}
+function stWorld(S,lx,lz,out){const c=Math.cos(S.ry),s=Math.sin(S.ry);out.x=S.x+lx*c+lz*s;out.z=S.z-lx*s+lz*c;return out}
+const SLV={x:0,z:0},SWV={x:0,z:0};
+// 离 (x,z) 最近的工事表面点，返回距离
+function stNear(S,x,z,out){stLocal(S,x,z,SLV);const cx=clamp(SLV.x,-S.hx,S.hx),cz=clamp(SLV.z,-S.hz,S.hz);const d=Math.hypot(SLV.x-cx,SLV.z-cz);stWorld(S,cx,cz,out);return d}
+function openNear(x,z,y,r){const q=new T.Vector3();for(let rad=0;rad<=7;rad+=.8){const n=rad?10:1;for(let i=0;i<n;i++){const a=i/n*6.2832+rad;const px=x+Math.sin(a)*rad,pz=z+Math.cos(a)*rad;if(Math.abs(px)>MAP.bx-1.5||Math.abs(pz)>MAP.bz-1.5)continue;
+   let ok=true;for(const [ox,oz] of[[0,0],[r,0],[-r,0],[0,r],[0,-r]]){q.set(px+ox,0,pz+oz);const q0x=q.x,q0z=q.z;pushOut(q,.3,'p',y);if(Math.hypot(q.x-q0x,q.z-q0z)>.03||Math.abs(groundH(q,.2,y+.3)-y)>.08){ok=false;break}}if(ok)return{x:px,z:pz}}}return null}
+// ---------- 房主：开局摆电台、每波来一辆补给卡车 ----------
+function stInitHost(){stClear();let sx=0,sz=0;for(let i=0;i<8;i++){const q=MAP.ps?MAP.ps():[0,2.5];sx+=q[0];sz+=q[1]}sx/=8;sz/=8;const y=MAP.psY||0;
+ const p=openNear(sx,sz-3.4,y,1.2)||openNear(sx,sz+3,y,1.2)||{x:sx,z:sz-3};const n=Math.max(1,NET.on?NET.list.length:1);
+ G.radMax=Math.round(FK[4].hp*(1+.35*(n-1))/Math.sqrt(DIFF[diffI].dmg));stAdd(STID++,4,p.x,y,p.z,0,G.radMax,0);G.stDirty=1;G.radDead=0;G.trkT=0;G.radWarn=0}
+function spawnTruck(){if(TRUCK){pushEv(['$l',0]);stDel(TRUCK)}const sub=MAP.id==='subway',k=sub?6:5,y=sub?(MAP.psY||0):0,D=truckDim(k),rr=Math.max(D.hx,D.hz)+.3;
+ const hs=actors().filter(a=>!a.dead&&!a.bot);let best=null,bs=-1;
+ for(let i=0;i<50;i++){const p=rndOpen(.6,y);if(p.lengthSq()<1)continue;if(Math.abs(groundH(p,.3,y+.3)-y)>.08)continue;const ry=Math.floor(Math.random()*4)*Math.PI/2+rand(-.3,.3);
+  const c=Math.cos(ry),s=Math.sin(ry);let ok=true;const q=new T.Vector3();
+  for(const [lx,lz] of[[0,0],[D.hx,D.hz],[-D.hx,D.hz],[D.hx,-D.hz],[-D.hx,-D.hz],[0,D.hz],[0,-D.hz],[D.hx+1.2,0],[D.hx+2,0]]){q.set(p.x+lx*c+lz*s,0,p.z-lx*s+lz*c);if(Math.abs(q.x)>MAP.bx-1||Math.abs(q.z)>MAP.bz-1){ok=false;break}const x0=q.x,z0=q.z;pushOut(q,.35,'p',y);if(Math.hypot(q.x-x0,q.z-z0)>.03||Math.abs(groundH(q,.2,y+.3)-y)>.08){ok=false;break}}
+  if(!ok)continue;const dR=RADIO?Math.hypot(p.x-RADIO.x,p.z-RADIO.z):30;if(dR<10)continue;if(hs.some(h=>Math.hypot(h.pos.x-p.x,h.pos.z-p.z)<7))continue;
+  const sc=Math.min(dR,38)+Math.random()*8;if(sc>bs){bs=sc;best={x:p.x,z:p.z,ry}}}
+ if(!best)return;const S=stAdd(STID++,k,best.x,y,best.z,best.ry,FK[k].hp,Math.min(9,2+humanCount()*2));G.stDirty=1;pushEv(['$t',r2(best.x),r2(best.z)]);
+ for(const z of G.zs)if(!z.dead&&!z.goal&&!z.t.sp&&z.type!=='boss'&&z.type!=='witch'&&z.type!=='mutant'&&Math.random()<.18)z.goal=5}
+function pilePos(S,out){return stWorld(S,S.k===5?S.hx+.75:0,0,out)}
+function stGoal(z){if(G.mode!=='z'||z.t.sp||z.type==='boss'||z.type==='witch'||z.type==='mutant')return;const r=Math.random();if(r<.36)z.goal=4;else if(r<.52&&TRUCK&&TRUCK.ex>0)z.goal=5}
+// 丧尸的目标：平时去拆电台/砸卡车；玩家靠近 5.5 米就转头追人
+function stTarget(z,p,td,dt){if(!z.goal)return null;if(td<5.5){z.agT=2.5;return null}if(z.agT>0){z.agT-=dt;return null}let S=z.goal===5?TRUCK:RADIO;if(z.goal===5&&(!S||S.ex<=0)){z.goal=4;S=RADIO}if(!S||S.dead)return null;
+ const gp=z.gp||(z.gp=new T.Vector3());const d=stNear(S,p.x,p.z,SWV);gp.set(SWV.x,S.y,SWV.z);return{id:SID(S),pos:gp,dead:false,st:S,d}}
+function stActor(id,p){if(typeof id!=='string'||id[0]!=='#')return null;const S=stById(+id.slice(1));if(!S||S.dead)return null;stNear(S,p.x,p.z,SWV);return{id,pos:new T.Vector3(SWV.x,S.y,SWV.z),dead:false,st:S}}
+function stHitFx(S){S.shk=.16;const d=Math.hypot(P.pos.x-S.x,P.pos.z-S.z);if(d<28){const v=clamp(1-d/28,0,1);if(S.k===0)noise(260,.12,.3*v);else if(S.k===4||S.k>=5)noise(900,.1,.25*v,'bandpass'),tone(140,90,.12,.2*v,'square');else noise(1800,.14,.22*v,'highpass')}
+ emit(v1.set(S.x+rand(-S.hx,S.hx)*.6,S.y+S.h*.6,S.z+rand(-.2,.2)),3,S.k===0?[.62,.55,.4]:[.6,.6,.58],1.6,.5,6,.4)}
+function stHurt(S,d){if(S.dead||!isHost())return;S.hp-=d;G.stDirty=1;stHitFx(S);if(S.k===4)radWarn();
+ if(S.hp<=0){pushEv(['$x',S.k,r2(S.x),r2(S.y),r2(S.z)]);const k=S.k;stDel(S);if(k===4){G.radDead=1;hostEnd()}}}
+function stBlast(x,y,z,R,dmg,fr){if(!isHost()||G.mode!=='z')return;for(const S of ST.slice()){if(S.k===3||fr&&S.k>=4)continue;if(Math.abs(S.y-y)>2.5)continue;const d=stNear(S,x,z,SWV);if(d<R)stHurt(S,dmg*(1-d/R)*(S.k===4?.4:1))}}
+function radWarn(){const now=performance.now();if(now-(G.radWarn||0)<9000)return;G.radWarn=now;banner('电台正在被攻击！','回去守住电台',2.2);say('电台正在被攻击');if(AC){tone(880,880,.14,.18,'square');setTimeout(()=>tone(880,880,.14,.18,'square'),220)}}
+// 被工事挡住的丧尸：砸；同伴够多就踩着同伴翻过去。返回 0 不管 / 1 正在砸 / 2 开始翻越
+function fortEngage(z,p,dx,dz,tg,c,dt){if(!ST.length)return 0;let F=null,fd=9,fx=0,fz=0;
+ for(const S of ST){if(S.k!==0&&S.k!==2)continue;if(tg&&tg.st===S)continue;if(z.y>=S.y+S.h-.35||z.y<S.y-.5)continue;const d=stNear(S,p.x,p.z,SWV);if(d>z.r*.8+.32||d>=fd)continue;
+  const vx=SWV.x-p.x,vz=SWV.z-p.z;if(d>.05&&(vx*dx+vz*dz)<d*.2)continue;F=S;fd=d;fx=SWV.x;fz=SWV.z}
+ if(!F){z.blkT=Math.max(0,(z.blkT||0)-dt*.5);return 0}
+ z.blkT=(z.blkT||0)+dt;if(z.t.sp==='bomber'){z.fuse=z.fuse||.6;return 0}
+ const heavy=z.t.sp==='tank'||z.type==='boss';if(!heavy&&(z.id&1)&&z.blkT<2.2)return 0;// 一半丧尸先试着绕路，绕不过去再砸
+ z.face=Math.atan2(fx-p.x,fz-p.z);z.engF=1;
+ if(!heavy){let n=0;for(const o of G.zs){if(o===z||o.dead||o.climb)continue;const q=o.c.wrap.position;if((q.x-p.x)*(q.x-p.x)+(q.z-p.z)*(q.z-p.z)<3.2&&Math.abs(o.y-z.y)<.6)n++}
+  const now=performance.now()/1000;if(n>=F.K.need&&now>F.clT&&now>(z.clCd||0)){F.clT=now+(F.k===2?.55:.35);z.clCd=now+4;const tp=F.top;topPt(tp,p.x,p.z,tp.o.hz*.98,SWV);const ex=fx,ez=fz;
+   z.climb={t:0,d:F.k===2?1.9:1.15,x0:p.x,z0:p.z,y0:z.y,x1:SWV.x,z1:SWV.z,y1:F.y+F.h,ex,ez};c.wrap.rotation.y=z.face;c.one=null;z.blkT=0;return 2}}
+ if(z.atkT<=0){playOnce(c,'punch',heavy?1.3:1.7);z.tid=SID(F);z.pend=heavy?.55:.42;z.atkT=heavy||z.type==='brute'?1.7:1.15}
+ return 1}
+function stHost(dt){if(G.trkT>0){G.trkT-=dt;if(G.trkT<=0)spawnTruck()}
+ if(TRUCK&&TRUCK.leaveT>0){TRUCK.leaveT-=dt;if(TRUCK.leaveT<=0){pushEv(['$l',1]);stDel(TRUCK);G.stDirty=1}}
+ for(const S of ST.slice()){if(S.k!==1&&S.k!==3)continue;for(const z of G.zs){if(z.dead||z.climb||Math.abs(z.y-S.y)>.7)continue;const p=z.c.wrap.position;if(Math.abs(p.x-S.x)>2.2||Math.abs(p.z-S.z)>2.2)continue;
+   if(S.k===3){if(Math.hypot(p.x-S.x,p.z-S.z)<1.05+z.r*.5){const own=S.own,x=S.x,y=S.y,zz=S.z;stDel(S);G.stDirty=1;boomAt(new T.Vector3(x,y+.3,zz),3.6,260,own||NET.me);break}continue}
+   stLocal(S,p.x,p.z,SLV);if(Math.abs(SLV.x)>S.hx+.1||Math.abs(SLV.z)>S.hz+.1)continue;z.slowT=Math.max(z.slowT||0,.25);z.wireT=(z.wireT||0)+dt;
+   if(z.wireT>.5){z.wireT=0;z.c.flash=.06;z.hp-=8;z.hDmg=(z.hDmg||0)+8;if(z.hp<=0)killZ(z,false,S.own||'X',97);stHurt(S,z.type==='boss'||z.t.sp==='tank'?40:4);if(S.dead)break}}}}
+// 玩家请求：['b',k,x,y,z,ry] 部署 / ['t'] 搬一箱 / ['r'] 修电台
+function stReq(q,pid){if(!isHost()||G.mode!=='z')return;const a=actors().find(a=>a.id===pid)||(pid===NET.me?meActor():null);
+ if(q[0]==='b'){const k=q[1]|0;if(k<0||k>3)return;let n=0;for(const s of ST)if(s.k<4)n++;if(n>=FORT_MAX){pushEv(['$f',pid,FK[k].c]);return}stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
+ else if(q[0]==='t'){if(!TRUCK||TRUCK.ex<=0||!a)return;pilePos(TRUCK,SWV);if(Math.hypot(a.pos.x-SWV.x,a.pos.z-SWV.z)>4.5)return;TRUCK.ex--;stCrates(TRUCK.g,TRUCK.ex);G.stDirty=1;pushEv(['$s',pid,5]);if(TRUCK.ex<=0)TRUCK.leaveT=5}
+ else if(q[0]==='r'){if(!RADIO||RADIO.hp>=RADIO.max)return;RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.1);G.stDirty=1;pushEv(['$r',pid])}}
+function stSend(q){if(isHost())stReq(q,NET.me);else NET.out.rq.push(q)}
+function stEv(e){const k=e[0];
+ if(k==='$x'){const [,kd,x,y,z]=e;v1.set(x,y+.5,z);const big=kd>=4;emit(v1,big?40:16,kd===0?[.62,.55,.4]:[.55,.55,.52],big?8:4,1,7,big?1.2:.8);if(big){emit(v1,30,[1,.55,.15],9,1,6,.9);flashS.position.copy(v1);flashS.scale.setScalar(5);flashS.visible=true;flashS.userData.t=.12;flashL.position.copy(v1);flashL.intensity=12}
+  const d=Math.hypot(P.pos.x-x,P.pos.z-z),v=clamp(1-d/45,.08,1);if(AC){noise(big?160:500,big?1:.35,(big?1.1:.5)*v);if(big)tone(70,30,.9,.6*v)}if(big)P.shake=Math.max(P.shake,v*.5);
+  if(kd===4){banner('电台被毁','与指挥部失去联络',3);say('电台被毁')}else if(kd>=5){banner('补给卡车被毁','这一波的物资没了',2.4);say('补给卡车被毁')}else if(d<30)feedTxt(FK[kd].n+' 被丧尸拆掉了')}
+ else if(k==='$s'){if(e[1]===NET.me){G.sup=Math.min(SUP_MAX,G.sup+e[2]);for(let j=1;j<WP.length;j++){const s=G.ws[j];if(s.own){const st=wStat(j);s.res=st.res}}popTxt('物资 +'+e[2]+' · 弹药补满');sCash();hud(true)}}
+ else if(k==='$t'){banner('补给卡车到了',TOUCH?'跟着 📦 标记去搬物资和弹药':'跟着 📦 标记去搬物资和弹药（按 E 搬）',3);say('补给卡车到达，去搬物资');if(AC){tone(330,330,.5,.12,'sawtooth');setTimeout(()=>tone(262,262,.7,.12,'sawtooth'),450)}}
+ else if(k==='$l'){if(e[1])feedTxt('补给卡车开走了')}
+ else if(k==='$b'){const [,kd,x,y,z]=e;v1.set(x,y+.3,z);emit(v1,10,[.6,.55,.45],2.4,.7,5,.6);const d=Math.hypot(P.pos.x-x,P.pos.z-z);if(d<30&&AC){noise(kd===1?2200:300,.22,.35*(1-d/30),kd===1?'highpass':'lowpass');tone(110,70,.15,.18*(1-d/30),'square')}}
+ else if(k==='$r'){if(AC){tone(520,780,.18,.12,'square')}if(e[1]===NET.me)popTxt('电台修好了一点')}
+ else if(k==='$f'){if(e[1]===NET.me){G.sup=Math.min(SUP_MAX,G.sup+e[2]);popTxt('工事太多了（最多 '+FORT_MAX+' 个）');hud(true)}}}
+function feedTxt(t){try{const f=$('feed');const d=document.createElement('div');d.textContent=t;d.style.cssText='font-size:13px;color:#ffd9a0;text-shadow:0 1px 3px #000';f.appendChild(d);setTimeout(()=>d.remove(),4000)}catch(e){}}
+// 联机：房主把工事列表发给队友
+function stSnap(){return ST.map(s=>[s.id,s.k,r2(s.x),r2(s.y),r2(s.z),r2(s.ry),Math.ceil(s.hp),s.ex,Math.round(s.max)])}
+function onST(list){const seen=new Set();for(const e of list){const [id,k,x,y,z,ry,hp,ex,mx]=e;seen.add(id);let S=stById(id);
+  if(!S){if(k===4)G.radMax=mx;S=stAdd(id,k,x,y,z,ry,hp,ex)}else{if(hp<S.hp-.5){stHitFx(S);if(k===4)radWarn()}S.hp=hp;if(S.ex!==ex){S.ex=ex;stCrates(S.g,ex)}}S.max=mx}
+ for(const S of ST.slice())if(!seen.has(S.id))stDel(S)}
+// ---------- 交互：搬物资 / 修电台 ----------
+function stUseLabel(){if(G.mode!=='z')return null;
+ if(TRUCK&&TRUCK.ex>0&&Math.abs(P.y-TRUCK.y)<1.2){pilePos(TRUCK,SWV);if(Math.hypot(P.pos.x-SWV.x,P.pos.z-SWV.z)<2.6)return['搬物资',G.sup>=SUP_MAX?'物资已经带满了（'+SUP_MAX+'）':(TOUCH?'点「搬物资」':'按 E ')+'搬一箱：物资 +5、弹药补满（剩 '+TRUCK.ex+' 箱）']}
+ if(RADIO&&RADIO.hp<RADIO.max*.985&&Math.abs(P.y-RADIO.y)<1.2&&stNear(RADIO,P.pos.x,P.pos.z,SWV)<1.5)return['修电台',G.sup>0?(TOUCH?'点「修电台」':'按 E ')+'用 1 份物资修理电台（+10%）':'没有物资，修不了电台'];return null}
+function stUse(){const L=stUseLabel();if(!L)return false;if(BLD.cd>0)return true;BLD.cd=.45;
+ if(L[0]==='搬物资'){if(G.sup>=SUP_MAX){popTxt('物资带满了，先去用掉');return true}stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
+// ---------- 部署模式 ----------
+function bldSet(on){on=!!on&&G.mode==='z'&&G.state==='play'&&!P.dead&&!P.dn&&!P.mg;BLD.on=on;const b=$('bbar');if(!b)return;b.classList.toggle('hid',!on);const tb=$('tBuild');if(tb)tb.classList.toggle('on',on);for(const g of BLD.ghost)if(g)g.visible=false;if(on){bldBar();if(!TOUCH)popTxt('部署模式：1-4 选工事，左键放下，X 退出')}}
+function bldBar(){const b=$('bbar');let h='';for(let i=0;i<4;i++)h+=`<div class="bi${i===BLD.sel?' on':''}${G.sup<FK[i].c?' no':''}" data-i="${i}"><b>${TOUCH?'':(i+1)+' '}${FK[i].n}</b><span>物资 ${FK[i].c}</span></div>`;
+ h+=`<div class="bi" data-i="x"><b>${TOUCH?'✕':'X'}</b><span>退出</span></div>`;if(b._h!==h){b._h=h;b.innerHTML=h}}
+function bldGhost(i){if(BLD.ghost[i])return BLD.ghost[i];const g=stModel(i,0);g.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=false;o.material=stGeo().M.ok}else if(o.isSprite)o.visible=false});g.renderOrder=5;scene.add(g);return BLD.ghost[i]=g}
+function bldCheck(k,x,y,z,ry){const K=FK[k],c=Math.cos(ry),s=Math.sin(ry),q=v4;if(Math.abs(y-P.y)>.45)return false;
+ for(let i=-2;i<=2;i++){const lx=K.hx*i/2;for(const lz of K.solid?[-K.hz,K.hz]:[0]){q.set(x+lx*c+lz*s,0,z-lx*s+lz*c);if(Math.abs(q.x)>MAP.bx-.5||Math.abs(q.z)>MAP.bz-.5)return false;
+   if(Math.abs(groundH(q,.15,y+.3)-y)>.1)return false;if(K.solid||k===1){const x0=q.x,z0=q.z;pushOut(q,.12,'p',y);if(Math.hypot(q.x-x0,q.z-z0)>.02)return false}}}
+ for(const S of ST){if(Math.abs(S.y-y)>1)continue;const d=Math.hypot(S.x-x,S.z-z);if(S.k===k&&d<(k===3?1.2:k===1?1.4:.5))return false;if(k===3&&S.k>=4&&stNear(S,x,z,SWV)<1.6)return false}
+ if(K.solid)for(const a of actors()){if(a.dead||a.me)continue;stLocalXY(x,z,ry,a.pos.x,a.pos.z,SLV);if(Math.abs(SLV.x)<K.hx+.4&&Math.abs(SLV.z)<K.hz+.4)return false}
+ return true}
+function stLocalXY(cx,cz,ry,x,z,out){const c=Math.cos(ry),s=Math.sin(ry),dx=x-cx,dz=z-cz;out.x=dx*c-dz*s;out.z=dx*s+dz*c;return out}
+function bldFrame(dt){if(BLD.cd>0)BLD.cd-=dt;if(!BLD.on)return;if(P.dead||P.dn||P.mg||G.paused||G.shop||G.state!=='play'){bldSet(false);return}
+ const k=BLD.sel,K=FK[k],fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),dist=k===3?1.5:k===1?2.6:2.2;const x=P.pos.x+fx*dist,z=P.pos.z+fz*dist;v3.set(x,0,z);const y=groundH(v3,.2,P.y+.3);
+ BLD.p.set(x,y,z);BLD.ry=P.yaw;BLD.ok=!P.air&&bldCheck(k,x,y,z,P.yaw);const can=BLD.ok&&G.sup>=K.c;
+ for(let i=0;i<4;i++){const g=i===k?bldGhost(i):BLD.ghost[i];if(!g)continue;g.visible=i===k;if(i===k){g.position.set(x,y+.01,z);g.rotation.y=P.yaw;const m=can?stGeo().M.ok:stGeo().M.no;if(g.userData.gm!==m){g.userData.gm=m;g.traverse(o=>{if(o.isMesh)o.material=m})}}}
+ bldBar();
+ if(IN.fire&&!BLD.prev&&BLD.cd<=0){BLD.cd=.35;if(G.sup<K.c)popTxt('物资不够（要 '+K.c+' 份）· 去补给卡车搬');else if(!BLD.ok)popTxt('这里放不下');else{G.sup-=K.c;hud(true);stSend(['b',k,r2(x),r2(y),r2(z),r2(P.yaw)])}}
+ BLD.prev=IN.fire}
+// ---------- 每帧：晃动、指示灯、血条和方位标记 ----------
+const MKV=new T.Vector3();
+function stMark(el,x,y,z,txt,col,show){if(!show){if(el.style.display!=='none')el.style.display='none';return}MKV.set(x,y,z).project(camera);let sx=MKV.x,sy=MKV.y;const behind=MKV.z>1;if(behind){sx=-sx;sy=-1}
+ const m=.9;if(behind||Math.abs(sx)>m||Math.abs(sy)>m){const k=Math.max(Math.abs(sx)/m,Math.abs(sy)/m,1e-3);sx/=k;sy/=k;if(behind)sy=-m}
+ el.style.display='block';el.style.left=((sx*.5+.5)*100)+'%';el.style.top=((-sy*.5+.5)*100)+'%';if(el._t!==txt){el._t=txt;el.textContent=txt}if(el._c!==col){el._c=col;el.style.borderColor=col;el.style.color=col}}
+function stFrame(dt){const t=performance.now()/1000;
+ for(const S of ST){if(S.shk>0){S.shk-=dt;const k=Math.max(0,S.shk)/.16;S.g.rotation.z=Math.sin(t*70)*.035*k;S.g.rotation.x=Math.cos(t*61)*.025*k}else if(S.g.rotation.z){S.g.rotation.z=0;S.g.rotation.x=0}
+  const u=S.g.userData;if(u.led)u.led.visible=(t*2.2+S.id*.37)%1<.3;if(u.bea){const on=(t*1.1)%1<.5;u.bea.material.opacity=on?1:.15}if(u.beam)u.beam.material.opacity=.38+Math.sin(t*3)*.12}
+ bldFrame(dt);
+ const z=G.mode==='z'&&G.state==='play';const mr=$('mkR'),mt=$('mkT');if(!mr)return;
+ if(z&&RADIO){const f=clamp(RADIO.hp/RADIO.max,0,1);hset('hRad',Math.round(f*100)+'%');const st=$('hRadF').style;st.width=(f*100)+'%';const hot=performance.now()-(G.radWarn||0)<2500;st.background=hot?'#ff4a30':f<.35?'#ffb040':'#6cc8ff';
+  const d=Math.hypot(P.pos.x-RADIO.x,P.pos.z-RADIO.z);stMark(mr,RADIO.x,RADIO.y+2.2,RADIO.z,'📻 电台 '+Math.round(d)+'m'+(hot?' 被攻击！':''),hot?'#ff6a50':'#9fd8ff',d>9||hot)}else stMark(mr,0,0,0,'','',false);
+ if(z&&TRUCK&&TRUCK.ex>0){pilePos(TRUCK,SWV);const d=Math.hypot(P.pos.x-SWV.x,P.pos.z-SWV.z);stMark(mt,SWV.x,TRUCK.y+2.4,SWV.z,'📦 补给 '+Math.round(d)+'m · '+TRUCK.ex+' 箱','#9fffb0',d>2.5)}else stMark(mt,0,0,0,'','',false)}
 
 // ---------- 主循环 ----------
 let menuZ=[];
