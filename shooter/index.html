@@ -165,8 +165,8 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
 <canvas id="c"></canvas>
 
 <div id="hud" class="hid">
-  <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div class="zOnly" style="font-size:13px;margin-top:4px">📻 电台 <span id="hRad">100%</span><div class="bar" style="width:150px;height:8px;margin-top:3px"><i id="hRadF" style="background:#6cc8ff"></i></div></div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
-  <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span>　物资 <span id="hSup" style="color:#ffd27a;font-weight:700;opacity:1">0</span></div></div>
+  <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
+  <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span></div></div>
   <div id="pvpBar" class="pOnly"></div>
   <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="edgeF"></div><div id="kbadge"><div class="sv"></div><div class="tag"></div></div><div id="dnums"></div>
   <div class="bl">
@@ -841,7 +841,7 @@ const ZONES=['东区十字路口','旧城商业街','第七号检查站','中央
 function sIntro(){if(!AC)return;tone(55,38,3.2,.5,'sine');noise(120,2.8,.35,'lowpass');setTimeout(()=>{tone(220,880,1.6,.06,'sawtooth');noise(3000,1.5,.08,'highpass')},400);
  for(let i=0;i<4;i++)setTimeout(()=>{tone(62,48,.3,.45,'sine');noise(90,.2,.3,'lowpass')},1300+i*620);setTimeout(()=>{for(let i=0;i<2;i++)setTimeout(()=>{tone(420,780,.9,.05,'sawtooth');setTimeout(()=>tone(780,420,.9,.05,'sawtooth'),900)},i*1800)},800)}
 function playIntro(mode){const el=$('intro');const zone=MAP.id==='cross'?ZONES[(G.layoutSeed||0)%ZONES.length]:MAP.name;
- const lines=mode==='pvp'?['各小队注意，敌方已进入交战区。行动开始。','这里是指挥部，清除敌方小队，完毕。']:['指挥部呼叫幸存者，尸潮正在逼近，守住电台。','这里是指挥部，撤离直升机还没到，电台不能丢，坚持住。','所有幸存者注意，补给车队会分批送物资，保住电台，完毕。'];
+ const lines=mode==='pvp'?['各小队注意，敌方已进入交战区。行动开始。','这里是指挥部，清除敌方小队，完毕。']:['指挥部呼叫幸存者，尸潮正在逼近，筑好防线。','这里是指挥部，撤离直升机还没到，坚持住。','所有幸存者注意，补给车队会分批送弹药，活下去，完毕。'];
  const line=lines[Math.floor(Math.random()*lines.length)];$('inSub').textContent=(mode==='pvp'?'两队对打 · ':'打丧尸 · ')+zone+(G.cfg&&G.cfg.ml!=null?(G.cfg.ml>0?' · 本图还有 '+G.cfg.ml+' 局':' · 下局换新地图'):'');$('inRd').textContent='📻 '+line;
  el.style.transition='none';el.style.opacity=1;el.style.display='flex';el.classList.remove('on');void el.offsetWidth;el.classList.add('on');G.introT=3.6;sIntro();
  setTimeout(()=>say(line),700);
@@ -859,7 +859,7 @@ function beginMatch(cfg){G.introT=3.6;
  if(G.mode==='pvp'){const pw=pvpPrimary();G.slots[1]=pw;G.ws[pw].own=true;G.slot=1;equip(pw,true)}else{applyArmory();equip(G.slots[G.slot],true)}respawnP(true);hudClear();hud(true);
  $('hud').classList.remove('hid');if(TOUCH)$('touch').classList.remove('hid');$('tShop').style.display='none';
  G.state='play';NET.lastH=performance.now();
- if(G.mode==='z'){if(isHost()){stInitHost();nextWave()}const mid=G.mid;setTimeout(()=>{if(G.state==='play'&&G.mid===mid&&G.wave<=1)banner('守住电台',(TOUCH?'点「工事」':'按 X ')+'部署防御工事 · 补给卡车会送来物资和弹药',5)},8400)}
+ if(G.mode==='z'){if(isHost()){stInitHost();nextWave()}const mid=G.mid;setTimeout(()=>{if(G.state==='play'&&G.mid===mid&&G.wave<=1)banner('筑好防线',(TOUCH?'点「工事」':'按 X ')+'用资金部署防御工事 · 补给卡车会送来弹药和资金',5)},8400)}
  else{setTimeout(()=>banner('两队对打',(TEAM_N[P.team])+' · 先到 '+PVP_KILLS+' 杀获胜',3),3600);if(isHost())syncBots()}
  playIntro(G.mode);
  if(!TOUCH)lock()}
@@ -892,7 +892,7 @@ function onWaveStart(w,sl){G.wave=w;G.inter=0;G.puWave=0;$('cards').classList.ad
  if(G.mode==='z'&&P.dead){respawnP();popTxt('你已复活')}
  const hb=sl&&/异变体|尸王|坦克尸/.test(sl);if(w===1&&(G.introT||0)>0){setTimeout(()=>{if(G.wave===1)onWaveBanner(w,sl,hb)},G.introT*1000);return}onWaveBanner(w,sl,hb)}
 function onWaveBanner(w,sl,hb){banner('第 '+w+' 波',(hb?'强敌出没！':'尸潮来袭')+(sl?'<br>本波：'+sl:''),3.5);sHorn();say(hb?'警告，第'+w+'波尸潮，有强敌出现':'第'+w+'波尸潮来袭')}
-function onWaveClear(w){if(isHost())for(const z of G.zs)if(z.type==='witch'&&!z.dead&&z.mode==='cry'&&!z.fled){z.fled=1;z.fleeT=3;z.fleeDir=rand(0,6.28);setBase(z.c,'walk',.8);z.c.cry=0}addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.sup=Math.min(SUP_MAX,(G.sup||0)+2);if(isHost()&&RADIO){RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.15);G.stDirty=1}G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
+function onWaveClear(w){if(isHost())for(const z of G.zs)if(z.type==='witch'&&!z.dead&&z.mode==='cry'&&!z.fled){z.fled=1;z.fleeT=3;z.fleeDir=rand(0,6.28);setBase(z.c,'walk',.8);z.c.cry=0}addXP(40*w);missionEv('wave',w);setTimeout(showCards,1500);const bonus=100+w*25;G.cash+=bonus;G.score+=w*500;banner('第 '+w+' 波已清除','奖励 $'+bonus,2.6);say('本波尸潮已清除，前往补给站');sCash();
  $('tShop').style.display='';const best=+(LS.get('scqh-best')||0);if(w>best)LS.set('scqh-best',w);hud(true);}
 function spawnSpot(){const hs=actors().filter(a=>!a.dead&&!a.bot);
  if(MAP.zs){if(Math.random()<.3){const p=rndOpen(.5,0);if(p.lengthSq()>1&&!hs.some(h=>Math.hypot(h.pos.x-p.x,h.pos.z-p.z)<18))return p}const q=pick(MAP.zs);const v=new T.Vector3(q[0]+rand(-2,2),0,q[1]+rand(-2,2));v.y=q[2]||0;return v}
@@ -1876,7 +1876,7 @@ function hud(force){hudDirty=false;if(!G.ws)return;const i=G.cur,s=G.ws[i];
  hset('hWave',G.wave);hset('hLeft',isHost()?G.queue.length+aliveZ():G.left);
  hset('hKill',G.mode==='pvp'?'击杀 '+G.kills+' · 死亡 '+G.deaths:'击杀 '+G.kills+' · 爆头 '+G.heads);
  hset('hTeam',`<span style="color:${TEAM_CSS[P.team]}">你在${TEAM_N[P.team]}</span>`);
- hset('hCash','$'+G.cash);hset('hScore',G.score);hset('hSup',G.sup|0);
+ hset('hCash','$'+G.cash);hset('hScore',G.score);
  const MH=mods().hp;hset('hpT',Math.ceil(P.hp)+(MH>100?' / '+MH:''));$('hpf').style.width=(100*P.hp/MH)+'%';$('hpf').style.background=P.dn?'#ff2a10':'';hset('arT',Math.ceil(P.ar));$('arf').style.width=P.ar+'%';
  hset('wname',(s.pap?'强化·':'')+WP[i].n+(s.lv>1?' Lv.'+s.lv:'')+' <span style="opacity:.6;font-size:12px">'+MODEN[WP[i].mode]+'</span>');hset('ammo',s.mag+' <small>/ '+(s.res===Infinity?'∞':s.res)+'</small>');
  hset('slots',G.slots.map((j,k)=>j<0?'':`<span class="own ${k===G.slot?'cur':''}">${k+1} ${WP[j].n}</span>`).join('')+thrHud());
@@ -1952,7 +1952,7 @@ function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let 
  const best=+(LS.get('scqh-best')||0);$('best').textContent=best?'打丧尸最佳：清除 '+best+' 波':'';
  $('helpTxt').innerHTML=(TOUCH?'左半屏拖动 = 移动（推到底冲刺）　右半屏拖动 = 转视角　按住「开火」可边打边瞄（辅助瞄准可在主菜单关闭）　「跳」「蹲」「上枪」按钮在右边':
   'WASD 移动　Shift 冲刺　左键开火　右键瞄准/开镜　R 换弹　1-3/滚轮 换枪　F 刀　G 投掷　H 换投掷物　E 使用/救人　V 视角　空格 跳/攀爬　C 蹲　B 商店　X 部署工事　Tab 排行榜')+
-  '<br>打丧尸：守住电台（被拆掉就输）；用物资部署沙袋墙、铁丝网、拒马栅栏、地雷，丧尸会砸工事，数量够了还会踩着同伴翻过去；物资和弹药要去补给卡车搬。每局地图摆设（车、路障、机枪位、贩卖机、武器箱）都不一样；每波的特异丧尸种类、数量也随机，越后面越可能出现巨尸、坦克尸、尸王、异变体；女鬼随机出现（听到哭声别靠近、别开枪）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
+  '<br>打丧尸：用打丧尸赚的资金部署沙袋墙、铁丝网、拒马栅栏、地雷（数量不限），丧尸会砸工事，数量够了还会踩着同伴翻过去；补给卡车每波送来弹药和资金。每局地图摆设（车、路障、机枪位、贩卖机、武器箱）都不一样；每波的特异丧尸种类、数量也随机，越后面越可能出现巨尸、坦克尸、尸王、异变体；女鬼随机出现（听到哭声别靠近、别开枪）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
 function startSolo(){myName=($('nm').value||'').trim().slice(0,8)||myName;LS.set('scqh-name',myName);netLeave();audioInit();fullscreen();
  beginMatch({mid:'s'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickMap(),ml:G.mapLeft,mode:modeS,diff:diffI,ai:modeS==='pvp'?true:aiS,teams:{me:0}})}
 function fullscreen(){if(!TOUCH)return;try{const de=document.documentElement;const r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de);r&&r.then&&r.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
@@ -2160,7 +2160,7 @@ GFX=(()=>{
 
 // ================= 防线：电台 / 防御工事 / 补给卡车 / 叠人墙（房主权威，联机同步） =================
 // 种类：0 沙袋墙 1 铁丝网 2 拒马栅栏 3 地雷 4 电台 5 补给卡车 6 补给托盘（地铁站）
-const FK=[{n:'沙袋墙',c:2,hp:320,hx:1.2,hz:.31,h:.96,solid:1,need:1},{n:'铁丝网',c:2,hp:260,hx:1.5,hz:.65,h:.8,solid:0},{n:'拒马栅栏',c:4,hp:850,hx:1.5,hz:.3,h:2.05,solid:1,need:3},{n:'地雷',c:2,hp:1,hx:.2,hz:.2,h:.08,solid:0},
+const FK=[{n:'沙袋墙',c:60,hp:320,hx:1.2,hz:.31,h:.96,solid:1,need:1},{n:'铁丝网',c:60,hp:260,hx:1.5,hz:.65,h:.8,solid:0},{n:'拒马栅栏',c:150,hp:850,hx:1.5,hz:.3,h:2.05,solid:1,need:3},{n:'地雷',c:80,hp:1,hx:.2,hz:.2,h:.08,solid:0},
  {n:'电台',hp:1000,hx:.95,hz:.6,h:1.15,solid:1},{n:'补给卡车',hp:520,hx:1.2,hz:3,h:2.4,solid:1},{n:'补给托盘',hp:300,hx:.75,hz:.75,h:.9,solid:1}];
 const ST=[];let STID=1,RADIO=null,TRUCK=null;const SUP_MAX=20,FORT_MAX=36,SID=s=>'#'+s.id;
 const BLD={on:false,sel:0,prev:false,ghost:[],ok:false,p:new T.Vector3(),ry:0,cd:0};
@@ -2268,9 +2268,7 @@ function stNear(S,x,z,out){stLocal(S,x,z,SLV);const cx=clamp(SLV.x,-S.hx,S.hx),c
 function openNear(x,z,y,r){const q=new T.Vector3();for(let rad=0;rad<=7;rad+=.8){const n=rad?10:1;for(let i=0;i<n;i++){const a=i/n*6.2832+rad;const px=x+Math.sin(a)*rad,pz=z+Math.cos(a)*rad;if(Math.abs(px)>MAP.bx-1.5||Math.abs(pz)>MAP.bz-1.5)continue;
    let ok=true;for(const [ox,oz] of[[0,0],[r,0],[-r,0],[0,r],[0,-r]]){q.set(px+ox,0,pz+oz);const q0x=q.x,q0z=q.z;pushOut(q,.3,'p',y);if(Math.hypot(q.x-q0x,q.z-q0z)>.03||Math.abs(groundH(q,.2,y+.3)-y)>.08){ok=false;break}}if(ok)return{x:px,z:pz}}}return null}
 // ---------- 房主：开局摆电台、每波来一辆补给卡车 ----------
-function stInitHost(){stClear();let sx=0,sz=0;for(let i=0;i<8;i++){const q=MAP.ps?MAP.ps():[0,2.5];sx+=q[0];sz+=q[1]}sx/=8;sz/=8;const y=MAP.psY||0;
- const p=openNear(sx,sz-3.4,y,1.2)||openNear(sx,sz+3,y,1.2)||{x:sx,z:sz-3};const n=Math.max(1,NET.on?NET.list.length:1);
- G.radMax=Math.round(FK[4].hp*(1+.35*(n-1))/Math.sqrt(DIFF[diffI].dmg));stAdd(STID++,4,p.x,y,p.z,0,G.radMax,0);G.stDirty=1;G.radDead=0;G.trkT=0;G.radWarn=0}
+function stInitHost(){stClear();G.stDirty=1;G.radDead=0;G.trkT=0}
 function spawnTruck(){if(TRUCK){pushEv(['$l',0]);stDel(TRUCK)}const sub=MAP.id==='subway',k=sub?6:5,y=sub?(MAP.psY||0):0,D=truckDim(k),rr=Math.max(D.hx,D.hz)+.3;
  const hs=actors().filter(a=>!a.dead&&!a.bot);let best=null,bs=-1;
  for(let i=0;i<50;i++){const p=rndOpen(.6,y);if(p.lengthSq()<1)continue;if(Math.abs(groundH(p,.3,y+.3)-y)>.08)continue;const ry=Math.floor(Math.random()*4)*Math.PI/2+rand(-.3,.3);
@@ -2278,10 +2276,9 @@ function spawnTruck(){if(TRUCK){pushEv(['$l',0]);stDel(TRUCK)}const sub=MAP.id==
   for(const [lx,lz] of[[0,0],[D.hx,D.hz],[-D.hx,D.hz],[D.hx,-D.hz],[-D.hx,-D.hz],[0,D.hz],[0,-D.hz],[D.hx+1.2,0],[D.hx+2,0]]){q.set(p.x+lx*c+lz*s,0,p.z-lx*s+lz*c);if(Math.abs(q.x)>MAP.bx-1||Math.abs(q.z)>MAP.bz-1){ok=false;break}const x0=q.x,z0=q.z;pushOut(q,.35,'p',y);if(Math.hypot(q.x-x0,q.z-z0)>.03||Math.abs(groundH(q,.2,y+.3)-y)>.08){ok=false;break}}
   if(!ok)continue;const dR=RADIO?Math.hypot(p.x-RADIO.x,p.z-RADIO.z):30;if(dR<10)continue;if(hs.some(h=>Math.hypot(h.pos.x-p.x,h.pos.z-p.z)<7))continue;
   const sc=Math.min(dR,38)+Math.random()*8;if(sc>bs){bs=sc;best={x:p.x,z:p.z,ry}}}
- if(!best)return;const S=stAdd(STID++,k,best.x,y,best.z,best.ry,FK[k].hp,Math.min(9,2+humanCount()*2));G.stDirty=1;pushEv(['$t',r2(best.x),r2(best.z)]);
- for(const z of G.zs)if(!z.dead&&!z.goal&&!z.t.sp&&z.type!=='boss'&&z.type!=='witch'&&z.type!=='mutant'&&Math.random()<.18)z.goal=5}
+ if(!best)return;const S=stAdd(STID++,k,best.x,y,best.z,best.ry,FK[k].hp,Math.min(9,2+humanCount()*2));G.stDirty=1;pushEv(['$t',r2(best.x),r2(best.z)]);}
 function pilePos(S,out){return stWorld(S,S.k===5?S.hx+.75:0,0,out)}
-function stGoal(z){if(G.mode!=='z'||z.t.sp||z.type==='boss'||z.type==='witch'||z.type==='mutant')return;const r=Math.random();if(r<.36)z.goal=4;else if(r<.52&&TRUCK&&TRUCK.ex>0)z.goal=5}
+function stGoal(z){}
 // 丧尸的目标：平时去拆电台/砸卡车；玩家靠近 5.5 米就转头追人
 function stTarget(z,p,td,dt){if(!z.goal)return null;if(td<5.5){z.agT=2.5;return null}if(z.agT>0){z.agT-=dt;return null}let S=z.goal===5?TRUCK:RADIO;if(z.goal===5&&(!S||S.ex<=0)){z.goal=4;S=RADIO}if(!S||S.dead)return null;
  const gp=z.gp||(z.gp=new T.Vector3());const d=stNear(S,p.x,p.z,SWV);gp.set(SWV.x,S.y,SWV.z);return{id:SID(S),pos:gp,dead:false,st:S,d}}
@@ -2313,16 +2310,16 @@ function stHost(dt){if(G.trkT>0){G.trkT-=dt;if(G.trkT<=0)spawnTruck()}
    if(z.wireT>.5){z.wireT=0;z.c.flash=.06;z.hp-=8;z.hDmg=(z.hDmg||0)+8;if(z.hp<=0)killZ(z,false,S.own||'X',97);stHurt(S,z.type==='boss'||z.t.sp==='tank'?40:4);if(S.dead)break}}}}
 // 玩家请求：['b',k,x,y,z,ry] 部署 / ['t'] 搬一箱 / ['r'] 修电台
 function stReq(q,pid){if(!isHost()||G.mode!=='z')return;const a=actors().find(a=>a.id===pid)||(pid===NET.me?meActor():null);
- if(q[0]==='b'){const k=q[1]|0;if(k<0||k>3)return;let n=0;for(const s of ST)if(s.k<4)n++;if(n>=FORT_MAX){pushEv(['$f',pid,FK[k].c]);return}stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
- else if(q[0]==='t'){if(!TRUCK||TRUCK.ex<=0||!a)return;pilePos(TRUCK,SWV);if(Math.hypot(a.pos.x-SWV.x,a.pos.z-SWV.z)>4.5)return;TRUCK.ex--;stCrates(TRUCK.g,TRUCK.ex);G.stDirty=1;pushEv(['$s',pid,5]);if(TRUCK.ex<=0)TRUCK.leaveT=5}
+ if(q[0]==='b'){const k=q[1]|0;if(k<0||k>3)return;stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
+ else if(q[0]==='t'){if(!TRUCK||TRUCK.ex<=0||!a)return;pilePos(TRUCK,SWV);if(Math.hypot(a.pos.x-SWV.x,a.pos.z-SWV.z)>4.5)return;TRUCK.ex--;stCrates(TRUCK.g,TRUCK.ex);G.stDirty=1;pushEv(['$s',pid,120]);if(TRUCK.ex<=0)TRUCK.leaveT=5}
  else if(q[0]==='r'){if(!RADIO||RADIO.hp>=RADIO.max)return;RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.1);G.stDirty=1;pushEv(['$r',pid])}}
 function stSend(q){if(isHost())stReq(q,NET.me);else NET.out.rq.push(q)}
 function stEv(e){const k=e[0];
  if(k==='$x'){const [,kd,x,y,z]=e;v1.set(x,y+.5,z);const big=kd>=4;emit(v1,big?40:16,kd===0?[.62,.55,.4]:[.55,.55,.52],big?8:4,1,7,big?1.2:.8);if(big){emit(v1,30,[1,.55,.15],9,1,6,.9);flashS.position.copy(v1);flashS.scale.setScalar(5);flashS.visible=true;flashS.userData.t=.12;flashL.position.copy(v1);flashL.intensity=12}
   const d=Math.hypot(P.pos.x-x,P.pos.z-z),v=clamp(1-d/45,.08,1);if(AC){noise(big?160:500,big?1:.35,(big?1.1:.5)*v);if(big)tone(70,30,.9,.6*v)}if(big)P.shake=Math.max(P.shake,v*.5);
-  if(kd===4){banner('电台被毁','与指挥部失去联络',3);say('电台被毁')}else if(kd>=5){banner('补给卡车被毁','这一波的物资没了',2.4);say('补给卡车被毁')}else if(d<30)feedTxt(FK[kd].n+' 被丧尸拆掉了')}
- else if(k==='$s'){if(e[1]===NET.me){G.sup=Math.min(SUP_MAX,G.sup+e[2]);for(let j=1;j<WP.length;j++){const s=G.ws[j];if(s.own){const st=wStat(j);s.res=st.res}}popTxt('物资 +'+e[2]+' · 弹药补满');sCash();hud(true)}}
- else if(k==='$t'){banner('补给卡车到了',TOUCH?'跟着 📦 标记去搬物资和弹药':'跟着 📦 标记去搬物资和弹药（按 E 搬）',3);say('补给卡车到达，去搬物资');if(AC){tone(330,330,.5,.12,'sawtooth');setTimeout(()=>tone(262,262,.7,.12,'sawtooth'),450)}}
+  if(kd===4){banner('电台被毁','与指挥部失去联络',3);say('电台被毁')}else if(kd>=5){banner('补给卡车被毁','这一波的补给没了',2.4);say('补给卡车被毁')}else if(d<30)feedTxt(FK[kd].n+' 被丧尸拆掉了')}
+ else if(k==='$s'){if(e[1]===NET.me){G.cash+=e[2];for(let j=1;j<WP.length;j++){const s=G.ws[j];if(s.own){const st=wStat(j);s.res=st.res}}popTxt('资金 +$'+e[2]+' · 弹药补满');sCash();hud(true)}}
+ else if(k==='$t'){banner('补给卡车到了',TOUCH?'跟着 📦 标记去搬补给：弹药补满 + 资金':'跟着 📦 标记去搬补给（按 E）：弹药补满 + 资金',3);say('补给卡车到达');if(AC){tone(330,330,.5,.12,'sawtooth');setTimeout(()=>tone(262,262,.7,.12,'sawtooth'),450)}}
  else if(k==='$l'){if(e[1])feedTxt('补给卡车开走了')}
  else if(k==='$b'){const [,kd,x,y,z]=e;v1.set(x,y+.3,z);emit(v1,10,[.6,.55,.45],2.4,.7,5,.6);const d=Math.hypot(P.pos.x-x,P.pos.z-z);if(d<30&&AC){noise(kd===1?2200:300,.22,.35*(1-d/30),kd===1?'highpass':'lowpass');tone(110,70,.15,.18*(1-d/30),'square')}}
  else if(k==='$r'){if(AC){tone(520,780,.18,.12,'square')}if(e[1]===NET.me)popTxt('电台修好了一点')}
@@ -2335,13 +2332,13 @@ function onST(list){const seen=new Set();for(const e of list){const [id,k,x,y,z,
  for(const S of ST.slice())if(!seen.has(S.id))stDel(S)}
 // ---------- 交互：搬物资 / 修电台 ----------
 function stUseLabel(){if(G.mode!=='z')return null;
- if(TRUCK&&TRUCK.ex>0&&Math.abs(P.y-TRUCK.y)<1.2){pilePos(TRUCK,SWV);if(Math.hypot(P.pos.x-SWV.x,P.pos.z-SWV.z)<2.6)return['搬物资',G.sup>=SUP_MAX?'物资已经带满了（'+SUP_MAX+'）':(TOUCH?'点「搬物资」':'按 E ')+'搬一箱：物资 +5、弹药补满（剩 '+TRUCK.ex+' 箱）']}
+ if(TRUCK&&TRUCK.ex>0&&Math.abs(P.y-TRUCK.y)<1.2){pilePos(TRUCK,SWV);if(Math.hypot(P.pos.x-SWV.x,P.pos.z-SWV.z)<2.6)return['搬补给',(TOUCH?'点「搬补给」':'按 E ')+'搬一箱：弹药补满、资金 +$120（剩 '+TRUCK.ex+' 箱）']}
  if(RADIO&&RADIO.hp<RADIO.max*.985&&Math.abs(P.y-RADIO.y)<1.2&&stNear(RADIO,P.pos.x,P.pos.z,SWV)<1.5)return['修电台',G.sup>0?(TOUCH?'点「修电台」':'按 E ')+'用 1 份物资修理电台（+10%）':'没有物资，修不了电台'];return null}
 function stUse(){const L=stUseLabel();if(!L)return false;if(BLD.cd>0)return true;BLD.cd=.45;
- if(L[0]==='搬物资'){if(G.sup>=SUP_MAX){popTxt('物资带满了，先去用掉');return true}stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
+ if(L[0]==='搬补给'){stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
 // ---------- 部署模式 ----------
 function bldSet(on){on=!!on&&G.mode==='z'&&G.state==='play'&&!P.dead&&!P.dn&&!P.mg;BLD.on=on;const b=$('bbar');if(!b)return;b.classList.toggle('hid',!on);const tb=$('tBuild');if(tb)tb.classList.toggle('on',on);for(const g of BLD.ghost)if(g)g.visible=false;if(on){bldBar();if(!TOUCH)popTxt('部署模式：1-4 选工事，左键放下，X 退出')}}
-function bldBar(){const b=$('bbar');let h='';for(let i=0;i<4;i++)h+=`<div class="bi${i===BLD.sel?' on':''}${G.sup<FK[i].c?' no':''}" data-i="${i}"><b>${TOUCH?'':(i+1)+' '}${FK[i].n}</b><span>物资 ${FK[i].c}</span></div>`;
+function bldBar(){const b=$('bbar');let h='';for(let i=0;i<4;i++)h+=`<div class="bi${i===BLD.sel?' on':''}${G.cash<FK[i].c?' no':''}" data-i="${i}"><b>${TOUCH?'':(i+1)+' '}${FK[i].n}</b><span>$${FK[i].c}</span></div>`;
  h+=`<div class="bi" data-i="x"><b>${TOUCH?'✕':'X'}</b><span>退出</span></div>`;if(b._h!==h){b._h=h;b.innerHTML=h}}
 function bldGhost(i){if(BLD.ghost[i])return BLD.ghost[i];const g=stModel(i,0);g.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=false;o.material=stGeo().M.ok}else if(o.isSprite)o.visible=false});g.renderOrder=5;scene.add(g);return BLD.ghost[i]=g}
 function bldCheck(k,x,y,z,ry){const K=FK[k],c=Math.cos(ry),s=Math.sin(ry),q=v4;if(Math.abs(y-P.y)>.45)return false;
@@ -2353,10 +2350,10 @@ function bldCheck(k,x,y,z,ry){const K=FK[k],c=Math.cos(ry),s=Math.sin(ry),q=v4;i
 function stLocalXY(cx,cz,ry,x,z,out){const c=Math.cos(ry),s=Math.sin(ry),dx=x-cx,dz=z-cz;out.x=dx*c-dz*s;out.z=dx*s+dz*c;return out}
 function bldFrame(dt){if(BLD.cd>0)BLD.cd-=dt;if(!BLD.on)return;if(P.dead||P.dn||P.mg||G.paused||G.shop||G.state!=='play'){bldSet(false);return}
  const k=BLD.sel,K=FK[k],fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),dist=k===3?1.5:k===1?2.6:2.2;const x=P.pos.x+fx*dist,z=P.pos.z+fz*dist;v3.set(x,0,z);const y=groundH(v3,.2,P.y+.3);
- BLD.p.set(x,y,z);BLD.ry=P.yaw;BLD.ok=!P.air&&bldCheck(k,x,y,z,P.yaw);const can=BLD.ok&&G.sup>=K.c;
+ BLD.p.set(x,y,z);BLD.ry=P.yaw;BLD.ok=!P.air&&bldCheck(k,x,y,z,P.yaw);const can=BLD.ok&&G.cash>=K.c;
  for(let i=0;i<4;i++){const g=i===k?bldGhost(i):BLD.ghost[i];if(!g)continue;g.visible=i===k;if(i===k){g.position.set(x,y+.01,z);g.rotation.y=P.yaw;const m=can?stGeo().M.ok:stGeo().M.no;if(g.userData.gm!==m){g.userData.gm=m;g.traverse(o=>{if(o.isMesh)o.material=m})}}}
  bldBar();
- if(IN.fire&&!BLD.prev&&BLD.cd<=0){BLD.cd=.35;if(G.sup<K.c)popTxt('物资不够（要 '+K.c+' 份）· 去补给卡车搬');else if(!BLD.ok)popTxt('这里放不下');else{G.sup-=K.c;hud(true);stSend(['b',k,r2(x),r2(y),r2(z),r2(P.yaw)])}}
+ if(IN.fire&&!BLD.prev&&BLD.cd<=0){BLD.cd=.35;if(G.cash<K.c)popTxt('资金不够（要 $'+K.c+'）');else if(!BLD.ok)popTxt('这里放不下');else{G.cash-=K.c;sCash();hud(true);stSend(['b',k,r2(x),r2(y),r2(z),r2(P.yaw)])}}
  BLD.prev=IN.fire}
 // ---------- 每帧：晃动、指示灯、血条和方位标记 ----------
 const MKV=new T.Vector3();
