@@ -593,9 +593,9 @@ function layoutGeneric(sr,sg,sp){const S=MAP.slots,sh=a=>{a=a.slice();for(let i=
 
 function colOf(g){g.updateMatrixWorld(true);const b=new T.Box3();g.traverse(m=>{if(m.isMesh&&!m.isSprite)b.expandByObject(m)});if(!b.isEmpty())addCol(b.min.x,b.min.z,b.max.x,b.max.z,b.max.y)}
 // ---- 每局随机摆设（种子由房主发给所有人，保证大家同一张图）
-const LAYOUT=[];
+const LAYOUT=[];const BRK=[],BFX=[];// 能被坦克尸/尸王撞开的摆设
 function buildLayout(sd){
- for(const o of LAYOUT)scene.remove(o);LAYOUT.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].dyn)COL.splice(i,1);
+ for(const o of LAYOUT)scene.remove(o);LAYOUT.length=0;for(const f of BFX)scene.remove(f.g);BFX.length=0;BRK.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].dyn)COL.splice(i,1);
  for(const m of MGS){if(m.ru&&HUM[m.ru])HUM[m.ru].u=-1}MGS.length=0;MACH.length=0;BOX=null;VENDS.length=0;for(const f of FIRES)if(f.li)scene.remove(f.li);FIRES=[];if(P.mg)P.mg=null;
  EXPL.splice(0,EXPL.length,...EXPL.filter(e=>!e.lay));for(const e of EXPL){e.dead=false;e.hp=e.h0;if(e.m)e.m.visible=true}
  seed=(sd%2147483646)+1;for(let i=0;i<5;i++)srand();const sr=(a,b)=>a+srand()*(b-a),sg=()=>srand()<.5?1:-1,sp=a=>a[Math.floor(srand()*a.length)];
@@ -630,7 +630,7 @@ function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return n
  o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;if(/vehicle|bus|truck|forklift/.test(n)){m.material=m.material.clone();m.material.color&&m.material.color.multiplyScalar(.62)}}});
  const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
- if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y})}return g}
+ if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}return g}
 function groundH(p,r,y){let g=0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.36||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
 function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&&!c.p)continue;const b=c.b;if(b.max.y<=y+.35||y+1.75<b.min.y)continue;
  if(p.x+r<=b.min.x||p.x-r>=b.max.x||p.z+r<=b.min.z||p.z-r>=b.max.z)continue;const q=c.o;const L=obL(q,p.x,p.z);const lx=L.x,lz=L.z;
@@ -1600,7 +1600,7 @@ function climbBox(p,r,y,maxUp){let best=null;for(const c of COL){if(!c.p||!c.z)c
  if(p.x+r+.2>b.min.x&&p.x-r-.2<b.max.x&&p.z+r+.2>b.min.z&&p.z-r-.2<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r+.25&&Math.abs(L.z)<c.o.hz+r+.25&&(!best||h>best.o.h))best=c}}return best}
 function updZ(z,dt){const c=z.c,p=c.wrap.position;
  if(z.dead){z.deadT+=dt;if(z.y>0){z.vy-=20*dt;z.y=Math.max(0,z.y+z.vy*dt)}p.y=z.y-(z.deadT>3?(z.deadT-3)*.35:0);z.st=4;updChar(c,dt);return}
- z.hitCd-=dt;z.atkT-=dt;if(z.buffT>0)z.buffT-=dt;
+ z.hitCd-=dt;z.atkT-=dt;if(z.buffT>0)z.buffT-=dt;if(z.t.sp==='tank'||z.t.sp==='mutant'||z.type==='boss')heavySmash(z,p);
  let tg=null,td=1e9;for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<td){td=d;tg=a}}
  const lure=(!z.t.sp&&z.type!=='boss')?pipeTarget(p):null;if(lure&&td>2){tg={id:'pipe',pos:lure,dead:false};td=Math.hypot(lure.x-p.x,lure.z-p.z)+5}
  {const sT=stTarget(z,p,td,dt);if(sT){tg=sT;td=sT.d}}
@@ -1733,7 +1733,7 @@ function applyHit(h,s){const [v,d,hd,w]=h;
 function onH(h){if(h.g&&h.m===G.mid)setHostPause(h.g.hp);if(h.ps){h.ps.m=h.m;try{onP(h.ps)}catch(e){}}if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();if(NET.lagShown){NET.lagShown=0;popTxt('连接已恢复')}const g=h.g;
  G.sc=g.sc;G.tl=g.tl;G.left=g.q;
  if(G.mode==='z'){if(g.w>G.wave)onWaveStart(g.w,g.sl);if(g.it>0&&!(G.inter>0))onWaveClear(g.w);G.inter=g.it}
- if(h.z)onZSnap(h.z);if(h.st)onST(h.st);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
+ if(h.z)onZSnap(h.z);if(h.st)onST(h.st);if(h.bk)onBK(h.bk);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
  if(h.zh)for(const [v,d,x,z] of h.zh)if(v===NET.me)hurtP(d,{x,z},'Z');
  if(h.bh)for(const [v,d,hd,s,w] of h.bh)if(v===NET.me)hurtP(d,HUM[s]?HUM[s].pos:null,s,hd,w);
  if(h.f)for(const f of h.f)remoteShot(f);
@@ -1749,7 +1749,7 @@ function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=NET.out.rq.le
  if(!NET.host)nsend('p',PS);
  if(NET.host){const H={ps:PS,g:{hp:G.hostPause?1:0,w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
   if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0),Math.ceil(z.hp)]);
-  if(G.mode==='z'&&(++G.stN%8===0||G.stDirty&&G.stN%2===0)){H.st=stSnap();G.stDirty=0}
+  if(G.mode==='z'&&(++G.stN%8===0||G.stDirty&&G.stN%2===0)){H.st=stSnap();H.bk=brkSnap();G.stDirty=0}
   if(G.mode!=='z'){H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
   for(const k in NET.H)if(NET.H[k].length)H[k]=NET.H[k].splice(0);
   if(++NET.hn%5===0){H.r={};for(const id in G.R){const o=G.R[id];H.r[id]=[nameOf(id),o.t,o.k,o.d,o.b]}}
@@ -2302,6 +2302,22 @@ function fortEngage(z,p,dx,dz,tg,c,dt){if(!ST.length)return 0;let F=null,fd=9,fx
    z.climb={t:0,d:F.k===2?1.9:1.15,x0:p.x,z0:p.z,y0:z.y,x1:SWV.x,z1:SWV.z,y1:F.y+F.h,ex,ez};c.wrap.rotation.y=z.face;c.one=null;z.blkT=0;return 2}}
  if(z.atkT<=0){playOnce(c,'punch',heavy?1.3:1.7);z.tid=SID(F);z.pend=heavy?.55:.42;z.atkT=heavy||z.type==='brute'?1.7:1.15}
  return 1}
+// 坦克尸冲锋 / 尸王 / 异变体：横冲直撞，工事和车都撞开（集装箱、建筑撞不动）
+function heavySmash(z,p){if(G.mode!=='z'||z.climb)return;const tank=z.t.sp==='tank',ch=z.charge>0,all=!tank||ch;const R=z.r*.8+.4+(ch?.5:0);
+ for(let i=0;i<BRK.length;i++){const B=BRK[i];if(B.dead||B.veh&&!all)continue;const o=B.c.o;if(z.y>=o.h-.3||z.y+2.2<o.y0)continue;const L=obL(o,p.x,p.z);if(Math.abs(L.x)>o.hx+R||Math.abs(L.z)>o.hz+R)continue;
+  let dx=ch?z.cdx:B.x-p.x,dz=ch?z.cdz:B.z-p.z;const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l;pushEv(['$p',i,r2(dx),r2(dz)]);
+  if(B.veh)for(const a of actors()){if(a.dead||a.bot)continue;const ax=a.pos.x-B.x,az=a.pos.z-B.z;if(Math.hypot(ax,az)<B.r+1.2&&ax*dx+az*dz>-.5){dmgTo(a,18*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}}
+ if(all)for(const S of ST.slice()){if(S.k>2||S.dead||Math.abs(S.y-z.y)>1.5)continue;if(stNear(S,p.x,p.z,SWV)<R)stHurt(S,1e9)}}
+function brkKill(i,dx,dz,fx){const B=BRK[i];if(!B||B.dead)return;B.dead=1;const j=COL.indexOf(B.c);if(j>=0)COL.splice(j,1);if(!fx){scene.remove(B.g);return}
+ const sp=B.veh?9:7;BFX.push({g:B.g,y0:B.y,vx:dx*sp+rand(-1,1),vz:dz*sp+rand(-1,1),vy:B.veh?4.5:5.5,rx:rand(-1,1)*(B.veh?2.2:6),rz:rand(-1,1)*(B.veh?2.2:6),ry:rand(-2,2),t:0,b:0});
+ v1.set(B.x,B.y+.8,B.z);emit(v1,B.veh?34:14,[.5,.5,.5],B.veh?7:4,1,7,B.veh?1.1:.7);if(B.veh)emit(v1,18,[1,.75,.3],9,.5,5,.5);
+ const d=Math.hypot(P.pos.x-B.x,P.pos.z-B.z),v=clamp(1-d/45,0,1);if(AC&&v>0){noise(B.veh?220:700,B.veh?.7:.3,(B.veh?1:.5)*v);if(B.veh)tone(90,40,.5,.5*v,'square')}if(B.veh)P.shake=Math.max(P.shake,v*.45)}
+function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+=dt;g.position.x+=f.vx*dt;g.position.z+=f.vz*dt;g.position.y+=f.vy*dt;f.vy-=18*dt;const k=Math.exp(-1.6*dt);f.vx*=k;f.vz*=k;
+  if(f.b<2){g.rotation.x+=f.rx*dt;g.rotation.z+=f.rz*dt;g.rotation.y+=f.ry*dt}
+  if(g.position.y<=f.y0&&f.vy<0){if(f.t<2.2){g.position.y=f.y0;f.vy*=-.3;f.vx*=.5;f.vz*=.5;f.b++;if(f.b===1){v1.copy(g.position);v1.y+=.3;emit(v1,8,[.5,.48,.45],3,.6,5,.6)}}}
+  if(f.t>2.2){g.position.y-=dt*1.1;if(f.t>4.2){scene.remove(g);BFX.splice(i,1)}}}}
+function brkSnap(){let a=null;for(let i=0;i<BRK.length;i++)if(BRK[i].dead)(a||(a=[G.layoutSeed])).push(i);return a||undefined}
+function onBK(a){if(a[0]!==G.layoutSeed)return;for(let i=1;i<a.length;i++)brkKill(a[i],0,0,false)}
 function stHost(dt){if(G.trkT>0){G.trkT-=dt;if(G.trkT<=0)spawnTruck()}
  if(TRUCK&&TRUCK.leaveT>0){TRUCK.leaveT-=dt;if(TRUCK.leaveT<=0){pushEv(['$l',1]);stDel(TRUCK);G.stDirty=1}}
  for(const S of ST.slice()){if(S.k!==1&&S.k!==3)continue;for(const z of G.zs){if(z.dead||z.climb||Math.abs(z.y-S.y)>.7)continue;const p=z.c.wrap.position;if(Math.abs(p.x-S.x)>2.2||Math.abs(p.z-S.z)>2.2)continue;
@@ -2314,7 +2330,7 @@ function stReq(q,pid){if(!isHost()||G.mode!=='z')return;const a=actors().find(a=
  else if(q[0]==='t'){if(!TRUCK||TRUCK.ex<=0||!a)return;pilePos(TRUCK,SWV);if(Math.hypot(a.pos.x-SWV.x,a.pos.z-SWV.z)>4.5)return;TRUCK.ex--;stCrates(TRUCK.g,TRUCK.ex);G.stDirty=1;pushEv(['$s',pid,120]);if(TRUCK.ex<=0)TRUCK.leaveT=5}
  else if(q[0]==='r'){if(!RADIO||RADIO.hp>=RADIO.max)return;RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.1);G.stDirty=1;pushEv(['$r',pid])}}
 function stSend(q){if(isHost())stReq(q,NET.me);else NET.out.rq.push(q)}
-function stEv(e){const k=e[0];
+function stEv(e){const k=e[0];if(k==='$p'){brkKill(e[1],e[2],e[3],true);return}
  if(k==='$x'){const [,kd,x,y,z]=e;v1.set(x,y+.5,z);const big=kd>=4;emit(v1,big?40:16,kd===0?[.62,.55,.4]:[.55,.55,.52],big?8:4,1,7,big?1.2:.8);if(big){emit(v1,30,[1,.55,.15],9,1,6,.9);flashS.position.copy(v1);flashS.scale.setScalar(5);flashS.visible=true;flashS.userData.t=.12;flashL.position.copy(v1);flashL.intensity=12}
   const d=Math.hypot(P.pos.x-x,P.pos.z-z),v=clamp(1-d/45,.08,1);if(AC){noise(big?160:500,big?1:.35,(big?1.1:.5)*v);if(big)tone(70,30,.9,.6*v)}if(big)P.shake=Math.max(P.shake,v*.5);
   if(kd===4){banner('电台被毁','与指挥部失去联络',3);say('电台被毁')}else if(kd>=5){banner('补给卡车被毁','这一波的补给没了',2.4);say('补给卡车被毁')}else if(d<30)feedTxt(FK[kd].n+' 被丧尸拆掉了')}
@@ -2360,7 +2376,7 @@ const MKV=new T.Vector3();
 function stMark(el,x,y,z,txt,col,show){if(!show){if(el.style.display!=='none')el.style.display='none';return}MKV.set(x,y,z).project(camera);let sx=MKV.x,sy=MKV.y;const behind=MKV.z>1;if(behind){sx=-sx;sy=-1}
  const m=.9;if(behind||Math.abs(sx)>m||Math.abs(sy)>m){const k=Math.max(Math.abs(sx)/m,Math.abs(sy)/m,1e-3);sx/=k;sy/=k;if(behind)sy=-m}
  el.style.display='block';el.style.left=((sx*.5+.5)*100)+'%';el.style.top=((-sy*.5+.5)*100)+'%';if(el._t!==txt){el._t=txt;el.textContent=txt}if(el._c!==col){el._c=col;el.style.borderColor=col;el.style.color=col}}
-function stFrame(dt){const t=performance.now()/1000;
+function stFrame(dt){const t=performance.now()/1000;if(BFX.length)brkFrame(dt);
  for(const S of ST){if(S.shk>0){S.shk-=dt;const k=Math.max(0,S.shk)/.16;S.g.rotation.z=Math.sin(t*70)*.035*k;S.g.rotation.x=Math.cos(t*61)*.025*k}else if(S.g.rotation.z){S.g.rotation.z=0;S.g.rotation.x=0}
   const u=S.g.userData;if(u.led)u.led.visible=(t*2.2+S.id*.37)%1<.3;if(u.bea){const on=(t*1.1)%1<.5;u.bea.material.opacity=on?1:.15}if(u.beam)u.beam.material.opacity=.38+Math.sin(t*3)*.12}
  bldFrame(dt);
