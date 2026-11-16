@@ -836,7 +836,7 @@ function updHumans(dt){const now=performance.now();
   if(H.wShow===undefined)H.wShow=H.w;if(H.w!==H.wShow&&!H.swT)H.swT=.001;let low=0;
   if(H.swT){H.swT+=dt;if(H.swT>=.3&&H.wShow!==H.w)H.wShow=H.w;low=H.swT<.3?H.swT/.3:Math.max(0,(.6-H.swT)/.3);if(H.swT>=.6)H.swT=0}
   if(H.clb&&H.ty>H.cly0+.3)mantleHands(H.c,H.yaw,H.clx,H.clz,H.ty,1);else if(onMG)poseOnMG(H.c,MGS[H.u]);else if(!H.dead&&H.a!==2&&H.pos.distanceToSquared(P.pos)<3600)poseArms(H.c,H.wShow,H.yaw,H.pitch,low,0);
-  H.guns.forEach(g=>{if(g)g.visible=false});const g=H.dead||onMG?null:gunOf(H.guns,H.wShow);if(g)g.visible=true;if(g&&!H.dead)placeGun(g,H.c,H.yaw,H.pitch);
+  H.guns.forEach(g=>{if(g)g.visible=false});const g=H.dead||onMG?null:gunOf(H.guns,H.wShow);if(g)g.visible=true;if(g&&!H.dead)placeGun(g,H.c,H.yaw,H.pitch);if(H.spinT>0){H.spinT-=dt;if(g&&H.wShow===WI.m134){const b=g.userData.brl||(g.userData.brl=g.getObjectByName('brl'));if(b)b.rotation.x+=40*dt}}
   if(H.ring)H.ring.material.opacity=H.dead?.15:.8;if(H.tag)H.tag.visible=!H.dead}}
 // 统一的“人”：自己 + HUM
 function meActor(){return{id:NET.me,pos:P.pos,c:P.c,dead:P.dead,dn:P.dn,team:P.team,bot:false,me:true}}
@@ -1737,7 +1737,7 @@ function onP(s){if(s.m!==G.mid||s.i===NET.me||G.state==='lobby'||G.state==='menu
  H.tgt.set(s.x,0,s.z);H.tyaw=s.y;H.pitch=s.pt;H.a=s.a;H.w=s.w;H.hp=s.hp;H.cr=!!s.c;H.ty=s.py||0;H.u=s.u??-1;if(!!s.dn!==!!H.dn){H.dn=!!s.dn;if(H.dnTag){H.c.wrap.remove(H.dnTag);H.dnTag=null}if(H.dn){H.dnTag=nameTag('救我！','#ff5a48');H.dnTag.position.y=1.4;H.c.wrap.add(H.dnTag)}}if(H.u>=0&&MGS[H.u]){MGS[H.u].ru=H.id;MGS[H.u].ruT=performance.now()}setDead(H,!!s.d);H.seen=performance.now();
  if(s.t!==H.team||s.n!==H.name){H.team=s.t;H.name=s.n;decorate(H)}
  if(isHost()){const r=rost(s.i);r.n=s.n;r.t=s.t}
- if(s.f)for(const f of s.f)remoteShot(f);
+ if(s.f){for(const f of s.f)remoteShot(f);if(s.f.length&&WP[s.f[0][0]]&&WP[s.f[0][0]].spin)H.spinT=.35}
  if(s.h)for(const h of s.h)applyHit(h,s.i);
  if(s.rq&&isHost())for(const q of s.rq)stReq(q,s.i)}
 function applyHit(h,s){const [v,d,hd,w]=h;
