@@ -769,7 +769,7 @@ const G={state:'load',mode:'z',wave:0,zs:[],queue:[],spawnT:0,cash:0,score:0,kil
 const P={kbv:new T.Vector3(),stun:0,grab:null,pin:null,mash:0,climb:null,y:0,vy:0,air:false,cr:false,crT:0,mg:null,pos:new T.Vector3(),vel:new T.Vector3(),yaw:0,pitch:-.08,rec:0,hp:100,ar:0,c:null,guns:[],aim:0,aimOn:false,fireCd:0,relT:0,dead:false,hurtT:0,regenT:0,spr:0,shake:0,team:0,respT:0,prot:0};
 const HUM={};// 远端玩家 + 电脑士兵
 let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';let AA=LS.get('scqh-aa')!=='0';// tp=斜肩第三人称  fp=第一人称
-const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26],launcher:[.13,-.1,.2]},ADS=[0,-.058,.24],VMS=.6;
+const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26],launcher:[.15,-.075,.1]},ADS=[0,-.058,.24],VMS=.6;
 function setView(v){VIEW=v;LS.set('scqh-view',v);camera.near=v==='fp'?.03:.08;camera.updateProjectionMatrix();const b=$('tView');if(b)b.textContent=v==='fp'?'斜肩':'第一';popTxt(v==='fp'?'第一人称':'斜肩视角')}
 const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[],rq:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
 const isHost=()=>!NET.on||NET.host;
@@ -777,7 +777,7 @@ const v1=new T.Vector3(),v2=new T.Vector3(),v3=new T.Vector3(),v4=new T.Vector3(
 
 // ---------- 持枪姿势：双手 IK（每把枪起手式不同） ----------
 // 双手目标点，相对“瞄准坐标”：[右, 上, 前]，原点在颈部下方
-const HOLD={pistol:{r:[.05,-.05,.5],l:[-.01,-.08,.45]},smg:{r:[.13,-.12,.27],l:[-.02,-.11,.47]},shotgun:{r:[.15,-.13,.15],l:[-.03,-.14,.56]},rifle:{r:[.15,-.08,.12],l:[-.02,-.1,.5]}};HOLD.sniper=HOLD.rifle;HOLD.launcher={r:[.15,-.04,.1],l:[-.02,-.1,.42]};
+const HOLD={pistol:{r:[.05,-.05,.5],l:[-.01,-.08,.45]},smg:{r:[.13,-.12,.27],l:[-.02,-.11,.47]},shotgun:{r:[.15,-.13,.15],l:[-.03,-.14,.56]},rifle:{r:[.15,-.08,.12],l:[-.02,-.1,.5]}};HOLD.sniper=HOLD.rifle;HOLD.launcher={r:[.19,-.03,.2],l:[.13,-.06,.4],mag:[.19,.03,.74]};// 肩扛：筒身架在右肩上，装弹时左手伸到筒口
 const LOWP={r:[.2,-.48,.18],l:[-.12,-.42,.14]},MAGP=[.04,-.26,.2];
 const IK={s:new T.Vector3(),e:new T.Vector3(),h:new T.Vector3(),d:new T.Vector3(),p:new T.Vector3(),q:new T.Quaternion(),q2:new T.Quaternion(),cur:new T.Vector3(),o:new T.Vector3(),f:new T.Vector3(),r:new T.Vector3(),u:new T.Vector3(),tr:new T.Vector3(),tl:new T.Vector3(),pole:new T.Vector3(),E:new T.Vector3()};
 function aimBone(b,target){b.getWorldPosition(IK.p);const des=IK.d.subVectors(target,IK.p);if(des.lengthSq()<1e-8)return;des.normalize();
@@ -794,7 +794,7 @@ function poseArms(c,wi,yaw,pitch,low,rel){const nk=c.bones.mixamorigneck;if(!nk)
  const s=c.s;nk.getWorldPosition(IK.o);IK.o.y-=.06*s;const cp=Math.cos(pitch);IK.f.set(-Math.sin(yaw)*cp,Math.sin(pitch),-Math.cos(yaw)*cp);IK.r.set(Math.cos(yaw),0,-Math.sin(yaw));IK.u.crossVectors(IK.r,IK.f);
  const H=HOLD[WP[wi].cat]||HOLD.rifle;holdPt(IK.tr,H.r,s);holdPt(IK.tl,H.l,s);
  if(low>0){IK.tr.lerp(holdPt(IK.d,LOWP.r,s),low);IK.tl.lerp(holdPt(IK.d,LOWP.l,s),low)}
- if(rel>0){const k=Math.sin(Math.PI*rel);IK.tl.lerp(holdPt(IK.d,MAGP,s),k);IK.tr.y-=.05*k}
+ if(rel>0){const k=Math.sin(Math.PI*rel);IK.tl.lerp(holdPt(IK.d,H.mag||MAGP,s),k);IK.tr.y-=.05*k}
  armIK(c,'right',IK.tr.clone(),1);armIK(c,'left',IK.tl.clone(),-1)}
 
 // ---------- 人物（远端玩家 / 电脑） ----------
