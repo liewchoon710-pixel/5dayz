@@ -668,7 +668,7 @@ const WP=[
  {id:'awm',n:'AWM 狙击枪',cat:'sniper',file:'awm',len:1.18,gz:.28,gy:.35,my:.62,fz:.6,mode:'bolt',rt:'mag',dmg:320,rate:.2,cyc:1.05,mag:5,res:30,rel:3,spr:.06,sspr:.0008,head:2.5,pel:1,pierce:4,push:1,kick:.13,kh:.02,kb:0,scope:16,price:3500,ammoP:300,lvl:10,
   snd:{c:[2000,.12,.75],b:[1000,.3,1],m:[70,25,.4,1],t:[500,1.6,.38]},fl:{s:1,c:0xffc080,sh:'side',smoke:1},sh:{s:1.5,c:0xc9a040}},
  // RPG：只能从武器箱开出；会炸到自己、工事和车；连打 3 发炮管过热
- {id:'rpg',n:'RPG-7 火箭筒',cat:'launcher',file:'rpg',proc:1,box:1,rk:1,len:.98,gz:.44,gy:.42,my:.62,fz:.66,mode:'semi',rt:'mag',dmg:1100,rate:.5,mag:1,res:8,rel:1.5,spr:0,head:1,pel:1,kick:.16,kh:.02,kb:0,price:0,ammoP:400,lvl:0,
+ {id:'rpg',n:'RPG-7 火箭筒',cat:'launcher',file:'rpg',proc:1,box:1,rk:1,len:1.375,gz:.46,gy:.32,my:.575,fz:.37,mode:'semi',rt:'mag',dmg:1100,rate:.5,mag:1,res:8,rel:1.5,spr:0,head:1,pel:1,kick:.16,kh:.02,kb:0,price:0,ammoP:400,lvl:0,
   snd:{c:[900,.25,.9],b:[400,.5,1.2],m:[60,25,.5,1],t:[300,1.4,.45]},fl:{s:1.3,c:0xffa040,sh:'cone',smoke:1},sh:null}];
 const WI=Object.fromEntries(WP.map((w,i)=>[w.id,i]));
 WP.forEach(w=>{w.auto=w.mode==='auto'?1:0});
@@ -682,7 +682,7 @@ function prepGun(w,g){const root=g.scene;const own=w.file==='glock'||w.file==='p
   const ms=Array.isArray(m.material)?m.material:[m.material];m.material=ms.map((x,k)=>{let c;
    if(own){const pal=w.file==='glock'?[0x1d1f22,0x2a2c30,0x111214]:w.file==='p226'?[0x2b2e33,0x18191b,0x3a3d42]:[0x2d3238,0x7a4a26,0x23272c];
     c=new T.MeshStandardMaterial({color:pal[(m.name.length+k)%3],roughness:w.file==='glock'?.6:.35,metalness:w.file==='glock'?.15:.75})}
-   else{c=x.clone();if('roughness' in c){c.roughness=.45;c.metalness=.45}}return c});if(m.material.length===1)m.material=m.material[0]});
+   else{c=x.clone();if(!w.proc&&'roughness' in c){c.roughness=.45;c.metalness=.45}}return c});if(m.material.length===1)m.material=m.material[0]});
  wrapR.updateMatrixWorld(true);const b=new T.Box3().setFromObject(wrapR);const sz=b.getSize(new T.Vector3());const k=w.len/sz.z;wrapR.scale.setScalar(k);
  const L=sz.z*k,H=sz.y*k,mnz=b.min.z*k,mny=b.min.y*k;const ax=(b.min.x+b.max.x)/2*k;
  const anc=new T.Vector3(ax,mny+w.gy*H,mnz+w.gz*L);wrapR.position.sub(anc);
@@ -769,7 +769,7 @@ const G={state:'load',mode:'z',wave:0,zs:[],queue:[],spawnT:0,cash:0,score:0,kil
 const P={kbv:new T.Vector3(),stun:0,grab:null,pin:null,mash:0,climb:null,y:0,vy:0,air:false,cr:false,crT:0,mg:null,pos:new T.Vector3(),vel:new T.Vector3(),yaw:0,pitch:-.08,rec:0,hp:100,ar:0,c:null,guns:[],aim:0,aimOn:false,fireCd:0,relT:0,dead:false,hurtT:0,regenT:0,spr:0,shake:0,team:0,respT:0,prot:0};
 const HUM={};// 远端玩家 + 电脑士兵
 let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';let AA=LS.get('scqh-aa')!=='0';// tp=斜肩第三人称  fp=第一人称
-const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26],launcher:[.15,-.075,.1]},ADS=[0,-.058,.24],VMS=.6;
+const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26],launcher:[.13,-.085,.16]},ADS=[0,-.058,.24],VMS=.6;
 function setView(v){VIEW=v;LS.set('scqh-view',v);camera.near=v==='fp'?.03:.08;camera.updateProjectionMatrix();const b=$('tView');if(b)b.textContent=v==='fp'?'斜肩':'第一';popTxt(v==='fp'?'第一人称':'斜肩视角')}
 const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[],rq:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
 const isHost=()=>!NET.on||NET.host;
@@ -777,7 +777,7 @@ const v1=new T.Vector3(),v2=new T.Vector3(),v3=new T.Vector3(),v4=new T.Vector3(
 
 // ---------- 持枪姿势：双手 IK（每把枪起手式不同） ----------
 // 双手目标点，相对“瞄准坐标”：[右, 上, 前]，原点在颈部下方
-const HOLD={pistol:{r:[.05,-.05,.5],l:[-.01,-.08,.45]},smg:{r:[.13,-.12,.27],l:[-.02,-.11,.47]},shotgun:{r:[.15,-.13,.15],l:[-.03,-.14,.56]},rifle:{r:[.15,-.08,.12],l:[-.02,-.1,.5]}};HOLD.sniper=HOLD.rifle;HOLD.launcher={r:[.19,-.03,.2],l:[.13,-.06,.4],mag:[.19,.03,.74]};// 肩扛：筒身架在右肩上，装弹时左手伸到筒口
+const HOLD={pistol:{r:[.05,-.05,.5],l:[-.01,-.08,.45]},smg:{r:[.13,-.12,.27],l:[-.02,-.11,.47]},shotgun:{r:[.15,-.13,.15],l:[-.03,-.14,.56]},rifle:{r:[.15,-.08,.12],l:[-.02,-.1,.5]}};HOLD.sniper=HOLD.rifle;HOLD.launcher={r:[.135,.0,.26],l:[.125,-.01,.14],mag:[.135,.06,.72]};// 肩扛：筒身架在右肩上，装弹时左手伸到筒口
 const LOWP={r:[.2,-.48,.18],l:[-.12,-.42,.14]},MAGP=[.04,-.26,.2];
 const IK={s:new T.Vector3(),e:new T.Vector3(),h:new T.Vector3(),d:new T.Vector3(),p:new T.Vector3(),q:new T.Quaternion(),q2:new T.Quaternion(),cur:new T.Vector3(),o:new T.Vector3(),f:new T.Vector3(),r:new T.Vector3(),u:new T.Vector3(),tr:new T.Vector3(),tl:new T.Vector3(),pole:new T.Vector3(),E:new T.Vector3()};
 function aimBone(b,target){b.getWorldPosition(IK.p);const des=IK.d.subVectors(target,IK.p);if(des.lengthSq()<1e-8)return;des.normalize();
@@ -2324,15 +2324,19 @@ function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+
 function brkSnap(){let a=null;for(let i=0;i<BRK.length;i++)if(BRK[i].dead)(a||(a=[G.layoutSeed])).push(i);return a||undefined}
 function onBK(a){if(a[0]!==G.layoutSeed)return;for(let i=1;i<a.length;i++)brkKill(a[i],0,0,false)}
 // ---- RPG 火箭筒
-function rpgModel(){const g=new T.Group(),M=(c,r=.5,m=.5)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x3b4038),wood=M(0x6a4526,.7,.05),olive=M(0x4d5a36);
- const cyl=(r0,r1,l,x,mt,nm)=>{const m=new T.Mesh(new T.CylinderGeometry(r0,r1,l,14),mt);m.rotation.z=-Math.PI/2;m.position.x=x;if(nm)m.name=nm;g.add(m);return m};
- cyl(.032,.032,.74,0,steel);cyl(.04,.04,.26,-.08,wood);cyl(.032,.06,.13,-.43,steel);cyl(.037,.037,.03,.36,steel);
- const rk=new T.Group();rk.name='rkt';const c1=new T.Mesh(new T.CylinderGeometry(.012,.05,.12,12),olive);c1.rotation.z=-Math.PI/2;c1.position.x=.55;const c2=new T.Mesh(new T.CylinderGeometry(.05,.028,.14,12),olive);c2.rotation.z=-Math.PI/2;c2.position.x=.43;rk.add(c1,c2);g.add(rk);
- const bx=(w,h,d,x,y,mt)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt);m.position.set(x,y,0);g.add(m);return m};
- bx(.035,.11,.03,.06,-.08,wood).rotation.z=.25;bx(.03,.09,.028,-.1,-.075,wood);bx(.09,.02,.025,.06,-.035,steel);bx(.07,.05,.03,.04,.06,steel);bx(.012,.05,.012,.3,.05,steel);return g}
+function rpgModel(){const g=new T.Group(),M=(c,r,m)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x23272a,.62,.15),wood=M(0x5e3a1c,.8,0),olive=M(0x3f4d28,.7,.05),blk=M(0x121313,.65,.1);
+ // 朝 +x；筒长 0.95（-0.55 … +0.40），弹头露在筒口外 0.42
+ const cyl=(r0,r1,x0,x1,mt,par)=>{const m=new T.Mesh(new T.CylinderGeometry(r1,r0,x1-x0,16),mt);m.rotation.z=-Math.PI/2;m.position.x=(x0+x1)/2;(par||g).add(m);return m};
+ cyl(.026,.026,-.45,.4,steel);cyl(.031,.031,.37,.4,steel);cyl(.03,.03,.02,.14,steel);cyl(.036,.036,-.33,-.01,wood);cyl(.03,.03,-.36,-.33,steel);cyl(.03,.03,-.01,.02,steel);
+ cyl(.056,.03,-.55,-.45,steel);cyl(.058,.058,-.555,-.545,steel);
+ const rk=new T.Group();rk.name='rkt';cyl(.02,.02,.4,.47,olive,rk);cyl(.02,.0425,.47,.55,olive,rk);cyl(.0425,.0425,.55,.63,olive,rk);cyl(.0425,.012,.63,.79,olive,rk);cyl(.012,.008,.79,.82,blk,rk);g.add(rk);
+ const bx=(w,h,d,x,y,z,mt,rz)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt);m.position.set(x,y,z);if(rz)m.rotation.z=rz;g.add(m);return m};
+ bx(.034,.105,.028,.07,-.08,0,wood,.22);bx(.07,.018,.02,.085,-.032,0,steel);bx(.012,.04,.012,.115,-.05,0,steel);bx(.03,.09,.026,-.05,-.072,0,wood,.1);
+ bx(.13,.045,.04,.05,.065,.038,blk);bx(.03,.04,.03,.05,.03,.03,steel);cyl(.02,.024,.115,.15,blk).position.set(.132,.065,.038);cyl(.02,.02,-.04,-.015,blk).position.set(-.027,.065,.038);
+ bx(.01,.045,.01,.35,.045,0,steel);bx(.012,.04,.02,-.005,.045,0,steel);return g}
 function rkFire(muz,dmg){const o=camera.position;let t=Math.min(120,wallT(SHO.copy(o),camF,140));if(camF.y<-.01)t=Math.min(t,(o.y-(P.y||0))/-camF.y+.2);const tp=v2.copy(o).addScaledVector(camF,Math.max(t,3));
  let d=v3.copy(tp).sub(muz);if(d.length()<2.5)d.copy(camF);d.normalize();const e=['rk',r2(muz.x),r2(muz.y),r2(muz.z),r2(d.x*28),r2(d.y*28),r2(d.z*28),NET.me,Math.random().toString(36).slice(2,7),Math.round(dmg)];
- spawnThrow(e);nsend('th',e);const b=v1.copy(muz).addScaledVector(d,-1.25);emit(b,12,[.8,.78,.74],5,.5,-1,1.2);emit(b,6,[1,.6,.2],6,.3,2,.25);P.shake=Math.max(P.shake,.25);
+ spawnThrow(e);nsend('th',e);const b=v1.copy(muz).addScaledVector(d,-1.55);emit(b,12,[.8,.78,.74],5,.5,-1,1.2);emit(b,6,[1,.6,.2],6,.3,2,.25);P.shake=Math.max(P.shake,.25);
  P.heat=(P.heat||0)+1;P.heatT=7;if(P.heat>=3){P.heat=0;P.ovh=3;popTxt('炮管过热！冷却 3 秒')}}
 const rkGeo=new T.CylinderGeometry(.035,.045,.5,10);rkGeo.rotateX(Math.PI/2);const rkMat=new T.MeshStandardMaterial({color:0x4d5a36,roughness:.5,metalness:.4});
 function rkSpawn(e){const [k,x,y,z,vx,vy,vz,pid,tid,dmg]=e;const m=new T.Mesh(rkGeo,rkMat);m.position.set(x,y,z);const f=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xffa040,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));f.scale.setScalar(1.1);f.position.z=-.35;m.add(f);
