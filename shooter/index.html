@@ -290,7 +290,7 @@ async function getBuf(url){let last;for(let i=0;i<3;i++){try{const r=await fetch
 const FAILS=[];
 function loadGLB(p){ldN++;return getBuf(BASE+p).then(b=>new Promise((res,rej)=>GL.parse(b,'',res,rej))).then(g=>{ldTick();return g}).catch(e=>{console.warn('载入失败',p,e);FAILS.push(p);ldTick();return null})}
 const GUNBASE=(()=>{try{const h=location.hostname;if(/github\.io$/.test(h)||h==='localhost'||h==='127.0.0.1')return './guns/'}catch(e){}return 'https://cdn.jsdelivr.net/gh/liewchoon710-pixel/5dayz@main/shooter/guns/'})();
-function loadGun(w){ldN++;return getBuf(GUNBASE+w.file+'.glb').then(b=>new Promise((res,rej)=>GL.parse(b,'',res,rej))).then(g=>{prepGun(w,g);ldTick()}).catch(e=>{console.warn('枪模型载入失败',w.file,e);ldTick()})}
+function loadGun(w){if(w.proc){try{prepGun(w,{scene:rpgModel()})}catch(e){console.warn(e)}return Promise.resolve()}ldN++;return getBuf(GUNBASE+w.file+'.glb').then(b=>new Promise((res,rej)=>GL.parse(b,'',res,rej))).then(g=>{prepGun(w,g);ldTick()}).catch(e=>{console.warn('枪模型载入失败',w.file,e);ldTick()})}
 function loadTex(p){ldN++;return getBuf(BASE+p).then(b=>{const blob=new Blob([b],{type:'image/webp'});const u=URL.createObjectURL(blob);return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=u})}).then(im=>{const t=new T.Texture(im);t.needsUpdate=true;t.encoding=T.sRGBEncoding;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=TOUCH?2:8;GFX&&GFX.nrm(t,im);ldTick();return t}).catch(e=>{console.warn('载入失败',p,e);FAILS.push(p);ldTick();return null})}
 const HUMANS=[{id:'swat',n:'特警'},{id:'ch17nonpbr',n:'幸存者'},{id:'brute',n:'壮汉'},{id:'erikaarcher',n:'女猎手'}];
 const ZT={
@@ -666,7 +666,10 @@ const WP=[
  {id:'dmr',n:'DMR 精确射手',cat:'sniper',file:'dmr',len:1.05,gz:.3,gy:.4,my:.65,fz:.6,mode:'semi',rt:'mag',dmg:115,rate:.3,mag:10,res:60,rel:2.6,spr:.03,sspr:.002,head:2.8,pel:1,pierce:2,kick:.05,kh:.01,kb:0,scope:28,price:2800,ammoP:250,lvl:8,
   snd:{c:[2300,.09,.6],b:[1200,.2,.8],m:[95,35,.25,.76],t:[650,1,.25]},fl:{s:.7,c:0xffd090,sh:'star6',smoke:1},sh:{s:1.3,c:0xb08a3a}},
  {id:'awm',n:'AWM 狙击枪',cat:'sniper',file:'awm',len:1.18,gz:.28,gy:.35,my:.62,fz:.6,mode:'bolt',rt:'mag',dmg:320,rate:.2,cyc:1.05,mag:5,res:30,rel:3,spr:.06,sspr:.0008,head:2.5,pel:1,pierce:4,push:1,kick:.13,kh:.02,kb:0,scope:16,price:3500,ammoP:300,lvl:10,
-  snd:{c:[2000,.12,.75],b:[1000,.3,1],m:[70,25,.4,1],t:[500,1.6,.38]},fl:{s:1,c:0xffc080,sh:'side',smoke:1},sh:{s:1.5,c:0xc9a040}}];
+  snd:{c:[2000,.12,.75],b:[1000,.3,1],m:[70,25,.4,1],t:[500,1.6,.38]},fl:{s:1,c:0xffc080,sh:'side',smoke:1},sh:{s:1.5,c:0xc9a040}},
+ // RPG：只能从武器箱开出；会炸到自己、工事和车；连打 3 发炮管过热
+ {id:'rpg',n:'RPG-7 火箭筒',cat:'launcher',file:'rpg',proc:1,box:1,rk:1,len:.98,gz:.44,gy:.42,my:.62,fz:.66,mode:'semi',rt:'mag',dmg:1100,rate:.5,mag:1,res:8,rel:1.5,spr:0,head:1,pel:1,kick:.16,kh:.02,kb:0,price:0,ammoP:400,lvl:0,
+  snd:{c:[900,.25,.9],b:[400,.5,1.2],m:[60,25,.5,1],t:[300,1.4,.45]},fl:{s:1.3,c:0xffa040,sh:'cone',smoke:1},sh:null}];
 const WI=Object.fromEntries(WP.map((w,i)=>[w.id,i]));
 WP.forEach(w=>{w.auto=w.mode==='auto'?1:0});
 function wStat(i){const w=WP[i],s=G.ws[i],M=mods();const lv=s.lv,pap=s.pap?1:0;
@@ -766,7 +769,7 @@ const G={state:'load',mode:'z',wave:0,zs:[],queue:[],spawnT:0,cash:0,score:0,kil
 const P={kbv:new T.Vector3(),stun:0,grab:null,pin:null,mash:0,climb:null,y:0,vy:0,air:false,cr:false,crT:0,mg:null,pos:new T.Vector3(),vel:new T.Vector3(),yaw:0,pitch:-.08,rec:0,hp:100,ar:0,c:null,guns:[],aim:0,aimOn:false,fireCd:0,relT:0,dead:false,hurtT:0,regenT:0,spr:0,shake:0,team:0,respT:0,prot:0};
 const HUM={};// 远端玩家 + 电脑士兵
 let VIEW=LS.get('scqh-view')==='fp'?'fp':'tp';let AA=LS.get('scqh-aa')!=='0';// tp=斜肩第三人称  fp=第一人称
-const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26]},ADS=[0,-.058,.24],VMS=.6;
+const VMO={pistol:[.1,-.15,.36],smg:[.11,-.16,.3],shotgun:[.12,-.17,.26],rifle:[.12,-.16,.26],sniper:[.12,-.16,.26],launcher:[.13,-.1,.2]},ADS=[0,-.058,.24],VMS=.6;
 function setView(v){VIEW=v;LS.set('scqh-view',v);camera.near=v==='fp'?.03:.08;camera.updateProjectionMatrix();const b=$('tView');if(b)b.textContent=v==='fp'?'斜肩':'第一';popTxt(v==='fp'?'第一人称':'斜肩视角')}
 const NET={on:false,host:true,me:'me',room:'',tr:null,list:[],started:false,lastH:0,sendT:0,hn:0,out:{f:[],h:[],rq:[]},H:{zh:[],bh:[],f:[],zk:[],ev:[]}};
 const isHost=()=>!NET.on||NET.host;
@@ -774,7 +777,7 @@ const v1=new T.Vector3(),v2=new T.Vector3(),v3=new T.Vector3(),v4=new T.Vector3(
 
 // ---------- 持枪姿势：双手 IK（每把枪起手式不同） ----------
 // 双手目标点，相对“瞄准坐标”：[右, 上, 前]，原点在颈部下方
-const HOLD={pistol:{r:[.05,-.05,.5],l:[-.01,-.08,.45]},smg:{r:[.13,-.12,.27],l:[-.02,-.11,.47]},shotgun:{r:[.15,-.13,.15],l:[-.03,-.14,.56]},rifle:{r:[.15,-.08,.12],l:[-.02,-.1,.5]}};HOLD.sniper=HOLD.rifle;
+const HOLD={pistol:{r:[.05,-.05,.5],l:[-.01,-.08,.45]},smg:{r:[.13,-.12,.27],l:[-.02,-.11,.47]},shotgun:{r:[.15,-.13,.15],l:[-.03,-.14,.56]},rifle:{r:[.15,-.08,.12],l:[-.02,-.1,.5]}};HOLD.sniper=HOLD.rifle;HOLD.launcher={r:[.15,-.04,.1],l:[-.02,-.1,.42]};
 const LOWP={r:[.2,-.48,.18],l:[-.12,-.42,.14]},MAGP=[.04,-.26,.2];
 const IK={s:new T.Vector3(),e:new T.Vector3(),h:new T.Vector3(),d:new T.Vector3(),p:new T.Vector3(),q:new T.Quaternion(),q2:new T.Quaternion(),cur:new T.Vector3(),o:new T.Vector3(),f:new T.Vector3(),r:new T.Vector3(),u:new T.Vector3(),tr:new T.Vector3(),tl:new T.Vector3(),pole:new T.Vector3(),E:new T.Vector3()};
 function aimBone(b,target){b.getWorldPosition(IK.p);const des=IK.d.subVectors(target,IK.p);if(des.lengthSq()<1e-8)return;des.normalize();
@@ -952,6 +955,7 @@ function mods(){const c=k=>CARD[k]||0;return{dmg:(1+.15*c('dmg'))*(PERK.dtap?1.2
 function fire(){if(P.mg)return mgFire();const i=G.cur,w=WP[i],s=G.ws[i],st=wStat(i),M=mods();
  if(P.relT>0&&w.rt==='shell'&&s.mag>0){P.relT=0;sMech('pump')}
  if(P.relT>0||P.fireCd>0||P.dead||P.sw||P.cyc>0||P.knife>0||P.thr>0||P.papT>0)return;
+ if(w.rk&&P.ovh>0){popTxt('炮管过热，再等 '+Math.ceil(P.ovh)+' 秒');P.fireCd=.5;return}
  if(s.mag<=0){sMech('dry');P.fireCd=.3;P.burst=0;reload();return}
  s.mag--;P.fireCd=w.rate*M.rate;P.spr=Math.min(P.spr+w.kick*1.4,.08);P.prot=0;
  if(w.mode==='burst'){P.burst=(P.burst||0)+1;if(P.burst>=3||s.mag<=0){P.burst=0;P.fireCd=.3}}
@@ -963,7 +967,8 @@ function fire(){if(P.mg)return mgFire();const i=G.cur,w=WP[i],s=G.ws[i],st=wStat
  const moving=P.vel.lengthSq()>1;const sp0=P.scoped&&w.sspr?w.sspr:w.spr*(P.aimOn?(w.cat==='sniper'?.5:.45):1);
  const base=(sp0*(moving?1.5:1)+P.spr*(P.scoped?.1:.5))*(P.cr?.7:1)*(P.air?2:1);
  let any=false,head=false;const tc=pap?0xc890ff:null;
- for(let k=0;k<w.pel;k++){const r=shoot(spreadDir(base),st.dmg,w.head*M.hs,(w.pierce||0)+M.pierce,w.push,i,muz,tc);any=any||r.any;head=head||r.head;
+ if(w.rk)rkFire(muz,st.dmg);
+ for(let k=0;k<(w.rk?0:w.pel);k++){const r=shoot(spreadDir(base),st.dmg,w.head*M.hs,(w.pierce||0)+M.pierce,w.push,i,muz,tc);any=any||r.any;head=head||r.head;
   if(NET.on&&k<3)NET.out.f.push([i,r2(muz.x),r2(muz.y),r2(muz.z),r2(r.ep.x),r2(r.ep.y),r2(r.ep.z)])}
  if(any){hitMark(head);if(head)sHead();else sFlesh()}
  const kk=w.kick*(TOUCH?.5:1)*(P.aimOn?.6:1)*(P.cr?.7:1);P.rec+=kk;P.yaw-=(rand(-1,1)+w.kb)*w.kh*(TOUCH?.35:1);P.vk=Math.min(.12,(P.vk||0)+kk*1.6);P.shake=Math.max(P.shake,w.cat==='sniper'||w.cat==='shotgun'?.08:0);
@@ -1283,14 +1288,14 @@ function dailyList(){const t=today();if(!PROF.daily||PROF.daily.date!==t){let sd
 function missionEv(id,n=1){const L=dailyList();let ch=0;for(const m of L){if(m.id!==id||m.done)continue;const d=MISS.find(x=>x.id===id);m.p=d.max?Math.max(m.p,n):m.p+n;if(m.p>=d.g){m.p=d.g;m.done=1;PROF.coins+=150;addXP(200);popTxt('每日任务完成：'+d.t+'（金币+150）');sCash()}ch=1}if(ch)saveProf()}
 const ARM=[{k:'cash',n:'起始资金 +500',c:300,max:3},{k:'armor',n:'开局护甲 +50',c:400,max:2},{k:'nade',n:'开局手雷 +1',c:250,max:2},{k:'uzi',n:'开局带乌兹冲锋枪',c:500,max:1}];
 function applyArmory(){const a=PROF.arm;G.cash+=500*(a.cash|0);P.ar=Math.min(100,50*(a.armor|0));THR.inv={nade:2+(a.nade|0),molo:1,pipe:1};if(a.uzi){G.ws[WI.uzi].own=true;G.slots[1]=WI.uzi}}
-function pvpPrimary(){const id=LS.get('scqh-pvpw');const i=WI[id];if(i!=null&&WP[i].lvl<=PROF.lvl&&WP[i].cat!=='pistol')return i;
+function pvpPrimary(){const id=LS.get('scqh-pvpw');const i=WI[id];if(i!=null&&WP[i].lvl<=PROF.lvl&&WP[i].cat!=='pistol'&&!WP[i].box)return i;
  for(const k of['ak47','mp7','m870','uzi']){const j=WI[k];if(WP[j].lvl<=PROF.lvl)return j}return WI.uzi}
 function profHTML(){const L=dailyList();const nx=needXP(PROF.lvl);
  return `<div style="font-size:18px;color:#f0c08a">Lv.${PROF.lvl} <span style="font-size:13px;color:#ddd">${PROF.xp} / ${nx} 经验</span>　<span style="color:#ffd84a">金币 ${PROF.coins}</span></div>
  <div class="bar" style="max-width:420px;margin:6px auto"><i style="width:${100*PROF.xp/nx}%;background:linear-gradient(90deg,#c08020,#ffd84a)"></i></div>
  <div class="lbl">今日任务（每个奖励金币 150 + 经验 200）</div>${L.map(m=>{const d=MISS.find(x=>x.id===m.id);return `<div style="font-size:14px;margin:3px 0">${m.done?'✅':'⬜'} ${d.t} <span style="opacity:.6">${m.p}/${d.g}</span></div>`}).join('')}
  <div class="lbl">军械库（用金币永久升级）</div><div class="row">${ARM.map(a=>{const lv=PROF.arm[a.k]|0;return `<button class="btn g" style="min-width:0;font-size:13px;padding:6px 10px" ${lv>=a.max||PROF.coins<a.c?'disabled':''} onclick="buyArm('${a.k}')">${a.n} ${lv}/${a.max}${lv<a.max?' · '+a.c+'金币':''}</button>`}).join('')}</div>
- <div class="lbl">武器解锁</div><div style="font-size:12.5px;line-height:1.7;max-width:620px;margin:0 auto">${WP.map(w=>`<span style="opacity:${w.lvl<=PROF.lvl?1:.45}">${w.n}${w.lvl>PROF.lvl?'(Lv.'+w.lvl+')':''}</span>`).join('　')}</div>`}
+ <div class="lbl">武器解锁</div><div style="font-size:12.5px;line-height:1.7;max-width:620px;margin:0 auto">${WP.filter(w=>!w.box).map(w=>`<span style="opacity:${w.lvl<=PROF.lvl?1:.45}">${w.n}${w.lvl>PROF.lvl?'(Lv.'+w.lvl+')':''}</span>`).join('　')}</div>`}
 function buyArm(k){const a=ARM.find(x=>x.k===k);const lv=PROF.arm[k]|0;if(lv>=a.max||PROF.coins<a.c)return;PROF.coins-=a.c;PROF.arm[k]=lv+1;saveProf();sCash();$('profBox').innerHTML=profHTML()}
 
 // ================= CoD 风：神秘武器箱 / 武器强化机 / 能力饮料 / 掉落道具 =================
@@ -1323,7 +1328,7 @@ function buyPerk(k){const pk=PERKS[k];if(PERK[k]||Object.keys(PERK).length>=4||G
 function useBox(){if(BOX.st==='idle'){if(G.cash<950)return popTxt('资金不足 $950');G.cash-=950;BOX.st='spin';BOX.t=0;BOX.gun=-1;sJingle(3);hud()}
  else if(BOX.st==='ready'){const i=BOX.gun;BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}giveGun(i);popTxt('获得 '+WP[i].n);sRack()}}
 function updBox(dt){if(!BOX)return;BOX.lid.position.y=.6+(BOX.st!=='idle'?.25:0);
- if(BOX.st==='spin'){BOX.t+=dt;if(!BOX.disp||(BOX.t*8|0)!==BOX.k){BOX.k=BOX.t*8|0;if(BOX.disp)scene.remove(BOX.disp);BOX.gun=Math.floor(Math.random()*WP.length);if(G.slots.includes(BOX.gun))BOX.gun=(BOX.gun+1)%WP.length;const g=GUNS[WP[BOX.gun].id];BOX.disp=g?g.clone(true):new T.Group();BOX.disp.position.copy(BOX.g.position).setY(1.1);scene.add(BOX.disp)}
+ if(BOX.st==='spin'){BOX.t+=dt;if(!BOX.disp||(BOX.t*8|0)!==BOX.k){BOX.k=BOX.t*8|0;if(BOX.disp)scene.remove(BOX.disp);BOX.gun=Math.random()<.16?WI.rpg:Math.floor(Math.random()*WP.length);if(G.slots.includes(BOX.gun))BOX.gun=(BOX.gun+1)%WP.length;const g=GUNS[WP[BOX.gun].id];BOX.disp=g?g.clone(true):new T.Group();BOX.disp.position.copy(BOX.g.position).setY(1.1);scene.add(BOX.disp)}
   BOX.disp.position.y=.9+Math.min(1,BOX.t/3)*.5;BOX.disp.rotation.y+=dt*3;if(BOX.t>=3.2){BOX.st='ready';BOX.t=0;sCash();const nm=WP[BOX.gun].n;if(Math.hypot(P.pos.x-BOX.pos.x,P.pos.z-BOX.pos.z)<6&&!P.dead){useBox();banner('获得 '+nm,'已经拿在手上了。按「换枪」可以切回其他枪',3)}else popTxt('武器箱开出：'+nm+'（走过去'+(TOUCH?'点「拿取」':'按 E')+'）')}}
  else if(BOX.st==='ready'){BOX.t+=dt;BOX.disp.rotation.y+=dt;if(BOX.t>9){BOX.st='idle';scene.remove(BOX.disp);BOX.disp=null}}}
 function usePaP(){const i=G.cur,s=G.ws[i];if(s.pap)return popTxt('这把已经强化过了');if(G.cash<2000)return popTxt('资金不足 $2000');G.cash-=2000;P.papT=3;P.papI=i;sJingle(5);noise(400,2.5,.15,'lowpass');hud()}
@@ -1357,12 +1362,12 @@ function throwIt(){const k=THR.sel;if(P.dead||P.dn||P.mg||P.thr>0||THR.inv[k]<=0
  const v=v2.copy(camF).multiplyScalar(15).add(v3.set(0,3.5,0)).add(P.vel);const e=[k,r2(o.x),r2(o.y),r2(o.z),r2(v.x),r2(v.y),r2(v.z),NET.me,Math.random().toString(36).slice(2,7)];
  spawnThrow(e);nsend('th',e);if(THR.inv[k]<=0)cycleThr();hud(true)}
 const thrM={nade:new T.MeshStandardMaterial({color:0x3a4a2a,roughness:.6,metalness:.4}),molo:new T.MeshStandardMaterial({color:0x5a8a3a,roughness:.2,metalness:.1,transparent:true,opacity:.85}),pipe:new T.MeshStandardMaterial({color:0x707070,roughness:.4,metalness:.7})};
-function spawnThrow(e){const [k,x,y,z,vx,vy,vz,pid,tid]=e;const geo=k==='nade'?new T.SphereGeometry(.07,10,8):k==='molo'?new T.CylinderGeometry(.04,.05,.2,8):new T.CylinderGeometry(.04,.04,.24,8);
+function spawnThrow(e){if(e[0]==='rk')return rkSpawn(e);const [k,x,y,z,vx,vy,vz,pid,tid]=e;const geo=k==='nade'?new T.SphereGeometry(.07,10,8):k==='molo'?new T.CylinderGeometry(.04,.05,.2,8):new T.CylinderGeometry(.04,.04,.24,8);
  const m=new T.Mesh(geo,thrM[k]);m.position.set(x,y,z);m.castShadow=true;scene.add(m);let li=null;if(k==='pipe'){li=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff2020,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));li.scale.setScalar(.5);m.add(li)}
  if(k==='molo'){const f=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff8030,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));f.scale.setScalar(.35);f.position.y=.12;m.add(f)}
  THR.list.push({k,m,v:new T.Vector3(vx,vy,vz),pid,tid,t:k==='nade'?2.3:k==='pipe'?6.5:9,li,rest:false,beep:0})}
 function boomAt(p,R,dmg,pid){pushEv(['ex',r2(p.x),r2(p.y),r2(p.z),R]);stBlast(p.x,p.y,p.z,R*.7,dmg*.2,1);for(const e of EXPL){if(!e.dead&&Math.hypot(e.p.x-p.x,e.p.z-p.z)<R*.8){const id=e.id;setTimeout(()=>hitExpl(id,9999,pid),140)}}for(const z of G.zs){if(z.dead)continue;const d=z.c.wrap.position.distanceTo(p);if(d<R)hurtZ(z,dmg*Math.pow(1-d/R,.5),false,null,0,pid,98)}}
-function updThrows(dt){for(let i=THR.list.length-1;i>=0;i--){const q=THR.list[i];const p=q.m.position;q.t-=dt;
+function updThrows(dt){for(let i=THR.list.length-1;i>=0;i--){const q=THR.list[i];const p=q.m.position;q.t-=dt;if(q.k==='rk'){if(rkStep(q,p,dt)){scene.remove(q.m);THR.list.splice(i,1)}continue}
   if(!q.rest){q.v.y-=14*dt;const ox=p.x,oz=p.z;p.addScaledVector(q.v,dt);q.m.rotation.x+=dt*8;const tmp=new T.Vector3(p.x,0,p.z);pushOut(tmp,.08,'p',p.y);if(tmp.x!==p.x||tmp.z!==p.z){if(q.k==='molo'){q.t=0}p.x=tmp.x;p.z=tmp.z;q.v.x*=-.4;q.v.z*=-.4}
    const g=groundH(p,.05,p.y+.2);if(p.y<=g+.06){p.y=g+.06;if(q.k==='molo')q.t=0;else{q.v.y*=-.35;q.v.x*=.6;q.v.z*=.6;if(Math.abs(q.v.y)<.8){q.rest=true}if(AC&&p.distanceTo(P.pos)<20)tone(900,600,.05,.06,'triangle')}}}
   if(q.k==='pipe'){q.beep-=dt;if(q.beep<=0){q.beep=Math.max(.12,q.t/14);if(AC){const d=p.distanceTo(P.pos);tone(1800,1800,.06,.18*clamp(1-d/40,.05,1),'square')}if(q.li)q.li.visible=!q.li.visible}}
@@ -1896,10 +1901,10 @@ function showBoard(on){$('board').classList.toggle('hid',!on);if(on)renderBoard(
 function openShop(){if(G.inter<=0||G.state!=='play'||G.mode!=='z'||P.dead)return;G.shop=true;$('shop').classList.remove('hid');if(document.pointerLockElement)document.exitPointerLock();renderShop()}
 function closeShop(){G.shop=false;$('shop').classList.add('hid')}
 function buy(c){if(G.cash<c)return false;G.cash-=c;sCash();return true}
-const CATN={pistol:'手枪',smg:'冲锋枪',rifle:'突击步枪',shotgun:'霰弹枪',sniper:'狙击枪'},MODEN={semi:'半自动',auto:'全自动',burst:'三连发',pump:'泵动',bolt:'拉栓',break:'双管'};
+const CATN={pistol:'手枪',smg:'冲锋枪',rifle:'突击步枪',shotgun:'霰弹枪',sniper:'狙击枪',launcher:'火箭筒'},MODEN={semi:'半自动',auto:'全自动',burst:'三连发',pump:'泵动',bolt:'拉栓',break:'双管'};
 function renderShop(){$('shopCash').textContent='资金 $'+G.cash;const gr=$('shopGrid');gr.innerHTML='';$('bNext').style.display=isHost()?'':'none';const M=mods(),lv=profLevel();
  const cost=c=>Math.round(c*M.shop);
- WP.forEach((w,i)=>{const s=G.ws[i],st=wStat(i);const inSlot=G.slots.includes(i);const d=document.createElement('div');d.className='card';const locked=w.lvl>lv;
+ WP.forEach((w,i)=>{const s=G.ws[i],st=wStat(i);const inSlot=G.slots.includes(i);const d=document.createElement('div');d.className='card';const locked=w.lvl>lv;if(w.box&&!inSlot)return;
   d.innerHTML=`<h3>${w.n}${inSlot?'<span style="font-size:12px;color:#f0c08a"> Lv.'+s.lv+(s.pap?' · 强化':'')+'</span>':''}</h3><p>${CATN[w.cat]} · ${MODEN[w.mode]}<br>伤害 ${Math.round(st.dmg)}${w.pel>1?'×'+w.pel:''} · 弹匣 ${st.mag}${w.scope?' · 瞄准镜':''}</p>`;
   const mk=(t,c,fn,dis)=>{const b=document.createElement('button');b.className='btn';b.textContent=t+(c?' $'+c:'');b.disabled=dis||G.cash<c;b.onclick=()=>{if(buy(c)){fn();renderShop();hud()}};d.appendChild(b)};
   if(locked){const b=document.createElement('button');b.className='btn g';b.textContent='等级 '+w.lvl+' 解锁';b.disabled=true;d.appendChild(b)}
@@ -1947,7 +1952,7 @@ function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let 
  chips($('viewRow'),['斜肩（第三人称）','第一人称'],VIEW==='fp'?1:0,i=>{VIEW=i?'fp':'tp';LS.set('scqh-view',VIEW);showMenu()});
  if(GFX)chips($('gfxRow'),['电影级','均衡','省电'],2-GFX.q,i=>{GFX.setQ(2-i);showMenu()});
  chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
- {const L=WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol');const cur=pvpPrimary();const el=$('pvpWRow');el.style.display=modeS==='pvp'?'':'none';el.innerHTML='';if(modeS==='pvp'){el.innerHTML='<div class="lbl" style="width:100%">对战主武器</div>';L.forEach(i=>{const w=WP[i];const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.style.opacity=w.lvl<=PROF.lvl?1:.35;b.textContent=w.n+(w.lvl>PROF.lvl?' Lv'+w.lvl:'');b.onclick=()=>{if(w.lvl>PROF.lvl)return;LS.set('scqh-pvpw',w.id);showMenu()};el.appendChild(b)})}}
+ {const L=WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol'&&!WP[i].box);const cur=pvpPrimary();const el=$('pvpWRow');el.style.display=modeS==='pvp'?'':'none';el.innerHTML='';if(modeS==='pvp'){el.innerHTML='<div class="lbl" style="width:100%">对战主武器</div>';L.forEach(i=>{const w=WP[i];const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.style.opacity=w.lvl<=PROF.lvl?1:.35;b.textContent=w.n+(w.lvl>PROF.lvl?' Lv'+w.lvl:'');b.onclick=()=>{if(w.lvl>PROF.lvl)return;LS.set('scqh-pvpw',w.id);showMenu()};el.appendChild(b)})}}
  chips($('aiRow'),['开','关'],aiS?0:1,i=>{aiS=!i;LS.set('scqh-ai',aiS?'1':'0');showMenu()});$('aiWrap').style.display=modeS==='pvp'?'':'none';
  const best=+(LS.get('scqh-best')||0);$('best').textContent=best?'打丧尸最佳：清除 '+best+' 波':'';
  $('helpTxt').innerHTML=(TOUCH?'左半屏拖动 = 移动（推到底冲刺）　右半屏拖动 = 转视角　按住「开火」可边打边瞄（辅助瞄准可在主菜单关闭）　「跳」「蹲」「上枪」按钮在右边':
@@ -1997,7 +2002,7 @@ addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT'){if(e.key
  if(e.code==='Space'){e.preventDefault();if(P.mg)dismount();else doJump()}
  if(e.code==='KeyC'||e.code==='ControlLeft')toggleCrouch();
  if(e.code==='KeyE')doUse();if(e.code==='KeyG')throwIt();if(e.code==='KeyH'||e.code==='KeyT')cycleThr();if(e.code==='KeyF')knife();
- if(e.code==='KeyR')reload();if(e.code==='KeyV')setView(VIEW==='fp'?'tp':'fp');if(P.dead&&G.mode==='pvp'&&/^Digit[1-9]$/.test(e.code)){const L=WP.filter(w=>w.cat!=='pistol'&&w.lvl<=PROF.lvl);const w=L[+e.code.slice(5)-1];if(w){LS.set('scqh-pvpw',w.id);popTxt('下一条命：'+w.n)}}
+ if(e.code==='KeyR')reload();if(e.code==='KeyV')setView(VIEW==='fp'?'tp':'fp');if(P.dead&&G.mode==='pvp'&&/^Digit[1-9]$/.test(e.code)){const L=WP.filter(w=>w.cat!=='pistol'&&!w.box&&w.lvl<=PROF.lvl);const w=L[+e.code.slice(5)-1];if(w){LS.set('scqh-pvpw',w.id);popTxt('下一条命：'+w.n)}}
  else if(/^Digit[1-3]$/.test(e.code))equipSlot(+e.code.slice(5)-1);if(e.code==='KeyQ'){const k=G.slots.indexOf(G.last);if(k>=0)equipSlot(k)}
  if(e.code==='KeyB'&&G.mode==='z'){if(G.shop){closeShop();lock()}else openShop()}});
 addEventListener('keyup',e=>{IN.k[e.code]=false;if(e.code==='Tab')showBoard(false)});
@@ -2318,6 +2323,33 @@ function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+
   if(f.t>2.2){g.position.y-=dt*1.1;if(f.t>4.2){scene.remove(g);BFX.splice(i,1)}}}}
 function brkSnap(){let a=null;for(let i=0;i<BRK.length;i++)if(BRK[i].dead)(a||(a=[G.layoutSeed])).push(i);return a||undefined}
 function onBK(a){if(a[0]!==G.layoutSeed)return;for(let i=1;i<a.length;i++)brkKill(a[i],0,0,false)}
+// ---- RPG 火箭筒
+function rpgModel(){const g=new T.Group(),M=(c,r=.5,m=.5)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x3b4038),wood=M(0x6a4526,.7,.05),olive=M(0x4d5a36);
+ const cyl=(r0,r1,l,x,mt,nm)=>{const m=new T.Mesh(new T.CylinderGeometry(r0,r1,l,14),mt);m.rotation.z=-Math.PI/2;m.position.x=x;if(nm)m.name=nm;g.add(m);return m};
+ cyl(.032,.032,.74,0,steel);cyl(.04,.04,.26,-.08,wood);cyl(.032,.06,.13,-.43,steel);cyl(.037,.037,.03,.36,steel);
+ const rk=new T.Group();rk.name='rkt';const c1=new T.Mesh(new T.CylinderGeometry(.012,.05,.12,12),olive);c1.rotation.z=-Math.PI/2;c1.position.x=.55;const c2=new T.Mesh(new T.CylinderGeometry(.05,.028,.14,12),olive);c2.rotation.z=-Math.PI/2;c2.position.x=.43;rk.add(c1,c2);g.add(rk);
+ const bx=(w,h,d,x,y,mt)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt);m.position.set(x,y,0);g.add(m);return m};
+ bx(.035,.11,.03,.06,-.08,wood).rotation.z=.25;bx(.03,.09,.028,-.1,-.075,wood);bx(.09,.02,.025,.06,-.035,steel);bx(.07,.05,.03,.04,.06,steel);bx(.012,.05,.012,.3,.05,steel);return g}
+function rkFire(muz,dmg){const o=camera.position;let t=Math.min(120,wallT(SHO.copy(o),camF,140));if(camF.y<-.01)t=Math.min(t,(o.y-(P.y||0))/-camF.y+.2);const tp=v2.copy(o).addScaledVector(camF,Math.max(t,3));
+ let d=v3.copy(tp).sub(muz);if(d.length()<2.5)d.copy(camF);d.normalize();const e=['rk',r2(muz.x),r2(muz.y),r2(muz.z),r2(d.x*28),r2(d.y*28),r2(d.z*28),NET.me,Math.random().toString(36).slice(2,7),Math.round(dmg)];
+ spawnThrow(e);nsend('th',e);const b=v1.copy(muz).addScaledVector(d,-1.25);emit(b,12,[.8,.78,.74],5,.5,-1,1.2);emit(b,6,[1,.6,.2],6,.3,2,.25);P.shake=Math.max(P.shake,.25);
+ P.heat=(P.heat||0)+1;P.heatT=7;if(P.heat>=3){P.heat=0;P.ovh=3;popTxt('炮管过热！冷却 3 秒')}}
+const rkGeo=new T.CylinderGeometry(.035,.045,.5,10);rkGeo.rotateX(Math.PI/2);const rkMat=new T.MeshStandardMaterial({color:0x4d5a36,roughness:.5,metalness:.4});
+function rkSpawn(e){const [k,x,y,z,vx,vy,vz,pid,tid,dmg]=e;const m=new T.Mesh(rkGeo,rkMat);m.position.set(x,y,z);const f=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xffa040,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));f.scale.setScalar(1.1);f.position.z=-.35;m.add(f);
+ scene.add(m);const v=new T.Vector3(vx,vy,vz);m.lookAt(x+vx,y+vy,z+vz);THR.list.push({k:'rk',m,v,pid,tid,t:4,dmg:dmg||1100,sp:v.length()});
+ if(AC){const d=Math.hypot(P.pos.x-x,P.pos.z-z),vl=clamp(1-d/60,0,1);noise(1200,.9,.5*vl,'bandpass');tone(220,90,.8,.25*vl,'sawtooth')}}
+const rkD=new T.Vector3(),rkQ=new T.Vector3();
+function rkStep(q,p,dt){q.sp=Math.min(80,q.sp+110*dt);const d=rkD.copy(q.v).normalize();d.y-=.02*dt*q.sp/28;d.normalize();q.v.copy(d).multiplyScalar(q.sp);const st=q.sp*dt;let hit=q.t<=0,ht=st;
+ const w=wallT(p,d,st+.3);if(w<=st+.25){hit=true;ht=Math.min(ht,Math.max(0,w-.1))}
+ for(const z of G.zs){if(z.dead)continue;const zp=z.c.wrap.position;rkQ.set(zp.x-p.x,(z.y||0)+z.c.h*.55-p.y,zp.z-p.z);const tt=clamp(rkQ.dot(d),0,st);const dx=rkQ.x-d.x*tt,dy=rkQ.y-d.y*tt,dz=rkQ.z-d.z*tt;if(dx*dx+dz*dz<(z.r+.3)*(z.r+.3)&&Math.abs(dy)<z.c.h*.6){hit=true;ht=Math.min(ht,tt)}}
+ p.addScaledVector(d,ht);const g=groundH(p,.05,p.y+.2);if(p.y<=g+.08){p.y=g+.08;hit=true}
+ q.m.lookAt(p.x+d.x,p.y+d.y,p.z+d.z);emit(v1.copy(p).addScaledVector(d,-.4),3,[.78,.76,.72],.7,.3,-1.2,1.3);emit(v1,1,[1,.6,.2],1.5,.2,0,.2);
+ if(hit&&isHost())rkBoom(p,q.pid,q.dmg);return hit}
+function rkBoom(p,pid,dmg){boomAt(p,6.5,dmg,pid);stBlast(p.x,p.y,p.z,4.5,dmg*.45,1);
+ for(const a of actors()){if(a.dead||a.bot)continue;const ay=(a.me?P.y:(a.pos.y||0))+1,d=Math.hypot(a.pos.x-p.x,ay-p.y,a.pos.z-p.z);if(d<6){dmgTo(a,170*Math.pow(1-d/6,.8),p);knock(a,p,10*(1-d/7),.5)}}
+ for(let i=0;i<BRK.length;i++){const B=BRK[i];if(B.dead)continue;const o=B.c.o;if(p.y>o.h+1.5)continue;const L=obL(o,p.x,p.z);const ex=Math.max(0,Math.abs(L.x)-o.hx),ez=Math.max(0,Math.abs(L.z)-o.hz);if(ex*ex+ez*ez>(B.veh?4:7.3))continue;
+  let dx=B.x-p.x,dz=B.z-p.z;const l=Math.hypot(dx,dz)||1;pushEv(['$p',i,r2(dx/l),r2(dz/l)])}}
+function rkFrame(dt){if(P.ovh>0)P.ovh-=dt;if(P.heatT>0){P.heatT-=dt;if(P.heatT<=0)P.heat=0}const gi=WI.rpg,g=P.guns&&P.guns[gi];if(g&&G.ws&&G.ws[gi]){const r=g.userData.rk2||(g.userData.rk2=g.getObjectByName('rkt'));if(r)r.visible=G.ws[gi].mag>0&&!(G.cur===gi&&P.relT>P.relD*.35)}}
 function stHost(dt){if(G.trkT>0){G.trkT-=dt;if(G.trkT<=0)spawnTruck()}
  if(TRUCK&&TRUCK.leaveT>0){TRUCK.leaveT-=dt;if(TRUCK.leaveT<=0){pushEv(['$l',1]);stDel(TRUCK);G.stDirty=1}}
  for(const S of ST.slice()){if(S.k!==1&&S.k!==3)continue;for(const z of G.zs){if(z.dead||z.climb||Math.abs(z.y-S.y)>.7)continue;const p=z.c.wrap.position;if(Math.abs(p.x-S.x)>2.2||Math.abs(p.z-S.z)>2.2)continue;
@@ -2376,7 +2408,7 @@ const MKV=new T.Vector3();
 function stMark(el,x,y,z,txt,col,show){if(!show){if(el.style.display!=='none')el.style.display='none';return}MKV.set(x,y,z).project(camera);let sx=MKV.x,sy=MKV.y;const behind=MKV.z>1;if(behind){sx=-sx;sy=-1}
  const m=.9;if(behind||Math.abs(sx)>m||Math.abs(sy)>m){const k=Math.max(Math.abs(sx)/m,Math.abs(sy)/m,1e-3);sx/=k;sy/=k;if(behind)sy=-m}
  el.style.display='block';el.style.left=((sx*.5+.5)*100)+'%';el.style.top=((-sy*.5+.5)*100)+'%';if(el._t!==txt){el._t=txt;el.textContent=txt}if(el._c!==col){el._c=col;el.style.borderColor=col;el.style.color=col}}
-function stFrame(dt){const t=performance.now()/1000;if(BFX.length)brkFrame(dt);
+function stFrame(dt){const t=performance.now()/1000;if(BFX.length)brkFrame(dt);rkFrame(dt);
  for(const S of ST){if(S.shk>0){S.shk-=dt;const k=Math.max(0,S.shk)/.16;S.g.rotation.z=Math.sin(t*70)*.035*k;S.g.rotation.x=Math.cos(t*61)*.025*k}else if(S.g.rotation.z){S.g.rotation.z=0;S.g.rotation.x=0}
   const u=S.g.userData;if(u.led)u.led.visible=(t*2.2+S.id*.37)%1<.3;if(u.bea){const on=(t*1.1)%1<.5;u.bea.material.opacity=on?1:.15}if(u.beam)u.beam.material.opacity=.38+Math.sin(t*3)*.12}
  bldFrame(dt);
