@@ -596,8 +596,8 @@ function layoutGeneric(sr,sg,sp){const S=MAP.slots,sh=a=>{a=a.slice();for(let i=
 function colOf(g){g.updateMatrixWorld(true);const b=new T.Box3();g.traverse(m=>{if(m.isMesh&&!m.isSprite)b.expandByObject(m)});if(!b.isEmpty())addCol(b.min.x,b.min.z,b.max.x,b.max.z,b.max.y)}
 // ---- 每局随机摆设（种子由房主发给所有人，保证大家同一张图）
 const LAYOUT=[];const BRK=[],BFX=[];// 能被坦克尸/尸王撞开的摆设
-const BURNT=new T.MeshStandardMaterial({color:0x17130f,roughness:1,metalness:.1});
-function wreck(g,x,z){const h=Math.abs(Math.sin(x*12.9898+z*78.233)*43758.5453)%1,h2=(h*7.13)%1;g.rotation.z+=(h2-.5)*.08;g.rotation.x+=(h-.5)*.03;g.position.y-=.05;if(h<.28){g.position.y-=.04;g.traverse(o=>{if(o.isMesh)o.material=BURNT})}}
+const BURNT=new T.MeshStandardMaterial({color:0x2a2520,roughness:1,metalness:.1});
+function wreck(g,x,z){const h=Math.abs(Math.sin(x*12.9898+z*78.233)*43758.5453)%1,h2=(h*7.13)%1;g.rotation.z+=(h2-.5)*.08;g.rotation.x+=(h-.5)*.03;g.position.y-=.05;if(h<.28){g.position.y-=.04;GFX&&GFX.weather&&GFX.weather(BURNT,.85,.5);g.traverse(o=>{if(o.isMesh)o.material=BURNT})}}
 // 荒废的摆设：杂草、污渍、废纸、碎石堆（不挡路，只是看起来没人管了）
 let DRL=null;function derelictAssets(){if(DRL)return DRL;
  const weed=ctex(128,(g,s)=>{g.clearRect(0,0,s,s);g.lineCap='round';for(let i=0;i<40;i++){const x=s*.5+(Math.random()-.5)*s*.7,h=s*(.35+Math.random()*.6),b=(Math.random()-.5)*s*.45;g.strokeStyle=['#3f4a22','#55592c','#6b6538','#34401e','#7a7044'][i%5];g.lineWidth=1.2+Math.random()*1.8;g.beginPath();g.moveTo(x,s);g.quadraticCurveTo(x+b*.3,s-h*.6,x+b,s-h);g.stroke()}});
@@ -656,7 +656,7 @@ function buildLayout(sd){
  buildMachines(VENDS,[b1.x,b1.z,b1.ry],[b2.x,b2.z,b2.ry]);
  try{derelict(sd)}catch(e){console.warn(e)}scene.add=add0;DYN=false;G.layoutSeed=sd}
 function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return null;const o=src.clone(true);
- o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;if(/vehicle|bus|truck|forklift/.test(n)){m.material=m.material.clone();m.material.color&&m.material.color.multiplyScalar(.62)}}});
+ o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});
  const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
  if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
@@ -2117,8 +2117,35 @@ GFX=(()=>{
   else if(t===TEX.metal_a){o.roughness=.6;o.metalness=.55}
   else if(t===TEX.walk){o.roughness=.78}
   return o}
+ // ---------- 做旧着色：锈迹、掉漆、泥污、积灰、表面凹凸（程序生成，不需要贴图） ----------
+ function weather(m,rust,dust){if(q<1||!m||!m.isMeshStandardMaterial||m.userData.wz)return;m.userData.wz=1;const U={uRust:{value:rust},uDust:{value:dust}};m.extensions=Object.assign(m.extensions||{},{derivatives:true});
+  m.customProgramCacheKey=()=>'wz'+(TOUCH?1:0);
+  m.onBeforeCompile=sh=>{sh.uniforms.uRust=U.uRust;sh.uniforms.uDust=U.uDust;
+   sh.vertexShader='varying vec3 vWzP;varying vec3 vWzN;varying float vWzH;\n'+sh.vertexShader.replace('#include <fog_vertex>','#include <fog_vertex>\n vec4 wzp=modelMatrix*vec4(transformed,1.);vWzP=wzp.xyz;vWzH=wzp.y-modelMatrix[3].y;vWzN=normalize(mat3(modelMatrix)*objectNormal);');
+   sh.fragmentShader='varying vec3 vWzP;varying vec3 vWzN;varying float vWzH;uniform float uRust;uniform float uDust;float wzR;float wzB;\n'+
+    'float wzh(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}\n'+
+    'float wzn(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(wzh(i),wzh(i+vec3(1,0,0)),f.x),mix(wzh(i+vec3(0,1,0)),wzh(i+vec3(1,1,0)),f.x),f.y),mix(mix(wzh(i+vec3(0,0,1)),wzh(i+vec3(1,0,1)),f.x),mix(wzh(i+vec3(0,1,1)),wzh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'+
+    sh.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+  {float n1=wzn(vWzP*1.3)*.6+wzn(vWzP*3.1)*.4,n2=wzn(vWzP*7.)*.65+wzn(vWzP*15.)*.35,n3=wzn(vWzP*${TOUCH?'24.':'38.'});
+   float low=smoothstep(1.1,0.,vWzH),up=clamp(vWzN.y,0.,1.);
+   wzR=smoothstep(.56,.74,n1*.55+n2*.45+low*.22)*uRust;
+   float chip=smoothstep(.7,.76,n2*.6+n3*.4)*uRust*.7;
+   vec3 base=diffuseColor.rgb*(.74+.4*n2)*(.9+.2*n1);
+   base=mix(base,vec3(dot(base,vec3(.33))),.25*uRust);
+   vec3 rc=mix(vec3(.2,.09,.04),vec3(.45,.24,.1),n3*.6+n2*.4);
+   base=mix(base,mix(rc,vec3(.5,.48,.45),.15),chip*.6);
+   base=mix(base,rc,wzR);
+   base=mix(base,vec3(.15,.12,.09),low*smoothstep(.3,.75,n2)*.75);
+   base=mix(base,vec3(.44,.41,.35),up*(.3+.45*n2)*uDust);
+   base*=1.-.35*smoothstep(.45,.2,n1)*(1.-up)*uDust;
+   diffuseColor.rgb=base;wzB=n2*.5+n3*.3+wzR*.7+chip*.5;}`)
+    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n roughnessFactor=mix(roughnessFactor,1.,clamp(wzR+uDust*.4,0.,1.));')
+    .replace('#include <metalnessmap_fragment>','#include <metalnessmap_fragment>\n metalnessFactor*=1.-wzR;')
+    .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+  {vec2 dh=vec2(dFdx(wzB),dFdy(wzB));vec3 sx=dFdx(-vViewPosition),sy=dFdy(-vViewPosition);vec3 r1=cross(sy,normal),r2=cross(normal,sx);float fd=dot(sx,r1);vec3 gr=sign(fd)*(dh.x*r1+dh.y*r2);normal=normalize(abs(fd)*normal-gr*.035);}`)};m.needsUpdate=true}
  function props(){for(const n in PROPS){const car=/vehicle|bus|forklift|container|vending/.test(n);PROPS[n].traverse(o=>{if(!o.isMesh)return;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(!m||!('roughness' in m))continue;
-   if(car){m.roughness=Math.max(m.roughness,.8);m.metalness=Math.min(m.metalness,.2);m.envMapIntensity=.3;if(m.color&&/container/.test(n)){m.color.setRGB(.74,.56,.44)}else if(m.color){if(m.map)m.color.setRGB(.68,.62,.54);else{const h={};m.color.getHSL(h);m.color.setHSL(h.h,h.s*.5,h.l*.74);m.color.lerp(new T.Color(0x5e5244),.16)}}if(m.transparent||m.opacity<1){m.color&&m.color.setRGB(.12,.12,.11);m.opacity=Math.max(m.opacity,.85);m.roughness=.9}}}})}}
+   if(car){m.roughness=Math.max(m.roughness,.8);m.metalness=Math.min(m.metalness,.2);m.envMapIntensity=.3;if(m.color&&/container/.test(n)){m.color.setRGB(.74,.56,.44)}else if(m.color){if(m.map)m.color.setRGB(.68,.62,.54);else{const h={};m.color.getHSL(h);m.color.setHSL(h.h,h.s*.5,h.l*.6);m.color.lerp(new T.Color(0x5e5244),.16)}}if(m.transparent||m.opacity<1){m.color&&m.color.setRGB(.12,.12,.11);m.opacity=Math.max(m.opacity,.85);m.roughness=.9}}
+   {let gl=false;if(m.color){const h={};m.color.getHSL(h);gl=m.transparent||(h.l<.2&&m.color.b>=m.color.r)}const metal=/vehicle|bus|forklift|container|vending|trafficbarrier|pipes/.test(n);weather(m,gl?.12:metal?1:.2,gl?1:/trashbag/.test(n)?.3:.75)}}})}}
  // ---------- 人物 / 丧尸材质：尸斑肤色 + 越打越血肉模糊 ----------
  function ch(c,prefix){const zb=prefix==='z_';const gore={value:zb?rand(.1,.26):0},off={value:new T.Vector2(rand(0,60),rand(0,60))},dead={value:zb?1:0};c.gore=gore;
   for(const m of c.mats){if(!m.isMeshStandardMaterial||!m.map)continue;m.envMapIntensity=.55;
@@ -2201,7 +2228,7 @@ GFX=(()=>{
   // 太卡就自动降一档
   if(!G_.lock&&G&&G.state==='play'&&!G.paused){fT+=dt;fN++;if(fT>5){const fps=fN/fT;fT=0;fN=0;if(fps<21&&q>0){setQ(q-1);try{popTxt('画面太卡，已自动降低画质')}catch(e){}}}}}
  function setQ(v){q=clamp(v|0,0,hf?2:0);G_.q=q;LS.set('scqh-gfx',String(q))}
- Object.assign(G_,{env,nrm,matX,props,ch,bloodHit,impact,muzzle,pool,frame,setQ,clearFx,sky});return G_})();
+ Object.assign(G_,{env,nrm,matX,props,weather,ch,bloodHit,impact,muzzle,pool,frame,setQ,clearFx,sky});return G_})();
 
 // ================= 防线：电台 / 防御工事 / 补给卡车 / 叠人墙（房主权威，联机同步） =================
 // 种类：0 沙袋墙 1 铁丝网 2 拒马栅栏 3 地雷 4 电台 5 补给卡车 6 补给托盘（地铁站）
