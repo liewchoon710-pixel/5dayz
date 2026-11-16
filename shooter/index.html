@@ -691,7 +691,7 @@ function prepGun(w,g){const root=g.scene;const own=w.file==='glock'||w.file==='p
   const ms=Array.isArray(m.material)?m.material:[m.material];m.material=ms.map((x,k)=>{let c;
    if(own){const pal=w.file==='glock'?[0x1d1f22,0x2a2c30,0x111214]:w.file==='p226'?[0x2b2e33,0x18191b,0x3a3d42]:[0x2d3238,0x7a4a26,0x23272c];
     c=new T.MeshStandardMaterial({color:pal[(m.name.length+k)%3],roughness:w.file==='glock'?.6:.35,metalness:w.file==='glock'?.15:.75})}
-   else{c=x.clone();if(!w.proc&&'roughness' in c){c.roughness=.45;c.metalness=.45}}return c});if(m.material.length===1)m.material=m.material[0]});
+   else{c=x.clone();if(!w.proc&&'roughness' in c){c.roughness=.5;c.metalness=.55;if(c.color&&!c.map){const h={};c.color.getHSL(h);if(h.s<.25)c.color.setHSL(h.h,h.s,h.l*.6)}}}if('envMapIntensity' in c)c.envMapIntensity=.3;return c});if(m.material.length===1)m.material=m.material[0]});
  wrapR.updateMatrixWorld(true);const b=new T.Box3().setFromObject(wrapR);const sz=b.getSize(new T.Vector3());const k=w.len/sz.z;wrapR.scale.setScalar(k);
  const L=sz.z*k,H=sz.y*k,mnz=b.min.z*k,mny=b.min.y*k;const ax=(b.min.x+b.max.x)/2*k;
  const anc=new T.Vector3(ax,mny+w.gy*H,mnz+w.gz*L);wrapR.position.sub(anc);
@@ -2338,7 +2338,7 @@ function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+
 function brkSnap(){let a=null;for(let i=0;i<BRK.length;i++)if(BRK[i].dead)(a||(a=[G.layoutSeed])).push(i);return a||undefined}
 function onBK(a){if(a[0]!==G.layoutSeed)return;for(let i=1;i<a.length;i++)brkKill(a[i],0,0,false)}
 // ---- RPG 火箭筒
-function rpgModel(){const g=new T.Group(),M=(c,r,m)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x23272a,.62,.15),wood=M(0x5e3a1c,.8,0),olive=M(0x3f4d28,.7,.05),blk=M(0x121313,.65,.1);
+function rpgModel(){const g=new T.Group(),M=(c,r,m)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x1a1c1e,.5,.7),wood=M(0x4a2a12,.75,0),olive=M(0x222b18,.7,.1),blk=M(0x0c0d0d,.6,.3);
  // 朝 +x；筒长 0.95（-0.55 … +0.40），弹头露在筒口外 0.42
  const cyl=(r0,r1,x0,x1,mt,par)=>{const m=new T.Mesh(new T.CylinderGeometry(r1,r0,x1-x0,16),mt);m.rotation.z=-Math.PI/2;m.position.x=(x0+x1)/2;(par||g).add(m);return m};
  cyl(.026,.026,-.45,.4,steel);cyl(.031,.031,.37,.4,steel);cyl(.03,.03,.02,.14,steel);cyl(.036,.036,-.33,-.01,wood);cyl(.03,.03,-.36,-.33,steel);cyl(.03,.03,-.01,.02,steel);
@@ -2392,7 +2392,7 @@ function meleeMeshes(g){const M=(c,r,m)=>new T.MeshStandardMaterial({color:c,rou
  add(.11,.13,.3,0,.02,.08,M(0xd9651a,.6,.1),2);add(.02,.07,.5,0,0,.46,M(0x9aa0a6,.4,.8),2);add(.026,.085,.5,0,0,.46,M(0x1c1c1c,.7,.3),2).scale.set(.6,1.08,1.02);add(.14,.03,.05,0,.1,.1,M(0x151515,.8,0),2)}
 // ---- 程序生成的枪模型（朝 +x）
 const PROCM={rpg:rpgModel,flame:()=>procGun(0),m32:()=>procGun(1),m134:()=>procGun(2),m82:()=>procGun(3),xbow:()=>procGun(4)};
-function procGun(kind){const g=new T.Group(),M=(c,r,m)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x23272a,.55,.4),blk=M(0x141516,.65,.2),wood=M(0x5e3a1c,.8,0),olive=M(0x3f4d28,.7,.05),red=M(0x9a1f16,.5,.3),brass=M(0xb08a3a,.4,.8);
+function procGun(kind){const g=new T.Group(),M=(c,r,m)=>new T.MeshStandardMaterial({color:c,roughness:r,metalness:m});const steel=M(0x1a1c1e,.48,.75),blk=M(0x0c0d0d,.6,.3),wood=M(0x4a2a12,.75,0),olive=M(0x222b18,.7,.1),red=M(0x6e1610,.5,.4),brass=M(0x8a6a2a,.4,.85);
  const cyl=(r0,r1,x0,x1,mt,y=0,z=0,par)=>{const m=new T.Mesh(new T.CylinderGeometry(r1,r0,x1-x0,14),mt);m.rotation.z=-Math.PI/2;m.position.set((x0+x1)/2,y,z);(par||g).add(m);return m};
  const bx=(w,h,d,x,y,z,mt,rz,par)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mt);m.position.set(x,y,z);if(rz)m.rotation.z=rz;(par||g).add(m);return m};
  if(kind===0){cyl(.055,.055,-.35,-.08,red,-.02);cyl(.03,.055,-.08,-.03,red,-.02);cyl(.018,.018,-.05,.5,steel);cyl(.03,.03,.5,.6,blk);cyl(.012,.012,.42,.6,steel,-.035);cyl(.008,.008,-.3,.42,blk,-.045);
