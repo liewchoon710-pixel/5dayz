@@ -1797,7 +1797,7 @@ function hurtP(d,from,attacker,hd,w){if(P.dead||P.prot>0||G.state!=='play')retur
  hud()}
 function emitKill(o){nsend('kill',o);onKill(o)}
 function onKill(o){if(o.m&&o.m!==G.mid)return;addFeed(o);
- if(isHost()){const kv=rost(o.v);kv.d++;if(o.k!=='Z'&&o.k!==o.v){const kk=rost(o.k);const tk=teamOf(o.k),tv=teamOf(o.v);if(G.mode!=='pvp'||tk!==tv){kk.k++;if(G.mode==='pvp'&&tk>=0)G.sc[tk]++}}}
+ if(isHost()){const kv=rost(o.v);kv.d++;if(o.k!=='Z'&&o.k!==o.v){const kk=rost(o.k);const tk=teamOf(o.k),tv=teamOf(o.v);if(G.mode!=='pvp'||tk!==tv){kk.k++;if(G.mode==='pvp'&&!G.ffa&&tk>=0&&tk<2)G.sc[tk]++}}}
  if(o.k===NET.me&&o.v!==NET.me){if(G.mode==='pvp'){missionEv('pk');addXP(30)}G.kills++;if(o.hd)G.heads++;killFx(o.hd,nameOf(o.v),o.w);sCash()}
  if(o.v===NET.me&&o.k!=='Z'&&o.k!==NET.me&&G.mode==='pvp')killBig('你被击杀','击杀者：'+nameOf(o.k)+(o.hd?'（爆头）':''));
  hud(true)}
