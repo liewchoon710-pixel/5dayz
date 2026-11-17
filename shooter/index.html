@@ -938,12 +938,18 @@ function sClick(){noise(3000,.03,.2,'highpass')}function sHurt(){tone(110,45,.25
 function sHorn(){tone(180,170,1.4,.18,'sawtooth');setTimeout(()=>tone(135,128,1.6,.18,'sawtooth'),500)}
 function sCash(){tone(1300,1800,.08,.12,'square');setTimeout(()=>tone(1800,2400,.1,.1,'square'),70)}
 let VOICE=null;function say(t,fx){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/xiaoxiao.*(natural|online)/i.test(v.name))||vs.find(v=>/xiaoxiao|xiaoyi|xiaochen|xiaohan|xiaomo/i.test(v.name))||vs.find(v=>/huihui|ting|mei|yaoyao|female|女/i.test(v.name))||vs[0]||null}
- const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.92;u.pitch=1.02;u.volume=1;sAI();if(!fx)s.cancel();s.speak(u)}catch(e){}}
+ const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.95;u.pitch=.55;u.volume=1;sAI();roboVox(u);if(!fx)s.cancel();s.speak(u)}catch(e){}}
 // 开局 AI：英文女声 + 中文字幕
 let LANG=LS.get('scqh-lang')||((navigator.language||'').startsWith('zh')?'zh':'en');
 let VOICE_F=null;function aiVO(en,zh,q){const sb=$('subT');sb.innerHTML=LANG==='zh'?zh:'<b>'+en+'</b>';if(LANG==='zh'){sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,zh.length*260));say(zh,q);return}sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,en.length*85));
  try{const s=speechSynthesis;if(!s)return;if(!VOICE_F){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_F=vs.find(v=>/(aria|jenny|ava|emma|libby|sonia).*(natural|online)/i.test(v.name))||vs.find(v=>/aria|jenny|zira|samantha|female|susan|hazel|libby|sonia|emma|ava/i.test(v.name))||vs[0]||null}
-  const u=new SpeechSynthesisUtterance(en);u.lang='en-US';if(VOICE_F)u.voice=VOICE_F;u.rate=.9;u.pitch=1;sAI();if(!q)s.cancel();s.speak(u)}catch(e){}}
+  const u=new SpeechSynthesisUtterance(en);u.lang='en-US';if(VOICE_F)u.voice=VOICE_F;u.rate=.92;u.pitch=.55;sAI();roboVox(u);if(!q)s.cancel();s.speak(u)}catch(e){}}
+// 机器人声：语音本身压低音调，说话期间叠一层电子调制底噪（嗡鸣 + 数据颗粒声），听起来像通讯频道里的 AI
+let RV=null;function roboVox(u){if(!AC)return;u.addEventListener('start',()=>{if(RV)return;const t=AC.currentTime,g=AC.createGain();g.gain.value=0;g.connect(AC.destination);g.gain.linearRampToValueAtTime(.05,t+.08);
+  const o=AC.createOscillator();o.type='square';o.frequency.value=92;const lf=AC.createOscillator();lf.frequency.value=31;const lg=AC.createGain();lg.gain.value=.5;const am=AC.createGain();am.gain.value=.5;lf.connect(lg);lg.connect(am.gain);
+  const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1100;bp.Q.value=2;o.connect(bp);bp.connect(am);am.connect(g);o.start();lf.start();
+  const iv=setInterval(()=>{if(Math.random()<.5)tone(2400+Math.random()*1800,2400,.025,.015,'square')},110);RV={o,lf,g,iv}});
+ const stop=()=>{if(!RV)return;const r=RV;RV=null;clearInterval(r.iv);r.g.gain.linearRampToValueAtTime(0,AC.currentTime+.1);setTimeout(()=>{try{r.o.stop();r.lf.stop()}catch(e){}},200)};u.addEventListener('end',stop);u.addEventListener('error',stop)}
 // AI 说话前的提示音：两声柔和的合成音
 function sAI(){if(!AC)return;tone(880,880,.09,.05,'sine');setTimeout(()=>tone(1320,1320,.14,.04,'sine'),90)}
 let VOICE_M=false;function sRadio(){if(!AC)return;noise(2400,.09,.12,'bandpass',0,3);tone(1900,1900,.04,.05,'square')}
@@ -1319,7 +1325,7 @@ function badgeSVG(n,hd){const t=Math.min(n,8),C=KBC[t],id='kb'+t+(hd?'h':'');con
   <circle class="krg" cx="110" cy="78" r="58" fill="none" stroke="${C[0]}"/>
   ${Array.from({length:8+t*2},(_,i)=>{const a=Math.random()*6.283,d=60+Math.random()*50+t*6,l=4+Math.random()*7;return `<path class="ksp" style="--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d).toFixed(0)}px;animation-delay:${(Math.random()*.06).toFixed(2)}s" d="M${(110+Math.cos(a)*18).toFixed(1)} ${(78+Math.sin(a)*18).toFixed(1)} l${(Math.cos(a)*l).toFixed(1)} ${(Math.sin(a)*l).toFixed(1)}" stroke="${i%3?C[0]:'#fff'}" stroke-width="2.2" stroke-linecap="round"/>`}).join('')}</svg>`}
 let VOICE_EN=null;function sayEn(t){try{const s=speechSynthesis;if(!s)return;if(!VOICE_EN){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_EN=vs.find(v=>/male|david|mark|guy|daniel|alex|fred|george|james|ryan|christopher|eric|uk english male/i.test(v.name)&&!/female/i.test(v.name))||vs[0]||null;VOICE_EN&&(VOICE_EN._m=/male|david|mark|guy|daniel|alex|fred|george|james|ryan|christopher|eric/i.test(VOICE_EN.name)&&!/female/i.test(VOICE_EN.name))}
- const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(VOICE_EN)u.voice=VOICE_EN;u.rate=.92;u.pitch=VOICE_EN&&VOICE_EN._m?.7:.45;u.volume=1;s.cancel();s.speak(u)}catch(e){}}
+ const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(VOICE_EN)u.voice=VOICE_EN;u.rate=.92;u.pitch=VOICE_EN&&VOICE_EN._m?.7:.45;u.volume=1;roboVox(u);s.cancel();s.speak(u)}catch(e){}}
 function killFx(hd,name,wi){hitMark('k');P.shake=Math.max(P.shake,.08);const now=performance.now();MK.n=now-MK.t<4000?MK.n+1:1;MK.t=now;const n=MK.n;
  const e=$('kbadge');e.querySelector('.sv').innerHTML=badgeSVG(n,hd);e.querySelector('.tag').textContent=[hd&&n>=2?'HEADSHOT':'',wi===97?'KNIFE':wi===98?'EXPLOSIVE':'',name||''].filter(Boolean).join(' · ');
  e.style.transition='none';e.style.opacity=1;e.style.transform='scale(1.6)';void e.offsetWidth;e.style.transition='opacity .3s ease .75s, transform .18s cubic-bezier(.2,1.7,.4,1)';e.style.transform='scale(1)';e.style.opacity=0;
