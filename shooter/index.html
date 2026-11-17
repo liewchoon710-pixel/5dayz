@@ -10,6 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#0d0e10;color:#e8e2d6;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;touch-action:none}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
 @media (min-aspect-ratio:5/4){#menu,#lobby{background:linear-gradient(90deg,rgba(5,5,6,.9) 0,rgba(5,5,6,.7) 40%,rgba(5,5,6,0) 62%)!important;align-items:flex-start!important;padding-left:5vw!important}#menu>*,#lobby>*{max-width:52vw}#menu .row,#lobby .row{justify-content:flex-start}}
+body.en #menu h1,body.en #load h1{font-size:46px!important;letter-spacing:5px}body.en #menu h1+.sub,body.en #load h1+.sub{display:none}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:20;background:radial-gradient(ellipse at center,rgba(30,20,16,.72),rgba(5,5,6,.94))}
 .hid{display:none!important}
 h1{font-size:clamp(34px,7vw,64px);letter-spacing:.12em;color:#e9d9b8;text-shadow:0 0 18px rgba(200,40,20,.55),0 3px 0 #3a0d08}
@@ -223,6 +224,7 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
   <div class="lbl">难度</div><div class="row" id="diffRow"></div>
   <div class="lbl">视角<span class="aaL">　　　　　　　辅助瞄准</span></div><div class="row" style="flex-wrap:wrap"><div class="row" id="viewRow" style="margin:0"></div><div id="aaWrap" class="row" style="margin:0 0 0 18px;gap:inherit"><div class="row" id="aaRow" style="margin:0"></div></div></div>
+  <div class="lbl tOnly">陀螺仪转视角（第一人称）</div><div class="row tOnly" id="gyroRow"></div>
   <div class="lbl">画质</div><div class="row" id="gfxRow"></div>
   <div id="aiWrap"><div class="lbl">电脑补位（凑满 4v4）</div><div class="row" id="aiRow"></div></div>
   <div id="pvpWRow" class="row"></div>
@@ -818,19 +820,19 @@ function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&
 // mode: semi 半自动 / auto 全自动 / burst 三连发 / pump 泵动 / bolt 拉栓 / break 双管
 // rt 换弹: mag 弹匣 / shell 逐发装填 / revolver 左轮 / break 折开 / bolt 拉栓弹匣
 const WP=[
- {id:'glock',n:'格洛克 17',cat:'pistol',file:'glock',len:.19,gz:.22,gy:.45,my:.86,fz:.6,mode:'semi',rt:'mag',dmg:30,rate:.13,mag:17,res:Infinity,rel:1.1,spr:.012,head:2.6,pel:1,kick:.02,kh:.006,kb:0,price:0,ammoP:0,lvl:1,
+ {id:'glock',n:'格洛克 17',cat:'pistol',file:'glock',len:.19,gz:.22,gy:.45,my:.86,fz:.6,mode:'semi',rt:'mag',dmg:30,rate:.24,mag:17,res:Infinity,rel:1.1,spr:.012,head:2.6,pel:1,kick:.02,kh:.006,kb:0,price:0,ammoP:0,lvl:1,
   snd:{c:[3200,.05,.35],b:[1800,.1,.5],m:[180,60,.12,.35],t:[900,.35,.12]},fl:{s:.32,c:0xffd080,sh:'star4'},sh:{s:.8,c:0xc9a040}},
- {id:'p226',n:'P226',cat:'pistol',file:'p226',len:.2,gz:.24,gy:.45,my:.86,fz:.6,mode:'semi',rt:'mag',dmg:40,rate:.17,mag:15,res:Infinity,rel:1.2,spr:.01,head:2.7,pel:1,kick:.026,kh:.006,kb:0,price:500,ammoP:0,lvl:2,
+ {id:'p226',n:'P226',cat:'pistol',file:'p226',len:.2,gz:.24,gy:.45,my:.86,fz:.6,mode:'semi',rt:'mag',dmg:40,rate:.27,mag:15,res:Infinity,rel:1.2,spr:.01,head:2.7,pel:1,kick:.026,kh:.006,kb:0,price:500,ammoP:0,lvl:2,
   snd:{c:[2800,.06,.4],b:[1500,.12,.55],m:[160,55,.14,.42],t:[800,.4,.14]},fl:{s:.38,c:0xffc070,sh:'star4'},sh:{s:.85,c:0xc9a040}},
- {id:'revolver',n:'.357 左轮',cat:'pistol',file:'revolver',len:.28,gz:.2,gy:.4,my:.82,fz:.6,mode:'semi',rt:'revolver',dmg:110,rate:.42,mag:6,res:42,rel:2.4,spr:.008,head:3,pel:1,kick:.075,kh:.014,kb:0,pierce:1,price:900,ammoP:120,lvl:6,
+ {id:'revolver',n:'.357 左轮',cat:'pistol',file:'revolver',len:.28,gz:.2,gy:.4,my:.82,fz:.6,mode:'semi',rt:'revolver',dmg:110,rate:.55,mag:6,res:42,rel:2.4,spr:.008,head:3,pel:1,kick:.075,kh:.014,kb:0,pierce:1,price:900,ammoP:120,lvl:6,
   snd:{c:[2200,.08,.6],b:[1100,.2,.85],m:[120,40,.25,.75],t:[600,.9,.28]},fl:{s:.7,c:0xffa040,sh:'round',smoke:1},sh:null},
  {id:'mp7',n:'MP7',cat:'smg',file:'mp7',len:.42,gz:.42,gy:.42,my:.7,fz:.78,mode:'auto',rt:'mag',dmg:20,rate:.064,mag:40,res:240,rel:1.9,spr:.022,head:2.1,pel:1,kick:.009,kh:.005,kb:0,price:1000,ammoP:120,lvl:3,
   snd:{c:[4200,.03,.26],b:[2400,.05,.36],m:[220,90,.06,.22],t:[1400,.2,.06]},fl:{s:.26,c:0xfff0c0,sh:'star4'},sh:{s:.75,c:0xc9a040}},
- {id:'uzi',n:'乌兹 UZI',cat:'smg',file:'uzi',len:.47,gz:.45,gy:.4,my:.7,fz:.8,mode:'auto',rt:'mag',dmg:24,rate:.078,mag:32,res:192,rel:1.7,spr:.03,head:2,pel:1,kick:.013,kh:.009,kb:0,price:900,ammoP:110,lvl:1,
+ {id:'uzi',n:'乌兹 UZI',cat:'smg',file:'uzi',len:.47,gz:.45,gy:.4,my:.7,fz:.8,mode:'auto',rt:'mag',dmg:24,rate:.1,mag:32,res:192,rel:1.7,spr:.03,head:2,pel:1,kick:.013,kh:.009,kb:0,price:900,ammoP:110,lvl:1,
   snd:{c:[3500,.035,.3],b:[2000,.06,.4],m:[200,80,.07,.26],t:[1200,.22,.07]},fl:{s:.32,c:0xffe0a0,sh:'star6'},sh:{s:.8,c:0xc9a040}},
  {id:'ak47',n:'AK-47',cat:'rifle',file:'ak47',len:.88,gz:.3,gy:.4,my:.74,fz:.58,mode:'auto',rt:'mag',dmg:44,rate:.1,mag:30,res:150,rel:2.4,spr:.016,head:2.6,pel:1,pierce:1,kick:.022,kh:.012,kb:.45,price:1800,ammoP:200,lvl:4,
   snd:{c:[2500,.06,.45],b:[1300,.12,.72],m:[110,45,.16,.62],t:[700,.6,.18]},fl:{s:.55,c:0xffb050,sh:'side'},sh:{s:1.2,c:0xb08a3a}},
- {id:'m4a1',n:'M4A1',cat:'rifle',file:'m4a1',len:.84,gz:.3,gy:.42,my:.72,fz:.6,mode:'burst',rt:'mag',dmg:38,rate:.065,mag:30,res:180,rel:2.1,spr:.009,head:2.8,pel:1,pierce:1,kick:.014,kh:.005,kb:.1,price:2000,ammoP:200,lvl:7,
+ {id:'m4a1',n:'M4A1',cat:'rifle',file:'m4a1',len:.84,gz:.3,gy:.42,my:.72,fz:.6,mode:'burst',rt:'mag',dmg:38,rate:.075,mag:30,res:180,rel:2.1,spr:.009,head:2.8,pel:1,pierce:1,kick:.014,kh:.005,kb:.1,price:2000,ammoP:200,lvl:7,
   snd:{c:[3000,.05,.4],b:[1600,.09,.55],m:[140,55,.12,.46],t:[900,.45,.12]},fl:{s:.42,c:0xffe0b0,sh:'star6'},sh:{s:1.1,c:0xc9a040}},
  {id:'f2000',n:'F2000',cat:'rifle',file:'f2000',len:.69,gz:.3,gy:.3,my:.66,fz:.62,mode:'auto',rt:'mag',dmg:34,rate:.07,mag:30,res:180,rel:2.6,spr:.011,head:2.6,pel:1,pierce:1,kick:.014,kh:.007,kb:0,price:2200,ammoP:200,lvl:9,
   snd:{c:[3400,.045,.38],b:[1900,.08,.5],m:[150,60,.1,.42],t:[1000,.4,.1]},fl:{s:.4,c:0xfff0d0,sh:'side'},sh:{s:1.1,c:0xc9a040}},
@@ -901,7 +903,8 @@ function updShells(dt){for(const s of SHELLS){if(s.t<=0)continue;s.t-=dt;if(s.b<
  if(s.t<=0)s.m.visible=false;else s.m.visible=true}}
 // ---- 枪声（每把枪不同的音色组合）
 function sGunW(w,vol=1,pan=0){if(!AC)return;const S=w.snd;if(!S)return sGun(w,vol,pan);const v=vol*(G.ws&&G.ws[WI[w.id]]&&G.ws[WI[w.id]].pap?1.1:1);
- noise(S.c[0],S.c[1],S.c[2]*v,'bandpass',pan,1.2);noise(S.b[0],S.b[1],S.b[2]*v,'lowpass',pan);tone(S.m[0],S.m[1],S.m[2],S.m[3]*v,'sine',pan);noise(S.t[0],S.t[1],S.t[2]*v,'lowpass',pan,.5)}
+ noise(S.c[0],S.c[1]*.6,S.c[2]*v*1.2,'bandpass',pan,1.2);noise(6000,.012,.5*v,'highpass',pan);noise(S.b[0],S.b[1],S.b[2]*v,'lowpass',pan);tone(S.m[0],S.m[1],S.m[2],S.m[3]*v*1.15,'sine',pan);tone(S.m[0]*.5,S.m[1]*.5,S.m[2]*1.6,S.m[3]*v*.6,'sine',pan);noise(S.t[0],S.t[1],S.t[2]*v,'lowpass',pan,.5);
+ setTimeout(()=>{noise(S.t[0]*.8,S.t[1]*.9,S.t[2]*v*.45,'lowpass',-pan,.4)},70+Math.random()*40);setTimeout(()=>noise(S.t[0]*.6,S.t[1],S.t[2]*v*.22,'lowpass',pan,.3),190)}
 function sMech(kind,pan=0){if(!AC)return;const at=(d,f)=>setTimeout(f,d*1000);
  if(kind==='pump'){at(.15,()=>noise(1800,.06,.35,'bandpass',pan,3));at(.32,()=>noise(1200,.08,.4,'bandpass',pan,3))}
  else if(kind==='bolt'){at(.25,()=>noise(2600,.05,.3,'bandpass',pan,4));at(.45,()=>noise(1600,.07,.35,'bandpass',pan,3));at(.7,()=>noise(2200,.05,.3,'bandpass',pan,4))}
@@ -937,10 +940,18 @@ function sRack(){noise(2400,.05,.25,'highpass');setTimeout(()=>noise(900,.07,.3,
 function sClick(){noise(3000,.03,.2,'highpass')}function sHurt(){tone(110,45,.25,.5);noise(300,.2,.4)}
 function sHorn(){tone(180,170,1.4,.18,'sawtooth');setTimeout(()=>tone(135,128,1.6,.18,'sawtooth'),500)}
 function sCash(){tone(1300,1800,.08,.12,'square');setTimeout(()=>tone(1800,2400,.1,.1,'square'),70)}
-let VOICE=null;function say(t,fx){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/xiaoxiao.*(natural|online)/i.test(v.name))||vs.find(v=>/xiaoxiao|xiaoyi|xiaochen|xiaohan|xiaomo/i.test(v.name))||vs.find(v=>/huihui|ting|mei|yaoyao|female|女/i.test(v.name))||vs[0]||null}
+let VOICE=null;function say(t,fx){if(LANG==='en'&&!say.inner){const e=I18N[t]||SAYEN[t];if(e){say.inner=1;try{sayAIen(e,fx)}finally{say.inner=0}}return}try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/xiaoxiao.*(natural|online)/i.test(v.name))||vs.find(v=>/xiaoxiao|xiaoyi|xiaochen|xiaohan|xiaomo/i.test(v.name))||vs.find(v=>/huihui|ting|mei|yaoyao|female|女/i.test(v.name))||vs[0]||null}
  const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.95;u.pitch=.55;u.volume=1;sAI();roboVox(u);if(!fx)s.cancel();s.speak(u)}catch(e){}}
 // 开局 AI：英文女声 + 中文字幕
 let LANG=LS.get('scqh-lang')||((navigator.language||'').startsWith('zh')?'zh':'en');
+const I18N={"人类之后": "AFTER HUMANITY", "当机器接管世界 · 人类变成怪物 · 战争才刚刚开始": "When machines took the world · Humans became monsters · The war has only begun", "背景故事": "Story", "操作说明": "Controls", "光色": "Light color", "模式": "Mode", "难度": "Difficulty", "视角": "View", "画质": "Graphics", "辅助瞄准": "Aim assist", "档案 / 任务": "Profile / Missions", "单人开始": "Solo", "创建房间": "Create room", "加入房间": "Join room", "房间号": "Room code", "正在载入素材…": "Loading assets…", "简单": "Easy", "普通": "Normal", "困难": "Hard", "斜肩（第三人称）": "Third person", "第一人称": "First person", "电影级": "Cinematic", "均衡": "Balanced", "省电": "Battery saver", "开": "On", "关": "Off", "冷蓝": "Ice blue", "白光": "White", "翠绿": "Emerald", "紫": "Violet", "琥珀": "Amber", "尸潮清除 · 机器 vs 丧尸": "Purge · Machines vs Zombies", "机团对决 · 4v4 团队死斗": "Unit Clash · 4v4 Team Deathmatch", "钢铁乱斗 · 个人死斗": "Steel Brawl · Free-for-all", "尸潮清除": "Purge", "机团对决": "Unit Clash", "钢铁乱斗": "Steel Brawl", "背景": "Story", "明白": "Understood", "AI 失控了。": "The AI slipped out of control.", "人类集结全部力量向机器宣战——然后输了。": "Humanity threw everything it had at the machines — and lost.", "走投无路之下，人类动用了最后的化学武器，想把机器连同战场一起抹平。毒剂没能摧毁钢铁，却毁掉了投放它的人：幸存者一个接一个倒下，又一个接一个站起来，变成了只剩饥饿的怪物。": "Out of options, they unleashed their last chemical weapon to wipe out the machines and the battlefield with them. The agent couldn't melt steel. It destroyed the people who released it instead: the survivors fell one by one, then rose one by one — as monsters with nothing left but hunger.", "城市荒废，人类消失。地面上只剩两种东西还在移动：": "The cities lie empty. Humanity is gone. Only two things still move on the surface: ", "机器": "machines", "，和": ", and ", "曾经是人的东西": "things that used to be human", "你是一台编号机体。你的任务：清除尸潮，夺回这座城。": "You are a numbered unit. Your mission: purge the horde and take back the city.", "当机器接管世界": "When machines took the world", "人类变成怪物": "Humans became monsters", "战争才刚刚开始": "The war has only begun", "移动": "Move", "冲刺": "Sprint", "跳跃 / 攀爬": "Jump / Climb", "蹲下": "Crouch", "战斗": "Combat", "开火": "Fire", "瞄准 / 开镜": "Aim / Scope", "换弹": "Reload", "切换武器": "Switch weapon", "近战": "Melee", "投掷": "Throw", "切换投掷物": "Switch throwable", "机体": "Unit", "头灯": "Headlamp", "夜视模式": "Night vision", "切换视角": "Switch view", "使用 / 救援队友": "Use / Revive", "部署工事": "Build defenses", "选择工事": "Select defense", "引爆 C4": "Detonate C4", "商店": "Shop", "其他": "Other", "排行榜": "Scoreboard", "暂停": "Pause", "返回": "Back", "鼠标左键": "LMB", "鼠标右键": "RMB", "滚轮": "Wheel", "空格": "Space", "已暂停": "Paused", "继续战斗": "Resume", "退出到菜单": "Quit to menu", "你倒下了": "You went down", "再来一局": "Play again", "返回菜单": "Main menu", "离开房间": "Leave room", "开始游戏": "Start", "换队": "Switch team", "复制邀请链接": "Copy invite link", "电脑补位（凑满 4v4）": "Fill with bots (4v4)", "生命": "HP", "护甲": "Armor", "资金": "Credits", "分数": "Score", "剩余丧尸": "Zombies left", "波　　剩余丧尸": "   Zombies left", "第": "Wave", "手雷": "Grenade", "换枪": "Swap", "刀": "Melee", "跳": "Jump", "蹲": "Crouch", "工事": "Build", "灯": "Lamp", "夜视": "NVG", "榜": "Board", "第一": "FP", "斜肩": "TP", "引爆": "Detonate", "上枪": "Mount", "关闭": "Close", "关闭商店": "Close shop", "补给站": "Supply", "请把手机横过来玩": "Please rotate your phone", "建议横屏游玩": "Landscape recommended", "切换横屏": "Rotate", "头灯：开": "Headlamp: ON", "头灯：关": "Headlamp: OFF", "夜视模式：启动": "Night vision: ON", "夜视模式：关闭": "Night vision: OFF", "筑好防线": "Build your defenses", "> 系统重启……完成": "> System reboot ... complete", "> 视觉模块 ········· 正常": "> Vision module ········ OK", "> 运动关节 ········· 正常": "> Motor joints ········· OK", "> 武装系统 ········· 在线": "> Weapon systems ······· ONLINE", "> 检测到生物信号：大量": "> Biosignals detected: MASSIVE", "> 指令：清除一切血肉": "> Directive: purge all flesh", "> 指令：清除敌对单位": "> Directive: eliminate hostiles", "十字路口": "Crossroads", "中央广场·夜": "Central Plaza · Night", "集装箱码头·浓雾": "Container Docks · Fog", "地铁站·停电": "Subway · Blackout", "高架桥·暴雨": "Overpass · Storm", "公路加油站·沙尘黄昏": "Gas Station · Dust Dusk"};
+// 选 English 时：界面上所有中文文字按词表换成英文（新出现的文字也会被替换）
+function i18nNode(n){if(LANG!=='en')return;if(n.nodeType===3){const t=n.nodeValue,k=t.trim();if(!k||!/[一-鿿]/.test(k))return;let r=I18N[k];
+  if(r==null){r=k.replace(/第\s*(\d+)\s*波/g,'Wave $1').replace(/击杀/g,'Kills').replace(/爆头/g,'Headshots').replace(/死亡/g,'Deaths').replace(/资金/g,'Credits').replace(/机体/g,'Unit').replace(/本图还有 (\d+) 局/,'$1 rounds left on this map').replace(/下局换新地图/,'new map next round');for(const z in I18N)if(z.length>1&&r.includes(z))r=r.split(z).join(I18N[z]);if(r===k)return}
+  n.nodeValue=t.replace(k,r)}else if(n.nodeType===1&&!/SCRIPT|STYLE/.test(n.tagName)){if(n.placeholder&&I18N[n.placeholder])n.placeholder=I18N[n.placeholder];for(const c of n.childNodes)i18nNode(c)}}
+let I18O=null;function i18nApply(){if(LANG!=='en'){if(I18O){I18O.disconnect();I18O=null;location.reload()}return}document.body.classList.add('en');if(/^机体\d+$/.test(myName)){myName=myName.replace('机体','Unit-');LS.set('scqh-name',myName);$('nm').value=myName}i18nNode(document.body);document.title='After Humanity';if(!I18O){I18O=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')i18nNode(m.target);else m.addedNodes.forEach(i18nNode)}});I18O.observe(document.body,{subtree:true,childList:true,characterData:true})}}
+const SAYEN={'胜利':'Victory.','我方胜利':'Victory.','我方失败':'Defeat.','平局':'Draw.','本局结束':'Match over.','异变体已消灭':'Mutant eliminated.'};
+function sayAIen(en,q){try{const s=speechSynthesis;if(!s)return;if(!VOICE_F){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_F=vs.find(v=>/(aria|jenny|ava|emma|libby|sonia).*(natural|online)/i.test(v.name))||vs.find(v=>/aria|jenny|zira|samantha|female|susan|hazel|libby|sonia|emma|ava/i.test(v.name))||vs[0]||null}const u=new SpeechSynthesisUtterance(en);u.lang='en-US';if(VOICE_F)u.voice=VOICE_F;u.rate=.92;u.pitch=.55;sAI();roboVox(u);if(!q)s.cancel();s.speak(u)}catch(e){}}
 let VOICE_F=null;function aiVO(en,zh,q){const sb=$('subT');sb.innerHTML=LANG==='zh'?zh:'<b>'+en+'</b>';if(LANG==='zh'){sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,zh.length*260));say(zh,q);return}sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,en.length*85));
  try{const s=speechSynthesis;if(!s)return;if(!VOICE_F){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_F=vs.find(v=>/(aria|jenny|ava|emma|libby|sonia).*(natural|online)/i.test(v.name))||vs.find(v=>/aria|jenny|zira|samantha|female|susan|hazel|libby|sonia|emma|ava/i.test(v.name))||vs[0]||null}
   const u=new SpeechSynthesisUtterance(en);u.lang='en-US';if(VOICE_F)u.voice=VOICE_F;u.rate=.92;u.pitch=.55;sAI();roboVox(u);if(!q)s.cancel();s.speak(u)}catch(e){}}
@@ -996,6 +1007,12 @@ function poseArms(c,wi,yaw,pitch,low,rel){const nk=c.bones.mixamorigneck;if(!nk)
  if(rel>0){const k=Math.sin(Math.PI*rel);IK.tl.lerp(holdPt(IK.d,H.mag||MAGP,s),k);IK.tr.y-=.05*k}
  armIK(c,'right',IK.tr.clone(),1);armIK(c,'left',IK.tl.clone(),-1)}
 
+// 机器人手是静止张开的：把手掌转成握持朝向（手指沿握把向下包住、掌心朝枪）
+const GH={m:new T.Matrix4(),q:new T.Quaternion(),p:new T.Quaternion(),x:new T.Vector3(),y:new T.Vector3(),z:new T.Vector3()};
+function gripHand(c,side,cu,sg){const h=c.bones['mixamorig'+side+'hand'];if(!h)return;const Y=GH.y.copy(camF).multiplyScalar(.85).addScaledVector(cu,-.25).addScaledVector(camR,-sg*.25).normalize();
+ const Z=GH.z.copy(camR).multiplyScalar(-sg*GRIPZ).addScaledVector(cu,.0);Z.addScaledVector(Y,-Z.dot(Y)).normalize();const X=GH.x.crossVectors(Y,Z);GH.m.makeBasis(X,Y,Z);GH.q.setFromRotationMatrix(GH.m);
+ h.parent.getWorldQuaternion(GH.p);h.quaternion.copy(GH.p.invert().multiply(GH.q))}
+let GRIPZ=1;
 function leftOnGun(c,g){const p=g.userData.lh;if(!p)return;g.updateMatrixWorld(true);IK.r.set(-1,0,0).applyQuaternion(g.quaternion);armIK(c,'left',g.localToWorld(IK.tl.copy(p)).clone(),-1)}
 // ---------- 人物（远端玩家 / 电脑） ----------
 function nameTag(text,col){const c=document.createElement('canvas');c.width=256;c.height=48;const g=c.getContext('2d');g.font='bold 26px "PingFang SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=5;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText(text,128,24);g.fillStyle=col;g.fillText(text,128,24);
@@ -2013,7 +2030,15 @@ function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=NET.out.rq.le
 
 // ---------- 每帧 ----------
 const clock=new T.Clock();let hudDirty=true;const PV3=new T.Vector3();
-function aimAssist(dt){if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
+// ---------- 陀螺仪：第一人称时转动手机来转身/抬头（像赛车游戏的体感），手指拖动照样能用 ----------
+let GYRO=LS.get('scqh-gyro')==='1',GY={y:0,p:0,on:false};if(GYRO)addEventListener('touchstart',()=>gyroInit(),{once:true});
+function gyroInit(){if(GY.on)return;const go=()=>{GY.on=true;addEventListener('devicemotion',e=>{const r=e.rotationRate;if(!r||r.beta==null)return;let dt=e.interval||16;if(dt>1)dt/=1000;dt=Math.min(dt,.05);
+  const a=((screen.orientation&&screen.orientation.angle)??window.orientation??0),d=Math.PI/180*dt;
+  // 横屏时：机身短边朝上，绕短边(x)转 = 左右转身，绕长边(y)转 = 抬头低头
+  if(a===90){GY.y+=r.beta*d;GY.p+=r.gamma*d}else if(a===270||a===-90){GY.y-=r.beta*d;GY.p-=r.gamma*d}else{GY.y+=r.gamma*d;GY.p+=r.beta*d}},{passive:true})};
+ if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)DeviceMotionEvent.requestPermission().then(r=>{if(r==='granted')go()}).catch(()=>{});else go()}
+function gyroApply(){if(!GYRO||!GY.on){GY.y=GY.p=0;return}const fp=VIEW==='fp'&&G.state==='play'&&!P.dead&&!(P.wake>0);if(fp){P.yaw+=GY.y*.9;P.pitch=clamp(P.pitch+GY.p*.9,-1.35,1.35)}GY.y=GY.p=0}
+function aimAssist(dt){gyroApply();if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
  for(const tg of targetsForMe()){const ch=chestOf(tg,v2);const d=v1.subVectors(ch,o);const L=d.length();if(L>45||L<1)continue;d.divideScalar(L);const ang=Math.acos(clamp(d.dot(camF),-1,1));if(ang<ba&&wallT(o,d,L)>=L-.3){ba=ang;best={yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}}
  if(best){const k=Math.min(1,dt*(IN.fire?5:3));P.yaw+=wrapA(best.yaw-P.yaw)*k;P.pitch+=(best.pitch-P.rec-P.pitch)*k}}
 function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=1}
@@ -2081,7 +2106,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
    if(FPV&&!P.scoped){g.updateMatrixWorld(true);const R=g.position.clone();let L;
     if(W0.cat==='pistol')L=R.clone().addScaledVector(camR,-.04).addScaledVector(cu,-.025).addScaledVector(camF,.01);else L=g.localToWorld(g.userData.fore.clone());
     if(rk>0){const mg=g.localToWorld(new T.Vector3(0,-g.userData.H*.6,g.userData.L*.12));L.lerp(mg,rk)}if(pump>0)L.addScaledVector(camF,-pump*.08);
-    poseHands(P.c,R,L)}}
+    poseHands(P.c,R,L);gripHand(P.c,'right',cu,1);gripHand(P.c,'left',cu,-1)}}
   else{if(P.climb){const C=P.climb,k=Math.min(1,C.t/C.d);mantleHands(P.c,C.yaw,C.hx,C.hz,C.y1,k>.04&&k<.88?1:0)}if(P.wake>0){}else if(!sprint&&!P.climb&&!P.pin)poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
    if(relP>0&&(W0.rt==='revolver'||W0.rt==='break'))g.rotateX(rk*.6);g.rotateX(-P.vk*2);if(!sprint&&!P.climb&&!P.pin&&!(relP>0)&&!(low>.05)&&!(P.wake>0)&&W0.cat!=='pistol')leftOnGun(P.c,g)}}
  if(P.fireCd>0)P.fireCd-=dt;
@@ -2200,13 +2225,13 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 // ---------- 菜单 / 大厅 ----------
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
-function showMenu(){$('menu').classList.remove('hid');try{menuShow()}catch(e){console.warn(e)}$('bStory').onclick=()=>$('story').classList.remove('hid');$('bKeys').onclick=$('bKeys2').onclick=()=>{$('keysTouch').textContent=TOUCH?'手机：左半屏拖动移动（推到底冲刺），右半屏拖动转视角；按住「开火」可边打边瞄。':'';$('keys').classList.remove('hid')};$('bStoryOk').onclick=()=>{$('story').classList.add('hid');LS.set('scqh-story','1')};if(!LS.get('scqh-story'))$('story').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
- chips($('langRow'),['中文','English'],LANG==='zh'?0:1,i=>{LANG=i?'en':'zh';LS.set('scqh-lang',LANG);showMenu()});chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
+function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);try{menuShow()}catch(e){console.warn(e)}$('bStory').onclick=()=>$('story').classList.remove('hid');$('bKeys').onclick=$('bKeys2').onclick=()=>{$('keysTouch').textContent=TOUCH?'手机：左半屏拖动移动（推到底冲刺），右半屏拖动转视角；按住「开火」可边打边瞄。':'';$('keys').classList.remove('hid')};$('bStoryOk').onclick=()=>{$('story').classList.add('hid');LS.set('scqh-story','1')};if(!LS.get('scqh-story'))$('story').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
+ chips($('langRow'),['中文','English'],LANG==='zh'?0:1,i=>{LANG=i?'en':'zh';LS.set('scqh-lang',LANG);showMenu();i18nApply()});chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
  chips($('modeRow'),MODE_L.map(m=>m[1]),MODE_L.findIndex(m=>m[0]===modeS),i=>{modeS=MODE_L[i][0];LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
  chips($('viewRow'),['斜肩（第三人称）','第一人称'],VIEW==='fp'?1:0,i=>{VIEW=i?'fp':'tp';LS.set('scqh-view',VIEW);showMenu()});
  if(GFX)chips($('gfxRow'),['电影级','均衡','省电'],2-GFX.q,i=>{GFX.setQ(2-i);showMenu()});
- chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
+ chips($('gyroRow'),['开','关'],GYRO?0:1,i=>{GYRO=!i;LS.set('scqh-gyro',GYRO?'1':'0');if(GYRO)gyroInit();showMenu()});document.querySelectorAll('.tOnly').forEach(e=>e.style.display=TOUCH?'':'none');chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
  {const L=WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol'&&!WP[i].box);const cur=pvpPrimary();const el=$('pvpWRow');el.style.display=modeS!=='z'?'':'none';el.innerHTML='';if(modeS!=='z'){el.innerHTML='<div class="lbl" style="width:100%">对战主武器</div>';L.forEach(i=>{const w=WP[i];const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.style.opacity=w.lvl<=PROF.lvl?1:.35;b.textContent=w.n+(w.lvl>PROF.lvl?' Lv'+w.lvl:'');b.onclick=()=>{if(w.lvl>PROF.lvl)return;LS.set('scqh-pvpw',w.id);showMenu()};el.appendChild(b)})}}
  chips($('aiRow'),['开','关'],aiS?0:1,i=>{aiS=!i;LS.set('scqh-ai',aiS?'1':'0');showMenu()});$('aiWrap').style.display=modeS!=='z'?'':'none';
  const best=+(LS.get('scqh-best')||0);$('best').textContent=best?'打丧尸最佳：清除 '+best+' 波':'';
