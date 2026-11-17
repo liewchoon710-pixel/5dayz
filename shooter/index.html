@@ -1207,26 +1207,50 @@ function sVortex(){if(!AC)return;const t0=AC.currentTime,out=AC.createGain();out
  const ng=AC.createGain();ng.gain.setValueAtTime(.0001,t0);ng.gain.exponentialRampToValueAtTime(.35,t0+1.15);ng.gain.exponentialRampToValueAtTime(.0001,t0+2.4);n.connect(nf);nf.connect(ng);ng.connect(out);n.start(t0);
  const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(70,t0+1.22);o.frequency.exponentialRampToValueAtTime(28,t0+2.2);g.gain.setValueAtTime(.0001,t0+1.2);g.gain.exponentialRampToValueAtTime(.9,t0+1.25);g.gain.exponentialRampToValueAtTime(.0001,t0+2.6);o.connect(g);g.connect(out);o.start(t0+1.2);o.stop(t0+2.7)}
 // ---------- 开局：艰难睁眼 → 坐起 → 站起 ----------
-function wakeStart(){P.wake=6.6;P.wakeT=0;const c=P.c,cl=clipsFor(MODELS[skinId(mySk())]).z_standup;if(cl){const a=c.mixer.clipAction(cl);a.setLoop(T.LoopOnce);a.clampWhenFinished=true;a.reset();a.timeScale=0;a.setEffectiveWeight(1);a.play();c.act.standup=a;P.wakeA=a;P.wakeD=cl.duration}
+function wakeStart(){P.wake=9.0;P.wlook=null;P.wakeT=0;const c=P.c,cl=clipsFor(MODELS[skinId(mySk())]).z_standup;if(cl){const a=c.mixer.clipAction(cl);a.setLoop(T.LoopOnce);a.clampWhenFinished=true;a.reset();a.timeScale=0;a.setEffectiveWeight(1);a.play();c.act.standup=a;P.wakeA=a;P.wakeD=cl.duration}
  const e=$('eyes');e.style.display='block';e.style.setProperty('--o','0');e.style.setProperty('--b','10px')}
 function wakeFrame(dt){if(!(P.wake>0))return;P.wake-=dt;const t=(P.wakeT+=dt),e=$('eyes');
  // 眼皮：闭 → 微睁 → 又闭上 → 慢慢睁开，视野从模糊到清晰
  let o=t<.8?0:t<1.2?(t-.8)/.4*.25:t<1.45?.25-(t-1.2)/.25*.25:t<1.6?0:Math.min(1,(t-1.6)/1.4);o=o*o*(3-2*o);
  e.style.setProperty('--o',(.5+o*95).toFixed(1)+'%');e.style.setProperty('--b',(Math.max(0,1-(t-1.4)/2.2)*9).toFixed(1)+'px');
- const a=P.wakeA;if(a){if(t>1.0){a.timeScale=Math.max(.6,P.wakeD/2.9);a.paused=false}a.setEffectiveWeight(1);if(!P.wakeOff)P.c.one={n:'standup',t:Math.max(.05,P.wake)}}
+ const a=P.wakeA;if(a){const sm=x=>x*x*(3-2*x);const fr=t<.9?0:t<2.4?sm((t-.9)/1.5)*WSIT:t<6.6?WSIT:t<8.5?WSIT+sm((t-6.6)/1.9)*(1-WSIT):1;a.paused=true;a.time=fr*P.wakeD;a.setEffectiveWeight(1);if(!P.wakeOff)P.c.one={n:'standup',t:Math.max(.05,P.wake)}}
  P.guns.forEach(g=>{if(g)g.visible=false});IN.fire=false;
  // 站起后：系统自检 —— 抬手看自己的机械手、转头扫描四周、拔枪
- if(a&&t>3.9&&!P.wakeOff){P.wakeOff=1;a.fadeOut(.4);P.c.one=null;P.wakeA=null}
+ if(a&&t>8.5&&!P.wakeOff){P.wakeOff=1;a.fadeOut(.4);P.c.one=null;P.wakeA=null}
  if(t>1.7&&!P.vo1){P.vo1=1;const n=skNum(mySk()),en=n.replace('R-','R ');aiVO('Unit '+en+'. Wake sequence initiated. Core systems nominal.',n+'，唤醒程序启动。核心运转正常。')}
- if(t>3.8&&!P.vo2){P.vo2=1;G.mode!=='pvp'?aiVO('The city center is surrounded. Hold this position. Purge all flesh.','城市中心已被尸潮包围。守住这里，清除一切血肉。',1):G.ffa?aiVO('Protocol conflict. Every unit here is hostile. Survive.','协议冲突。这里的每一台机体都是你的敌人。活到最后。',1):aiVO('Hostile units have entered the combat zone. Regroup with your squad. Eliminate them.','敌方机团已进入交战区。与你的小队会合，消灭他们。',1)}
- const bt=$('boot');if(t>3.7&&!P.bootOn){P.bootOn=1;bt.innerHTML='';bt.style.display='block';const L=['> 系统重启……完成','> 视觉模块 ········· 正常','> 运动关节 ········· 正常','> 武装系统 ········· 在线','> 检测到生物信号：'+(G.mode==='pvp'?'无 · 敌对机体：'+(G.ffa?'全部':'敌方机团'):'大量'),'> 指令：'+(G.mode==='pvp'?'清除敌对单位':'清除一切血肉')];
+ if(t>7.0&&!P.vo2){P.vo2=1;G.mode!=='pvp'?aiVO('The city center is surrounded. Hold this position. Purge all flesh.','城市中心已被尸潮包围。守住这里，清除一切血肉。',1):G.ffa?aiVO('Protocol conflict. Every unit here is hostile. Survive.','协议冲突。这里的每一台机体都是你的敌人。活到最后。',1):aiVO('Hostile units have entered the combat zone. Regroup with your squad. Eliminate them.','敌方机团已进入交战区。与你的小队会合，消灭他们。',1)}
+ const bt=$('boot');if(t>4.45&&!P.bootOn){P.bootOn=1;bt.innerHTML='';bt.style.display='block';const L=['> 系统重启……完成','> 视觉模块 ········· 正常','> 运动关节 ········· 正常','> 武装系统 ········· 在线','> 检测到生物信号：'+(G.mode==='pvp'?'无 · 敌对机体：'+(G.ffa?'全部':'敌方机团'):'大量'),'> 指令：'+(G.mode==='pvp'?'清除敌对单位':'清除一切血肉')];
   L.forEach((s2,i)=>setTimeout(()=>{if(!P.bootOn)return;const d=document.createElement('div');d.textContent=s2;bt.appendChild(d);if(AC)tone(1400+i*120,1400+i*120,.04,.06,'square')},i*330))}
- if(t>6.1&&!P.wakeDraw){P.wakeDraw=1;try{equip(G.cur,true)}catch(e){}if(AC)tone(300,600,.15,.12,'sawtooth')}
- if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=P.vo1=P.vo2=0;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
+ if(t>8.55&&!P.wakeDraw){P.wakeDraw=1;try{equip(G.cur,true)}catch(e){}if(AC)tone(300,600,.15,.12,'sawtooth')}
+ if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=P.vo1=P.vo2=0;P.drawT=1;if(WPAN)WPAN.visible=false;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
 // 抬起右手到眼前，翻转查看
-function wakeHand(){const t=P.wakeT;if(t<4.0||t>5.3)return;const k=t<4.4?(t-4.0)/.4:t>4.95?1-(t-4.95)/.35:1,e=k*k*(3-2*k);const c=P.c,cu=v4.crossVectors(camR,camF);
- const p=new T.Vector3().copy(camera.position).addScaledVector(camF,.45+.2*e).addScaledVector(camR,.22-.08*e+Math.sin((t-4.3)*2.6)*.05*e).addScaledVector(cu,-.5+.48*e);c.wrap.updateMatrixWorld(true);IK.r.copy(camR);armIK(c,"right",p,1);
- const hd=c.bones.mixamorigrighthand;if(hd)hd.rotateX((.55+.15*Math.sin((t-4.3)*2.2))*e)}
+const WSIT=.33;let WPAN=null;
+function wakePanel(){if(WPAN)return WPAN;const g=new T.Group(),mk=(w,h,d,c,e)=>new T.Mesh(new T.BoxGeometry(w,h,d),new T.MeshStandardMaterial({color:c,metalness:.7,roughness:.4,emissive:e||0}));
+ const base=mk(.17,.075,.012,0x0d1418);base.material.metalness=.3;g.add(base);const scr=new T.Mesh(new T.PlaneGeometry(.06,.05),new T.MeshBasicMaterial({color:0x0a3040,toneMapped:false}));scr.position.set(-.045,0,.007);g.add(scr);g.userData.scr=scr;
+ g.userData.btn=[0x30d8ff,0xffb030,0xff3a30].map((c,i)=>{const b=mk(.02,.02,.012,0x111111,c);b.material.emissiveIntensity=.35;b.position.set(.02+i*.03,0,.008);g.add(b);return b});
+ const hinge=new T.Group();hinge.position.set(0,.04,.008);const lid=mk(.175,.08,.01,0x1a1e22);lid.material.metalness=.35;lid.material.roughness=.55;lid.position.set(0,-.04,.006);hinge.add(lid);g.add(hinge);g.userData.hinge=hinge;
+ g.traverse(o=>{o.userData.lore=1});scene.add(g);WPAN=g;return g}
+function wakeHand(){const t=P.wakeT,c=P.c,sm=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};const cu=v4.crossVectors(camR,camF);const pan=wakePanel();pan.visible=t>3.6&&t<6.7;
+ if(t<2.4||t>7.0){return}
+ c.wrap.updateMatrixWorld(true);const C=camera.position,fw=v1.set(camF.x,0,camF.z).normalize().clone(),up=new T.Vector3(0,1,0),rt=new T.Vector3().crossVectors(fw,up).normalize();
+ const at=(f,r,u)=>C.clone().addScaledVector(fw,f).addScaledVector(rt,r).addScaledVector(up,u);
+ const e1=sm((t-2.4)/.5)*(1-sm((t-6.5)/.5));// 手抬起
+ // 看双手 → 左前臂横到胸前 → 打开外壳 → 右手按按钮 → 合上
+ const across=sm((t-3.5)/.5);
+ const L0=at(.36,-.14,-.3),L1=at(.34,.06,-.26),R0=at(.36,.14,-.3);
+ const L=L0.lerp(L1,across),Rh=R0.clone();
+ if(e1>.01){const l0=c.bones.mixamoriglefthand.getWorldPosition(new T.Vector3());IK.r.copy(rt);armIK(c,'left',l0.lerp(L,e1),-1)}
+ const fa=c.bones.mixamorigleftforearm.getWorldPosition(new T.Vector3()),hd=c.bones.mixamoriglefthand.getWorldPosition(new T.Vector3());
+ const ax=hd.clone().sub(fa).normalize(),mid=fa.clone().lerp(hd,.55),n=C.clone().sub(mid);n.addScaledVector(ax,-n.dot(ax)).normalize();
+ pan.position.copy(mid).addScaledVector(n,.05);const Y=new T.Vector3().crossVectors(n,ax).normalize();pan.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(ax,Y,n));
+ const op=sm((t-3.9)/.4)*(1-sm((t-6.0)/.4));pan.userData.hinge.rotation.x=-op*2.0;
+ // 右手：先和左手一起抬起，之后用手指去按三个按钮
+ const pr=[4.45,5.0,5.55];let tgt=Rh;if(t>4.15&&t<6.1){const bi=t<4.75?0:t<5.3?1:2;const bp=pan.userData.btn[bi].getWorldPosition(new T.Vector3());const ph=t-pr[bi],push=ph>-.08&&ph<.18?Math.sin(clamp((ph+.08)/.26,0,1)*Math.PI):0;
+  tgt=bp.addScaledVector(n,.06-.045*push).addScaledVector(ax,-.06);const k=sm((t-4.15)/.3)*(1-sm((t-5.85)/.25));tgt=Rh.clone().lerp(tgt,k);
+  pan.userData.btn.forEach((b,i)=>{b.material.emissiveIntensity=i<bi||(i===bi&&ph>0)?2.2:.35});if(push>.8&&P.wbt!==bi){P.wbt=bi;if(AC)tone(1500+bi*250,1500+bi*250,.05,.08,'square')}}
+ pan.userData.scr.material.color.setHex(t>4.45?(Math.sin(t*20)>0?0x20e0ff:0x60f0ff):0x0a3040);
+ if(e1>.01){const r0=c.bones.mixamorigrighthand.getWorldPosition(new T.Vector3());IK.r.copy(rt);armIK(c,'right',r0.lerp(tgt,e1),1)}
+ const rh=c.bones.mixamorigrighthand;if(rh&&t>4.15&&t<6.1)rh.rotateX(.9)}
 function beginMatch0(cfg){G.introT=3.6;
  clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));buildMapById(cfg.map||'cross');if(MAP.train){MAP.train.act=0;MAP.train.g.visible=false;MAP.train.next=rand(35,55)}if(MAP.crane){const C=MAP.crane;C.st=0;C.box.position.y=-10.3;C.tx=C.x;C.tz=C.z}if(cfg.seed!=null)buildLayout(cfg.seed);
  G.cfg=cfg;G.ffa=cfg.mode==='ffa';G.mode=G.ffa?'pvp':cfg.mode;G.mid=cfg.mid;diffI=cfg.diff;document.body.classList.toggle('pvp',G.mode==='pvp');
@@ -2163,7 +2187,7 @@ let GYRO=LS.get('scqh-gyro')==='1',GY={y:0,p:0,on:false};if(GYRO)addEventListene
 function gyroInit(){if(GY.on)return;const go=()=>{GY.on=true;addEventListener('devicemotion',e=>{const r=e.rotationRate;if(!r||r.beta==null)return;let dt=e.interval||16;if(dt>1)dt/=1000;dt=Math.min(dt,.05);
   const a=((screen.orientation&&screen.orientation.angle)??window.orientation??0),d=Math.PI/180*dt;
   // 横屏时：机身短边朝上，绕短边(x)转 = 左右转身，绕长边(y)转 = 抬头低头
-  if(a===90){GY.y+=r.beta*d;GY.p+=r.gamma*d}else if(a===270||a===-90){GY.y-=r.beta*d;GY.p-=r.gamma*d}else{GY.y+=r.gamma*d;GY.p+=r.beta*d}},{passive:true})};
+  if(a===90){GY.y-=r.beta*d;GY.p+=r.gamma*d}else if(a===270||a===-90){GY.y+=r.beta*d;GY.p-=r.gamma*d}else{GY.y+=r.gamma*d;GY.p+=r.beta*d}},{passive:true})};
  if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)DeviceMotionEvent.requestPermission().then(r=>{if(r==='granted')go()}).catch(()=>{});else go()}
 function gyroApply(){if(!GYRO||!GY.on){GY.y=GY.p=0;return}const fp=VIEW==='fp'&&G.state==='play'&&!P.dead&&!(P.wake>0);if(fp){P.yaw+=GY.y*.9}GY.y=GY.p=0}
 function aimAssist(dt){gyroApply();if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
@@ -2218,7 +2242,13 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  if(FPV&&!(P.wake>0)&&!P.mg){FPCLIP.normal.copy(camF);FPCLIP.constant=-camF.dot(camera.position)-.3}else FPCLIP.constant=1e6;
  if(P.wake>0){const hb=P.c.bones.mixamorighead;if(hb){P.c.wrap.updateMatrixWorld(true);const q=hb.getWorldQuaternion(new T.Quaternion()),f=new T.Vector3(0,0,1).applyQuaternion(q),u=new T.Vector3(0,1,0).applyQuaternion(q);hb.getWorldPosition(camera.position);camera.position.addScaledVector(u,.09*P.c.s).addScaledVector(f,.1);(P.eyeC||(P.eyeC=new T.Vector3())).copy(camera.position);P.tpIn=VIEW==='fp'?0:1;
   // 起身后半段把视线平滑交还给玩家的朝向
-  const k=clamp((P.wakeT-3.2)/.9,0,1);const sc=P.wakeT>4.9&&P.wakeT<6.2?Math.sin((P.wakeT-4.9)/1.3*Math.PI*2)*.6*Math.sin((P.wakeT-4.9)/1.3*Math.PI):0;const g2=camF.clone().applyAxisAngle(v1.set(0,1,0),sc);g2.y-=(P.wakeT>4.0&&P.wakeT<5.3?.12:0);f.lerp(g2,k).normalize();camera.lookAt(v3.copy(camera.position).add(f))}}
+  const wt=P.wakeT;let tg=null,w=0;const B=n=>P.c.bones['mixamorig'+n].getWorldPosition(new T.Vector3());
+  if(wt>2.4&&wt<3.7){tg=B('lefthand').add(B('righthand')).multiplyScalar(.5);w=clamp((wt-2.4)/.5,0,1)}
+  else if(wt>=3.7&&wt<6.5){tg=WPAN&&WPAN.visible?WPAN.position.clone():B('leftforearm').lerp(B('lefthand'),.5);w=1}
+  else if(wt>=6.5&&wt<7.0){w=0}
+  let d=f.clone();if(tg)d.lerp(tg.sub(camera.position).normalize(),w).normalize();
+  const k=clamp((wt-7.4)/1.0,0,1);d.lerp(camF,k*k*(3-2*k)).normalize();
+  if(!P.wlook)P.wlook=d.clone();else P.wlook.lerp(d,Math.min(1,dt*6)).normalize();camera.lookAt(v3.copy(camera.position).add(P.wlook))}}
  P.scoped=!P.dead&&!P.mg&&!!WP[G.cur].scope&&P.aim>.85&&!P.sw&&!(P.relT>0);
  const fov=P.mg&&!P.dead?52-P.aim*16:P.scoped?WP[G.cur].scope:FPV?72-P.aim*20:65-P.aim*17;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix()}
  // 持枪姿势 / 换枪 / 换弹动作
@@ -2230,15 +2260,15 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
   const fpv=FPV||P.scoped;g.scale.setScalar(1);g.children.forEach(m=>{if(m.userData.fp)m.visible=fpv});
   // 泵动 / 拉栓 / 换弹 的动作幅度
   const pump=W0.mode==='pump'?Math.sin(Math.PI*cycP):0,bolt=W0.mode==='bolt'?Math.sin(Math.PI*cycP):0,rk=Math.sin(Math.PI*relP);
-  if(fpv){const H=VMO[W0.cat];const ads=P.aim;const adsY=-(g.userData.H*(1-W0.gy)+.012),adsZ=W0.cat==='pistol'?.42:W0.cat==='smg'?.28:.32;const ox=H[0]*(1-ads),oy=H[1]*(1-ads)+adsY*ads-low*.28-rk*.1-bolt*.03,oz=H[2]*(1-ads)+adsZ*ads-P.rec*1.2-P.vk-pump*.05;
+  if(P.drawT>0)P.drawT=Math.max(0,P.drawT-dt/.85);if(fpv){const H=VMO[W0.cat];const ads=P.aim;const adsY=-(g.userData.H*(1-W0.gy)+.012),adsZ=W0.cat==='pistol'?.42:W0.cat==='smg'?.28:.32;const ox=H[0]*(1-ads),oy=H[1]*(1-ads)+adsY*ads-low*.28-rk*.1-bolt*.03,oz=H[2]*(1-ads)+adsZ*ads-P.rec*1.2-P.vk-pump*.05;
    const cu=v4.crossVectors(camR,camF);g.position.copy(camera.position).addScaledVector(camR,ox+Math.cos(P.bobT)*.012*bob).addScaledVector(cu,oy+Math.abs(Math.sin(P.bobT))*.012*bob).addScaledVector(camF,oz);
-   g.lookAt(v3.copy(camera.position).addScaledVector(camF,60));g.rotateX(-P.vk*1.5);
+   g.lookAt(v3.copy(camera.position).addScaledVector(camF,60));g.rotateX(-P.vk*1.5);if(P.drawT>0){const dk=P.drawT*P.drawT*(3-2*P.drawT);g.position.addScaledVector(cu,-.42*dk).addScaledVector(camR,.08*dk).addScaledVector(camF,-.12*dk);g.rotateX(1.3*dk);g.rotateZ(-.4*dk)}
    if(relP>0){if(W0.rt==='revolver'||W0.rt==='break')g.rotateX(rk*.7);else g.rotateZ(rk*.6)}if(bolt)g.rotateZ(bolt*.25);if(low>0)g.rotateX(low*.7)
    // 双手握在枪上
-   if(FPV&&!P.scoped){g.updateMatrixWorld(true);const R=g.position.clone();let L;
-    if(W0.cat==='pistol')L=R.clone().addScaledVector(camR,-.04).addScaledVector(cu,-.025).addScaledVector(camF,.01);else L=g.localToWorld(g.userData.fore.clone());
-    if(rk>0){const mg=g.localToWorld(new T.Vector3(0,-g.userData.H*.6,g.userData.L*.12));L.lerp(mg,rk)}if(pump>0)L.addScaledVector(camF,-pump*.08);
-    poseHands(P.c,R,L);gripHand(P.c,'right',cu,1);gripHand(P.c,'left',cu,-1)}}
+   if(FPV&&!P.scoped){g.updateMatrixWorld(true);const R=g.position.clone().addScaledVector(cu,-.06).addScaledVector(camF,-.07).addScaledVector(camR,.015);let L;
+    L=camera.position.clone().addScaledVector(camR,-.24).addScaledVector(cu,-.62).addScaledVector(camF,.02);// 单手持枪：左手垂在身侧
+    if(rk>0){const mg=g.localToWorld(new T.Vector3(0,-g.userData.H*.6,g.userData.L*.12));L.lerp(mg,rk)}
+    poseHands(P.c,R,L);gripHand(P.c,'right',cu,1)}}
   else{if(P.climb){const C=P.climb,k=Math.min(1,C.t/C.d);mantleHands(P.c,C.yaw,C.hx,C.hz,C.y1,k>.04&&k<.88?1:0)}if(P.wake>0){}else if(!sprint&&!P.climb&&!P.pin)poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
    if(relP>0&&(W0.rt==='revolver'||W0.rt==='break'))g.rotateX(rk*.6);g.rotateX(-P.vk*2);if(!sprint&&!P.climb&&!P.pin&&!(relP>0)&&!(low>.05)&&!(P.wake>0)&&W0.cat!=='pistol')leftOnGun(P.c,g)}}
  if(P.fireCd>0)P.fireCd-=dt;
