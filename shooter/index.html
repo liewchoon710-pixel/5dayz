@@ -730,9 +730,9 @@ function useCrane(){const CR=MAP.crane;if(!CR||CR.st)return false;if(G.cash<500)
 function layoutGeneric(sr,sg,sp){const S=MAP.slots,sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(srand()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};
  const used=[];const okAt=(x,z,r,y=0)=>{for(const u of used)if(Math.hypot(u[0]-x,u[1]-z)<u[2]+r)return false;const q=new T.Vector3(x,0,z),p=q.clone();pushOut(q,r,'p',y);if(q.distanceTo(p)>.05)return false;return groundH(p,r,y)<=y+.05};
  const ps=MAP.ps();used.push([ps[0],ps[1],4],[0,0,5]);
- const mg=sh(S.mg).slice(0,Math.min(5,S.mg.length)).map(q=>{used.push([q[0],q[1],2]);return [q[0],q[1],Math.atan2(-q[2],-q[3])+sr(-.15,.15),q[4]||0]});buildMGs(mg);
- const W=sh(S.wall);for(const q of W)used.push([q[0],q[1],1.4]);
- for(const q of W.slice(2,8))VENDS.push(placeProp('vending',q[0],q[1],q[2],1.1,true,q[3]||0));
+ const mg=sh(S.mg).filter(q=>!obbHit(q[0],q[1],.9,.9,0,q[4]||0,(q[4]||0)+1.6,-.05)).slice(0,Math.min(5,S.mg.length)).map(q=>{used.push([q[0],q[1],2]);return [q[0],q[1],Math.atan2(-q[2],-q[3])+sr(-.15,.15),q[4]||0]});buildMGs(mg);
+ const W=sh(S.wall).filter(q=>!obbHit(q[0],q[1],.6,.45,q[2],q[3]||0,(q[3]||0)+1.9,-.05));for(const q of W)used.push([q[0],q[1],1.4]);
+ for(const q of W.slice(2,8)){const v=placeProp('vending',q[0],q[1],q[2],1.1,true,q[3]||0);if(v)VENDS.push(v)}
  if(MAP.crane){const C=MAP.console;MACH.push({k:'crane',pos:new T.Vector3(C.x,0,C.z)});used.push([0,-26,7])}
  // 码头：集装箱迷宫（每局不同）
  if(MAP.maze){for(let gx=-32;gx<=32;gx+=8)for(let gz=-14;gz<=28;gz+=6){if(srand()<.38)continue;const rot=srand()<.25;const x=gx+sr(-1,1),z=gz+sr(-.6,.6);const r=rot?3.3:3.2;
@@ -831,7 +831,15 @@ function buildLayout(sd){
  for(let i=0;i<30;i++){const a=srand()<.5;const s2=sg()*sr(15,66),l=sg()*sr(12.6,13.8);const g=new T.DodecahedronGeometry(sr(.6,1.4),0);const m=new T.Mesh(g,rubM);m.scale.y=.42;m.position.set(a?s2:l,.1,a?l:s2);m.rotation.y=srand()*6;m.castShadow=m.receiveShadow=true;scene.add(m)}
  buildMachines(VENDS,[b1.x,b1.z,b1.ry],[b2.x,b2.z,b2.ry]);
  try{derelict(sd)}catch(e){console.warn(e)}scene.add=add0;DYN=false;G.layoutSeed=sd}
-function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return null;const o=src.clone(true);
+// 两个有碰撞的物件不许互相穿插：放之前先用旋转盒子做重叠检测，重叠就不放
+function obbHit(cx,cz,hx,hz,ry,y0,y1,pad){const c=Math.cos(ry),s=Math.sin(ry);const A=[cx,cz,hx,hz,c,s];
+ const cor=o=>[[1,1],[1,-1],[-1,1],[-1,-1]].map(([a,b])=>[o[0]+a*o[2]*o[4]+b*o[3]*o[5],o[1]-a*o[2]*o[5]+b*o[3]*o[4]]);
+ const pj=(P,ax)=>{let mn=1e9,mx=-1e9;for(const p of P){const v=p[0]*ax[0]+p[1]*ax[1];if(v<mn)mn=v;if(v>mx)mx=v}return[mn,mx]};
+ for(const C of COL){const o=C.o;if(!o||!o.hx)continue;if(Math.min(y1,C.b.max.y)-Math.max(y0,o.y0||0)<=.05)continue;const B=[o.cx,o.cz,o.hx,o.hz,o.c,o.s];
+  const a=cor(A),b=cor(B);let sep=false;for(const q of[A,B])for(const ax of[[q[4],-q[5]],[q[5],q[4]]]){const p=pj(a,ax),r=pj(b,ax);if(Math.min(p[1],r[1])-Math.max(p[0],r[0])<=pad){sep=true;break}}if(!sep)return true}return false}
+function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return null;
+ if(collide&&DYN){const b0=new T.Box3().setFromObject(src),s0=b0.getSize(new T.Vector3()),k0=len/Math.max(s0.x,s0.z,.01);if(obbHit(x,z,s0.x*k0/2,s0.z*k0/2,ry,y,y+s0.y*k0,-.05))return null}
+ const o=src.clone(true);
  o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});
  const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
@@ -1404,7 +1412,7 @@ function buildMGs(SP){const dk=new T.MeshStandardMaterial({color:0x22262a,roughn
 // 固定机枪换成写实模型（整挺枪跟着炮塔转）
 function mgSkin(m){if(m.sk||!PROPS.eb_fixed_ground_machine_gun)return;m.sk=1;const tur=m.tur,o=PROPS.eb_fixed_ground_machine_gun.clone(true);const b=new T.Box3().setFromObject(o),sz=b.getSize(new T.Vector3()),k=1.6/Math.max(sz.x,sz.z);o.scale.setScalar(k);
  o.position.set(-(b.min.x+b.max.x)/2*k,-1.08-b.min.y*k,-(b.min.z+b.max.z)/2*k);o.rotation.y=MGROT;tur.add(o);tur.children.forEach(c=>{if(c!==o&&c!==m.brl)c.visible=false});m.brl.material.transparent=true;m.brl.material.opacity=0;
- m.g.children.forEach(c=>{if(c!==tur&&c.geometry&&c.geometry.type==='CylinderGeometry')c.visible=false})}
+ m.g.children.forEach(c=>{if(c!==tur&&c.isMesh)c.visible=false})}// 原来的三脚架和沙袋一起隐藏，避免和新模型穿插
 let MGROT=0;
 function mgSeat(m,yaw,out){return out.set(m.pos.x+Math.sin(yaw)*.95,0,m.pos.z+Math.cos(yaw)*.95)}
 function mgFree(m){return !m.ru||performance.now()-m.ruT>1500}
