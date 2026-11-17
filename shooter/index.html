@@ -205,10 +205,10 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
 
 <div id="intro"><h2>尸城枪火</h2><p id="inSub"></p><div class="rd" id="inRd"></div></div>
 <div id="rot"><div style="font-size:54px">📱↻</div><div>请把手机横过来玩</div><button class="btn" id="bRot">切换横屏</button></div>
-<div id="load" class="ov"><h1>尸城枪火</h1><div class="sub">尸城五日 · 尸潮射击</div><div id="loadT">正在载入素材…</div><div id="loadbar"><div id="loadfill"></div></div></div>
+<div id="load" class="ov"><h1>尸城枪火</h1><div class="sub">当机器接管世界 · 人类变成怪物 · 战争才刚刚开始</div><div id="loadT">正在载入素材…</div><div id="loadbar"><div id="loadfill"></div></div></div>
 
 <div id="menu" class="ov hid" style="overflow:auto;justify-content:flex-start;padding:18px 0">
-  <h1 style="margin-top:auto">尸城枪火</h1><div class="sub">尸城五日 · 尸潮射击</div>
+  <h1 style="margin-top:auto">尸城枪火</h1><div class="sub">当机器接管世界 · 人类变成怪物 · 战争才刚刚开始</div><div class="row" style="margin-top:4px"><button class="btn g" id="bStory" style="padding:6px 16px;font-size:13px">背景故事</button></div>
   <div class="row"><input id="nm" maxlength="8" placeholder="你的名字"></div>
     <div class="lbl">光色</div><div class="row" id="visRow"></div>
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
@@ -234,6 +234,8 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
   <div id="lbMsg" class="lbl" style="opacity:.85"></div>
 </div></div>
 
+<div id="story" class="ov hid" style="z-index:40;overflow:auto"><div class="lbBox" style="max-width:560px;text-align:left;line-height:1.75;font-size:15px"><h1 style="font-size:30px;text-align:center">背景</h1><p>AI 失控了。</p><p>人类集结全部力量向机器宣战——然后输了。</p><p>走投无路之下，人类动用了最后的化学武器，想把机器连同战场一起抹平。毒剂没能摧毁钢铁，却毁掉了投放它的人：幸存者一个接一个倒下，又一个接一个站起来，变成了只剩饥饿的怪物。</p><p>城市荒废，人类消失。地面上只剩两种东西还在移动：<b>机器</b>，和<b>曾经是人的东西</b>。</p><p>你是一台编号机体。你的任务：清除尸潮，夺回这座城。</p><p class="tag">当机器接管世界<br>人类变成怪物<br>战争才刚刚开始</p><div class="row" style="margin-top:14px;justify-content:center"><button class="btn" id="bStoryOk">进入战场</button></div></div></div>
+<style>#story p{margin:8px 0;color:#d8d4c8}#story .tag{margin-top:18px;text-align:center;color:#ff8a5a;font-weight:bold;letter-spacing:2px;font-size:17px;line-height:1.9}</style>
 <div id="pause" class="ov hid"><h1 style="font-size:40px" id="pauseT">已暂停</h1><div class="row" style="margin-top:16px"><button class="btn" id="bResume">继续战斗</button><button class="btn g" id="bQuit">退出到菜单</button></div></div>
 
 <div id="over" class="ov hid"><div class="lbBox"><h1 style="font-size:40px" id="overT">你倒下了</h1><div class="stat" id="overStat"></div><div id="overTable"></div><div class="row" style="margin-top:14px"><button class="btn" id="bAgain">再来一局</button><button class="btn g" id="bMenu">返回菜单</button></div></div></div>
@@ -928,7 +930,7 @@ const ZTK=['walker','runner','brute','boss','bomber','spitter','thrower','grabbe
 const BOTN=['老鹰','铁头','阿虎','小七','黑狗','山猫','老六','飞鱼','雷子','大熊','白狼','钢牙'];
 let visC=+(LS.get('scqh-vc')||0)%5,visS=+(LS.get('scqh-vs')||0)%3;function mySk(){return skinI+4*visC}
 let skinI=+(LS.get('scqh-skin')||0)%HUMANS.length,diffI=+(LS.get('scqh-diff')??1)%3,modeS=LS.get('scqh-mode')==='pvp'?'pvp':'z',aiS=LS.get('scqh-ai')!=='0';
-let myName=LS.get('scqh-name')||('幸存者'+Math.floor(10+Math.random()*90));
+let myName=LS.get('scqh-name')||('机体'+Math.floor(10+Math.random()*90));
 const G={state:'load',mode:'z',wave:0,zs:[],queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,ws:null,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:0,zid:1,bid:0,mid:'',cfg:null,R:{},paused:false,botT:0,allDeadT:0,ended:false};
 const P={kbv:new T.Vector3(),stun:0,grab:null,pin:null,mash:0,climb:null,y:0,vy:0,air:false,cr:false,crT:0,mg:null,pos:new T.Vector3(),vel:new T.Vector3(),yaw:0,pitch:-.08,rec:0,hp:100,ar:0,c:null,guns:[],aim:0,aimOn:false,fireCd:0,relT:0,dead:false,hurtT:0,regenT:0,spr:0,shake:0,team:0,respT:0,prot:0};
 const HUM={};// 远端玩家 + 电脑士兵
@@ -2112,7 +2114,7 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 // ---------- 菜单 / 大厅 ----------
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
-function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
+function showMenu(){$('menu').classList.remove('hid');$('bStory').onclick=()=>$('story').classList.remove('hid');$('bStoryOk').onclick=()=>{$('story').classList.add('hid');LS.set('scqh-story','1')};if(!LS.get('scqh-story'))$('story').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
  chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
  chips($('modeRow'),['打丧尸（合作）','两队对打 4v4'],modeS==='pvp'?1:0,i=>{modeS=i?'pvp':'z';LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
