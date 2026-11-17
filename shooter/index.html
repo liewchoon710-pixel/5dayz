@@ -204,7 +204,8 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
   <div class="tb zOnly" id="tThr">手雷</div><div class="tb zOnly" id="tThrS">⇄</div><div class="tb" id="tKnife">刀</div>
 </div>
 
-<div id="eyes"></div>
+<div id="eyes"></div><div id="boot"></div>
+<style>#boot{display:none;position:fixed;left:6%;top:16%;z-index:16;pointer-events:none;font:13px/1.7 Consolas,monospace;color:#7fe0ff;text-shadow:0 0 6px rgba(80,200,255,.8)}#boot div{animation:bt .25s steps(8)}@keyframes bt{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}</style>
 <style>#eyes{display:none;position:fixed;inset:0;z-index:15;pointer-events:none;backdrop-filter:blur(var(--b));-webkit-backdrop-filter:blur(var(--b))}#eyes{background:radial-gradient(ellipse 75% var(--o) at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.85) 82%,#000 100%)}</style>
 <div id="intro"><h2>人类之后</h2><p id="inSub"></p><div class="rd" id="inRd"></div></div>
 <div id="rot"><div style="font-size:54px">📱↻</div><div>请把手机横过来玩</div><button class="btn" id="bRot">切换横屏</button></div>
@@ -1037,15 +1038,24 @@ let VTX=null;function beginMatch(cfg){if(VTX){VTX.cfg=cfg;return}const cv=docume
  $('menu').classList.add('hid');$('lobby').classList.add('hid');requestAnimationFrame(fr)}
 function sVortex(){if(!AC)return;tone(60,400,1.2,.25,'sawtooth');noise(300,1.3,.35,'lowpass');setTimeout(()=>{noise(2000,.5,.4,'bandpass');tone(900,80,.6,.2,'sine')},1200)}
 // ---------- 开局：艰难睁眼 → 坐起 → 站起 ----------
-function wakeStart(){P.wake=4.2;P.wakeT=0;const c=P.c,cl=clipsFor(MODELS[skinId(mySk())]).z_standup;if(cl){const a=c.mixer.clipAction(cl);a.setLoop(T.LoopOnce);a.clampWhenFinished=true;a.reset();a.timeScale=0;a.setEffectiveWeight(1);a.play();c.act.standup=a;P.wakeA=a;P.wakeD=cl.duration}
+function wakeStart(){P.wake=6.6;P.wakeT=0;const c=P.c,cl=clipsFor(MODELS[skinId(mySk())]).z_standup;if(cl){const a=c.mixer.clipAction(cl);a.setLoop(T.LoopOnce);a.clampWhenFinished=true;a.reset();a.timeScale=0;a.setEffectiveWeight(1);a.play();c.act.standup=a;P.wakeA=a;P.wakeD=cl.duration}
  const e=$('eyes');e.style.display='block';e.style.setProperty('--o','0');e.style.setProperty('--b','10px')}
 function wakeFrame(dt){if(!(P.wake>0))return;P.wake-=dt;const t=(P.wakeT+=dt),e=$('eyes');
  // 眼皮：闭 → 微睁 → 又闭上 → 慢慢睁开，视野从模糊到清晰
  let o=t<.8?0:t<1.2?(t-.8)/.4*.25:t<1.45?.25-(t-1.2)/.25*.25:t<1.6?0:Math.min(1,(t-1.6)/1.4);o=o*o*(3-2*o);
  e.style.setProperty('--o',(.5+o*95).toFixed(1)+'%');e.style.setProperty('--b',(Math.max(0,1-(t-1.4)/2.2)*9).toFixed(1)+'px');
- const a=P.wakeA;if(a){if(t>1.0){a.timeScale=Math.max(.6,P.wakeD/2.9);a.paused=false}a.setEffectiveWeight(1);P.c.one={n:'standup',t:Math.max(.05,P.wake)}}
+ const a=P.wakeA;if(a){if(t>1.0){a.timeScale=Math.max(.6,P.wakeD/2.9);a.paused=false}a.setEffectiveWeight(1);if(!P.wakeOff)P.c.one={n:'standup',t:Math.max(.05,P.wake)}}
  P.guns.forEach(g=>{if(g)g.visible=false});IN.fire=false;
- if(P.wake<=0){e.style.display='none';if(a){a.fadeOut(.3)}P.c.one=null;gunOf(P.guns,G.cur).visible=true;P.wakeA=null}}
+ // 站起后：系统自检 —— 抬手看自己的机械手、转头扫描四周、拔枪
+ if(a&&t>3.9&&!P.wakeOff){P.wakeOff=1;a.fadeOut(.4);P.c.one=null;P.wakeA=null}
+ const bt=$('boot');if(t>3.7&&!P.bootOn){P.bootOn=1;bt.innerHTML='';bt.style.display='block';const L=['> 系统重启……完成','> 视觉模块 ········· 正常','> 运动关节 ········· 正常','> 武装系统 ········· 在线','> 检测到生物信号：'+(G.mode==='pvp'?'无 · 敌对机体：'+(G.ffa?'全部':'敌方机团'):'大量'),'> 指令：'+(G.mode==='pvp'?'清除敌对单位':'清除一切血肉')];
+  L.forEach((s2,i)=>setTimeout(()=>{if(!P.bootOn)return;const d=document.createElement('div');d.textContent=s2;bt.appendChild(d);if(AC)tone(1400+i*120,1400+i*120,.04,.06,'square')},i*330))}
+ if(t>6.1&&!P.wakeDraw){P.wakeDraw=1;try{equip(G.cur,true)}catch(e){}if(AC)tone(300,600,.15,.12,'sawtooth')}
+ if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=0;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
+// 抬起右手到眼前，翻转查看
+function wakeHand(){const t=P.wakeT;if(t<4.0||t>5.3)return;const k=t<4.4?(t-4.0)/.4:t>4.95?1-(t-4.95)/.35:1,e=k*k*(3-2*k);const c=P.c,cu=v4.crossVectors(camR,camF);
+ const p=new T.Vector3().copy(camera.position).addScaledVector(camF,.45+.2*e).addScaledVector(camR,.22-.08*e).addScaledVector(cu,-.55+.4*e);c.wrap.updateMatrixWorld(true);IK.r.copy(camR);armIK(c,'right',p,1);
+ const hd=c.bones.mixamorigrighthand;if(hd)hd.rotateX(Math.sin((t-4.3)*3.2)*.6*e)}
 function beginMatch0(cfg){G.introT=3.6;
  clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));buildMapById(cfg.map||'cross');if(MAP.train){MAP.train.act=0;MAP.train.g.visible=false;MAP.train.next=rand(35,55)}if(MAP.crane){const C=MAP.crane;C.st=0;C.box.position.y=-10.3;C.tx=C.x;C.tz=C.z}if(cfg.seed!=null)buildLayout(cfg.seed);
  G.cfg=cfg;G.ffa=cfg.mode==='ffa';G.mode=G.ffa?'pvp':cfg.mode;G.mid=cfg.mid;diffI=cfg.diff;document.body.classList.toggle('pvp',G.mode==='pvp');
@@ -2015,7 +2025,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0)wakeFrame(dt);
  camera.lookAt(v3.copy(camera.position).add(camF));
  if(P.wake>0){const hb=P.c.bones.mixamorighead;if(hb){P.c.wrap.updateMatrixWorld(true);const q=hb.getWorldQuaternion(new T.Quaternion()),f=new T.Vector3(0,0,1).applyQuaternion(q),u=new T.Vector3(0,1,0).applyQuaternion(q);hb.getWorldPosition(camera.position);camera.position.addScaledVector(u,.09*P.c.s).addScaledVector(f,.1);
   // 起身后半段把视线平滑交还给玩家的朝向
-  const k=clamp((P.wakeT-3.2)/.9,0,1);f.lerp(camF,k).normalize();camera.lookAt(v3.copy(camera.position).add(f))}}
+  const k=clamp((P.wakeT-3.2)/.9,0,1);const sc=P.wakeT>4.9&&P.wakeT<6.2?Math.sin((P.wakeT-4.9)/1.3*Math.PI*2)*.6*Math.sin((P.wakeT-4.9)/1.3*Math.PI):0;const g2=camF.clone().applyAxisAngle(v1.set(0,1,0),sc);g2.y-=(P.wakeT>4.0&&P.wakeT<5.3?.12:0);f.lerp(g2,k).normalize();camera.lookAt(v3.copy(camera.position).add(f))}}
  P.scoped=!P.dead&&!P.mg&&!!WP[G.cur].scope&&P.aim>.85&&!P.sw&&!(P.relT>0);
  const fov=P.scoped?WP[G.cur].scope:FPV?72-P.aim*20:65-P.aim*17;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix()}
  // 持枪姿势 / 换枪 / 换弹动作
@@ -2036,7 +2046,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0)wakeFrame(dt);
     if(W0.cat==='pistol')L=R.clone().addScaledVector(camR,-.04).addScaledVector(cu,-.025).addScaledVector(camF,.01);else L=g.localToWorld(g.userData.fore.clone());
     if(rk>0){const mg=g.localToWorld(new T.Vector3(0,-g.userData.H*.6,g.userData.L*.12));L.lerp(mg,rk)}if(pump>0)L.addScaledVector(camF,-pump*.08);
     poseHands(P.c,R,L)}}
-  else{if(P.climb){const C=P.climb,k=Math.min(1,C.t/C.d);mantleHands(P.c,C.yaw,C.hx,C.hz,C.y1,k>.04&&k<.88?1:0)}if(!sprint&&!P.climb&&!P.pin&&!(P.wake>0))poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
+  else{if(P.climb){const C=P.climb,k=Math.min(1,C.t/C.d);mantleHands(P.c,C.yaw,C.hx,C.hz,C.y1,k>.04&&k<.88?1:0)}if(P.wake>0){}else if(!sprint&&!P.climb&&!P.pin)poseArms(P.c,G.cur,P.yaw,ap,low,Math.max(relP>0?relP:0,pump?pump*.5:0));const hp=boneW(P.c,'mixamorigrighthand',v4);if(hp)g.position.copy(hp);else g.position.set(P.pos.x,1.3,P.pos.z);g.lookAt(v3.copy(camera.position).addScaledVector(camF,40));
    if(relP>0&&(W0.rt==='revolver'||W0.rt==='break'))g.rotateX(rk*.6);g.rotateX(-P.vk*2);if(!sprint&&!P.climb&&!P.pin&&!(relP>0)&&!(low>.05)&&!(P.wake>0)&&W0.cat!=='pistol')leftOnGun(P.c,g)}}
  if(P.fireCd>0)P.fireCd-=dt;
  if(P.relT>0){P.relT-=dt;if(P.relT<=0){P.relT=0;finishReload()}}
@@ -2727,7 +2737,7 @@ function loop(){requestAnimationFrame(loop);let dt=clock.getDelta();dt=Math.min(
  if(G.state==='play'){if(!(G.paused&&!NET.on)&&!G.hostPause)update(dt);netTick(dt)}
  else if(G.state==='menu'||G.state==='lobby'){if(menuFrame(dt)){return}const t=performance.now()/1000;camera.position.set(Math.sin(t*.08)*22,7+Math.sin(t*.2),Math.cos(t*.08)*22);camera.lookAt(0,1.5,0);fxUpdate(dt);for(const c of menuZ)updChar(c,dt)}
  else if(G.state==='over'){updHumans(dt);for(const z of G.zs)updChar(z.c,dt);P.c&&updChar(P.c,dt);fxUpdate(dt)}
- if(P.wake>0&&P.guns)P.guns.forEach(g=>{if(g)g.visible=false});GFX?GFX.frame(dt):renderer.render(scene,camera)}
+ if(P.wake>0&&P.guns){P.guns.forEach(g=>{if(g)g.visible=false});if(G.state==='play')wakeHand()}GFX?GFX.frame(dt):renderer.render(scene,camera)}
 (async()=>{try{await loadAll()}catch(e){console.error(e)}
  if(!ANIMS||!ANIMS.length||!HUMANS.some(h=>MODELS[h.id])){$('loadT').innerHTML='素材载入失败（'+FAILS.length+' 个文件）<br><span style="font-size:13px;opacity:.75">请检查网络，或用浏览器（Chrome）直接打开本页面</span><br><button class="btn" onclick="location.reload()" style="margin-top:12px">重新载入</button>';return}
  if(!MODELS[HUMANS[skinI].id])skinI=Math.max(0,HUMANS.findIndex(h=>MODELS[h.id]));
