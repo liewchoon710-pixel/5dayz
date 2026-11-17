@@ -210,8 +210,7 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
 <div id="menu" class="ov hid" style="overflow:auto;justify-content:flex-start;padding:18px 0">
   <h1 style="margin-top:auto">尸城枪火</h1><div class="sub">尸城五日 · 尸潮射击</div>
   <div class="row"><input id="nm" maxlength="8" placeholder="你的名字"></div>
-  <div class="lbl">机体</div><div class="row" id="skinRow"></div>
-  <div class="lbl">光色</div><div class="row" id="visRow"></div>
+    <div class="lbl">光色</div><div class="row" id="visRow"></div>
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
   <div class="lbl">难度</div><div class="row" id="diffRow"></div>
   <div class="lbl">视角<span class="aaL">　　　　　　　辅助瞄准</span></div><div class="row" style="flex-wrap:wrap"><div class="row" id="viewRow" style="margin:0"></div><div id="aaWrap" class="row" style="margin:0 0 0 18px;gap:inherit"><div class="row" id="aaRow" style="margin:0"></div></div></div>
@@ -318,6 +317,7 @@ const TEX_LIST=['road','walk','fac_brick_a','fac_brick_b','fac_conc','fac_glass_
 async function loadAll(){
  const jobs=[];
  jobs.push(loadGLB('mx/anims.glb').then(g=>{ANIMS=g?g.animations:[]}));
+ jobs.push(loadGLB('mx/robot.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh&&!ROBOT)ROBOT={geo:o.geometry,mat:o.material,mw:o.matrixWorld.clone()}})}));
  const mx=new Set(HUMANS.map(h=>h.id));for(const k in ZT)ZT[k].m.forEach(m=>{if(m[0]!=='_')mx.add(m)});
  for(const n of mx)jobs.push(loadGLB('mx/'+n+'.glb').then(g=>{if(g)prepMX(g,n)}));
  for(const n of PROP_LIST)jobs.push(loadGLB('props/'+n+'.glb').then(g=>{if(g)PROPS[n]=g.scene}));
@@ -351,8 +351,51 @@ function makeChar(name,prefix,height,tint){
  const blob=new T.Mesh(new T.CircleGeometry(height*.24,16),new T.MeshBasicMaterial({map:TX_DOT,color:0,transparent:true,opacity:.5,depthWrite:false}));blob.rotation.x=-Math.PI/2;blob.position.y=.02;wrap.add(blob);
  const CH={wrap,root,mixer,act,bones,mats,base,ts:1,one:null,w:{},flash:0,h:height,s:height/1.8};return GFX?GFX.ch(CH,prefix):CH}
 // ---------- AI 机体外观 ----------
+let ROBOT=null;
+// 把静态的机器人模型自动绑到人形骨架上：先把骨架摆成模型的 A 字站姿，再按"离哪根骨头最近"分配权重
+function robotSkin(c){const R=ROBOT,B=c.bones,b=n=>B['mixamorig'+n];if(!b('hips')||!b('head'))return false;
+ c.wrap.updateMatrixWorld(true);const g=R.geo.clone();g.applyMatrix4(R.mw);g.rotateY(-Math.PI/2);g.computeBoundingBox();let bb=g.boundingBox;
+ const k=c.h*1.02/(bb.max.y-bb.min.y);g.scale(k,k,k);g.computeBoundingBox();bb=g.boundingBox;g.translate(-(bb.min.x+bb.max.x)/2,-bb.min.y,-(bb.min.z+bb.max.z)/2);
+ const P=g.attributes.position,n=P.count,v=new T.Vector3(),W=n=>b(n).getWorldPosition(new T.Vector3());
+ // 找模型的双手、双脚位置，把骨架的手臂/腿转过去对齐
+ const ext=(fn,sel)=>{const a=[];for(let i=0;i<n;i++){v.fromBufferAttribute(P,i);if(sel(v))a.push([fn(v),i])}a.sort((x,y)=>y[0]-x[0]);const m=new T.Vector3(),N=Math.max(1,Math.floor(a.length*.01));for(let j=0;j<N;j++)m.add(v.fromBufferAttribute(P,a[j][1]));return m.divideScalar(N)};
+ const hipY=W('hips').y;
+ const aim=(bone,tip,target)=>{const bo=b(bone);const p0=bo.getWorldPosition(new T.Vector3()),d0=W(tip).sub(p0).normalize(),d1=target.clone().sub(p0).normalize();const q=new T.Quaternion().setFromUnitVectors(d0,d1);
+  const wq=bo.getWorldQuaternion(new T.Quaternion()),pq=bo.parent.getWorldQuaternion(new T.Quaternion());bo.quaternion.copy(pq.invert().multiply(q).multiply(wq));c.wrap.updateMatrixWorld(true)};
+ const save=[];c.root.traverse(o=>{if(o.isBone)save.push([o,o.quaternion.clone()])});
+ for(const sd of['left','right']){const sg=W(sd+'arm').x>0?1:-1;
+  const hand=ext(p=>p.x*sg,p=>p.y>hipY*.9);aim(sd+'arm',sd+'hand',hand);
+  const foot=ext(p=>-p.y+p.z*.2,p=>p.x*sg>0);aim(sd+'upleg',sd+'foot',foot.setY(Math.max(foot.y,.08)))}
+ // 骨段列表
+ const S=[['hips','spine'],['spine','spine1'],['spine1','spine2'],['spine2','neck'],['neck','head']];
+ for(const sd of['left','right'])S.push([sd+'shoulder',sd+'arm'],[sd+'arm',sd+'forearm'],[sd+'forearm',sd+'hand'],[sd+'hand',sd+'handmiddle1'],[sd+'upleg',sd+'leg'],[sd+'leg',sd+'foot'],[sd+'foot',sd+'toebase']);
+ const bones=[],seg=[];const hdTop=W('head').add(new T.Vector3(0,.3,0));
+ const bi=o=>{let i=bones.indexOf(o);if(i<0){i=bones.length;bones.push(o)}return i};
+ const LEG=/upleg|leg$|foot|toe|hips/;for(const [a,e] of S){if(!b(a)||!b(e))continue;seg.push([bi(b(a)),W(a),W(e),LEG.test(a)])}const hipX=Math.abs(W('leftupleg').x)+.14*c.h/1.8;seg.push([bi(b('head')),W('head'),hdTop,false]);
+ const si=new Uint16Array(n*4),sw=new Float32Array(n*4),ab=new T.Vector3(),ap=new T.Vector3();
+ for(let i=0;i<n;i++){v.fromBufferAttribute(P,i);let d1=1e9,d2=1e9,i1=0,i2=0;
+  const far=Math.abs(v.x)>hipX;for(const [k,a,e,lg] of seg){ab.subVectors(e,a);const t=clamp(ap.subVectors(v,a).dot(ab)/ab.lengthSq(),0,1);let d=ap.copy(a).addScaledVector(ab,t).distanceToSquared(v);if(lg&&far)d*=6;
+   if(d<d1){if(i1!==k){d2=d1;i2=i1}d1=d;i1=k}else if(d<d2&&k!==i1){d2=d;i2=k}}
+  const w1=1/(d1*d1+1e-9),w2=1/(d2*d2+1e-9)*(d2<d1*2.2?1:0),t=w1+w2;si[i*4]=i1;si[i*4+1]=i2;sw[i*4]=w1/t;sw[i*4+1]=w2/t}
+ g.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));
+ const m=R.mat.clone();m.envMapIntensity=.9;c.mats.push(m);
+ const sm=new T.SkinnedMesh(g,m);sm.castShadow=true;sm.frustumCulled=false;c.wrap.add(sm);c.wrap.updateMatrixWorld(true);
+ sm.bind(new T.Skeleton(bones),sm.matrixWorld);
+ for(const [o,q] of save)o.quaternion.copy(q);
+ c.root.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&o!==sm)o.visible=false});return true}
+// 机体编号：喷在胸口和背上
+const NUMTX={};function numTex(t){if(NUMTX[t])return NUMTX[t];const tx=ctex(128,(g,s)=>{g.clearRect(0,0,s,s);g.font='bold 54px Arial';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(235,235,225,.92)';g.fillText(t,s/2,s/2+2);g.fillStyle='rgba(235,235,225,.6)';g.fillRect(14,s-22,s-28,5)});return NUMTX[t]=tx}
+function robotNum(id){let h=7;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return 'R-'+String(h%100).padStart(2,'0')}
 const RB={hs:new T.SphereGeometry(1,24,18),cy:new T.CylinderGeometry(1,1,1,10),bx:new T.BoxGeometry(1,1,1),ring:new T.CylinderGeometry(.142,.142,.026,28,1,true,-.95,1.9),dot:new T.SphereGeometry(1,10,8)};
-function roboize(c,sk,hpf){const D=skDec(sk),H=HUMANS[D.ch],vc=new T.Color(VCOL[D.col].c),ar=new T.Color(H.ar);c.wrap.updateMatrixWorld(true);
+function roboize(c,sk,hpf,num){if(ROBOT&&robotSkin(c)){roboExtra(c,sk,hpf,num);return}return roboize0(c,sk,hpf)}
+function roboExtra(c,sk,hpf,num){const D=skDec(sk),vc=new T.Color(VCOL[D.col].c),B=c.bones;
+ const sp=B.mixamorigspine2,hd=B.mixamorighead;
+ if(sp&&num){const g=new T.Group();g.scale.setScalar(1/sp.getWorldScale(new T.Vector3()).x);sp.add(g);const mt=new T.MeshBasicMaterial({map:numTex(num),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4});
+  const b=new T.Mesh(new T.PlaneGeometry(.2,.2),mt);b.position.set(0,.16,-.25);b.rotation.y=Math.PI;g.add(b);const f=new T.Mesh(new T.PlaneGeometry(.1,.1),mt);f.position.set(.08,.17,.21);g.add(f)}
+ let fl=null;if(hd){const g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);fl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:vc,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.7}));fl.scale.set(.22,.1,1);fl.position.set(0,.09,.13);g.add(fl)}
+ const OR=new T.Color(0xff8a20),RD=new T.Color(0xff1e10),tmp=new T.Color();let t=0;
+ c.robo={upd(dt){if(!fl)return;t+=dt;const h=hpf?hpf():1;if(h>.5)tmp.copy(vc);else if(h>.25)tmp.copy(OR);else tmp.copy(RD).multiplyScalar(Math.sin(t*12)>0?1:.25);fl.material.color.copy(tmp);fl.material.opacity=h<=0?0:.7}}}
+function roboize0(c,sk,hpf){const D=skDec(sk),H=HUMANS[D.ch],vc=new T.Color(VCOL[D.col].c),ar=new T.Color(H.ar);c.wrap.updateMatrixWorld(true);
  // 机身：原模型的细节保留成明暗，换成哑光装甲色，缝隙里透出电路微光
  const U={uAr:{value:ar},uV:{value:vc.clone()},uE:{value:1}};
  for(const m of c.mats){if(!m.isMeshStandardMaterial)continue;m.metalness=.62;m.roughness=.42;m.envMapIntensity=.7;
@@ -906,8 +949,8 @@ function leftOnGun(c,g){const p=g.userData.lh;if(!p)return;g.updateMatrixWorld(t
 // ---------- 人物（远端玩家 / 电脑） ----------
 function nameTag(text,col){const c=document.createElement('canvas');c.width=256;c.height=48;const g=c.getContext('2d');g.font='bold 26px "PingFang SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=5;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText(text,128,24);g.fillStyle=col;g.fillText(text,128,24);
  const t=new T.CanvasTexture(c);const s=new T.Sprite(new T.SpriteMaterial({map:t,depthTest:false,transparent:true,fog:false}));s.scale.set(1.5,.28,1);s.renderOrder=5;return s}
-function skinId(sk){const h=HUMANS[(sk|0)%HUMANS.length];return MODELS[h.id]?h.id:(HUMANS.find(x=>MODELS[x.id])||h).id}
-function makeHuman(id,o){const sk=o.sk|0;const c=makeChar(skinId(sk),'h_',1.8);scene.add(c.wrap);let HH=null;roboize(c,sk,()=>HH?(HH.dead?0:HH.hp/100):1);queueMicrotask(()=>{HH=HUM[id]||null});
+function skinId(sk){const h=ROBOT&&MODELS.swat?HUMANS[0]:HUMANS[(sk|0)%HUMANS.length];return MODELS[h.id]?h.id:(HUMANS.find(x=>MODELS[x.id])||h).id}
+function makeHuman(id,o){const sk=o.sk|0;const c=makeChar(skinId(sk),'h_',1.8);scene.add(c.wrap);let HH=null;roboize(c,sk,()=>HH?(HH.dead?0:HH.hp/100):1,robotNum(id));queueMicrotask(()=>{HH=HUM[id]||null});
  const guns=[];
  const H={id,c,guns,name:o.name||'?',team:o.team|0,bot:!!o.bot,sk,pos:c.wrap.position,tgt:new T.Vector3(),yaw:0,tyaw:0,pitch:0,a:0,w:o.w??1,hp:100,dead:false,seen:performance.now(),prot:0,respT:0};
  HUM[id]=H;decorate(H);return H}
@@ -962,7 +1005,7 @@ function beginMatch(cfg){G.introT=3.6;
  Object.assign(G,{wave:0,queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:PVP_TIME,zid:1,R:{},paused:false,botT:0,allDeadT:0,ended:false,sup:8,radDead:0,trkT:0,stDirty:1,stN:0,radWarn:0});
  P.team=(cfg.teams&&cfg.teams[NET.me])|0;rost(NET.me);
  G.melee=0;G.ws=WP.map((w,i)=>({own:false,lv:1,mag:w.mag,res:w.res,pap:false}));G.slots=[WI.glock,-1,-1];G.slot=0;G.ws[WI.glock].own=true;for(const k in PERK)delete PERK[k];for(const k in CARD)delete CARD[k];
- P.c=makeChar(skinId(skinI),'h_',1.8);scene.add(P.c.wrap);roboize(P.c,mySk(),()=>P.dead?0:P.hp/100);
+ P.c=makeChar(skinId(skinI),'h_',1.8);scene.add(P.c.wrap);roboize(P.c,mySk(),()=>P.dead?0:P.hp/100,robotNum(NET.me||'me'));
  P.guns=[];
  P.hp=100;P.ar=0;P.dead=false;P.relT=0;P.fireCd=0;P.aim=0;P.aimOn=false;P.aimT=false;P.hurtT=0;P.rec=0;P.respT=0;$('tAim').classList.remove('on');
  if(G.mode==='pvp'){const pw=pvpPrimary();G.slots[1]=pw;G.ws[pw].own=true;G.slot=1;equip(pw,true)}else{applyArmory();equip(G.slots[G.slot],true)}respawnP(true);hudClear();hud(true);
@@ -2054,7 +2097,6 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
 function showMenu(){$('menu').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
- chips($('skinRow'),HUMANS.map(h=>h.n),skinI,i=>{if(!MODELS[HUMANS[i].id])return;skinI=i;LS.set('scqh-skin',i);showMenu()});
  chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
  chips($('modeRow'),['打丧尸（合作）','两队对打 4v4'],modeS==='pvp'?1:0,i=>{modeS=i?'pvp':'z';LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
