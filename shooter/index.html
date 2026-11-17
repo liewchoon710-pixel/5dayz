@@ -268,7 +268,7 @@ const r2=v=>Math.round(v*100)/100,wrapA=a=>Math.atan2(Math.sin(a),Math.cos(a));
 let seed=7;const srand=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
 // ================= 渲染器 =================
 const renderer=new T.WebGLRenderer({canvas:$('c'),antialias:!TOUCH,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.25:1.75));
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.1:1.25));
 renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
 const scene=new T.Scene();const FOGC=0x1b1c20;scene.background=new T.Color(FOGC);scene.fog=new T.FogExp2(FOGC,.019);
@@ -930,7 +930,10 @@ function sRack(){noise(2400,.05,.25,'highpass');setTimeout(()=>noise(900,.07,.3,
 function sClick(){noise(3000,.03,.2,'highpass')}function sHurt(){tone(110,45,.25,.5);noise(300,.2,.4)}
 function sHorn(){tone(180,170,1.4,.18,'sawtooth');setTimeout(()=>tone(135,128,1.6,.18,'sawtooth'),500)}
 function sCash(){tone(1300,1800,.08,.12,'square');setTimeout(()=>tone(1800,2400,.1,.1,'square'),70)}
-let VOICE=null;function say(t){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/yunxi|yunyang|yunjian|kangkang|male|男|li-mu|liang|zhiwei/i.test(v.name)&&!/female|女/i.test(v.name))||vs.find(v=>!/xiaoxiao|ting|mei|yaoyao|huihui|xiaoyi|female|女/i.test(v.name))||vs[0]||null;VOICE_M=!!VOICE&&!/xiaoxiao|ting|mei|yaoyao|huihui|xiaoyi|female|女/i.test(VOICE.name)}const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.98;u.pitch=VOICE_M?.85:.62;sRadio();s.cancel();s.speak(u)}catch(e){}}
+let VOICE=null;function say(t,fx){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/xiaoxiao.*(natural|online)/i.test(v.name))||vs.find(v=>/xiaoxiao|xiaoyi|xiaochen|xiaohan|xiaomo/i.test(v.name))||vs.find(v=>/huihui|ting|mei|yaoyao|female|女/i.test(v.name))||vs[0]||null}
+ const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.92;u.pitch=1.02;u.volume=1;sAI();if(!fx)s.cancel();s.speak(u)}catch(e){}}
+// AI 说话前的提示音：两声柔和的合成音
+function sAI(){if(!AC)return;tone(880,880,.09,.05,'sine');setTimeout(()=>tone(1320,1320,.14,.04,'sine'),90)}
 let VOICE_M=false;function sRadio(){if(!AC)return;noise(2400,.09,.12,'bandpass',0,3);tone(1900,1900,.04,.05,'square')}
 
 
@@ -1020,8 +1023,7 @@ function clearWorld(){stClear();for(const q of THR.list)scene.remove(q.m);THR.li
  if(P.c){scene.remove(P.c.wrap);P.c=null}P.guns.forEach(g=>g&&scene.remove(g));P.guns=[]}
 // 开场：黑屏 → 标题 → 无线电呼叫 → 画面淡入（代替原来的欢迎语音）
 const ZONES=['东区十字路口','旧城商业街','第七号检查站','中央大道','港湾路口'];
-function sIntro(){if(!AC)return;tone(55,38,3.2,.5,'sine');noise(120,2.8,.35,'lowpass');setTimeout(()=>{tone(220,880,1.6,.06,'sawtooth');noise(3000,1.5,.08,'highpass')},400);
- for(let i=0;i<4;i++)setTimeout(()=>{tone(62,48,.3,.45,'sine');noise(90,.2,.3,'lowpass')},1300+i*620);setTimeout(()=>{for(let i=0;i<2;i++)setTimeout(()=>{tone(420,780,.9,.05,'sawtooth');setTimeout(()=>tone(780,420,.9,.05,'sawtooth'),900)},i*1800)},800)}
+function sIntro(){if(!AC)return;tone(110,110,4,.05,'sine');tone(165,165,4,.035,'sine');tone(220,232,4,.025,'triangle')}
 function playIntro(mode){const el=$('intro');const zone=MAP.id==='cross'?ZONES[(G.layoutSeed||0)%ZONES.length]:MAP.name;
  const lines=mode==='pvp'?(G.ffa?['协议冲突。所有机体互为敌对单位。','清除指令已下达：目标——除你以外的一切。']:['敌对机团已进入交战区。执行清除协议。','中枢指令：消灭敌方机团，完毕。']):['机体重启完成。检测到大量生物信号正在包围。','中枢指令：守住城市中心，清除一切血肉。','补给无人车将分批投送弹药。坚持运转。'];
  const line=lines[Math.floor(Math.random()*lines.length)];$('inSub').textContent=(mode==='pvp'?(G.ffa?'钢铁乱斗 · ':'机团对决 · '):'尸潮清除 · ')+zone+(G.cfg&&G.cfg.ml!=null?(G.cfg.ml>0?' · 本图还有 '+G.cfg.ml+' 局':' · 下局换新地图'):'');$('inRd').textContent='▸ '+line;
@@ -1054,10 +1056,12 @@ function wakeFrame(dt){if(!(P.wake>0))return;P.wake-=dt;const t=(P.wakeT+=dt),e=
  P.guns.forEach(g=>{if(g)g.visible=false});IN.fire=false;
  // 站起后：系统自检 —— 抬手看自己的机械手、转头扫描四周、拔枪
  if(a&&t>3.9&&!P.wakeOff){P.wakeOff=1;a.fadeOut(.4);P.c.one=null;P.wakeA=null}
+ if(t>1.7&&!P.vo1){P.vo1=1;const n=skNum(mySk());say(n+'，唤醒程序启动。核心运转正常。')}
+ if(t>3.8&&!P.vo2){P.vo2=1;const n=skNum(mySk());say(G.mode!=='pvp'?'城市中心已被尸潮包围。守住这里，清除一切血肉。':G.ffa?'协议冲突。这里的每一台机体都是你的敌人。活到最后。':'敌方机团已进入交战区。与你的小队会合，消灭他们。',true)}
  const bt=$('boot');if(t>3.7&&!P.bootOn){P.bootOn=1;bt.innerHTML='';bt.style.display='block';const L=['> 系统重启……完成','> 视觉模块 ········· 正常','> 运动关节 ········· 正常','> 武装系统 ········· 在线','> 检测到生物信号：'+(G.mode==='pvp'?'无 · 敌对机体：'+(G.ffa?'全部':'敌方机团'):'大量'),'> 指令：'+(G.mode==='pvp'?'清除敌对单位':'清除一切血肉')];
   L.forEach((s2,i)=>setTimeout(()=>{if(!P.bootOn)return;const d=document.createElement('div');d.textContent=s2;bt.appendChild(d);if(AC)tone(1400+i*120,1400+i*120,.04,.06,'square')},i*330))}
  if(t>6.1&&!P.wakeDraw){P.wakeDraw=1;try{equip(G.cur,true)}catch(e){}if(AC)tone(300,600,.15,.12,'sawtooth')}
- if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=0;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
+ if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=P.vo1=P.vo2=0;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
 // 抬起右手到眼前，翻转查看
 function wakeHand(){const t=P.wakeT;if(t<4.0||t>5.3)return;const k=t<4.4?(t-4.0)/.4:t>4.95?1-(t-4.95)/.35:1,e=k*k*(3-2*k);const c=P.c,cu=v4.crossVectors(camR,camF);
  const p=new T.Vector3().copy(camera.position).addScaledVector(camF,.45+.2*e).addScaledVector(camR,.22-.08*e+Math.sin((t-4.3)*2.6)*.05*e).addScaledVector(cu,-.5+.48*e);c.wrap.updateMatrixWorld(true);IK.r.copy(camR);armIK(c,"right",p,1);
@@ -1081,7 +1085,7 @@ function beginMatch0(cfg){G.introT=3.6;
 function respawnP(first){P.dn=false;P.selfRev=0;if(P.mg)dismount();P.grab=P.pin=P.climb=null;P.stun=0;P.kbv.set(0,0,0);P.y=0;P.vy=0;P.cr=false;P.dead=false;P.hp=100;P.hurtT=0;if(P.c)revive(P.c);
  if(G.mode==='pvp'){const s=P.team===0?1:-1;if(G.ffa){const q=ffaSpawn();P.pos.set(q[0],0,q[1]);P.yaw=rand(0,6.28)}else if(MAP.pv){const q=MAP.pv(P.team);P.pos.set(q[0],0,q[1])}else P.pos.set(s*rand(BAR-6,BAR-3),0,rand(-7,7));P.yaw=s>0?Math.PI/2:-Math.PI/2;P.pitch=-.05;P.prot=2;
   const pw=pvpPrimary();if(G.slots[1]!==pw){if(G.slots[1]>=0)G.ws[G.slots[1]].own=false;G.slots[1]=pw;G.ws[pw].own=true}G.slots.forEach(i=>{if(i>=0){const st=wStat(i);G.ws[i].mag=st.mag;G.ws[i].res=st.res}});P.relT=0;G.slot=1;equip(pw,true)}
- else{const c0=centerSpawn(),q=c0||(MAP.ps?MAP.ps():[rand(-2.5,2.5),rand(1,4)]);P.pos.set(q[0],0,q[1]);P.y=c0?c0[2]:(MAP.psY||0);if(first){P.yaw=0;P.pitch=-.08}}pushOut(P.pos,.45,'p',P.y);
+ else{const c0=centerSpawn(),q=c0||(MAP.ps?MAP.ps():[rand(-2.5,2.5),rand(1,4)]);P.pos.set(q[0],0,q[1]);P.y=c0?c0[2]:(MAP.psY||0);if(first){P.yaw=0;P.pitch=-.08}}pushOut(P.pos,.5,'p',P.y);
  P.hp=mods().hp;P.guns.forEach(g=>{if(g)g.visible=false});gunOf(P.guns,G.cur).visible=true;hud(true)}
 function equip(i,force){if(!G.ws[i].own)return;if(P.mg&&!force)return;P.burst=0;P.cyc=0;{const sc=!!WP[i].scope;$('tAim').style.display=sc?'':'none';if(!sc){P.aimT=false;$('tAim').classList.remove('on')}}
  if(force){G.cur=i;P.sw=null;P.relT=0;P.guns.forEach((g,j)=>{if(g)g.visible=false});if(!P.dead)gunOf(P.guns,i).visible=true;hud(true);return}
@@ -1793,7 +1797,7 @@ function updBot(B,dt){const ai=B.ai;if(B.dead){B.respT-=dt;if(B.respT<=0)respawn
   const dx=ai.goal[0]-B.pos.x,dz=ai.goal[1]-B.pos.z,d=Math.hypot(dx,dz)||1;mx=dx/d;mz=dz/d;B.yaw+=wrapA(Math.atan2(-mx,-mz)-B.yaw)*Math.min(1,dt*5);B.pitch=0}
  if(ai.detT>0){ai.detT-=dt;const ox=mx;mx+=-mz*ai.det*1.2;mz+=ox*ai.det*1.2}
  const ml=Math.hypot(mx,mz);if(ml>1e-3){mx/=ml;mz/=ml}
- B.pos.x+=mx*spd*dt;B.pos.z+=mz*spd*dt;pushOut(B.pos,.38,'p');B.pos.x=clamp(B.pos.x,-MAP.bx,MAP.bx);B.pos.z=clamp(B.pos.z,-MAP.bz,MAP.bz);
+ B.pos.x+=mx*spd*dt;B.pos.z+=mz*spd*dt;pushOut(B.pos,.5,'p');B.pos.x=clamp(B.pos.x,-MAP.bx,MAP.bx);B.pos.z=clamp(B.pos.z,-MAP.bz,MAP.bz);
  const mv=Math.hypot(B.pos.x-ai.last.x,B.pos.z-ai.last.y)/dt;ai.last.set(B.pos.x,B.pos.z);
  if(ml>1e-3&&mv<spd*.3){ai.stuck+=dt;if(ai.stuck>.5){ai.stuck=0;ai.det=Math.random()<.5?1:-1;ai.detT=rand(.7,1.4);ai.goal=null}}else ai.stuck=Math.max(0,ai.stuck-dt);
  const fwd=-(Math.sin(B.yaw)*mx+Math.cos(B.yaw)*mz);B.a=mv<.3?0:spd>3.5&&fwd>.5?2:fwd<-.3?3:1}
@@ -2001,10 +2005,10 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  P.pos.x+=(P.vel.x+P.kbv.x)*dt;P.pos.z+=(P.vel.z+P.kbv.z)*dt;P.kbv.multiplyScalar(Math.exp(-dt*5));
  if(P.grab){const z=zById(P.grab);if(!z||z.dead)P.grab=null;else{const zp=z.c.wrap.position;const dx=zp.x-P.pos.x,dz=zp.z-P.pos.z,d=Math.hypot(dx,dz);if(d>1.4){P.pos.x+=dx/d*3.3*dt;P.pos.z+=dz/d*3.3*dt}}}
  if(P.pin){const z=zById(P.pin);if(!z||z.dead)P.pin=null}
- pushOut(P.pos,.38,'p',P.y);P.pos.x=clamp(P.pos.x,-MAP.bx,MAP.bx);P.pos.z=clamp(P.pos.z,-MAP.bz,MAP.bz);
+ pushOut(P.pos,.5,'p',P.y);P.pos.x=clamp(P.pos.x,-MAP.bx,MAP.bx);P.pos.z=clamp(P.pos.z,-MAP.bz,MAP.bz);
  // 跳跃：重力 + 可以站上障碍物 / 车顶
  P.vy-=20*dt;P.y+=P.vy*dt;const gh=groundH(P.pos,.3,P.y);if(P.y<=gh){if(P.air&&P.vy<-6)sClick();P.y=gh;P.vy=0;P.air=false}else P.air=P.y>gh+.05}
- if(P.mg){P.yaw=P.mg.yaw0+clamp(wrapA(P.yaw-P.mg.yaw0),-MGARC,MGARC);P.pitch=clamp(P.pitch,-.35,.5);mgSeat(P.mg,P.yaw,P.pos);P.y=0}
+ if(P.mg){P.yaw=P.mg.yaw0+clamp(wrapA(P.yaw-P.mg.yaw0),-MGARC,MGARC);P.pitch=clamp(P.pitch,-.35,.5);mgSeat(P.mg,P.yaw,P.pos);P.y=P.mg.y||0;P.vy=0}
  P.crT+=((P.cr?1:0)-P.crT)*Math.min(1,dt*10);
  P.c.wrap.position.set(P.pos.x,P.y,P.pos.z);if(!P.dead)P.c.wrap.rotation.y=P.yaw+Math.PI;
  const sp=Math.hypot(P.vel.x,P.vel.z);const back=mz<-.2;
