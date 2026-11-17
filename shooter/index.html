@@ -391,6 +391,12 @@ function robotSkin(c){const R=ROBOT,B=c.bones,b=n=>B['mixamorig'+n];if(!b('hips'
    c.helm={cx,cz,y:yc,rL:R(Math.PI/2),rR:R(-Math.PI/2),rB:R(Math.PI),h:(ymax-ymin)}}}
  g.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));
  const m=R.mat.clone();m.envMapIntensity=.9;c.mats.push(m);
+ // 光色：把模型贴图里原本的红色指示灯/缝隙换成玩家选的光色并发光，再给整机加一层同色的边缘光
+ const LU={uV:{value:new T.Color(VCOL[skDec(c.sk0|0).col].c)},uE:{value:1}};c.lightU=LU;
+ m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,LU);sh.fragmentShader='uniform vec3 uV;uniform float uE;float lgM=0.;\n'+sh.fragmentShader
+  .replace('#include <map_fragment>','#include <map_fragment>\n {vec3 cc=diffuseColor.rgb;float red=cc.r-max(cc.g,cc.b);lgM=smoothstep(.06,.22,red)*smoothstep(.04,.15,cc.r);diffuseColor.rgb=mix(cc,uV*.3,lgM);}')
+  .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n totalEmissiveRadiance+=uV*lgM*2.6*uE;\n {float fr=pow(1.-abs(dot(normalize(vViewPosition),normal)),3.);totalEmissiveRadiance+=uV*fr*.35*uE;}')};
+ m.customProgramCacheKey=()=>'robotlight';
  const sm=new T.SkinnedMesh(g,m);sm.castShadow=true;sm.frustumCulled=false;c.wrap.add(sm);c.wrap.updateMatrixWorld(true);
  sm.bind(new T.Skeleton(bones),sm.matrixWorld);
  for(const [o,q] of save)o.quaternion.copy(q);
@@ -406,7 +412,7 @@ function sprayTex(t){const k='sp'+t;if(NUMTX[k])return NUMTX[k];const c=document
  const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;tx.anisotropy=4;return NUMTX[k]=tx}
 function robotNum(id){let h=7;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return 'R-'+String(h%100).padStart(2,'0')}
 const RB={hs:new T.SphereGeometry(1,24,18),cy:new T.CylinderGeometry(1,1,1,10),bx:new T.BoxGeometry(1,1,1),ring:new T.CylinderGeometry(.142,.142,.026,28,1,true,-.95,1.9),dot:new T.SphereGeometry(1,10,8)};
-function roboize(c,sk,hpf,num){if(ROBOT&&robotSkin(c)){roboExtra(c,sk,hpf,num);return}return roboize0(c,sk,hpf)}
+function roboize(c,sk,hpf,num){c.sk0=sk;if(ROBOT&&robotSkin(c)){roboExtra(c,sk,hpf,num);return}return roboize0(c,sk,hpf)}
 function roboExtra(c,sk,hpf,num){const D=skDec(sk),vc=new T.Color(VCOL[D.col].c),B=c.bones;
  const sp=B.mixamorigspine2,hd=B.mixamorighead;
  // 编号用喷漆模板字喷在头盔两侧和后脑：贴着头盔表面的弧形贴花，受光照、有喷漆飞溅
@@ -417,7 +423,7 @@ function roboExtra(c,sk,hpf,num){const D=skDec(sk),vc=new T.Color(VCOL[D.col].c)
    const geo=new T.CylinderGeometry(r*1.015,r*1.015,hh,20,1,true,a-span/2,span);const m=new T.Mesh(geo,mt);m.position.set(H.cx,H.y,H.cz);g.add(m)}}
  let fl=null;if(hd){const g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);fl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:vc,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.7}));fl.scale.set(.22,.1,1);fl.position.set(0,.09,.13);g.add(fl)}
  const OR=new T.Color(0xff8a20),RD=new T.Color(0xff1e10),tmp=new T.Color();let t=0;
- c.robo={upd(dt){if(!fl)return;t+=dt;const h=hpf?hpf():1;if(h>.5)tmp.copy(vc);else if(h>.25)tmp.copy(OR);else tmp.copy(RD).multiplyScalar(Math.sin(t*12)>0?1:.25);fl.material.color.copy(tmp);fl.material.opacity=h<=0?0:.7}}}
+ c.robo={upd(dt){t+=dt;const h=hpf?hpf():1;if(h>.5)tmp.copy(vc);else if(h>.25)tmp.copy(OR);else tmp.copy(RD).multiplyScalar(Math.sin(t*12)>0?1:.25);if(fl){fl.material.color.copy(tmp);fl.material.opacity=h<=0?0:.7}if(c.lightU){c.lightU.uV.value.copy(tmp);c.lightU.uE.value=h<=0?0:1}}}}
 function roboize0(c,sk,hpf){const D=skDec(sk),H=HUMANS[D.ch],vc=new T.Color(VCOL[D.col].c),ar=new T.Color(H.ar);c.wrap.updateMatrixWorld(true);
  // 机身：原模型的细节保留成明暗，换成哑光装甲色，缝隙里透出电路微光
  const U={uAr:{value:ar},uV:{value:vc.clone()},uE:{value:1}};
