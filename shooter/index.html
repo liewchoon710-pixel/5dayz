@@ -341,7 +341,10 @@ async function loadAll(){
  for(const w of WP)jobs.push(loadGun(w));
  jobs.push(getBuf(GUNBASE+'mutant.glb').then(b=>b&&new Promise(r=>GL.parse(b,'',g=>{prepMutant(g);r()},()=>r()))).catch(()=>{}));
  for(const n of TEX_LIST)jobs.push(loadTex('mx/env/'+n+'.webp').then(t=>{TEX[n]=t}));
- await Promise.all(jobs);GFX&&GFX.props();
+ // KC 提供的写实荒废模型：替换原来的卡通车辆/集装箱/路障，并新增工事堆和路灯（[名字, 文件, 绕Y旋转]）
+ const ENV2=[['bus','abandoned_bus',1],['k_vehicle_sports','abandoned_car',0],['k_vehicle_pickup','damaged_broken_car',1],['k_vehicle_truck','damaged_future_transport',1],['container','abandoned_shipping_container',1],['k_trafficbarrier_1','abandoned_roadblock',1],['env_fort','abandoned_fortification',0],['env_lamp','abandoned_street_lamp',0]];
+ for(const [al,f,rot] of ENV2)jobs.push(loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;const w=new T.Group();g.scene.rotation.y=rot?Math.PI/2:0;w.add(g.scene);w.userData.env2=1;ENV2M[al]=w}));
+ await Promise.all(jobs);Object.assign(PROPS,ENV2M);GFX&&GFX.props();
 }
 const REST=1.0613;
 function prepMX(g,n){const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});rm.forEach(o=>o.parent&&o.parent.remove(o));
@@ -368,7 +371,7 @@ function makeChar(name,prefix,height,tint){
  const blob=new T.Mesh(new T.CircleGeometry(height*.24,16),new T.MeshBasicMaterial({map:TX_DOT,color:0,transparent:true,opacity:.5,depthWrite:false}));blob.rotation.x=-Math.PI/2;blob.position.y=.02;wrap.add(blob);
  const CH={wrap,root,mixer,act,bones,mats,base,ts:1,one:null,w:{},flash:0,h:height,s:height/1.8};return GFX?GFX.ch(CH,prefix):CH}
 // ---------- AI 机体外观 ----------
-let ROBOT=null,ROBOT_LO=null;
+let ROBOT=null,ROBOT_LO=null;const ENV2M={};
 // 把静态的机器人模型自动绑到人形骨架上：先把骨架摆成模型的 A 字站姿，再按"离哪根骨头最近"分配权重
 function robotSkin(c,RR,lo){const R=RR||ROBOT,B=c.bones,b=n=>B['mixamorig'+n];if(!b('hips')||!b('head'))return false;
  c.wrap.updateMatrixWorld(true);const g=R.geo.clone();g.applyMatrix4(R.mw);g.rotateY(-Math.PI/2);g.computeBoundingBox();let bb=g.boundingBox;
@@ -791,7 +794,7 @@ function buildLayout(sd){
  for(let i=0;i<6;i++){const q=onWalk(1.4,15,44);if(q)VENDS.push(placeProp('vending',q.x,q.z,q.ry,1.1,true))}
  // 掩体：车、集装箱、路障……位置每局不同
  const CV=[['bus',11.5,2],['bus',11.5,1],['k_vehicle_sports',4.4,3],['k_vehicle_pickup',5.2,3],['k_vehicle_pickup_armored',5.4,1],['k_vehicle_truck',6.8,2],['k_vehicle_truck_armored',6.8,2],['container',6.2,4],['forklift',3,1],
-  ['k_trafficbarrier_1',2.3,3],['k_trafficbarrier_2',2.4,2],['k_plasticbarrier',1.4,4],['k_wheels_stack',1.3,2],['k_pipes',3,2]];
+  ['k_trafficbarrier_1',2.6,3],['k_trafficbarrier_2',2.4,2],['env_fort',4.6,2],['env_lamp',1.7,4],['k_plasticbarrier',1.4,4],['k_wheels_stack',1.3,2],['k_pipes',3,2]];
  for(const [n,len,cnt] of CV)for(let i=0;i<cnt;i++){const q=onRoad(len*.5+1.4,len>8?6:8.5,3,44);if(!q)continue;const along=q.ax?0:Math.PI/2;const ry=(srand()<.7?along:along+Math.PI/2)+sr(-.45,.45)+(srand()<.5?Math.PI:0);placeProp(n,q.x,q.z,/barrier|wheels|pipes/.test(n)?ry:along+sr(-.5,.5)+(srand()<.5?Math.PI:0),len,true)}
  // 燃烧桶
  const barM=mat(TEX.metal_a,{color:0x5a4a3a,metalness:.5,roughness:.6});
