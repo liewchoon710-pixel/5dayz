@@ -218,6 +218,7 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
 <div id="menu" class="ov hid" style="overflow:auto;justify-content:flex-start;padding:18px 0">
   <h1 style="margin-top:auto">人类之后</h1><div class="sub" style="letter-spacing:6px;opacity:.75;margin-top:-4px">AFTER HUMANITY</div><div class="sub">当机器接管世界 · 人类变成怪物 · 战争才刚刚开始</div><div class="row" style="margin-top:4px"><button class="btn g" id="bStory" style="padding:6px 16px;font-size:13px">背景故事</button></div>
   <div class="row"><input id="nm" maxlength="8" placeholder="你的名字"></div>
+    <div class="lbl">语言 / Language</div><div class="row" id="langRow"></div>
     <div class="lbl">光色</div><div class="row" id="visRow"></div>
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
   <div class="lbl">难度</div><div class="row" id="diffRow"></div>
@@ -937,7 +938,8 @@ function sCash(){tone(1300,1800,.08,.12,'square');setTimeout(()=>tone(1800,2400,
 let VOICE=null;function say(t,fx){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/xiaoxiao.*(natural|online)/i.test(v.name))||vs.find(v=>/xiaoxiao|xiaoyi|xiaochen|xiaohan|xiaomo/i.test(v.name))||vs.find(v=>/huihui|ting|mei|yaoyao|female|女/i.test(v.name))||vs[0]||null}
  const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.92;u.pitch=1.02;u.volume=1;sAI();if(!fx)s.cancel();s.speak(u)}catch(e){}}
 // 开局 AI：英文女声 + 中文字幕
-let VOICE_F=null;function aiVO(en,zh,q){const sb=$('subT');sb.innerHTML='<b>'+en+'</b><br>'+zh;sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,en.length*85));
+let LANG=LS.get('scqh-lang')||((navigator.language||'').startsWith('zh')?'zh':'en');
+let VOICE_F=null;function aiVO(en,zh,q){const sb=$('subT');sb.innerHTML=LANG==='zh'?zh:'<b>'+en+'</b>';if(LANG==='zh'){sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,zh.length*260));say(zh,q);return}sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,en.length*85));
  try{const s=speechSynthesis;if(!s)return;if(!VOICE_F){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_F=vs.find(v=>/(aria|jenny|ava|emma|libby|sonia).*(natural|online)/i.test(v.name))||vs.find(v=>/aria|jenny|zira|samantha|female|susan|hazel|libby|sonia|emma|ava/i.test(v.name))||vs[0]||null}
   const u=new SpeechSynthesisUtterance(en);u.lang='en-US';if(VOICE_F)u.voice=VOICE_F;u.rate=.9;u.pitch=1;sAI();if(!q)s.cancel();s.speak(u)}catch(e){}}
 // AI 说话前的提示音：两声柔和的合成音
@@ -2183,7 +2185,7 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
 function showMenu(){$('menu').classList.remove('hid');try{menuShow()}catch(e){console.warn(e)}$('bStory').onclick=()=>$('story').classList.remove('hid');$('bStoryOk').onclick=()=>{$('story').classList.add('hid');LS.set('scqh-story','1')};if(!LS.get('scqh-story'))$('story').classList.remove('hid');$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
- chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
+ chips($('langRow'),['中文','English'],LANG==='zh'?0:1,i=>{LANG=i?'en':'zh';LS.set('scqh-lang',LANG);showMenu()});chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
  chips($('modeRow'),MODE_L.map(m=>m[1]),MODE_L.findIndex(m=>m[0]===modeS),i=>{modeS=MODE_L[i][0];LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
  chips($('viewRow'),['斜肩（第三人称）','第一人称'],VIEW==='fp'?1:0,i=>{VIEW=i?'fp':'tp';LS.set('scqh-view',VIEW);showMenu()});
