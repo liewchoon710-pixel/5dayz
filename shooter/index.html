@@ -390,8 +390,7 @@ const RB={hs:new T.SphereGeometry(1,24,18),cy:new T.CylinderGeometry(1,1,1,10),b
 function roboize(c,sk,hpf,num){if(ROBOT&&robotSkin(c)){roboExtra(c,sk,hpf,num);return}return roboize0(c,sk,hpf)}
 function roboExtra(c,sk,hpf,num){const D=skDec(sk),vc=new T.Color(VCOL[D.col].c),B=c.bones;
  const sp=B.mixamorigspine2,hd=B.mixamorighead;
- if(sp&&num){const g=new T.Group();g.scale.setScalar(1/sp.getWorldScale(new T.Vector3()).x);sp.add(g);const mt=new T.MeshBasicMaterial({map:numTex(num),transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4});
-  const b=new T.Mesh(new T.PlaneGeometry(.2,.2),mt);b.position.set(0,.16,-.25);b.rotation.y=Math.PI;g.add(b);const f=new T.Mesh(new T.PlaneGeometry(.1,.1),mt);f.position.set(.08,.17,.21);g.add(f)}
+ if(hd&&num){const g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);const n=new T.Sprite(new T.SpriteMaterial({map:numTex(num),transparent:true,depthWrite:false}));n.scale.set(.42,.42,1);n.position.set(0,.5,0);n.renderOrder=5;g.add(n)}// 编号浮在头顶
  let fl=null;if(hd){const g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);fl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:vc,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.7}));fl.scale.set(.22,.1,1);fl.position.set(0,.09,.13);g.add(fl)}
  const OR=new T.Color(0xff8a20),RD=new T.Color(0xff1e10),tmp=new T.Color();let t=0;
  c.robo={upd(dt){if(!fl)return;t+=dt;const h=hpf?hpf():1;if(h>.5)tmp.copy(vc);else if(h>.25)tmp.copy(OR);else tmp.copy(RD).multiplyScalar(Math.sin(t*12)>0?1:.25);fl.material.color.copy(tmp);fl.material.opacity=h<=0?0:.7}}}
