@@ -112,6 +112,19 @@ body.touch #pvpBar{top:52px}
 #kbig{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
 #kbig b{display:block;font-size:34px;letter-spacing:.12em;color:#ff4a30;text-shadow:0 0 12px rgba(255,40,10,.8),0 2px 3px #000}
 #kbig span{font-size:15px;color:#fff;text-shadow:0 1px 3px #000}
+#kimg{position:absolute;left:50%;top:9vh;height:22vh;aspect-ratio:1;transform:translateX(-50%);pointer-events:none;opacity:0;z-index:6}
+#kimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+#kimg .gl{position:absolute;inset:-6%;border-radius:50%;background:radial-gradient(circle,rgba(255,160,40,.75) 0%,rgba(255,140,30,.35) 45%,rgba(255,140,30,0) 70%);opacity:0}
+#kimg .rg{position:absolute;inset:2%;border-radius:50%;border:2px solid rgba(255,255,255,.85);opacity:0}
+#kimg .ln{position:absolute;top:8%;width:22%;height:16%;opacity:0;background:repeating-linear-gradient(180deg,#ffa53a 0 3px,transparent 3px 9px)}
+#kimg .ln.l{left:0}#kimg .ln.r{right:0}
+#kimg.go{animation:kiA 1.6s ease-out forwards}#kimg.go img{animation:kiI 1.6s cubic-bezier(.2,1.6,.4,1) forwards}
+#kimg.go .gl{animation:kiG 1.6s ease-out forwards;animation-delay:var(--d,.2s)}#kimg.go .rg{animation:kiR .9s ease-out forwards;animation-delay:var(--d,.2s)}#kimg.go .ln{animation:kiL 1.6s steps(4) forwards}
+@keyframes kiA{0%{opacity:0}6%{opacity:1}82%{opacity:1}100%{opacity:0}}
+@keyframes kiI{0%{transform:scale(.55);filter:brightness(2.2)}14%{transform:scale(1.12);filter:brightness(1.6)}24%{transform:scale(1);filter:brightness(1)}100%{transform:scale(1)}}
+@keyframes kiG{0%{opacity:0}8%{opacity:1}45%{opacity:.6}70%{opacity:0}100%{opacity:0}}
+@keyframes kiR{0%{opacity:0;transform:scale(.6)}15%{opacity:.9}100%{opacity:0;transform:scale(1.25)}}
+@keyframes kiL{0%,15%{opacity:0}25%,90%{opacity:.9}100%{opacity:0}}
 #kbadge{position:absolute;left:50%;top:46px;width:130px;margin-left:-65px;transform-origin:50% 0;pointer-events:none;opacity:0;text-align:center}
 #kbadge svg{width:130px;height:96px;overflow:visible;filter:drop-shadow(0 4px 6px rgba(0,0,0,.8))}
 #kbadge .tag{font:700 11px/1.2 system-ui,sans-serif;color:#ffe08a;text-shadow:0 1px 2px #000;letter-spacing:.08em;margin-top:-6px;min-height:16px}
@@ -170,7 +183,7 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
   <div class="tl"><span class="zOnly">第 <b id="hWave">1</b> 波　　剩余丧尸 <b id="hLeft">0</b></span><div id="hKill" style="font-size:13px;opacity:.75;margin-top:2px">击杀 0</div><div id="hTeam" class="pOnly" style="font-size:13px;margin-top:2px"></div></div>
   <div class="tr zOnly">资金 <b id="hCash">$0</b><div style="font-size:13px;opacity:.75;margin-top:2px">分数 <span id="hScore">0</span></div></div>
   <div id="pvpBar" class="pOnly"></div>
-  <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="edgeF"></div><div id="kbadge"><div class="sv"></div><div class="tag"></div></div><div id="dnums"></div>
+  <div id="feed"></div><div id="hitm"><i></i><i></i><i></i><i></i></div><div id="kbig"><b></b><span></span></div><div id="edgeF"></div><div id="kimg"><div class="gl"></div><div class="rg"></div><div class="ln l"></div><div class="ln r"></div><img alt=""></div><div id="kbadge"><div class="sv"></div><div class="tag"></div></div><div id="dnums"></div>
   <div class="bl">
     <div id="perkHud" style="font-size:12px;margin-bottom:4px;text-shadow:0 1px 2px #000"></div>
     <div style="font-size:13px">生命 <span id="hpT">100</span></div><div class="bar"><i id="hpf"></i></div>
@@ -1379,11 +1392,15 @@ function badgeSVG(n,hd){const t=Math.min(n,8),C=KBC[t],id='kb'+t+(hd?'h':'');con
   ${Array.from({length:8+t*2},(_,i)=>{const a=Math.random()*6.283,d=60+Math.random()*50+t*6,l=4+Math.random()*7;return `<path class="ksp" style="--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d).toFixed(0)}px;animation-delay:${(Math.random()*.06).toFixed(2)}s" d="M${(110+Math.cos(a)*18).toFixed(1)} ${(78+Math.sin(a)*18).toFixed(1)} l${(Math.cos(a)*l).toFixed(1)} ${(Math.sin(a)*l).toFixed(1)}" stroke="${i%3?C[0]:'#fff'}" stroke-width="2.2" stroke-linecap="round"/>`}).join('')}</svg>`}
 let VOICE_EN=null;function sayEn(t){try{const s=speechSynthesis;if(!s)return;if(!VOICE_EN){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_EN=vs.find(v=>/male|david|mark|guy|daniel|alex|fred|george|james|ryan|christopher|eric|uk english male/i.test(v.name)&&!/female/i.test(v.name))||vs[0]||null;VOICE_EN&&(VOICE_EN._m=/male|david|mark|guy|daniel|alex|fred|george|james|ryan|christopher|eric/i.test(VOICE_EN.name)&&!/female/i.test(VOICE_EN.name))}
  const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(VOICE_EN)u.voice=VOICE_EN;u.rate=.92;u.pitch=VOICE_EN&&VOICE_EN._m?.7:.45;u.volume=1;roboVox(u);s.cancel();s.speak(u)}catch(e){}}
+const KIMG={hs:['headshot','headshot_confirm',.2],2:['double_kill','double_kill',.2],3:['triple_kill','triple_kill',.15],4:['multi_kill','multikill_streak',.42],5:['killstreak','multikill_streak',.45]},KAU={};
+function kiAud(f){try{let a=KAU[f];if(!a){a=KAU[f]=new Audio('../assets/hud/'+f+'.mp3');a.preload='auto'}const c=a.cloneNode();c.volume=.85;c.play().catch(()=>{})}catch(e){}}
+function kiShow(n,hd){const k=n>=5?5:n>=2?n:hd?'hs':0;if(!k)return false;const [img,au,d]=KIMG[k];const e=$('kimg');e.querySelector('img').src='../assets/hud/'+img+'.webp';e.style.setProperty('--d',d+'s');e.classList.remove('go');void e.offsetWidth;e.classList.add('go');kiAud(au);return true}
+Object.values(KIMG).forEach(v=>{const i=new Image();i.src='../assets/hud/'+v[0]+'.webp'});
 function killFx(hd,name,wi){hitMark('k');P.shake=Math.max(P.shake,.08);const now=performance.now();MK.n=now-MK.t<4000?MK.n+1:1;MK.t=now;const n=MK.n;
  const e=$('kbadge');e.querySelector('.sv').innerHTML=badgeSVG(n,hd);e.querySelector('.tag').textContent=[hd&&n>=2?'HEADSHOT':'',wi===97?'KNIFE':wi===98?'EXPLOSIVE':'',name||''].filter(Boolean).join(' · ');
  e.style.transition='none';e.style.opacity=1;e.style.transform='scale(1.6)';void e.offsetWidth;e.style.transition='opacity .3s ease .75s, transform .18s cubic-bezier(.2,1.7,.4,1)';e.style.transform='scale(1)';e.style.opacity=0;
  if(n>=6){const f=$('edgeF');f.style.setProperty('--ec',n>=8?'rgba(255,190,40,.55)':n>=7?'rgba(170,60,255,.5)':'rgba(255,40,20,.5)');f.style.transition='none';f.style.opacity=1;void f.offsetWidth;f.style.transition='opacity .45s ease-out';f.style.opacity=0;P.shake=Math.max(P.shake,.14)}
- sStreak(n,hd);if(n>=2)setTimeout(()=>sayEn(KBN[Math.min(n,8)].toLowerCase()),120);else if(hd)setTimeout(()=>sayEn('headshot'),80)}
+ if(kiShow(n,hd)){e.style.opacity=0}else sStreak(n,hd)}
 function hitFx(hd,pos,d){hitMark(hd?'h':'b');const now=performance.now();if(now-(G.hsT||0)>45){G.hsT=now;if(hd)sHitH();else sHitB()}if(pos)dmgNum(pos,d,hd?'h':'')}
 function zKick(c,dir,amt){if(!dir||!c.root)return;const ry=c.wrap.rotation.y,cs=Math.cos(ry),sn=Math.sin(ry);c.kx=(dir.x*cs-dir.z*sn)*amt;c.kz=(dir.x*sn+dir.z*cs)*amt;c.kk=1}
 function headPop(c){const hb=c.bones&&c.bones.mixamorighead;if(!hb)return;const hp=hb.getWorldPosition(new T.Vector3());hb.scale.setScalar(.001);c.popped=1;emit(hp,40,[.6,.02,.02],5,1.2,9.8,.8);emit(hp,14,[.85,.75,.7],3,1,9.8,.5);if(AC)noise(500,.25,.5,'lowpass')}
