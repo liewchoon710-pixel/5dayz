@@ -362,32 +362,42 @@ function roboize(c,sk,hpf){const D=skDec(sk),H=HUMANS[D.ch],vc=new T.Color(VCOL[
    {vec2 g=abs(fract(vUv*vec2(9.,13.))-.5);float ln=smoothstep(.47,.495,max(g.x,g.y));float on=step(.62,fract(sin(dot(floor(vUv*vec2(9.,13.)),vec2(12.9,78.2)))*43758.5));totalEmissiveRadiance+=uV*ln*on*.55*uE;}
    #endif`)};m.customProgramCacheKey=()=>'robo';m.needsUpdate=true}
  const B=c.bones,hd=B.mixamorighead,sp=B.mixamorigspine2,nk=B.mixamorigneck;if(!hd)return;
- const ws=hd.getWorldScale(new T.Vector3()).x,armor=new T.MeshStandardMaterial({color:ar,metalness:.45,roughness:.5,envMapIntensity:.45}),dark=new T.MeshStandardMaterial({color:0x0b0c0e,metalness:.5,roughness:.18}),cab=new T.MeshStandardMaterial({color:0x151617,roughness:.6,metalness:.3}),
+ const ws=hd.getWorldScale(new T.Vector3()).x,armor=new T.MeshStandardMaterial({color:ar.clone().lerp(new T.Color(0x16181b),.82),metalness:.65,roughness:.36,envMapIntensity:.45,flatShading:true}),dark=new T.MeshStandardMaterial({color:0x0b0c0e,metalness:.5,roughness:.18}),cab=new T.MeshStandardMaterial({color:0x151617,roughness:.6,metalness:.3}),
   glow=new T.MeshBasicMaterial({color:vc.clone().multiplyScalar(1.6),toneMapped:false});
  const add=(par,geo,mt,x,y,z,sx,sy,sz,rx=0)=>{const m=new T.Mesh(geo,mt);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.rotation.x=rx;m.castShadow=true;par.add(m);return m};
  // 原人物网格整个隐藏，按骨骼重建成机械零件（动画照旧跟骨骼走）
- c.root.traverse(o=>{if(o.isMesh||o.isSkinnedMesh)o.visible=false});GFX&&GFX.weather&&GFX.weather(armor,.3,.45);
- const K=[1,.9,1.3,.78][D.ch],joint=new T.MeshStandardMaterial({color:0x1a1b1d,metalness:.85,roughness:.3});c.mats.push(armor);
+ c.root.traverse(o=>{if(o.isMesh||o.isSkinnedMesh)o.visible=false});
+ const K=[1.3,1.22,1.5,1.12][D.ch],joint=new T.MeshStandardMaterial({color:0x07080a,metalness:.9,roughness:.45}),rib=new T.MeshStandardMaterial({color:0x141518,metalness:.85,roughness:.35});c.mats.push(armor);
  const Y=new T.Vector3(0,1,0),tv=new T.Vector3();
  const seg=(a,b,fn)=>{const A=B['mixamorig'+a.toLowerCase()],C=B['mixamorig'+b.toLowerCase()];if(!A||!C)return;const bw=A.getWorldScale(tv).x,g=new T.Group();g.scale.setScalar(1/bw);A.add(g);
   const v=C.position.clone().multiplyScalar(bw),L=v.length();if(L<1e-4)return;const q=new T.Quaternion().setFromUnitVectors(Y,v.clone().normalize());const p=new T.Group();p.quaternion.copy(q);g.add(p);fn(p,L)};
- const part=(p,geo,mt,x,y,z,sx,sy,sz)=>{const m=add(p,geo,mt,x,y,z,sx,sy,sz);return m};
- const CAP=RB.cap||(RB.cap=new T.CapsuleGeometry(1,1,4,10));
- // 骨盆、腹部（裸露的机械脊柱）、胸甲
- seg('hips','spine',(p,L)=>{part(p,RB.bx,armor,0,L*.2,.0,.3*K,.14,.19*K);part(p,RB.bx,dark,0,L*.2,.1*K,.12*K,.08,.01)});
- seg('spine','spine1',(p,L)=>{part(p,RB.cy,joint,0,L/2,0,.05,L,.05);for(const sx of[-1,1])part(p,RB.bx,armor,sx*.08*K,L/2,.03,.08*K,L*.7,.13*K)});
- seg('spine1','spine2',(p,L)=>{part(p,RB.cy,joint,0,L/2,0,.055,L,.055);part(p,RB.bx,armor,0,L/2,.06*K,.2*K,L*.8,.05)});
- seg('spine2','neck',(p,L)=>{part(p,RB.bx,armor,0,L*.42,.015,.36*K,L*.9,.22*K);part(p,RB.bx,dark,0,L*.42,.13*K,.22*K,L*.5,.012);part(p,RB.bx,armor,0,L*.85,-.02,.2*K,.06,.16*K)});
- for(const sd of['left','right']){const S=sd[0].toUpperCase()+sd.slice(1);
-  seg(S+'Shoulder',S+'Arm',(p,L)=>{part(p,RB.hs,armor,0,L*.95,0,.1*K,.085*K,.11*K);part(p,RB.bx,armor,0,L*.95,0,.05*K,.03,.13*K)});
-  seg(S+'Arm',S+'ForeArm',(p,L)=>{part(p,RB.hs,joint,0,0,0,.055,.055,.055);part(p,CAP,armor,0,L*.48,0,.05*K,L*.55,.05*K);part(p,RB.hs,joint,0,L,0,.045,.045,.045)});
-  seg(S+'ForeArm',S+'Hand',(p,L)=>{part(p,RB.cy,joint,0,L/2,0,.025,L,.025);part(p,RB.bx,armor,0,L*.5,0,.085*K,L*.75,.085*K);part(p,RB.bx,glow,0,L*.5,.045*K,.012,L*.4,.004)});
-  seg(S+'Hand',S+'HandMiddle1',(p,L)=>{part(p,RB.bx,dark,0,L*.6,0,.08,L*1.4,.035)});
-  seg(S+'UpLeg',S+'Leg',(p,L)=>{part(p,RB.hs,joint,0,0,0,.07,.07,.07);part(p,RB.bx,armor,0,L*.48,.01,.13*K,L*.8,.14*K);part(p,RB.cy,joint,0,L/2,-.02,.03,L,.03)});
-  seg(S+'Leg',S+'Foot',(p,L)=>{part(p,RB.hs,joint,0,0,0,.06,.06,.06);part(p,RB.hs,armor,0,0,.05,.06*K,.07*K,.04);part(p,RB.bx,armor,0,L*.5,.01,.11*K,L*.82,.12*K);part(p,RB.cy,joint,0,L/2,-.04,.025,L*.9,.025)});
-  seg(S+'Foot',S+'ToeBase',(p,L)=>{part(p,RB.bx,dark,0,L*.45,-.02,.11*K,L*1.3,.08)})}
+ const part=(p,geo,mt,x,y,z,sx,sy,sz)=>add(p,geo,mt,x,y,z,sx,sy,sz);
+ const CAP=RB.cap2||(RB.cap2=new T.CylinderGeometry(.82,1,2.6,6)),TOR=RB.tor||(RB.tor=new T.TorusGeometry(1,.18,6,6)),SPH=RB.dod||(RB.dod=new T.DodecahedronGeometry(1,0));// 棱角分明的机甲块面
+ const led=(p,x,y,z,r,red)=>{const m=add(p,RB.dot,red?redM:glow,x,y,z,r,r,r*.6);return m};
+ const redM=new T.MeshBasicMaterial({color:0xff2a18,toneMapped:false});
+ const ring=(p,y,r,th)=>{const m=add(p,TOR,rib,0,y,0,r,r,th);m.rotation.x=Math.PI/2;return m};
+ // 骨盆：圆润的护裆 + 两侧胯甲
+ seg('hips','spine',(p,L)=>{part(p,SPH,armor,0,L*.1,.01,.17*K,.11,.13*K);for(const sx of[-1,1])part(p,SPH,armor,sx*.13*K,-.02,.0,.07*K,.09,.1*K)});
+ // 腹部：一节节叠起来的腹甲（像影片里分段的躯干）
+ seg('spine','spine1',(p,L)=>{part(p,RB.cy,joint,0,L/2,-.02,.075*K,L*1.1,.07*K);for(let i=0;i<3;i++)part(p,SPH,armor,0,L*(.15+i*.33),.045,.12*K,.035,.075*K)});
+ seg('spine1','spine2',(p,L)=>{part(p,RB.cy,joint,0,L/2,-.01,.085*K,L*1.1,.08*K);for(let i=0;i<2;i++)part(p,SPH,armor,0,L*(.25+i*.45),.05,.14*K,.04,.08*K)});
+ // 胸部：两块鼓起的胸甲 + 背甲，中间一个圆形核心
+ seg('spine2','neck',(p,L)=>{part(p,SPH,armor,0,L*.4,-.03,.2*K,L*.62,.15*K);for(const sx of[-1,1])part(p,SPH,armor,sx*.085*K,L*.5,.07*K,.1*K,L*.42,.075*K);
+  part(p,RB.cy,joint,0,L*.36,.135*K,.035,.02,.035).rotation.x=Math.PI/2;led(p,0,L*.36,.147*K,.016,false);
+  part(p,SPH,armor,0,L*.45,-.12*K,.16*K,L*.5,.07*K);for(const sx of[-1,1])led(p,sx*.06*K,L*.62,.13*K,.007,true)});
+ for(const sd of['left','right']){const S=sd[0].toUpperCase()+sd.slice(1),sg=sd==='left'?1:-1;
+  // 大护肩：圆顶 + 几道环
+  seg(S+'Shoulder',S+'Arm',(p,L)=>{part(p,SPH,armor,0,L*.95,0,.115*K,.1*K,.115*K);ring(p,L*.82,.1*K,.25);ring(p,L*.7,.085*K,.25);led(p,0,L*.95,.11*K,.008,true)});
+  seg(S+'Arm',S+'ForeArm',(p,L)=>{part(p,SPH,joint,0,0,0,.07*K,.07*K,.07*K);part(p,CAP,armor,0,L*.45,0,.062*K,L*.42,.062*K);ring(p,L*.18,.06*K,.3);part(p,SPH,joint,0,L,0,.055*K,.055*K,.055*K)});
+  // 前臂：粗大的护臂，像影片里举起的那只手
+  seg(S+'ForeArm',S+'Hand',(p,L)=>{part(p,CAP,armor,0,L*.55,0,.07*K,L*.45,.068*K);ring(p,L*.9,.06*K,.35);ring(p,L*.25,.06*K,.3);led(p,0,L*.55,.072*K,.006,false)});
+  seg(S+'Hand',S+'HandMiddle1',(p,L)=>{part(p,SPH,armor,0,L*.55,0,.05,L*.85,.03);ring(p,L*.1,.04,.3)});
+  seg(S+'UpLeg',S+'Leg',(p,L)=>{part(p,SPH,joint,0,0,0,.08*K,.08*K,.08*K);part(p,CAP,armor,0,L*.5,.01,.085*K,L*.38,.085*K);ring(p,L*.82,.07*K,.3)});
+  seg(S+'Leg',S+'Foot',(p,L)=>{part(p,SPH,joint,0,0,0,.065*K,.065*K,.065*K);part(p,SPH,armor,0,.01,.06*K,.06*K,.075*K,.045*K);part(p,CAP,armor,0,L*.52,.01,.075*K,L*.38,.078*K);ring(p,L*.85,.065*K,.3);led(p,sg*.04,L*.3,.08*K,.006,true)});
+  seg(S+'Foot',S+'ToeBase',(p,L)=>{part(p,SPH,armor,0,L*.45,-.01,.07*K,L*.75,.05)})}
  const hg=new T.Group();hg.scale.setScalar(1/ws);hd.add(hg);
- add(hg,RB.hs,armor,0,.1,-.01,.118,.135,.13);           // 头壳
+ add(hg,SPH,armor,0,.1,-.01,.12,.135,.135);           // 头壳（棱面）
+ for(const sx of[-1,1]){const f=add(hg,RB.bx,armor,sx*.06,.2,-.08,.018,.05,.12);f.rotation.x=-.5;f.rotation.z=sx*.25}  // 后脑两片鳍
  add(hg,RB.hs,dark,0,.085,.028,.104,.112,.11);          // 黑色面罩
  add(hg,RB.bx,armor,0,.205,-.01,.05,.03,.19);            // 头顶脊
  for(const sx of[-1,1])add(hg,RB.cy,armor,sx*.118,.09,0,.032,.03,.032).rotation.z=Math.PI/2; // 耳侧接口
