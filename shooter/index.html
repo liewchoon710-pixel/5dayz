@@ -609,7 +609,7 @@ const MAPS={
   slots:{mg:[[0,5.4,0,1,1.2],[0,-5.4,0,-1,1.2],[5.2,0,1,0,1.2],[-5.2,0,-1,0,1.2],[0,19,0,1],[0,-19,0,-1],[19,0,1,0],[-19,0,-1,0]],
    wall:[[-14,25.2,Math.PI],[14,25.2,Math.PI],[-14,-25.2,0],[14,-25.2,0],[25.2,-14,-Math.PI/2],[25.2,14,-Math.PI/2],[-25.2,-14,Math.PI/2],[-25.2,14,Math.PI/2],[-20,25.2,Math.PI],[20,-25.2,0]]},
   cover:{rects:[[-24,24,-24,24]],avoid:[[-9,9,-9,9]],n:16,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_plasticbarrier',1.4],['k_trafficbarrier_1',2.3],['k_wheels_stack',1.3],['k_pipes',3],['k_pallet',1.4]]},barrels:0},
- docks:{name:'集装箱码头',bx:40,bz:34,env:{fog:.026,col:0x24282e,sun:1.1,hemi:.7},
+ docks:{name:'集装箱码头·浓雾',bx:40,bz:34,env:{fog:.075,col:0x8b9499,sun:.55,hemi:.85,mist:1},
   zs:[[-15,44],[15,44],[0,38],[46,14],[-46,14]],ps:()=>[rand(-3,3),rand(-26,-23)],pv:t=>[(t?-1:1)*rand(33,37),rand(-20,0)],
   build(){gplane(140,100,M('road'),0,0,8);const sea=new T.Mesh(new T.PlaneGeometry(220,80),new T.MeshStandardMaterial({color:0x1b3a4a,roughness:.15,metalness:.6}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-1.6,-74);scene.add(sea);this.sea=sea;
    mbox(0,-34.6,90,1.2,.4,M('conc2'),{cast:false});addCol(-60,-36,60,-34.2,3,{z:1,r:0});
@@ -625,7 +625,7 @@ const MAPS={
   slots:{mg:[[-6,-20,0,1],[6,-20,0,1],[-28,-15,0,1],[28,-15,0,1],[0,10,0,1],[-18,20,0,1],[18,20,0,1]],
    wall:[[-34,34.4,Math.PI],[-28,34.4,Math.PI],[28,34.4,Math.PI],[34,34.4,Math.PI],[-43.4,-20,Math.PI/2],[-43.4,0,Math.PI/2],[43.4,-20,-Math.PI/2],[43.4,0,-Math.PI/2],[-14,-33.4,0],[14,-33.4,0]]},
   maze:1,barrels:5},
- subway:{name:'地铁站',bx:44,bz:12,env:{fog:.045,col:0x07080a,sun:.12,hemi:.16,dark:1},
+ subway:{name:'地铁站·停电',bx:44,bz:12,env:{fog:.045,col:0x07080a,sun:.12,hemi:.16,dark:1,emerg:1},
   zs:[[49,0,0],[-49,0,0],[15,9,1.2],[-15,-9,1.2]],ps:()=>[rand(-3,3),rand(9,10.5)],pv:t=>[(t?-1:1)*rand(34,39),rand(-2,2)],psY:1.2,
   build(){gplane(110,40,M('dark'));gplane(110,8,mat(TEX.metal_a,{color:0x3a3530}),.01);
    for(const z of[-1.5,1.5])mbox(0,z,100,.12,.15,mat(null,{color:0x8a8a8a,metalness:.8,roughness:.3}),{nocol:true,cast:false});
@@ -651,7 +651,7 @@ const MAPS={
   slots:{mg:[[-20,5.2,-1,0,1.2],[20,5.2,1,0,1.2],[-20,-5.2,-1,0,1.2],[20,-5.2,1,0,1.2],[-37,8,-1,0,1.2],[37,-8,1,0,1.2]],
    wall:[[-30,11.6,Math.PI,1.2],[-5,11.6,Math.PI,1.2],[5,11.6,Math.PI,1.2],[30,11.6,Math.PI,1.2],[-30,-11.6,0,1.2],[-5,-11.6,0,1.2],[5,-11.6,0,1.2],[30,-11.6,0,1.2]]},
   cover:{rects:[[-40,40,5,11,1.2],[-40,40,-11,-5,1.2]],avoid:[[-17,-13,8,12],[13,17,-12,-8]],n:10,kinds:[['k_pallet',1.4],['k_trashbag_1',.8],['k_plasticbarrier',1.4],['k_wheels_stack',1.3],['k_cinderblock',.8],['k_pallet_broken',1.4]]},barrels:0},
- bridge:{name:'高架桥',bx:44,bz:22,env:{fog:.02,col:0x2a2420,sun:1.25,hemi:.6},
+ bridge:{name:'高架桥·暴雨',bx:44,bz:22,env:{fog:.02,col:0x2a2420,sun:1.25,hemi:.6,rain:1},
   zs:[[50,15,0],[-50,-15,0],[50,-15,0],[-50,15,0],[47,0,6.2],[-47,0,6.2]],ps:()=>[rand(-3,3),rand(14,17)],pv:t=>[(t?-1:1)*rand(37,41),(t?-1:1)*rand(12,17)],
   build(){gplane(140,80,M('road'));for(const z of[-20,20])mbox(0,z,120,4,.16,M('walk'),{nocol:true,cast:false});
    // 桥面 z∈[-6,6]，高 5.6–6.2，桥墩
@@ -667,7 +667,7 @@ const MAPS={
   slots:{mg:[[-15,3.5,-1,0,6.2],[15,-3.5,1,0,6.2],[35,0,1,0,6.2],[-35,0,-1,0,6.2],[10,14,1,0],[-10,-14,-1,0]],
    wall:[[-15,25.6,Math.PI],[0,25.6,Math.PI],[15,25.6,Math.PI],[-10,-25.6,0],[10,-25.6,0],[25,-25.6,0],[35,25.6,Math.PI],[-35,-25.6,0]]},
   cover:{along:1,rects:[[-42,42,8,19],[-42,42,-19,-8],[-42,42,-4.5,4.5,6.2]],avoid:[[4,26,6,13],[-26,-4,-13,-6],[17,26,-6,6],[-26,-17,-6,6]],n:22,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_vehicle_truck',6.8],['bus',11.5],['k_vehicle_pickup_armored',5.4],['k_trafficbarrier_1',2.3],['k_plasticbarrier',1.4]]},barrels:3},
- gas:{name:'公路加油站',bx:30,bz:24,env:{fog:.024,col:0x3a2620,sun:.95,hemi:.55,dusk:1},
+ gas:{name:'公路加油站·沙尘黄昏',bx:30,bz:24,env:{fog:.05,col:0x8a5a34,sun:.9,hemi:.6,dusk:1,dust:1},
   zs:[[38,-14],[-38,-14],[0,32],[-26,30],[26,30]],ps:()=>[rand(-3,3),rand(1.6,2.6)],pv:t=>[(t?-1:1)*rand(23,27),rand(-8,6)],
   build(){gplane(120,90,M('walk'));gplane(120,10,M('road'),.01,0,-14);
    // 加油站顶棚（只是遮挡，站不上去）
@@ -1695,13 +1695,13 @@ rGeo.setAttribute('position',new T.BufferAttribute(rPos,3));const rainPts=new T.
 function rainSound(on){if(!AC)return;if(!WX.src){const s=AC.createBufferSource();s.buffer=NB;s.loop=true;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=2600;f.Q.value=.4;const g=AC.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(MG);s.start();WX.src=s;WX.gain=g}
  WX.gain.gain.setTargetAtTime(on?.16:0,AC.currentTime,.8)}
 function updWeather(dt){let wantRain=0,tank=0,mut=0;for(const z of G.zs){if(z.dead)continue;if(z.type==='witch'&&!z.fled)wantRain=1;if(z.type==='mutant'){wantRain=1;mut=1}if(z.type==='tank')tank=1}
- if(G.state!=='play')wantRain=0,tank=0;WX.rain+=(wantRain-WX.rain)*Math.min(1,dt*.6);
+ if((MAP||{}).env&&MAP.env.rain)wantRain=1;if(G.state!=='play')wantRain=0,tank=0;WX.rain+=(wantRain-WX.rain)*Math.min(1,dt*.6);
  if(!!wantRain!==!!WX.was){WX.was=wantRain;rainSound(!!wantRain);if(wantRain)popTxt('下雨了……')}
  rainPts.material.opacity=.55*WX.rain;rainPts.visible=WX.rain>.02;if(rainPts.visible){rainPts.position.set(camera.position.x,0,camera.position.z);for(let i=0;i<RN;i++){rPos[i*3+1]-=dt*14;if(rPos[i*3+1]<0)rPos[i*3+1]+=18}rGeo.attributes.position.needsUpdate=true}
  const EV=(MAP||MAPS.cross).env;scene.fog.density=EV.fog*(GFX&&!EV.dark?.5:1)+.014*WX.rain;let si=EV.sun*(1-.55*WX.rain),hi=EV.hemi*(1-.4*WX.rain);
  if(WX.rain>.5){WX.thunderT-=dt;if(WX.thunderT<=0){WX.thunderT=rand(6,14);WX.light=.25;if(AC)setTimeout(()=>{noise(90,2.5,.6);noise(400,.6,.3)},rand(200,900))}}
  if(WX.light>0){WX.light-=dt;si+=4*Math.max(0,WX.light);hi+=2*Math.max(0,WX.light)}
- if(WX.flick>0){WX.flick-=dt;const on=(performance.now()/90|0)%3!==0;si*=on?.15:1;hi*=on?.3:1;amb.color.setHex(on?0xff2010:0x404048);amb.intensity=on?.9:.25}else{amb.color.setHex(EV.night?0x283048:0x404048);amb.intensity=EV.night?.08:.25}
+ if(WX.flick>0){WX.flick-=dt;const on=(performance.now()/90|0)%3!==0;si*=on?.15:1;hi*=on?.3:1;amb.color.setHex(on?0xff2010:0x404048);amb.intensity=on?.9:.25}else if(EV.emerg){const fl=(performance.now()/1000)%2.4<1.4;amb.color.setHex(0xff2414);amb.intensity=fl?.55:.18}else{amb.color.setHex(EV.night?0x283048:0x404048);amb.intensity=EV.night?.08:.25}
  sun.intensity=si;hemi.intensity=hi*(GFX?GFX.hk:1);
  // 坦克尸战鼓
  if(tank&&AC){WX.drumT-=dt;if(WX.drumT<=0){WX.drumT=.42;const b=WX.beat++%8;if(b===0||b===3||b===4)tone(70,38,.35,.45);if(b===2||b===6)noise(900,.18,.25,'bandpass')}}else WX.beat=0;
@@ -2307,8 +2307,8 @@ GFX=(()=>{
   'float lit=smoothstep(-.15,.35,n-fbm(p+uSun.xz*.22));vec3 cc=mix(uZen*.55,uHor*1.25+uSunC*.22*dry,lit);cc+=uSunC*pow(sd,8.)*.6*dry*(1.-c*.6);col=mix(col,cc,c*smoothstep(.015,.22,y));}'+
   'col*=1.-.5*uRain;col+=vec3(.7,.75,.9)*uFlash;gl_FragColor=vec4(col,1.);}'});
  const sky=new T.Mesh(new T.SphereGeometry(190,32,16),skyM);sky.renderOrder=-100;sky.frustumCulled=false;scene.add(sky);
- const SKY={cross:{hor:0x77818a,zen:0x333f4e,sun:0xffd6ae,cov:.36},plaza:{hor:0x8a8d8c,zen:0x414b58,sun:0xffe2c0,cov:.42},docks:{hor:0x7c8a8f,zen:0x35434c,sun:0xe9eef0,cov:.26},
-  bridge:{hor:0xa39078,zen:0x46505e,sun:0xffcf9a,cov:.44},gas:{hor:0xb8693a,zen:0x262a46,sun:0xff8f48,cov:.5}};
+ const SKY={cross:{hor:0x77818a,zen:0x333f4e,sun:0xffd6ae,cov:.36},plaza:{hor:0x8a8d8c,zen:0x414b58,sun:0xffe2c0,cov:.42},docks:{hor:0xa6aeb2,zen:0x7d878d,sun:0xdfe6ea,cov:.85},
+  bridge:{hor:0xa39078,zen:0x46505e,sun:0xffcf9a,cov:.44},gas:{hor:0xc07a40,zen:0x5a3a2a,sun:0xff8a3c,cov:.62}};
  const TX_FADE=ctex(64,(g,s)=>{const r=g.createLinearGradient(0,0,0,s);r.addColorStop(0,'#000');r.addColorStop(.45,'#777');r.addColorStop(.8,'#fff');r.addColorStop(1,'#fff');g.fillStyle=r;g.fillRect(0,0,s,s)});
  const fogBase=new T.Color(),tmpC=new T.Color();let pm=null,envRT=null,dark=false;
  function env(){if(!MAP)return;const E=MAP.env,S=SKY[MAP.id]||SKY.cross;dark=!!E.dark;sky.visible=!dark;
