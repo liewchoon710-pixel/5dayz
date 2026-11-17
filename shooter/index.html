@@ -342,9 +342,12 @@ async function loadAll(){
  jobs.push(getBuf(GUNBASE+'mutant.glb').then(b=>b&&new Promise(r=>GL.parse(b,'',g=>{prepMutant(g);r()},()=>r()))).catch(()=>{}));
  for(const n of TEX_LIST)jobs.push(loadTex('mx/env/'+n+'.webp').then(t=>{TEX[n]=t}));
  // KC 提供的写实荒废模型：替换原来的卡通车辆/集装箱/路障，并新增工事堆和路灯（[名字, 文件, 绕Y旋转]）
- const ENV2=[['bus','abandoned_bus',1],['k_vehicle_sports','abandoned_car',0],['k_vehicle_pickup','damaged_broken_car',1],['k_vehicle_truck','damaged_future_transport',1],['container','abandoned_shipping_container',1],['k_trafficbarrier_1','abandoned_roadblock',1],['env_fort','abandoned_fortification',0],['env_lamp','abandoned_street_lamp',0]];
+ const ENV2=[['bus','abandoned_bus',1],['k_vehicle_sports','abandoned_car',0],['k_vehicle_pickup','damaged_broken_car',1],['k_vehicle_truck','damaged_future_transport',1],['container','abandoned_shipping_container',1],['k_trafficbarrier_1','abandoned_roadblock',1],['k_vehicle_pickup_armored','damaged_broken_car',1],['k_vehicle_truck_armored','damaged_future_transport',1],['env_fort','abandoned_fortification',0],['env_lamp','abandoned_street_lamp',0]];
  for(const [al,f,rot] of ENV2)jobs.push(loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;const w=new T.Group();g.scene.rotation.y=rot?Math.PI/2:0;w.add(g.scene);w.userData.env2=1;ENV2M[al]=w}));
  await Promise.all(jobs);Object.assign(PROPS,ENV2M);GFX&&GFX.props();
+ // 大型建筑/桥/码头等在后台慢慢载入，不拖慢开始画面；下一局重建地图时就会摆出来
+ for(const f of ['abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
+  loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin)}catch(e){console.warn(e)}},300)});
 }
 const REST=1.0613;
 function prepMX(g,n){const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});rm.forEach(o=>o.parent&&o.parent.remove(o));
@@ -542,7 +545,7 @@ function buildCrossMap(){
   const w=x1-x0,d=z1-z0,h=Math.round(14+srand()*34);const ft=TEX[facs[Math.floor(srand()*facs.length)]];
   const fm=mat(ft,{color:new T.Color().setHSL(.07,.08,.55+srand()*.25)});
   const g=uvBox(w,h,d,9,9);const m=new T.Mesh(g,[fm,fm,roofM,roofM,fm,fm]);
-  const cx=sx*(x0+w/2),cz=sz*(z0+d/2);m.position.set(cx,h/2,cz);m.castShadow=true;m.receiveShadow=true;scene.add(m);
+  const cx=sx*(x0+w/2),cz=sz*(z0+d/2);m.position.set(cx,h/2,cz);m.userData.bld={w,d,h};m.castShadow=true;m.receiveShadow=true;scene.add(m);
   addCol(cx-w/2,cz-d/2,cx+w/2,cz+d/2,h);
   if(TEX.shopfront){if(x0===SW){const p=new T.Mesh(new T.PlaneGeometry(d,4.4),shopM);p.position.set(sx*(SW+.03),2.2,cz);p.rotation.y=sx>0?-Math.PI/2:Math.PI/2;scene.add(p)}
    if(z0===SW){const p=new T.Mesh(new T.PlaneGeometry(w,4.4),shopM);p.position.set(cx,2.2,sz*(SW+.03));p.rotation.y=sz>0?Math.PI:0;scene.add(p)}}}
@@ -563,7 +566,7 @@ function buildCrossMap(){
 // ================= 多地图系统：每张图自己的建筑、出生点、摆设、灯光、机关 =================
 // MAPOBJ：当前地图的静态物件（换图时移除）；碰撞盒带 mp 标记一起清掉
 const MAPOBJ=[];let MPF=false,MAP=null;
-function mbox(x,z,w,d,h,m,o={}){const y0=o.y0||0;const g=o.uv?uvBox(w,h,d,o.uv,o.uv):new T.BoxGeometry(w,h,d);const me=new T.Mesh(g,m);me.position.set(x,y0+h/2,z);if(o.ry)me.rotation.y=o.ry;me.castShadow=o.cast!==false;me.receiveShadow=true;scene.add(me);
+function mbox(x,z,w,d,h,m,o={}){const y0=o.y0||0;const g=o.uv?uvBox(w,h,d,o.uv,o.uv):new T.BoxGeometry(w,h,d);const me=new T.Mesh(g,m);me.position.set(x,y0+h/2,z);if(o.ry)me.rotation.y=o.ry;if(o.uv===9&&h>=10&&!y0)me.userData.bld={w,d,h};me.castShadow=o.cast!==false;me.receiveShadow=true;scene.add(me);
  if(!o.nocol){if(o.ry)addColO(x,z,w/2,d/2,y0+h,o.ry,{y0,z:o.cz,p:o.cp,r:o.cr});else addCol(x-w/2,z-d/2,x+w/2,z+d/2,y0+h,{y0,z:o.cz,p:o.cp,r:o.cr})}return me}
 // 台阶（当斜坡用）：每级 0.3 米，玩家/丧尸会自动走上去
 function stairs(x,z,dir,w,rise,m,y=0){const n=Math.ceil(rise/.3),sh=rise/n,sl=.55;const dx=dir==='+x'?1:dir==='-x'?-1:0,dz=dir==='+z'?1:dir==='-z'?-1:0;
@@ -760,7 +763,28 @@ let DRL=null;function derelictAssets(){if(DRL)return DRL;
  const vg=new T.PlaneGeometry(1,1);vg.translate(0,.5,0);
  return DRL={vg,vm:new T.MeshBasicMaterial({map:vine,alphaTest:.35,side:T.DoubleSide,color:0xd6d2c0}),wg,fl,wm:new T.MeshBasicMaterial({map:weed,alphaTest:.4,side:T.DoubleSide,color:0xe0dcc8}),sm:new T.MeshBasicMaterial({map:stain,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),
   pm:new T.MeshStandardMaterial({map:paper,alphaTest:.5,roughness:1,metalness:0,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),rg:new T.IcosahedronGeometry(1,1),rm:mat(TEX.rubble_a||TEX.wall_conc,{color:0x8a8478})}}
-function derelict(sd){if(!MAP)return;let s=((sd|0)*9301+49297)&0x7fffffff;const R=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};const A=derelictAssets(),bx=(MAP.bx||60)-1,bz=(MAP.bz||60)-1,q=new T.Vector3(),d=new T.Object3D();
+// 大型模型按地图主题摆放：in=场内当掩体（有碰撞、坦克撞不动），out=场外当远景天际线
+const ENVB={cross:{in:[['abandoned_shop_front',9],['ruined_street_storefront',8]],out:[['damaged_highrise_building',11],['abandoned_residential_block',16],['damaged_highrise_building',10],['abandoned_construction_site',16]]},
+ plaza:{in:[['ruined_street_storefront',8]],out:[['abandoned_school',22],['abandoned_supermarket',22],['abandoned_residential_block',18],['damaged_highrise_building',11]]},
+ docks:{in:[],out:[['abandoned_large_dock',40],['abandoned_industrial_block',22],['abandoned_industrial_block',18]]},
+ subway:{in:[],out:[]},
+ bridge:{in:[],out:[['collapsed_highway_bridge',34],['ruined_elevated_bridge',26],['abandoned_construction_site',18],['damaged_highrise_building',11]]},
+ gas:{in:[['abandoned_shop_front',9]],out:[['abandoned_supermarket',22],['abandoned_industrial_block',20],['abandoned_residential_block',18]]}};
+function envBig(sd){const E=ENVB[MAP.id]||ENVB.cross;let s=((sd|0)*7919+13)&0x7fffffff;const R=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};const bx=MAP.bx||40,bz=MAP.bz||30,q=new T.Vector3();
+ for(const [f,len] of E.out){const n='eb_'+f;if(!PROPS[n])continue;const side=Math.floor(R()*4),u=(R()*2-1)*.8,d=len*.55+6+R()*8;
+  const x=side<2?(side?1:-1)*(bx+d):u*bx,z=side<2?u*bz:(side===2?1:-1)*(bz+d);placeProp(n,x,z,Math.atan2(-x,-z)+(R()-.5)*.6,len,false)}
+ for(const [f,len] of E.in){const n='eb_'+f;if(!PROPS[n])continue;for(let k=0;k<40;k++){const x=(R()*2-1)*(bx-len*.6),z=(R()*2-1)*(bz-len*.6);if(Math.hypot(x,z)<12)continue;
+  let ok=true;for(let a=0;a<6.28&&ok;a+=.8)for(const r of[0,len*.35,len*.6]){q.set(x+Math.cos(a)*r,0,z+Math.sin(a)*r);const p0=q.clone();pushOut(q,.8,'p',0);if(q.distanceTo(p0)>.01){ok=false;break}}
+  if(!ok)continue;placeProp(n,x,z,Math.floor(R()*4)*Math.PI/2,len,true);break}}}
+// 把原来的方盒楼房换成写实废楼模型（按楼的占地和高度拉伸贴合，碰撞仍用原来的盒子）
+const BLDM=['abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_school','abandoned_shop_front','ruined_street_storefront'];
+function swapBuildings(){const L=[];scene.traverse(o=>{if(o.isMesh&&o.userData.bld&&!o.userData.sw)L.push(o)});for(const me of L){const B=me.userData.bld,tall=B.h>Math.max(B.w,B.d)*1.3;
+  const pool=tall?['damaged_highrise_building','abandoned_residential_block']:B.h<16?['abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_industrial_block']:['abandoned_residential_block','abandoned_industrial_block','abandoned_school'];
+  const h0=Math.abs(Math.sin(me.position.x*12.99+me.position.z*78.2)*4375.5)%1,f=pool[Math.floor(h0*pool.length)],src=PROPS['eb_'+f];if(!src)continue;
+  const o=src.clone(true),b=new T.Box3().setFromObject(o),sz=b.getSize(new T.Vector3());o.scale.set(B.w*1.03/sz.x,B.h/sz.y,B.d*1.03/sz.z);
+  o.position.set(-(b.min.x+b.max.x)/2*o.scale.x,-b.min.y*o.scale.y-B.h/2,-(b.min.z+b.max.z)/2*o.scale.z);me.add(o);me.material=BLDHIDE;me.userData.sw=1;me.castShadow=false}}
+const BLDHIDE=new T.MeshBasicMaterial({colorWrite:false,depthWrite:false});
+function derelict(sd){if(!MAP)return;try{envBig(sd)}catch(e){console.warn("envBig",e)}try{swapBuildings()}catch(e){console.warn("swap",e)}let s=((sd|0)*9301+49297)&0x7fffffff;const R=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};const A=derelictAssets(),bx=(MAP.bx||60)-1,bz=(MAP.bz||60)-1,q=new T.Vector3(),d=new T.Object3D();
  const spot=(r,edge)=>{for(let k=0;k<30;k++){const x=(R()*2-1)*bx,z=(R()*2-1)*bz;q.set(x,0,z);if(groundH(q,.1,.3)>.02)continue;pushOut(q,r,'p',0);if(Math.hypot(q.x-x,q.z-z)>.01)continue;if(edge){q.set(x,0,z);pushOut(q,1.6,'p',0);if(Math.hypot(q.x-x,q.z-z)<.01&&R()>.3)continue}return[x,z]}return null};
  const inst=(geo,m,n,r,edge,fn)=>{const im=new T.InstancedMesh(geo,m,n);let c=0;for(let i=0;i<n;i++){const p=spot(r,edge);if(!p)continue;d.position.set(p[0],0,p[1]);d.rotation.set(0,R()*6.283,0);d.scale.set(1,1,1);fn(d,c);d.updateMatrix();im.setMatrixAt(c++,d.matrix)}im.count=c;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;im.receiveShadow=true;scene.add(im);return im};
  const lo=TOUCH?.5:1;
@@ -811,7 +835,7 @@ function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return n
  o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});
  const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
- if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
+ if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
 function groundH(p,r,y){let g=0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.36||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
 function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&&!c.p)continue;const b=c.b;if(b.max.y<=y+.35||y+1.75<b.min.y)continue;
  if(p.x+r<=b.min.x||p.x-r>=b.max.x||p.z+r<=b.min.z||p.z-r>=b.max.z)continue;const q=c.o;const L=obL(q,p.x,p.z);const lx=L.x,lz=L.z;
@@ -1376,7 +1400,12 @@ function buildMGs(SP){const dk=new T.MeshStandardMaterial({color:0x22262a,roughn
   const jk=new T.Mesh(new T.CylinderGeometry(.055,.055,.4,10),dk);jk.rotation.x=Math.PI/2;jk.position.set(0,.02,-.45);tur.add(jk);
   for(const sx of[-1,1]){const h=new T.Mesh(new T.CylinderGeometry(.018,.018,.13,6),dk);h.position.set(sx*.1,-.03,.3);tur.add(h)}
   addCol(x-.4,z-.4,x+.4,z+.4,my+1.3,{r:0,y0:my});
-  MGS.push({i:MGS.length,y:my,pos:new T.Vector3(x,0,z),yaw0:yaw,yaw,pitch:0,heat:0,over:false,g,tur,brl,ru:null,ruT:0,cd:0})}}
+  MGS.push({i:MGS.length,y:my,pos:new T.Vector3(x,0,z),yaw0:yaw,yaw,pitch:0,heat:0,over:false,g,tur,brl,ru:null,ruT:0,cd:0});mgSkin(MGS[MGS.length-1])}}
+// 固定机枪换成写实模型（整挺枪跟着炮塔转）
+function mgSkin(m){if(m.sk||!PROPS.eb_fixed_ground_machine_gun)return;m.sk=1;const tur=m.tur,o=PROPS.eb_fixed_ground_machine_gun.clone(true);const b=new T.Box3().setFromObject(o),sz=b.getSize(new T.Vector3()),k=1.6/Math.max(sz.x,sz.z);o.scale.setScalar(k);
+ o.position.set(-(b.min.x+b.max.x)/2*k,-1.08-b.min.y*k,-(b.min.z+b.max.z)/2*k);o.rotation.y=MGROT;tur.add(o);tur.children.forEach(c=>{if(c!==o&&c!==m.brl)c.visible=false});m.brl.material.transparent=true;m.brl.material.opacity=0;
+ m.g.children.forEach(c=>{if(c!==tur&&c.geometry&&c.geometry.type==='CylinderGeometry')c.visible=false})}
+let MGROT=0;
 function mgSeat(m,yaw,out){return out.set(m.pos.x+Math.sin(yaw)*.95,0,m.pos.z+Math.cos(yaw)*.95)}
 function mgFree(m){return !m.ru||performance.now()-m.ruT>1500}
 function nearMG(){if(P.dead||P.mg)return null;let best=null,bd=1.7;for(const m of MGS){if(!mgFree(m)||Math.abs(P.y-(m.y||0))>.6)continue;const d=mgSeat(m,m.yaw0,v1).distanceTo(v2.set(P.pos.x,0,P.pos.z));if(d<bd){bd=d;best=m}}return best}
