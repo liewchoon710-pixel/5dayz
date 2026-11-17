@@ -2001,7 +2001,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0)wakeFrame(dt);
  const ap=clamp(P.pitch+P.rec,-1.1,.85);const cp=Math.cos(ap),spp=Math.sin(ap);camF.set(-Math.sin(P.yaw)*cp,spp,-Math.cos(P.yaw)*cp);camR.set(Math.cos(P.yaw),0,-Math.sin(P.yaw));
  // 阵亡观战（打丧尸）
  let fp=P.pos;if(P.dead&&G.mode==='z'){const al=Object.values(HUM).find(H=>!H.bot&&!H.dead);if(al)fp=al.pos}
- const FPV=VIEW==='fp'&&!P.dead;P.c.wrap.visible=true;
+ const FPV=(VIEW==='fp'||P.wake>0)&&!P.dead;P.c.wrap.visible=true;// 醒来过程强制第一人称
  // 真·第一人称：隐藏头部，相机放在角色眼睛位置，能看到自己的手臂和身体
  {const hb=P.c.bones.mixamorighead;if(hb){const k=(FPV&&!P.mg)?.001:1;if(hb.scale.x!==k)hb.scale.setScalar(k)}}
  P.bobT=(P.bobT||0)+sp*dt*1.7;const bob=Math.min(1,sp/4)*(1-P.aim*.8);
@@ -2013,6 +2013,9 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0)wakeFrame(dt);
   camera.position.copy(pv).addScaledVector(back3,dist)}
  if(P.shake>0){P.shake-=dt;camera.position.x+=rand(-1,1)*P.shake*.12;camera.position.y+=rand(-1,1)*P.shake*.12}
  camera.lookAt(v3.copy(camera.position).add(camF));
+ if(P.wake>0){const hb=P.c.bones.mixamorighead;if(hb){P.c.wrap.updateMatrixWorld(true);const q=hb.getWorldQuaternion(new T.Quaternion()),f=new T.Vector3(0,0,1).applyQuaternion(q),u=new T.Vector3(0,1,0).applyQuaternion(q);hb.getWorldPosition(camera.position);camera.position.addScaledVector(u,.09*P.c.s).addScaledVector(f,.1);
+  // 起身后半段把视线平滑交还给玩家的朝向
+  const k=clamp((P.wakeT-3.2)/.9,0,1);f.lerp(camF,k).normalize();camera.lookAt(v3.copy(camera.position).add(f))}}
  P.scoped=!P.dead&&!P.mg&&!!WP[G.cur].scope&&P.aim>.85&&!P.sw&&!(P.relT>0);
  const fov=P.scoped?WP[G.cur].scope:FPV?72-P.aim*20:65-P.aim*17;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix()}
  // 持枪姿势 / 换枪 / 换弹动作
@@ -2724,7 +2727,7 @@ function loop(){requestAnimationFrame(loop);let dt=clock.getDelta();dt=Math.min(
  if(G.state==='play'){if(!(G.paused&&!NET.on)&&!G.hostPause)update(dt);netTick(dt)}
  else if(G.state==='menu'||G.state==='lobby'){if(menuFrame(dt)){return}const t=performance.now()/1000;camera.position.set(Math.sin(t*.08)*22,7+Math.sin(t*.2),Math.cos(t*.08)*22);camera.lookAt(0,1.5,0);fxUpdate(dt);for(const c of menuZ)updChar(c,dt)}
  else if(G.state==='over'){updHumans(dt);for(const z of G.zs)updChar(z.c,dt);P.c&&updChar(P.c,dt);fxUpdate(dt)}
- GFX?GFX.frame(dt):renderer.render(scene,camera)}
+ if(P.wake>0&&P.guns)P.guns.forEach(g=>{if(g)g.visible=false});GFX?GFX.frame(dt):renderer.render(scene,camera)}
 (async()=>{try{await loadAll()}catch(e){console.error(e)}
  if(!ANIMS||!ANIMS.length||!HUMANS.some(h=>MODELS[h.id])){$('loadT').innerHTML='素材载入失败（'+FAILS.length+' 个文件）<br><span style="font-size:13px;opacity:.75">请检查网络，或用浏览器（Chrome）直接打开本页面</span><br><button class="btn" onclick="location.reload()" style="margin-top:12px">重新载入</button>';return}
  if(!MODELS[HUMANS[skinI].id])skinI=Math.max(0,HUMANS.findIndex(h=>MODELS[h.id]));
