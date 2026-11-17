@@ -377,6 +377,11 @@ function robotSkin(c){const R=ROBOT,B=c.bones,b=n=>B['mixamorig'+n];if(!b('hips'
   const far=Math.abs(v.x)>hipX;for(const [k,a,e,lg] of seg){ab.subVectors(e,a);const t=clamp(ap.subVectors(v,a).dot(ab)/ab.lengthSq(),0,1);let d=ap.copy(a).addScaledVector(ab,t).distanceToSquared(v);if(lg&&far)d*=6;
    if(d<d1){if(i1!==k){d2=d1;i2=i1}d1=d;i1=k}else if(d<d2&&k!==i1){d2=d;i2=k}}
   const w1=1/(d1*d1+1e-9),w2=1/(d2*d2+1e-9)*(d2<d1*2.2?1:0),t=w1+w2;si[i*4]=i1;si[i*4+1]=i2;sw[i*4]=w1/t;sw[i*4+1]=w2/t}
+ {const hb=b('head'),hk=bones.indexOf(hb),hw=hb.getWorldScale(new T.Vector3()).x,inv=hb.matrixWorld.clone().invert(),L=[];let cx=0,cz=0,ymin=1e9,ymax=-1e9;
+  for(let i=0;i<n;i++){if(si[i*4]!==hk)continue;v.fromBufferAttribute(P,i).applyMatrix4(inv).multiplyScalar(hw);L.push(v.clone());ymin=Math.min(ymin,v.y);ymax=Math.max(ymax,v.y)}
+  if(L.length>20){const yc=ymin+(ymax-ymin)*.62,band=L.filter(p=>Math.abs(p.y-yc)<(ymax-ymin)*.12);for(const p of band){cx+=p.x;cz+=p.z}cx/=band.length;cz/=band.length;
+   const R=a=>{let m=0;for(const p of band){const dx=p.x-cx,dz=p.z-cz;const ang=Math.atan2(dx,dz);if(Math.abs(Math.atan2(Math.sin(ang-a),Math.cos(ang-a)))<.35)m=Math.max(m,Math.hypot(dx,dz))}return m};
+   c.helm={cx,cz,y:yc,rL:R(Math.PI/2),rR:R(-Math.PI/2),rB:R(Math.PI),h:(ymax-ymin)}}}
  g.setAttribute('skinIndex',new T.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(sw,4));
  const m=R.mat.clone();m.envMapIntensity=.9;c.mats.push(m);
  const sm=new T.SkinnedMesh(g,m);sm.castShadow=true;sm.frustumCulled=false;c.wrap.add(sm);c.wrap.updateMatrixWorld(true);
@@ -385,12 +390,24 @@ function robotSkin(c){const R=ROBOT,B=c.bones,b=n=>B['mixamorig'+n];if(!b('hips'
  c.root.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&o!==sm)o.visible=false});return true}
 // 机体编号：喷在胸口和背上
 const NUMTX={};function numTex(t){if(NUMTX[t])return NUMTX[t];const tx=ctex(128,(g,s)=>{g.clearRect(0,0,s,s);g.font='bold 54px Arial';g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(235,235,225,.92)';g.fillText(t,s/2,s/2+2);g.fillStyle='rgba(235,235,225,.6)';g.fillRect(14,s-22,s-28,5)});return NUMTX[t]=tx}
+function sprayTex(t){const k='sp'+t;if(NUMTX[k])return NUMTX[k];const c=document.createElement('canvas');c.width=256;c.height=96;const g=c.getContext('2d');
+ g.font='bold 74px "Arial Black",Impact,Arial';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#e9e4d6';g.fillText(t,128,50);
+ // 模板字的断桥 + 喷漆颗粒 + 磨损
+ g.globalCompositeOperation='destination-out';g.fillRect(0,46,256,3);for(let i=0;i<900;i++){g.globalAlpha=Math.random()*.9;g.fillRect(Math.random()*256,Math.random()*96,1+Math.random()*3,1+Math.random()*2)}
+ g.globalCompositeOperation='source-over';g.globalAlpha=1;g.fillStyle='rgba(233,228,214,.85)';for(let i=0;i<260;i++){const x=128+(Math.random()-.5)*230,y=50+(Math.random()-.5)*90;g.fillRect(x,y,1.2,1.2)}
+ g.globalCompositeOperation='source-atop';g.fillStyle='rgba(60,40,25,.35)';for(let i=0;i<30;i++){g.beginPath();g.arc(Math.random()*256,Math.random()*96,3+Math.random()*9,0,6.3);g.fill()}
+ const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;tx.anisotropy=4;return NUMTX[k]=tx}
 function robotNum(id){let h=7;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return 'R-'+String(h%100).padStart(2,'0')}
 const RB={hs:new T.SphereGeometry(1,24,18),cy:new T.CylinderGeometry(1,1,1,10),bx:new T.BoxGeometry(1,1,1),ring:new T.CylinderGeometry(.142,.142,.026,28,1,true,-.95,1.9),dot:new T.SphereGeometry(1,10,8)};
 function roboize(c,sk,hpf,num){if(ROBOT&&robotSkin(c)){roboExtra(c,sk,hpf,num);return}return roboize0(c,sk,hpf)}
 function roboExtra(c,sk,hpf,num){const D=skDec(sk),vc=new T.Color(VCOL[D.col].c),B=c.bones;
  const sp=B.mixamorigspine2,hd=B.mixamorighead;
- if(hd&&num){const g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);const n=new T.Sprite(new T.SpriteMaterial({map:numTex(num),transparent:true,depthWrite:false}));n.scale.set(.42,.42,1);n.position.set(0,.5,0);n.renderOrder=5;g.add(n)}// 编号浮在头顶
+ // 编号用喷漆模板字喷在头盔两侧和后脑：贴着头盔表面的弧形贴花，受光照、有喷漆飞溅
+ if(hd&&num&&c.helm){const H=c.helm,g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);
+  const mt=new T.MeshStandardMaterial({map:sprayTex(num),transparent:true,alphaTest:.25,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-4,depthWrite:false});
+  const hh=Math.min(.06,H.h*.22);
+  for(const [a,r] of [[Math.PI/2,H.rL],[-Math.PI/2,H.rR],[Math.PI,H.rB]]){if(!(r>.03))continue;const span=Math.min(1.1,.16/r);
+   const geo=new T.CylinderGeometry(r*1.015,r*1.015,hh,20,1,true,a-span/2,span);const m=new T.Mesh(geo,mt);m.position.set(H.cx,H.y,H.cz);g.add(m)}}
  let fl=null;if(hd){const g=new T.Group();g.scale.setScalar(1/hd.getWorldScale(new T.Vector3()).x);hd.add(g);fl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:vc,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.7}));fl.scale.set(.22,.1,1);fl.position.set(0,.09,.13);g.add(fl)}
  const OR=new T.Color(0xff8a20),RD=new T.Color(0xff1e10),tmp=new T.Color();let t=0;
  c.robo={upd(dt){if(!fl)return;t+=dt;const h=hpf?hpf():1;if(h>.5)tmp.copy(vc);else if(h>.25)tmp.copy(OR);else tmp.copy(RD).multiplyScalar(Math.sin(t*12)>0?1:.25);fl.material.color.copy(tmp);fl.material.opacity=h<=0?0:.7}}}
