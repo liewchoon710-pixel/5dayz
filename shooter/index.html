@@ -206,7 +206,8 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
   <div class="tb zOnly" id="tThr">手雷</div><div class="tb zOnly" id="tThrS">⇄</div><div class="tb" id="tKnife">刀</div>
 </div>
 
-<div id="eyes"></div><div id="nvgFx"></div>
+<div id="eyes"></div><div id="subT"></div>
+<style>#subT{position:fixed;left:50%;bottom:17%;transform:translateX(-50%);z-index:17;pointer-events:none;text-align:center;font-size:15px;line-height:1.6;color:#e6eef5;text-shadow:0 0 8px #000,0 0 3px #000;opacity:0;transition:opacity .5s;max-width:80vw}#subT b{color:#8fd8ff;font-weight:500;letter-spacing:.5px}</style><div id="nvgFx"></div>
 <style>#nvgFx{display:none;position:fixed;inset:0;z-index:14;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,rgba(0,0,0,0) 1px 3px)}#nvgFx.on{animation:nvon .5s}@keyframes nvon{0%{background-color:rgba(160,255,170,.9)}100%{background-color:rgba(0,0,0,0)}}#nvgFx:after{content:"NV-MODE · ×4.0 · R-SENS";position:absolute;left:50%;bottom:9%;transform:translateX(-50%);font:12px Consolas,monospace;color:#7cff8c;letter-spacing:3px;opacity:.85}</style><div id="boot"></div>
 <style>#boot{display:none;position:fixed;left:6%;top:16%;z-index:16;pointer-events:none;font:13px/1.7 Consolas,monospace;color:#7fe0ff;text-shadow:0 0 6px rgba(80,200,255,.8)}#boot div{animation:bt .25s steps(8)}@keyframes bt{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}</style>
 <style>#eyes{display:none;position:fixed;inset:0;z-index:15;pointer-events:none;backdrop-filter:blur(var(--b));-webkit-backdrop-filter:blur(var(--b))}#eyes{background:radial-gradient(ellipse 75% var(--o) at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.85) 82%,#000 100%)}</style>
@@ -935,6 +936,10 @@ function sHorn(){tone(180,170,1.4,.18,'sawtooth');setTimeout(()=>tone(135,128,1.
 function sCash(){tone(1300,1800,.08,.12,'square');setTimeout(()=>tone(1800,2400,.1,.1,'square'),70)}
 let VOICE=null;function say(t,fx){try{const s=speechSynthesis;if(!s)return;if(!VOICE){const vs=s.getVoices().filter(v=>/zh/i.test(v.lang));VOICE=vs.find(v=>/xiaoxiao.*(natural|online)/i.test(v.name))||vs.find(v=>/xiaoxiao|xiaoyi|xiaochen|xiaohan|xiaomo/i.test(v.name))||vs.find(v=>/huihui|ting|mei|yaoyao|female|女/i.test(v.name))||vs[0]||null}
  const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.92;u.pitch=1.02;u.volume=1;sAI();if(!fx)s.cancel();s.speak(u)}catch(e){}}
+// 开局 AI：英文女声 + 中文字幕
+let VOICE_F=null;function aiVO(en,zh,q){const sb=$('subT');sb.innerHTML='<b>'+en+'</b><br>'+zh;sb.style.opacity=1;clearTimeout(sb._t);sb._t=setTimeout(()=>sb.style.opacity=0,Math.max(3500,en.length*85));
+ try{const s=speechSynthesis;if(!s)return;if(!VOICE_F){const vs=s.getVoices().filter(v=>/^en/i.test(v.lang));VOICE_F=vs.find(v=>/(aria|jenny|ava|emma|libby|sonia).*(natural|online)/i.test(v.name))||vs.find(v=>/aria|jenny|zira|samantha|female|susan|hazel|libby|sonia|emma|ava/i.test(v.name))||vs[0]||null}
+  const u=new SpeechSynthesisUtterance(en);u.lang='en-US';if(VOICE_F)u.voice=VOICE_F;u.rate=.9;u.pitch=1;sAI();if(!q)s.cancel();s.speak(u)}catch(e){}}
 // AI 说话前的提示音：两声柔和的合成音
 function sAI(){if(!AC)return;tone(880,880,.09,.05,'sine');setTimeout(()=>tone(1320,1320,.14,.04,'sine'),90)}
 let VOICE_M=false;function sRadio(){if(!AC)return;noise(2400,.09,.12,'bandpass',0,3);tone(1900,1900,.04,.05,'square')}
@@ -1059,8 +1064,8 @@ function wakeFrame(dt){if(!(P.wake>0))return;P.wake-=dt;const t=(P.wakeT+=dt),e=
  P.guns.forEach(g=>{if(g)g.visible=false});IN.fire=false;
  // 站起后：系统自检 —— 抬手看自己的机械手、转头扫描四周、拔枪
  if(a&&t>3.9&&!P.wakeOff){P.wakeOff=1;a.fadeOut(.4);P.c.one=null;P.wakeA=null}
- if(t>1.7&&!P.vo1){P.vo1=1;const n=skNum(mySk());say(n+'，唤醒程序启动。核心运转正常。')}
- if(t>3.8&&!P.vo2){P.vo2=1;const n=skNum(mySk());say(G.mode!=='pvp'?'城市中心已被尸潮包围。守住这里，清除一切血肉。':G.ffa?'协议冲突。这里的每一台机体都是你的敌人。活到最后。':'敌方机团已进入交战区。与你的小队会合，消灭他们。',true)}
+ if(t>1.7&&!P.vo1){P.vo1=1;const n=skNum(mySk()),en=n.replace('R-','R ');aiVO('Unit '+en+'. Wake sequence initiated. Core systems nominal.',n+'，唤醒程序启动。核心运转正常。')}
+ if(t>3.8&&!P.vo2){P.vo2=1;G.mode!=='pvp'?aiVO('The city center is surrounded. Hold this position. Purge all flesh.','城市中心已被尸潮包围。守住这里，清除一切血肉。',1):G.ffa?aiVO('Protocol conflict. Every unit here is hostile. Survive.','协议冲突。这里的每一台机体都是你的敌人。活到最后。',1):aiVO('Hostile units have entered the combat zone. Regroup with your squad. Eliminate them.','敌方机团已进入交战区。与你的小队会合，消灭他们。',1)}
  const bt=$('boot');if(t>3.7&&!P.bootOn){P.bootOn=1;bt.innerHTML='';bt.style.display='block';const L=['> 系统重启……完成','> 视觉模块 ········· 正常','> 运动关节 ········· 正常','> 武装系统 ········· 在线','> 检测到生物信号：'+(G.mode==='pvp'?'无 · 敌对机体：'+(G.ffa?'全部':'敌方机团'):'大量'),'> 指令：'+(G.mode==='pvp'?'清除敌对单位':'清除一切血肉')];
   L.forEach((s2,i)=>setTimeout(()=>{if(!P.bootOn)return;const d=document.createElement('div');d.textContent=s2;bt.appendChild(d);if(AC)tone(1400+i*120,1400+i*120,.04,.06,'square')},i*330))}
  if(t>6.1&&!P.wakeDraw){P.wakeDraw=1;try{equip(G.cur,true)}catch(e){}if(AC)tone(300,600,.15,.12,'sawtooth')}
