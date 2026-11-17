@@ -161,7 +161,7 @@ body.touch #pvpBar{top:52px}
 #tCrouch{width:50px;height:50px;right:calc(104px + env(safe-area-inset-right));bottom:14px;font-size:13px}
 #tMG{width:64px;height:64px;right:calc(130px + env(safe-area-inset-right));bottom:220px;background:rgba(160,110,20,.55)}
 #scope{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 0,transparent 33vmin,#000 33.4vmin);}
-#scope:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.85)}#scope:after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.85)}
+#scope.mgs{background:radial-gradient(circle at center,transparent 0,transparent 40vmin,rgba(0,0,0,.92) 40.6vmin)}#scope.mgs:before,#scope.mgs:after{background:rgba(255,170,60,.55)}#scope:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.85)}#scope:after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.85)}
 #mgTip{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);text-align:center;font-size:14px;text-shadow:0 1px 3px #000}
 #tThr{width:52px;height:52px;left:calc(26px + env(safe-area-inset-left));top:24%;background:rgba(90,110,40,.5)}
 #tThrS{width:34px;height:34px;left:calc(84px + env(safe-area-inset-left));top:24%;font-size:14px}
@@ -796,7 +796,9 @@ function swapBuildings(){const L=[];scene.traverse(o=>{if(o.isMesh&&o.userData.b
   const h0=Math.abs(Math.sin(me.position.x*12.99+me.position.z*78.2)*4375.5)%1,f=pool[Math.floor(h0*pool.length)],src=PROPS['eb_'+f];if(!src)continue;
   const o=src.clone(true),b=new T.Box3().setFromObject(o),sz=b.getSize(new T.Vector3());o.scale.set(B.w*1.03/sz.x,B.h/sz.y,B.d*1.03/sz.z);
   o.position.set(-(b.min.x+b.max.x)/2*o.scale.x,-b.min.y*o.scale.y-B.h/2,-(b.min.z+b.max.z)/2*o.scale.z);me.add(o);me.material=BLDHIDE;me.userData.sw=1;me.castShadow=false}}
-const BLDHIDE=new T.MeshBasicMaterial({colorWrite:false,depthWrite:false});
+let SHF=0;// 阴影每 2 帧更新一次
+function perfTune(){scene.traverse(o=>{if(!o.isMesh||o.isSkinnedMesh||!o.castShadow)return;for(let p=o.parent;p;p=p.parent){if(p.userData.bld||p.userData.env2){o.castShadow=false;return}}})}// 高面数的建筑/场景模型不投影（建筑的影子改由原来的简单方块投出）
+const FPCLIP=new T.Plane(new T.Vector3(0,0,-1),1e6);const BLDHIDE=new T.MeshBasicMaterial({colorWrite:false,depthWrite:false});
 // ---- 世界里的背景故事：旧海报 / 喷漆 / 机器模板字（不刻意摆在显眼处，但发现了一定看得清）
 const LORE={zh:{p:[['紧急通告',['AI 失控了。','人类集结全部力量向机器宣战——然后输了。'],'人类联合防卫署'],
  ['最终方案',['走投无路之下，人类动用了最后的化学武器，想把机器连同战场一起抹平。','毒剂没能摧毁钢铁，却毁掉了投放它的人：幸存者一个接一个倒下，又一个接一个站起来，变成了只剩饥饿的怪物。'],'防卫署 · 最后一号令'],
@@ -863,7 +865,7 @@ function loreSet(){try{if(!MAP)return;if(LOREG){scene.remove(LOREG);LOREG.traver
    const sz=k==='p'?(big<.8?[.38,.54]:[.62,.88]):k==='g'?[2.8,1.05]:[1.9,.6];const tex=k==='p'?texPoster(q,R):k==='g'?texSpray(q,R):texStencil(q,R);
    const m=new T.Mesh(new T.PlaneGeometry(sz[0],sz[1]),new T.MeshStandardMaterial({map:tex,transparent:true,alphaTest:.04,roughness:.95,metalness:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
    m.userData.lore=1;m.position.copy(h.point).addScaledVector(N,.025);m.lookAt(m.position.clone().add(N));m.rotation.z+=(R()-.5)*(k==='p'?.12:.05);m.receiveShadow=true;LOREG.add(m);placed.push(h.point.clone());break}}
- scene.add(LOREG);G.loreN=placed.length}catch(e){console.warn('lore',e)}}
+ scene.add(LOREG);G.loreN=placed.length;perfTune()}catch(e){console.warn('lore',e)}}
 function derelict(sd){if(!MAP)return;try{envBig(sd)}catch(e){console.warn("envBig",e)}try{swapBuildings()}catch(e){console.warn("swap",e)}let s=((sd|0)*9301+49297)&0x7fffffff;const R=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};const A=derelictAssets(),bx=(MAP.bx||60)-1,bz=(MAP.bz||60)-1,q=new T.Vector3(),d=new T.Object3D();
  const spot=(r,edge)=>{for(let k=0;k<30;k++){const x=(R()*2-1)*bx,z=(R()*2-1)*bz;q.set(x,0,z);if(groundH(q,.1,.3)>.02)continue;pushOut(q,r,'p',0);if(Math.hypot(q.x-x,q.z-z)>.01)continue;if(edge){q.set(x,0,z);pushOut(q,1.6,'p',0);if(Math.hypot(q.x-x,q.z-z)<.01&&R()>.3)continue}return[x,z]}return null};
  const inst=(geo,m,n,r,edge,fn)=>{const im=new T.InstancedMesh(geo,m,n);let c=0;for(let i=0;i<n;i++){const p=spot(r,edge);if(!p)continue;d.position.set(p[0],0,p[1]);d.rotation.set(0,R()*6.283,0);d.scale.set(1,1,1);fn(d,c);d.updateMatrix();im.setMatrixAt(c++,d.matrix)}im.count=c;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;im.receiveShadow=true;scene.add(im);return im};
@@ -961,10 +963,10 @@ const WP=[
  {id:'awm',n:'AWM 狙击枪',cat:'sniper',file:'awm',len:1.18,gz:.28,gy:.35,my:.62,fz:.6,mode:'bolt',rt:'mag',dmg:320,rate:.2,cyc:1.05,mag:5,res:30,rel:3,spr:.06,sspr:.0008,head:2.5,pel:1,pierce:4,push:1,kick:.13,kh:.02,kb:0,scope:16,price:3500,ammoP:300,lvl:10,
   snd:{c:[2000,.12,.75],b:[1000,.3,1],m:[70,25,.4,1],t:[500,1.6,.38]},fl:{s:1,c:0xffc080,sh:'side',smoke:1},sh:{s:1.5,c:0xc9a040}},
  // RPG：只能从武器箱开出；会炸到自己、工事和车；连打 3 发炮管过热
- {id:'rpg',fd:0.09,n:'RPG-7 火箭筒',cat:'launcher',file:'rpg',proc:1,box:1,rk:1,pj:'rk',len:1.375,gz:.46,gy:.32,my:.575,fz:.37,mode:'semi',rt:'mag',dmg:1100,rate:.5,mag:1,res:8,rel:1.5,spr:0,head:1,pel:1,kick:.16,kh:.02,kb:0,price:0,ammoP:400,lvl:0,
+ {id:'rpg',fd:0.09,n:'RPG-7 火箭筒',cat:'launcher',file:'rpg',scope:40,proc:1,box:1,rk:1,pj:'rk',len:1.375,gz:.46,gy:.32,my:.575,fz:.37,mode:'semi',rt:'mag',dmg:1100,rate:.5,mag:1,res:8,rel:1.5,spr:0,head:1,pel:1,kick:.16,kh:.02,kb:0,price:0,ammoP:400,lvl:0,
   snd:{c:[900,.25,.9],b:[400,.5,1.2],m:[60,25,.5,1],t:[300,1.4,.45]},fl:{s:1.3,c:0xffa040,sh:'cone',smoke:1},sh:null},
  {id:'flame',fd:0.08,n:'火焰喷射器',cat:'flame',file:'flame',proc:1,box:1,fm:1,len:.95,gz:.26,gy:.41,my:.7,fz:.63,mode:'auto',rt:'mag',dmg:15,rate:.05,mag:100,res:300,rel:2.8,spr:0,head:1,pel:1,kick:0,kh:0,kb:0,price:0,ammoP:300,lvl:0,fl:{s:.6,c:0xff8030,sh:'cone'},sh:null},
- {id:'m32',fd:0.09,n:'M32 榴弹发射器',cat:'gl',file:'m32',proc:1,box:1,pj:'gl',len:.82,gz:.43,gy:.36,my:.59,fz:.79,mode:'semi',rt:'mag',dmg:520,rate:.42,mag:6,res:24,rel:3.2,spr:0,head:1,pel:1,kick:.07,kh:.012,kb:0,price:0,ammoP:350,lvl:0,
+ {id:'m32',fd:0.09,n:'M32 榴弹发射器',cat:'gl',file:'m32',scope:45,proc:1,box:1,pj:'gl',len:.82,gz:.43,gy:.36,my:.59,fz:.79,mode:'semi',rt:'mag',dmg:520,rate:.42,mag:6,res:24,rel:3.2,spr:0,head:1,pel:1,kick:.07,kh:.012,kb:0,price:0,ammoP:350,lvl:0,
   snd:{c:[500,.12,.7],b:[180,.25,1],m:[110,50,.2,.8],t:[300,.5,.25]},fl:{s:.8,c:0xffc080,sh:'cone',smoke:1},sh:null},
  {id:'m134',fd:-0.115,n:'M134 加特林',cat:'minigun',file:'m134',proc:1,box:1,spin:1,heavy:1,len:.9,gz:.11,gy:.25,my:.57,fz:.5,mode:'auto',rt:'mag',dmg:27,rate:.036,mag:200,res:400,rel:4.2,spr:.034,head:1.8,pel:1,pierce:1,kick:.006,kh:.006,kb:0,price:0,ammoP:400,lvl:0,
   snd:{c:[2600,.03,.5],b:[320,.08,.9],m:[150,70,.06,.5],t:[700,.2,.12]},fl:{s:1,c:0xffd080,sh:'cone'},sh:{s:1,c:0xc9a040}},
@@ -1128,7 +1130,7 @@ const GH={m:new T.Matrix4(),q:new T.Quaternion(),p:new T.Quaternion(),x:new T.Ve
 function gripHand(c,side,cu,sg){const h=c.bones['mixamorig'+side+'hand'];if(!h)return;const Y=GH.y.copy(camF).multiplyScalar(.85).addScaledVector(cu,-.25).addScaledVector(camR,-sg*.25).normalize();
  const Z=GH.z.copy(camR).multiplyScalar(-sg*GRIPZ).addScaledVector(cu,.0);Z.addScaledVector(Y,-Z.dot(Y)).normalize();const X=GH.x.crossVectors(Y,Z);GH.m.makeBasis(X,Y,Z);GH.q.setFromRotationMatrix(GH.m);
  h.parent.getWorldQuaternion(GH.p);h.quaternion.copy(GH.p.invert().multiply(GH.q))}
-let GRIPZ=1;
+let GRIPZ=-1;
 function leftOnGun(c,g){const p=g.userData.lh;if(!p)return;g.updateMatrixWorld(true);IK.r.set(-1,0,0).applyQuaternion(g.quaternion);armIK(c,'left',g.localToWorld(IK.tl.copy(p)).clone(),-1)}
 // ---------- 人物（远端玩家 / 电脑） ----------
 function nameTag(text,col){const c=document.createElement('canvas');c.width=256;c.height=48;const g=c.getContext('2d');g.font='bold 26px "PingFang SC","Microsoft YaHei",sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=5;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText(text,128,24);g.fillStyle=col;g.fillText(text,128,24);
@@ -2210,16 +2212,20 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
   camera.position.copy(pv).addScaledVector(back3,dist);if(P.tpIn>0&&P.eyeC&&!(P.wake>0)){P.tpIn=Math.max(0,P.tpIn-dt/1.1);const k=P.tpIn*P.tpIn*(3-2*P.tpIn);camera.position.lerp(P.eyeC,k);const hb=P.c.bones.mixamorighead;if(hb)hb.scale.setScalar(k>.15?.001:1)}}
  if(P.shake>0){P.shake-=dt;camera.position.x+=rand(-1,1)*P.shake*.12;camera.position.y+=rand(-1,1)*P.shake*.12}
  camera.lookAt(v3.copy(camera.position).add(camF));
+ // 第一人称：把离镜头太近的机体部分（胸口/肩膀）切掉，只留伸到前面的手臂和枪，不挡视线
+ if(!renderer.localClippingEnabled)renderer.localClippingEnabled=true;
+ P.c.wrap.traverse(o=>{if(o.isSkinnedMesh&&!o.userData.fpc){o.userData.fpc=1;const f=m=>{m=m.clone();m.clippingPlanes=[FPCLIP];return m};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}});
+ if(FPV&&!(P.wake>0)&&!P.mg){FPCLIP.normal.copy(camF);FPCLIP.constant=-camF.dot(camera.position)-.3}else FPCLIP.constant=1e6;
  if(P.wake>0){const hb=P.c.bones.mixamorighead;if(hb){P.c.wrap.updateMatrixWorld(true);const q=hb.getWorldQuaternion(new T.Quaternion()),f=new T.Vector3(0,0,1).applyQuaternion(q),u=new T.Vector3(0,1,0).applyQuaternion(q);hb.getWorldPosition(camera.position);camera.position.addScaledVector(u,.09*P.c.s).addScaledVector(f,.1);(P.eyeC||(P.eyeC=new T.Vector3())).copy(camera.position);P.tpIn=VIEW==='fp'?0:1;
   // 起身后半段把视线平滑交还给玩家的朝向
   const k=clamp((P.wakeT-3.2)/.9,0,1);const sc=P.wakeT>4.9&&P.wakeT<6.2?Math.sin((P.wakeT-4.9)/1.3*Math.PI*2)*.6*Math.sin((P.wakeT-4.9)/1.3*Math.PI):0;const g2=camF.clone().applyAxisAngle(v1.set(0,1,0),sc);g2.y-=(P.wakeT>4.0&&P.wakeT<5.3?.12:0);f.lerp(g2,k).normalize();camera.lookAt(v3.copy(camera.position).add(f))}}
  P.scoped=!P.dead&&!P.mg&&!!WP[G.cur].scope&&P.aim>.85&&!P.sw&&!(P.relT>0);
- const fov=P.scoped?WP[G.cur].scope:FPV?72-P.aim*20:65-P.aim*17;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix()}
+ const fov=P.mg&&!P.dead?52-P.aim*16:P.scoped?WP[G.cur].scope:FPV?72-P.aim*20:65-P.aim*17;if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix()}
  // 持枪姿势 / 换枪 / 换弹动作
  swUpdate(dt);const low=swLow(),W0=WP[G.cur],relP=P.relT>0?clamp(1-P.relT/(P.relD||1),0,1):0,cycP=P.cyc>0?clamp(1-P.cyc/(P.cycD||1),0,1):0;
  if(P.cyc>0)P.cyc-=dt;P.vk=(P.vk||0)*Math.exp(-dt*14);
  updMGs(dt);if(P.mg&&!P.dead){P.guns.forEach(q=>{if(q)q.visible=false});if(!FPV)poseOnMG(P.c,P.mg)}
- $('scope').style.display=P.scoped?'':'none';if(P.scoped||(VIEW!=='fp'&&false))P.c.wrap.visible=false;
+ {const mgv=!!(P.mg&&!P.dead);const sc=$('scope');sc.style.display=P.scoped||mgv?'':'none';sc.classList.toggle('mgs',mgv);for(const m of MGS){const v=m!==P.mg||!mgv;if(m.g.visible!==v)m.g.visible=v}if(P.scoped||mgv)P.c.wrap.visible=false}
  const g=P.dead||P.mg?null:gunOf(P.guns,G.cur);if(g){P.guns.forEach(q=>{if(q)q.visible=q===g});g.visible=!P.scoped&&!(P.knife>0)&&!(P.thr>0);
   const fpv=FPV||P.scoped;g.scale.setScalar(1);g.children.forEach(m=>{if(m.userData.fp)m.visible=fpv});
   // 泵动 / 拉栓 / 换弹 的动作幅度
@@ -2937,7 +2943,7 @@ let FPSC={n:0,t:0,last:0};function loop(now){requestAnimationFrame(loop);if(now&
  if(G.state==='play'){if(!(G.paused&&!NET.on)&&!G.hostPause)update(dt);netTick(dt)}
  else if(G.state==='menu'||G.state==='lobby'){if(menuFrame(dt)){return}const t=performance.now()/1000;camera.position.set(Math.sin(t*.08)*22,7+Math.sin(t*.2),Math.cos(t*.08)*22);camera.lookAt(0,1.5,0);fxUpdate(dt);for(const c of menuZ)updChar(c,dt)}
  else if(G.state==='over'){updHumans(dt);for(const z of G.zs)updChar(z.c,dt);P.c&&updChar(P.c,dt);fxUpdate(dt)}
- if(P.wake>0&&P.guns){P.guns.forEach(g=>{if(g)g.visible=false});if(G.state==='play'&&P.whF){P.whF=0;wakeHand()}}GFX?GFX.frame(dt):renderer.render(scene,camera)}
+ if(P.wake>0&&P.guns){P.guns.forEach(g=>{if(g)g.visible=false});if(G.state==='play'&&P.whF){P.whF=0;wakeHand()}}SHF=(SHF+1)%2;if(renderer.shadowMap.autoUpdate)renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=SHF===0||G.state!=='play';GFX?GFX.frame(dt):renderer.render(scene,camera)}
 (async()=>{try{await loadAll()}catch(e){console.error(e)}
  if(!ANIMS||!ANIMS.length||!HUMANS.some(h=>MODELS[h.id])){$('loadT').innerHTML='素材载入失败（'+FAILS.length+' 个文件）<br><span style="font-size:13px;opacity:.75">请检查网络，或用浏览器（Chrome）直接打开本页面</span><br><button class="btn" onclick="location.reload()" style="margin-top:12px">重新载入</button>';return}
  if(!MODELS[HUMANS[skinI].id])skinI=Math.max(0,HUMANS.findIndex(h=>MODELS[h.id]));
