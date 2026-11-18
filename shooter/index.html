@@ -2186,12 +2186,15 @@ function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=NET.out.rq.le
 const clock=new T.Clock();let hudDirty=true;const PV3=new T.Vector3();
 // ---------- 陀螺仪：第一人称时转动手机来转身/抬头（像赛车游戏的体感），手指拖动照样能用 ----------
 let GYRO=LS.get('scqh-gyro')==='1',GY={y:0,p:0,on:false};if(GYRO)addEventListener('touchstart',()=>gyroInit(),{once:true});
-function gyroInit(){if(GY.on)return;const go=()=>{GY.on=true;addEventListener('devicemotion',e=>{const r=e.rotationRate;if(!r||r.beta==null)return;let dt=e.interval||16;if(dt>1)dt/=1000;dt=Math.min(dt,.05);
-  const a=((screen.orientation&&screen.orientation.angle)??window.orientation??0),d=Math.PI/180*dt;
-  // 横屏时：机身短边朝上，绕短边(x)转 = 左右转身，绕长边(y)转 = 抬头低头
-  if(a===90){GY.y-=r.beta*d;GY.p+=r.gamma*d}else if(a===270||a===-90){GY.y+=r.beta*d;GY.p-=r.gamma*d}else{GY.y+=r.gamma*d;GY.p+=r.beta*d}},{passive:true})};
+function gyroInit(){if(GY.on)return;const go=()=>{GY.on=true;addEventListener('devicemotion',e=>{const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;
+  // 像方向盘：看手机在屏幕平面里歪了多少度（重力方向），歪着不动就一直转
+  if(Math.hypot(g.x,g.y)<3){GY.th=null;return}const th=Math.atan2(g.x,g.y);GY.th=th;if(GY.th0==null)GY.th0=th},{passive:true});addEventListener('orientationchange',()=>{GY.th0=null})};
  if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)DeviceMotionEvent.requestPermission().then(r=>{if(r==='granted')go()}).catch(()=>{});else go()}
-function gyroApply(){if(!GYRO||!GY.on){GY.y=GY.p=0;return}const fp=VIEW==='fp'&&G.state==='play'&&!P.dead&&!(P.wake>0);if(fp){P.yaw+=GY.y*.9}GY.y=GY.p=0}
+function gyroApply(){const now=performance.now(),dt=Math.min(.05,(now-(GY.t||now))/1000);GY.t=now;if(!GYRO||!GY.on||GY.th==null)return;
+ // 开局（起身过程中）或刚换方向时，把当下拿手机的角度当成“正中”
+ if(P.wake>0||G.state!=='play'||GY.th0==null){GY.th0=GY.th;return}
+ const fp=VIEW==='fp'&&!P.dead;let d=GY.th-GY.th0;d=Math.atan2(Math.sin(d),Math.cos(d));const dz=5*Math.PI/180,full=35*Math.PI/180;
+ const a=Math.abs(d);if(!fp||a<dz)return;const k=Math.min(1,(a-dz)/(full-dz));P.yaw+=Math.sign(d)*k*k*2.6*dt}
 function aimAssist(dt){gyroApply();if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
  for(const tg of targetsForMe()){const ch=chestOf(tg,v2);const d=v1.subVectors(ch,o);const L=d.length();if(L>45||L<1)continue;d.divideScalar(L);const ang=Math.acos(clamp(d.dot(camF),-1,1));if(ang<ba&&wallT(o,d,L)>=L-.3){ba=ang;best={yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}}
  if(best){const k=Math.min(1,dt*(IN.fire?5:3));P.yaw+=wrapA(best.yaw-P.yaw)*k;P.pitch+=(best.pitch-P.rec-P.pitch)*k}}
