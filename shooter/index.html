@@ -613,7 +613,7 @@ function containerMesh(x,z,ry,lv,col,y0){const g=new T.Group();const body=new T.
  g.position.set(x,y0,z);g.rotation.y=ry;scene.add(g);addColO(x,z,3.05,1.22,y0+2.55,ry,{y0,rs:.05});return g}
 // ---------------- 地图定义 ----------------
 const MAPS={
- cross:{name:'十字路口',bx:47,bz:47,build(){buildCrossMap()},env:{fog:.019,col:0x1b1d22,sun:1.35,hemi:.62}},
+ cross:{name:'十字路口',bx:47,bz:47,build(){buildCrossMap()},env:{fog:.008,col:0x1b1d22,sun:1.35,hemi:.62}},
  plaza:{name:'中央广场·夜',bx:25,bz:25,env:{fog:.034,col:0x04060a,sun:.07,hemi:.035,night:1},
   zs:[[0,32],[0,-32],[32,0],[-32,0]],ps:()=>[rand(-3,3),rand(9,11)],pv:t=>[(t?-1:1)*rand(19,22),rand(-6,6)],
   build(){gplane(120,120,M('road'));gplane(52,52,M('tile'),.01);
@@ -673,7 +673,7 @@ const MAPS={
   slots:{mg:[[-20,5.2,-1,0,1.2],[20,5.2,1,0,1.2],[-20,-5.2,-1,0,1.2],[20,-5.2,1,0,1.2],[-37,8,-1,0,1.2],[37,-8,1,0,1.2]],
    wall:[[-30,11.6,Math.PI,1.2],[-5,11.6,Math.PI,1.2],[5,11.6,Math.PI,1.2],[30,11.6,Math.PI,1.2],[-30,-11.6,0,1.2],[-5,-11.6,0,1.2],[5,-11.6,0,1.2],[30,-11.6,0,1.2]]},
   cover:{rects:[[-40,40,5,11,1.2],[-40,40,-11,-5,1.2]],avoid:[[-17,-13,8,12],[13,17,-12,-8]],n:10,kinds:[['k_pallet',1.4],['k_trashbag_1',.8],['k_plasticbarrier',1.4],['k_wheels_stack',1.3],['k_cinderblock',.8],['k_pallet_broken',1.4]]},barrels:0},
- bridge:{name:'高架桥·暴雨',bx:44,bz:22,env:{fog:.02,col:0x2a2420,sun:1.25,hemi:.6,rain:1},
+ bridge:{name:'高架桥·暴雨',bx:44,bz:22,env:{fog:.01,col:0x2a2420,sun:1.25,hemi:.6,rain:1},
   zs:[[50,15,0],[-50,-15,0],[50,-15,0],[-50,15,0],[47,0,6.2],[-47,0,6.2]],ps:()=>[rand(-3,3),rand(14,17)],pv:t=>[(t?-1:1)*rand(37,41),(t?-1:1)*rand(12,17)],
   build(){gplane(140,80,M('road'));for(const z of[-20,20])mbox(0,z,120,4,.16,M('walk'),{nocol:true,cast:false});
    // 桥面 z∈[-6,6]，高 5.6–6.2，桥墩
@@ -801,7 +801,7 @@ function perfTune(){const bx=new T.Box3(),sz=new T.Vector3();scene.traverse(o=>{
  // 小杂物（垃圾袋、砖块、碎片）影子几乎看不见但很费：不投影
  if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();bx.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld).getSize(sz);if(Math.max(sz.x,sz.y,sz.z)<.7)o.castShadow=false})}
 // 远处（>22 米）的丧尸不投影子，近处照常
-function zShadowLod(){for(const z of G.zs){const w=z.c&&z.c.wrap;if(!w)continue;const on=!z.dead&&w.position.distanceToSquared(P.pos)<484;if(z.shOn===on)continue;z.shOn=on;if(!z.shM){z.shM=[];w.traverse(o=>{if(o.isMesh&&o.castShadow)z.shM.push(o)})}z.shM.forEach(o=>o.castShadow=on)}}// 高面数的建筑/场景模型不投影（建筑的影子改由原来的简单方块投出）
+function zShadowLod(){for(const z of G.zs){const w=z.c&&z.c.wrap;if(!w)continue;const on=false;/* 丧尸一律不投影子（省性能） */if(z.shOn===on)continue;z.shOn=on;if(!z.shM){z.shM=[];w.traverse(o=>{if(o.isMesh&&o.castShadow)z.shM.push(o)})}z.shM.forEach(o=>o.castShadow=on)}}// 高面数的建筑/场景模型不投影（建筑的影子改由原来的简单方块投出）
 const FPCLIP=new T.Plane(new T.Vector3(0,0,-1),1e6);const BLDHIDE=new T.MeshBasicMaterial({colorWrite:false,depthWrite:false});
 // ---- 世界里的背景故事：旧海报 / 喷漆 / 机器模板字（不刻意摆在显眼处，但发现了一定看得清）
 const LORE={zh:{p:[['紧急通告',['AI 失控了。','人类集结全部力量向机器宣战——然后输了。'],'人类联合防卫署'],
@@ -874,7 +874,7 @@ function derelict(sd){if(!MAP)return;try{envBig(sd)}catch(e){console.warn("envBi
  const spot=(r,edge)=>{for(let k=0;k<30;k++){const x=(R()*2-1)*bx,z=(R()*2-1)*bz;q.set(x,0,z);if(groundH(q,.1,.3)>.02)continue;pushOut(q,r,'p',0);if(Math.hypot(q.x-x,q.z-z)>.01)continue;if(edge){q.set(x,0,z);pushOut(q,1.6,'p',0);if(Math.hypot(q.x-x,q.z-z)<.01&&R()>.3)continue}return[x,z]}return null};
  const inst=(geo,m,n,r,edge,fn)=>{const im=new T.InstancedMesh(geo,m,n);let c=0;for(let i=0;i<n;i++){const p=spot(r,edge);if(!p)continue;d.position.set(p[0],0,p[1]);d.rotation.set(0,R()*6.283,0);d.scale.set(1,1,1);fn(d,c);d.updateMatrix();im.setMatrixAt(c++,d.matrix)}im.count=c;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;im.receiveShadow=true;scene.add(im);return im};
  const lo=TOUCH?.5:1;
- inst(A.wg,A.wm,Math.round(260*lo),.25,true,o=>{const k=.22+R()*.4;o.scale.set(k*(1.2+R()*.8),k,k*(1.2+R()*.8))});
+ inst(A.wg,A.wm,0,.25,true,o=>{const k=.22+R()*.4;o.scale.set(k*(1.2+R()*.8),k,k*(1.2+R()*.8))});
  inst(A.fl,A.sm,Math.round(60*lo),.2,false,(o,c)=>{const k=2+R()*4.5;o.scale.set(k,1,k*(.6+R()*.6));o.position.y=.012+c*.0004});
  inst(A.fl,A.pm,Math.round(70*lo),.2,false,(o,c)=>{const k=.22+R()*.3;o.scale.set(k,1,k);o.position.y=.02+c*.0003});
  // 墙上的爬藤和雨水污痕：只贴在朝向场地的高墙上
@@ -883,7 +883,7 @@ function derelict(sd){if(!MAP)return;try{envBig(sd)}catch(e){console.warn("envBi
    for(const [ax,az,hl,hd] of [[1,0,o.hz,o.hx],[-1,0,o.hz,o.hx],[0,1,o.hx,o.hz],[0,-1,o.hx,o.hz]]){const nx=ax*o.c+az*o.s,nz=-ax*o.s+az*o.c,fx=o.cx+nx*hd,fz=o.cz+nz*hd;if(Math.abs(fx+nx*2)>bx+3||Math.abs(fz+nz*2)>bz+3)continue;q.set(fx+nx*1.2,0,fz+nz*1.2);if(groundH(q,.1,.3)>.5)continue;
     const tx=-nz,tz=nx,ry=Math.atan2(nx,nz);for(let u=-hl+1.5;u<hl-1.5;u+=3+R()*5){if(R()<.5&&vc<VN){const w=2+R()*3,hh=Math.min(h-.5,2.5+R()*7);d.position.set(fx+tx*u+nx*.05,o.y0||0,fz+tz*u+nz*.05);d.rotation.set(0,ry,0);d.scale.set(w,hh,1);d.updateMatrix();vi.setMatrixAt(vc++,d.matrix)}
      if(R()<.3&&sc<SN&&h>9){const w=1.5+R()*2.5,hh=4+R()*8,y=Math.max(2,h-hh-R()*4);d.position.set(fx+tx*(u+1.5)+nx*.03,y,fz+tz*(u+1.5)+nz*.03);d.rotation.set(0,ry,0);d.scale.set(w,hh,1);d.updateMatrix();si.setMatrixAt(sc++,d.matrix)}}}}
-  for(const im of [vi,si]){im.count=im===vi?vc:sc;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im)}}
+  for(const im of [vi,si]){im.count=im===vi?0:sc;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im)}}
  inst(A.rg,A.rm,Math.round(22*lo),.9,true,o=>{const k=.5+R()*.9;o.scale.set(k*(1+R()*.5),.18+R()*.22,k*(1+R()*.5));o.rotation.x=(R()-.5)*.3}).castShadow=true}
 function buildLayout(sd){
  for(const o of LAYOUT)scene.remove(o);LAYOUT.length=0;for(const f of BFX)scene.remove(f.g);BFX.length=0;BRK.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].dyn)COL.splice(i,1);
@@ -1259,14 +1259,15 @@ function wakeHand(){const t=P.wakeT,c=P.c,sm=x=>{x=clamp(x,0,1);return x*x*(3-2*
  const at=(f,r,u)=>C.clone().addScaledVector(fw,f).addScaledVector(rt,r).addScaledVector(up,u);
  const e1=sm((t-2.4)/.5)*(1-sm((t-6.5)/.5));// 抬手看双手
  const across=sm((t-3.5)/.5);// 左前臂横到胸前
- const L=at(.36,-.14,-.3).lerp(at(.34,.06,-.26),across),Rh=at(.36,.14,-.3);
+ const L=at(.46,-.16,-.36).lerp(at(.44,.04,-.32),across),Rh=at(.44,.18,-.38);
  if(e1>.01){const l0=c.bones.mixamoriglefthand.getWorldPosition(new T.Vector3());IK.r.copy(rt);armIK(c,'left',l0.lerp(L,e1),-1)}
  const fa=c.bones.mixamorigleftforearm.getWorldPosition(new T.Vector3()),hd=c.bones.mixamoriglefthand.getWorldPosition(new T.Vector3());
  const ax=hd.clone().sub(fa).normalize(),len=fa.distanceTo(hd),n=C.clone().sub(fa.clone().lerp(hd,.5));n.addScaledVector(ax,-n.dot(ax)).normalize();
  // 右手食指从手肘一侧沿前臂划向手腕
- const sw=sm((t-4.35)/.55);let tgt=Rh;if(t>4.0&&t<5.6){const p0=fa.clone().lerp(hd,.15+.7*sw).addScaledVector(n,.07);const k=sm((t-4.0)/.3)*(1-sm((t-5.25)/.3));tgt=Rh.clone().lerp(p0.addScaledVector(ax,-.07),k)}
+ const sw=sm((t-4.35)/.55);let tgt=Rh;if(t>4.0&&t<5.6){const p0=fa.clone().lerp(hd,.15+.7*sw).addScaledVector(n,.1);const k=sm((t-4.0)/.3)*(1-sm((t-5.25)/.3));tgt=Rh.clone().lerp(p0.addScaledVector(ax,-.12),k)}
  if(e1>.01){const r0=c.bones.mixamorigrighthand.getWorldPosition(new T.Vector3());IK.r.copy(rt);armIK(c,'right',r0.lerp(tgt,e1),1)}
- const rh=c.bones.mixamorigrighthand;if(rh&&t>4.0&&t<5.6)rh.rotateX(.9*sm((t-4.0)/.3));
+ const rhb=c.bones.mixamorigrighthand,lhb=c.bones.mixamoriglefthand;if(e1>.01){rhb.quaternion.slerp(new T.Quaternion(),e1);lhb.quaternion.slerp(new T.Quaternion(),e1*.7)}// 手腕伸直，不要折成一团
+
  // 光痕：跟着手指长出来，再慢慢淡掉
  const {m,h,tip}=pan.userData;pan.position.copy(fa.clone().lerp(hd,.15)).addScaledVector(n,.055);const Y=new T.Vector3().crossVectors(n,ax).normalize();pan.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(ax,Y,n));
  const L7=Math.max(.001,len*.7*sw);m.scale.x=h.scale.x=L7;m.position.x=h.position.x=L7/2;
