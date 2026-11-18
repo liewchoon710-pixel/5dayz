@@ -1675,10 +1675,10 @@ function specialAI(z,tg,td,dt){const sp=z.t.sp;if(!sp||!tg)return false;const c=
   if(td<2.3){z.fuse=.85;if(AC)tone(1200,1200,.6,.1,'square');return true}return false}
  if(sp==='tank'){if(z.charge>0){z.charge-=dt;z.st=8;const s=12;const ox=p.x,oz=p.z;p.x+=z.cdx*s*dt;p.z+=z.cdz*s*dt;pushOut(p,z.r*.8,'z',z.y);
    const mv=Math.hypot(p.x-ox,p.z-oz);for(const a of actors()){if(a.dead||a.bot||z.hitIds.has(a.id))continue;if(Math.hypot(a.pos.x-p.x,a.pos.z-p.z)<1.5){z.hitIds.add(a.id);dmgTo(a,32*DIFF[diffI].dmg,p);knock(a,p,11,.9)}}
-   if(mv<s*dt*.4){z.charge=0;z.daze=1.8;pushEv(['warn','坦克尸撞墙晕眩！集火！']);P.shake=Math.max(P.shake,.2)}
+   if(mv<s*dt*.4){z.charge=0;z.daze=1.8;sfxAt('impact_monster_concrete_wall',p.x,p.z,1,50,.8);pushEv(['warn','坦克尸撞墙晕眩！集火！']);P.shake=Math.max(P.shake,.2)}
    if(z.charge<=0)z.cd=rand(7,9);z.face=Math.atan2(z.cdx,z.cdz);return true}
   if(z.daze>0){z.daze-=dt;z.st=5;return true}
-  if(z.cd<=0&&z.see&&td>6&&td<24){z.wind=.75;playOnce(c,'scream',1.6);z.fire=()=>{const dx=tg.pos.x-p.x,dz=tg.pos.z-p.z,l=Math.hypot(dx,dz)||1;z.cdx=dx/l;z.cdz=dz/l;z.charge=1.6;z.hitIds=new Set()};return true}
+  if(z.cd<=0&&z.see&&td>6&&td<24){z.wind=.75;playOnce(c,'scream',1.6);z.fire=()=>{const dx=tg.pos.x-p.x,dz=tg.pos.z-p.z,l=Math.hypot(dx,dz)||1;z.cdx=dx/l;z.cdz=dz/l;z.charge=1.6;z.hitIds=new Set();sfxAt('horde_charge_stampede',p.x,p.z,.6,55,1.15);sfxAt('monster_brute_roar',p.x,p.z,.6,55,1.1)};return true}
   return false}
  if(sp==='spitter'||sp==='thrower'||sp==='screamer'||sp==='grabber'){
   if(z.tongT>0){z.tongT-=dt;if(z.tongT<=0){const a=actors().find(q=>q.id===z.tongA);if(a&&!a.dead){const ap=a.pos;if(Math.hypot(ap.x-p.x,ap.z-p.z)<17&&los(z,a)&&!(a.me&&(P.pin||P.grab))){z.hold=a.id;z.holdT=8;z.hDmg=0;pushEv(['grab',z.id,a.id])}}}face();z.st=7;return true}
@@ -2839,7 +2839,7 @@ function heavySmash(z,p){if(G.mode!=='z'||z.climb)return;const tank=z.t.sp==='ta
 function brkKill(i,dx,dz,fx){const B=BRK[i];if(!B||B.dead)return;B.dead=1;const j=COL.indexOf(B.c);if(j>=0)COL.splice(j,1);if(!fx){scene.remove(B.g);return}
  const sp=B.veh?9:7;BFX.push({g:B.g,y0:B.y,vx:dx*sp+rand(-1,1),vz:dz*sp+rand(-1,1),vy:B.veh?4.5:5.5,rx:rand(-1,1)*(B.veh?2.2:6),rz:rand(-1,1)*(B.veh?2.2:6),ry:rand(-2,2),t:0,b:0});
  v1.set(B.x,B.y+.8,B.z);emit(v1,B.veh?34:14,[.5,.5,.5],B.veh?7:4,1,7,B.veh?1.1:.7);if(B.veh)emit(v1,18,[1,.75,.3],9,.5,5,.5);
- const d=Math.hypot(P.pos.x-B.x,P.pos.z-B.z),v=clamp(1-d/45,0,1);if(AC&&v>0){noise(B.veh?220:700,B.veh?.7:.3,(B.veh?1:.5)*v);if(B.veh)tone(90,40,.5,.5*v,'square')}if(B.veh)P.shake=Math.max(P.shake,v*.45)}
+ const d=Math.hypot(P.pos.x-B.x,P.pos.z-B.z),v=clamp(1-d/45,0,1);if(AC&&v>0){sfxAt(B.veh?'impact_monster_car_ram':(B.k==='container'||/barrier|fence|metal/.test(B.n||'')?'impact_monster_metal_door_bash':'impact_monster_concrete_wall'),B.x,B.z,B.veh?1:.75,45,rand(.9,1.1));noise(B.veh?220:700,B.veh?.7:.3,(B.veh?.5:.25)*v);if(B.veh)tone(90,40,.5,.5*v,'square')}if(B.veh)P.shake=Math.max(P.shake,v*.45)}
 function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+=dt;g.position.x+=f.vx*dt;g.position.z+=f.vz*dt;g.position.y+=f.vy*dt;f.vy-=18*dt;const k=Math.exp(-1.6*dt);f.vx*=k;f.vz*=k;
   if(f.b<2){g.rotation.x+=f.rx*dt;g.rotation.z+=f.rz*dt;g.rotation.y+=f.ry*dt}
   if(g.position.y<=f.y0&&f.vy<0){if(f.t<2.2){g.position.y=f.y0;f.vy*=-.3;f.vx*=.5;f.vz*=.5;f.b++;if(f.b===1){v1.copy(g.position);v1.y+=.3;emit(v1,8,[.5,.48,.45],3,.6,5,.6)}}}
