@@ -1226,7 +1226,12 @@ function wakeFrame(dt){if(!(P.wake>0))return;P.wake-=dt;const t=(P.wakeT+=dt),e=
 // 抬起右手到眼前，翻转查看
 const WSIT=.33;let WPAN=null;
 function wakePanel(){if(WPAN)return WPAN;// 手指划过前臂留下的一道光
- const g=new T.Group(),m=new T.Mesh(new T.PlaneGeometry(1,.007),new T.MeshBasicMaterial({color:0x40e8ff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false}));m.position.x=.5;g.add(m);g.userData.m=m;g.userData.lore=1;m.userData.lore=1;scene.add(g);WPAN=g;return g}
+ const cv=document.createElement('canvas');cv.width=256;cv.height=32;const x=cv.getContext('2d');const gr=x.createLinearGradient(0,0,256,0);gr.addColorStop(0,'rgba(64,232,255,.35)');gr.addColorStop(.85,'rgba(120,245,255,1)');gr.addColorStop(1,'rgba(255,255,255,1)');
+ const gv=x.createLinearGradient(0,0,0,32);gv.addColorStop(0,'rgba(0,0,0,0)');gv.addColorStop(.5,'rgba(0,0,0,1)');gv.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,256,32);x.globalCompositeOperation='destination-in';x.fillStyle=gv;x.fillRect(0,0,256,32);
+ const tx=new T.CanvasTexture(cv);const mat=o=>new T.MeshBasicMaterial({map:tx,color:0xffffff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false});
+ const g=new T.Group(),m=new T.Mesh(new T.PlaneGeometry(1,.009),mat()),h=new T.Mesh(new T.PlaneGeometry(1,.035),mat());m.position.x=h.position.x=.5;g.add(h,m);
+ const tip=new T.Mesh(new T.PlaneGeometry(.04,.04),new T.MeshBasicMaterial({map:(()=>{const c=document.createElement('canvas');c.width=c.height=64;const q=c.getContext('2d');const r=q.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.3,'rgba(120,240,255,.8)');r.addColorStop(1,'rgba(64,232,255,0)');q.fillStyle=r;q.fillRect(0,0,64,64);return new T.CanvasTexture(c)})(),transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false}));g.add(tip);
+ Object.assign(g.userData,{m,h,tip,lore:1});g.traverse(o=>o.userData.lore=1);scene.add(g);WPAN=g;return g}
 function wakeHand(){const t=P.wakeT,c=P.c,sm=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};const pan=wakePanel();pan.visible=t>4.1&&t<6.2;
  if(t<2.4||t>7.0){return}
  c.wrap.updateMatrixWorld(true);const C=camera.position,fw=v1.set(camF.x,0,camF.z).normalize().clone(),up=new T.Vector3(0,1,0),rt=new T.Vector3().crossVectors(fw,up).normalize();
@@ -1242,8 +1247,11 @@ function wakeHand(){const t=P.wakeT,c=P.c,sm=x=>{x=clamp(x,0,1);return x*x*(3-2*
  if(e1>.01){const r0=c.bones.mixamorigrighthand.getWorldPosition(new T.Vector3());IK.r.copy(rt);armIK(c,'right',r0.lerp(tgt,e1),1)}
  const rh=c.bones.mixamorigrighthand;if(rh&&t>4.0&&t<5.6)rh.rotateX(.9*sm((t-4.0)/.3));
  // 光痕：跟着手指长出来，再慢慢淡掉
- const m=pan.userData.m;pan.position.copy(fa.clone().lerp(hd,.15)).addScaledVector(n,.055);const Y=new T.Vector3().crossVectors(n,ax).normalize();pan.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(ax,Y,n));
- pan.scale.set(Math.max(.001,len*.7*sw),1,1);m.material.opacity=t<4.35?0:t<5.0?.95:Math.max(0,.95-(t-5.0)/1.0);
+ const {m,h,tip}=pan.userData;pan.position.copy(fa.clone().lerp(hd,.15)).addScaledVector(n,.055);const Y=new T.Vector3().crossVectors(n,ax).normalize();pan.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(ax,Y,n));
+ const L7=Math.max(.001,len*.7*sw);m.scale.x=h.scale.x=L7;m.position.x=h.position.x=L7/2;
+ // 一边划一边从里到外慢慢亮起来：越接近指尖越亮，整条线随时间逐渐变亮，划完后停留再淡出
+ const glow=t<4.35?0:t<5.3?Math.min(1,.25+.75*sw+.4*sm((t-4.35)/.95)):Math.max(0,1-(t-5.3)/.9);m.material.opacity=glow;h.material.opacity=glow*.55*(1+.15*Math.sin(t*30));
+ tip.position.set(L7,0,.002);tip.material.opacity=t>4.35&&t<5.0?1:Math.max(0,1-(t-5.0)/.25)*(t>4.35?1:0);tip.lookAt(camera.position);
  if(sw>.05&&!P.wbt){P.wbt=1;if(AC)tone(900,2200,.35,.07,'sine')}}
 function beginMatch0(cfg){G.introT=3.6;
  clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));buildMapById(cfg.map||'cross');if(MAP.train){MAP.train.act=0;MAP.train.g.visible=false;MAP.train.next=rand(35,55)}if(MAP.crane){const C=MAP.crane;C.st=0;C.box.position.y=-10.3;C.tx=C.x;C.tz=C.z}if(cfg.seed!=null)buildLayout(cfg.seed);
