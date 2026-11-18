@@ -2193,8 +2193,32 @@ function gyroInit(){if(GY.on)return;const go=()=>{GY.on=true;addEventListener('d
 function gyroApply(){const now=performance.now(),dt=Math.min(.05,(now-(GY.t||now))/1000);GY.t=now;if(!GYRO||!GY.on||GY.th==null)return;
  // 开局（起身过程中）或刚换方向时，把当下拿手机的角度当成“正中”
  if(P.wake>0||G.state!=='play'||GY.th0==null){GY.th0=GY.th;return}
- const fp=VIEW==='fp'&&!P.dead;let d=GY.th-GY.th0;d=Math.atan2(Math.sin(d),Math.cos(d));const dz=5*Math.PI/180,full=35*Math.PI/180;
- const a=Math.abs(d);if(!fp||a<dz)return;const k=Math.min(1,(a-dz)/(full-dz));P.yaw+=Math.sign(d)*k*k*2.6*dt}
+ const fp=VIEW==='fp'&&!P.dead;if(fp)P.yaw+=gyroRate()*dt}
+const GYC=Object.assign({sp:2.6,dz:5,full:35,inv:0},(()=>{try{return JSON.parse(LS.get('scqh-gyc')||'{}')}catch(e){return{}}})());
+function gyroTilt(){if(GY.th==null||GY.th0==null)return 0;const d=GY.th-GY.th0;return Math.atan2(Math.sin(d),Math.cos(d))*(GYC.inv?-1:1)}
+function gyroRate(){const d=gyroTilt(),a=Math.abs(d)*180/Math.PI;if(a<GYC.dz)return 0;const k=Math.min(1,(a-GYC.dz)/Math.max(1,GYC.full-GYC.dz));return Math.sign(d)*k*k*GYC.sp}
+// ---------- 陀螺仪测试/调灵敏度窗口 ----------
+function gyroTest(){gyroInit();let el=$('gyroCfg');if(!el){el=document.createElement('div');el.id='gyroCfg';el.innerHTML=`<div class="gc"><div class="gt">陀螺仪测试 / 灵敏度</div>
+<div class="gv"><div class="wh" id="gcWh"><i></i><b></b></div><div class="cp"><div class="cpd" id="gcCp"><span>N</span></div><div class="cpl" id="gcSt">把手机像方向盘一样左右歪</div></div></div>
+<div class="gb"><span>左</span><div class="bar"><i id="gcBar"></i><em></em></div><span>右</span></div>
+<label>最快转速 <b id="gcSpV"></b><input type="range" id="gcSp" min="0.8" max="5" step="0.1"></label>
+<label>不转范围（防手抖） <b id="gcDzV"></b><input type="range" id="gcDz" min="1" max="15" step="1"></label>
+<label>歪多少度达到最快 <b id="gcFuV"></b><input type="range" id="gcFu" min="15" max="60" step="1"></label>
+<div class="row"><button class="btn g" id="gcInv"></button><button class="btn g" id="gcCal">设为正中</button><button class="btn" id="gcOk">完成</button></div></div>`;document.body.appendChild(el);
+ const st=document.createElement('style');st.textContent=`#gyroCfg{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center}
+#gyroCfg .gc{background:#14181b;border:1px solid #3a4248;border-radius:14px;padding:14px 18px;width:min(560px,92vw);max-height:94vh;overflow:auto;color:#e8e2d6;font-size:14px}
+#gyroCfg .gt{font-weight:800;font-size:17px;margin-bottom:8px;color:#ffb347}#gyroCfg .gv{display:flex;gap:18px;align-items:center;justify-content:center}
+#gyroCfg .wh{width:96px;height:96px;border-radius:50%;border:7px solid #8a949b;position:relative}#gyroCfg .wh i{position:absolute;left:6px;right:6px;top:41px;height:7px;background:#8a949b;border-radius:4px}#gyroCfg .wh b{position:absolute;left:50%;top:-7px;width:6px;height:16px;margin-left:-3px;background:#ffb347;border-radius:3px}
+#gyroCfg .cp{text-align:center}#gyroCfg .cpd{width:96px;height:96px;border-radius:50%;border:2px dashed #4a545b;position:relative;margin:auto}#gyroCfg .cpd span{position:absolute;left:50%;top:2px;transform:translateX(-50%);color:#ff6a4a;font-weight:800}
+#gyroCfg .cpd:after{content:'';position:absolute;left:50%;top:50%;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:34px solid #40e8ff;transform:translate(-50%,-90%)}#gyroCfg .cpl{font-size:12px;opacity:.8;margin-top:4px;min-height:16px}
+#gyroCfg .gb{display:flex;align-items:center;gap:8px;margin:10px 0}#gyroCfg .bar{flex:1;height:12px;background:#22292e;border-radius:6px;position:relative;overflow:hidden}#gyroCfg .bar i{position:absolute;top:0;bottom:0;left:50%;background:#40e8ff}#gyroCfg .bar em{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#fff}
+#gyroCfg label{display:block;margin:6px 0}#gyroCfg label b{color:#ffb347;float:right}#gyroCfg input[type=range]{width:100%}#gyroCfg .row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}`;document.head.appendChild(st)}
+ el.style.display='flex';const sv=()=>{LS.set('scqh-gyc',JSON.stringify(GYC));$('gcSpV').textContent=(GYC.sp*180/Math.PI|0)+'°/秒';$('gcDzV').textContent=GYC.dz+'°';$('gcFuV').textContent=GYC.full+'°';$('gcInv').textContent=GYC.inv?'方向：反转':'方向：正常'};
+ [['gcSp','sp'],['gcDz','dz'],['gcFu','full']].forEach(([id,k])=>{const i=$(id);i.value=GYC[k];i.oninput=()=>{GYC[k]=+i.value;if(GYC.full<=GYC.dz+3)GYC.full=GYC.dz+4;sv()}});
+ $('gcInv').onclick=()=>{GYC.inv=GYC.inv?0:1;sv()};$('gcCal').onclick=()=>{GY.th0=GY.th};$('gcOk').onclick=()=>{el.style.display='none';cancelAnimationFrame(GY.raf)};sv();GY.th0=GY.th;
+ let yaw=0,lt=performance.now();const loop=()=>{const n=performance.now(),dt=Math.min(.05,(n-lt)/1000);lt=n;if(GY.th0==null&&GY.th!=null)GY.th0=GY.th;const d=gyroTilt(),r=gyroRate();yaw+=r*dt;
+  $('gcWh').style.transform=`rotate(${-d*180/Math.PI}deg)`;$('gcCp').style.transform=`rotate(${yaw*180/Math.PI}deg)`;const b=$('gcBar'),f=Math.min(1,Math.abs(r)/5)*50;b.style.width=f+'%';b.style.left=r>0?(50-f)+'%':'50%';
+  $('gcSt').textContent=GY.th==null?'没有收到陀螺仪数据（手机平放或浏览器不支持）':r===0?'不转（在防手抖范围内）':(r>0?'← 向左转 ':'向右转 → ')+(Math.abs(r)*180/Math.PI|0)+'°/秒';GY.raf=requestAnimationFrame(loop)};loop()}
 function aimAssist(dt){gyroApply();if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
  for(const tg of targetsForMe()){const ch=chestOf(tg,v2);const d=v1.subVectors(ch,o);const L=d.length();if(L>45||L<1)continue;d.divideScalar(L);const ang=Math.acos(clamp(d.dot(camF),-1,1));if(ang<ba&&wallT(o,d,L)>=L-.3){ba=ang;best={yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}}
  if(best){const k=Math.min(1,dt*(IN.fire?5:3));P.yaw+=wrapA(best.yaw-P.yaw)*k;P.pitch+=(best.pitch-P.rec-P.pitch)*k}}
@@ -2398,7 +2422,7 @@ function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);tr
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
  chips($('viewRow'),['第一人称','斜肩（第三人称）'],VIEW==='fp'?0:1,i=>{VIEW=i?'tp':'fp';LS.set('scqh-view',VIEW);showMenu()});
  if(GFX)chips($('gfxRow'),['电影级','均衡','省电'],2-GFX.q,i=>{GFX.setQ(2-i);showMenu()});
- chips($('gyroRow'),['开','关'],GYRO?0:1,i=>{GYRO=!i;LS.set('scqh-gyro',GYRO?'1':'0');if(GYRO)gyroInit();showMenu()});document.querySelectorAll('.tOnly').forEach(e=>e.style.display=TOUCH?'':'none');chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
+ chips($('gyroRow'),['开','关'],GYRO?0:1,i=>{GYRO=!i;LS.set('scqh-gyro',GYRO?'1':'0');if(GYRO){gyroInit();gyroTest()}showMenu()});if(GYRO&&TOUCH){const b=document.createElement('button');b.className='chip';b.textContent='测试 / 灵敏度';b.onclick=gyroTest;$('gyroRow').appendChild(b)}document.querySelectorAll('.tOnly').forEach(e=>e.style.display=TOUCH?'':'none');chips($('aaRow'),['开','关'],AA?0:1,i=>{AA=!i;LS.set('scqh-aa',AA?'1':'0');showMenu()});$('aaWrap').style.display=TOUCH?'':'none';document.querySelector('.aaL').style.display=TOUCH?'':'none';
  {const L=WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol'&&!WP[i].box);const cur=pvpPrimary();const el=$('pvpWRow');el.style.display=modeS!=='z'?'':'none';el.innerHTML='';if(modeS!=='z'){el.innerHTML='<div class="lbl" style="width:100%">对战主武器</div>';L.forEach(i=>{const w=WP[i];const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.style.opacity=w.lvl<=PROF.lvl?1:.35;b.textContent=w.n+(w.lvl>PROF.lvl?' Lv'+w.lvl:'');b.onclick=()=>{if(w.lvl>PROF.lvl)return;LS.set('scqh-pvpw',w.id);showMenu()};el.appendChild(b)})}}
  chips($('aiRow'),['开','关'],aiS?0:1,i=>{aiS=!i;LS.set('scqh-ai',aiS?'1':'0');showMenu()});$('aiWrap').style.display=modeS!=='z'?'':'none';
  const best=+(LS.get('scqh-best')||0);$('best').textContent=best?'打丧尸最佳：清除 '+best+' 波':'';
