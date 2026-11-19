@@ -869,10 +869,14 @@ function envBig(sd){const E=ENVB[MAP.id]||ENVB.cross;let s=((sd|0)*7919+13)&0x7f
   if(!ok)continue;placeProp(n,x,z,Math.floor(R()*4)*Math.PI/2,len,true);break}}}
 // 把原来的方盒楼房换成写实废楼模型（按楼的占地和高度拉伸贴合，碰撞仍用原来的盒子）
 const BLDM=['abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_school','abandoned_shop_front','ruined_street_storefront'];
+// 写实模型的贴图偏灰白：每个实例按名字和位置挑一个涂装色，乘到贴图上（车漆、集装箱色、外墙色）
+const TINT={car:[0x8a2a22,0x2d4f7a,0x6b6f3a,0x3a3a3a,0x7a4a26,0x2f5a4a,0x8a6a2a],bus:[0xc9a227,0x3f6f9a,0x8c3a2a,0x2f6a5a],container:[0xa8452c,0x2f5f8a,0x3f7a4a,0xc07a2a,0x6a2a2a,0x5a5a5a],road:[0xd9b23a,0xc23a2a],bld:[0xc8b8a0,0xa86a52,0x9aa0a6,0xd2c4a2,0x8a7a6a,0xb5a28a,0x7f8a7a]};
+function tintOf(n){return /bus/.test(n)?'bus':/container/.test(n)?'container':/vehicle|car|transport/.test(n)?'car':/barrier|roadblock/.test(n)?'road':null}
+function applyTint(o,pal,seed){const c=new T.Color(pal[Math.floor(Math.abs(Math.sin(seed*91.7)*9973)%pal.length)]);c.lerp(new T.Color(1,1,1),.18);o.traverse(m=>{if(!m.isMesh||!m.material||m.userData.tinted)return;m.material=m.material.clone();m.material.color.copy(c);m.userData.tinted=1})}
 function swapBuildings(){const L=[];scene.traverse(o=>{if(o.isMesh&&o.userData.bld&&!o.userData.sw)L.push(o)});for(const me of L){const B=me.userData.bld,tall=B.h>Math.max(B.w,B.d)*1.3;
   const pool=tall?['damaged_highrise_building','abandoned_residential_block']:B.h<16?['abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_industrial_block']:['abandoned_residential_block','abandoned_industrial_block','abandoned_school'];
   const h0=Math.abs(Math.sin(me.position.x*12.99+me.position.z*78.2)*4375.5)%1,f=pool[Math.floor(h0*pool.length)],src=PROPS['eb_'+f];if(!src)continue;
-  const o=src.clone(true),b=new T.Box3().setFromObject(o),sz=b.getSize(new T.Vector3());o.scale.set(B.w*1.03/sz.x,B.h/sz.y,B.d*1.03/sz.z);
+  const o=src.clone(true),b=new T.Box3().setFromObject(o),sz=b.getSize(new T.Vector3());o.scale.set(B.w*1.03/sz.x,B.h/sz.y,B.d*1.03/sz.z);applyTint(o,TINT.bld,me.position.x*3.1+me.position.z*7.7);
   o.position.set(-(b.min.x+b.max.x)/2*o.scale.x,-b.min.y*o.scale.y-B.h/2,-(b.min.z+b.max.z)/2*o.scale.z);me.add(o);me.material=BLDHIDE;me.userData.sw=1;me.castShadow=false}}
 let SHF=0;// 阴影每 2 帧更新一次
 function perfTune(){const bx=new T.Box3(),sz=new T.Vector3();scene.traverse(o=>{if(!o.isMesh||o.isSkinnedMesh||!o.castShadow)return;for(let p=o.parent;p;p=p.parent){if(p.userData.bld||p.userData.env2){o.castShadow=false;return}}
@@ -1004,7 +1008,7 @@ function obbHit(cx,cz,hx,hz,ry,y0,y1,pad){const c=Math.cos(ry),s=Math.sin(ry);co
 function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return null;
  if(collide&&DYN){const b0=new T.Box3().setFromObject(src),s0=b0.getSize(new T.Vector3()),k0=len/Math.max(s0.x,s0.z,.01);if(obbHit(x,z,s0.x*k0/2,s0.z*k0/2,ry,y,y+s0.y*k0,-.05))return null}
  const o=src.clone(true);
- o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});
+ o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});if(src.userData.env2){const tk=tintOf(n);if(tk)applyTint(o,TINT[tk],x*1.7+z*3.3+ry)}
  const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
  if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
@@ -2783,7 +2787,8 @@ GFX=(()=>{
     .replace('#include <metalnessmap_fragment>','#include <metalnessmap_fragment>\n metalnessFactor*=1.-wzR;')
     .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
   {vec2 dh=vec2(dFdx(wzB),dFdy(wzB));vec3 sx=dFdx(-vViewPosition),sy=dFdy(-vViewPosition);vec3 r1=cross(sy,normal),r2=cross(normal,sx);float fd=dot(sx,r1);vec3 gr=sign(fd)*(dh.x*r1+dh.y*r2);normal=normalize(abs(fd)*normal-gr*.035);}`)};m.needsUpdate=true}
- function props(){for(const n in PROPS){const car=/vehicle|bus|forklift|container|vending/.test(n);PROPS[n].traverse(o=>{if(!o.isMesh)return;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(!m||!('roughness' in m))continue;
+ function props(){for(const n in PROPS){if(PROPS[n].userData&&PROPS[n].userData.env2)continue;// 写实模型自带贴图，不再套卡通道具的风化/改色
+ const car=/vehicle|bus|forklift|container|vending/.test(n);PROPS[n].traverse(o=>{if(!o.isMesh)return;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(!m||!('roughness' in m))continue;
    if(car){m.roughness=Math.max(m.roughness,.8);m.metalness=Math.min(m.metalness,.2);m.envMapIntensity=.3;if(m.color&&/container/.test(n)){m.color.setRGB(.74,.56,.44)}else if(m.color){if(m.map)m.color.setRGB(.68,.62,.54);else{const h={};m.color.getHSL(h);m.color.setHSL(h.h,h.s*.5,h.l*.6);m.color.lerp(new T.Color(0x5e5244),.16)}}if(m.transparent||m.opacity<1){m.color&&m.color.setRGB(.12,.12,.11);m.opacity=Math.max(m.opacity,.85);m.roughness=.9}}
    {let gl=false;if(m.color){const h={};m.color.getHSL(h);gl=m.transparent||(h.l<.2&&m.color.b>=m.color.r)}const metal=/vehicle|bus|forklift|container|vending|trafficbarrier|pipes/.test(n);weather(m,gl?.12:metal?1:.2,gl?1:/trashbag/.test(n)?.3:.75)}}})}}
  // ---------- 人物 / 丧尸材质：尸斑肤色 + 越打越血肉模糊 ----------
