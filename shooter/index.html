@@ -717,6 +717,8 @@ const FLASH=new T.SpotLight(0xfff2d8,0,34,.42,.5,1.2);FLASH.castShadow=false;sce
 function applyEnv(){const E=MAP.env;scene.fog.color.setHex(E.col);scene.background&&scene.background.setHex?scene.background.setHex(E.col):scene.background=new T.Color(E.col);
  FLASH.intensity=E.dark?2.4:0;FLASH.visible=!!E.dark;sun.color.setHex(E.night?0x7f90c8:E.dusk?0xffa070:0xfff1dc);sun.visible=!E.dark;P.lamp=false;GFX&&GFX.env()}
 // 每 10 局换一张图（房主/单人这边记录）
+// 单人：每次开局随机一张地图（不会和上一局同一张）
+function pickSolo(){const q=new URLSearchParams(location.search).get('map');if(q&&MAPS[q])return q;const last=LS.get('scqh-solomap');const c=MAPIDS.filter(m=>m!==last);const m=c[Math.random()*c.length|0];LS.set('scqh-solomap',m);return m}
 function pickMap(){const q=new URLSearchParams(location.search).get('map');if(q&&MAPS[q])return q;let R={i:0,n:0};try{R=JSON.parse(LS.get('scqh-maprot')||'{"i":0,"n":0}')}catch(e){}
  R.n++;if(R.n>10){R.n=1;R.i=(R.i+1)%MAPIDS.length}LS.set('scqh-maprot',JSON.stringify(R));G.mapLeft=10-R.n;return MAPIDS[R.i]}
 // ---- 地图机关（房主模拟，客户端看事件）
@@ -2455,7 +2457,7 @@ function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);tr
   'WASD 移动　Shift 冲刺　左键开火　右键瞄准/开镜　R 换弹　1-3/滚轮 换枪　F 刀　G 投掷　H 换投掷物　E 使用/救人　V 视角　空格 跳/攀爬　C 蹲　B 商店　X 部署工事　Tab 排行榜')+
   '<br>打丧尸：用打丧尸赚的资金部署沙袋墙、铁丝网、拒马栅栏、地雷（数量不限），丧尸会砸工事，数量够了还会踩着同伴翻过去；补给卡车每波送来弹药和资金。每局地图摆设（车、路障、机枪位、贩卖机、武器箱）都不一样；每波的特异丧尸种类、数量也随机，越后面越可能出现巨尸、坦克尸、尸王、异变体；女鬼随机出现（听到哭声别靠近、别开枪）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
 function startSolo(){myName=($('nm').value||'').trim().slice(0,8)||myName;LS.set('scqh-name',myName);netLeave();audioInit();fullscreen();
- beginMatch({mid:'s'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickMap(),ml:G.mapLeft,mode:modeS,diff:diffI,ai:modeS!=='z'?true:aiS,teams:{me:modeS==='ffa'?10:0}})}
+ beginMatch({mid:'s'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickSolo(),ml:null,mode:modeS,diff:diffI,ai:modeS!=='z'?true:aiS,teams:{me:modeS==='ffa'?10:0}})}
 function fullscreen(){if(!TOUCH)return;try{const de=document.documentElement;const r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de);r&&r.then&&r.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function showLobby(){G.state='lobby';$('menu').classList.add('hid');$('over').classList.add('hid');$('lobby').classList.remove('hid');lobbyRender()}
 function lbMsg(t){$('lbMsg').textContent=t||''}
