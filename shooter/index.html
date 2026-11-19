@@ -933,10 +933,10 @@ function texStencil(txt,R){const W=1024,H=320,c=document.createElement('canvas')
  g.globalCompositeOperation='destination-out';for(let i=0;i<1400;i++){g.globalAlpha=R()*.6;g.fillRect(R()*W,R()*H,R()*4+1,R()*2+1)}g.globalCompositeOperation='source-over';g.globalAlpha=1;
  const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;t.anisotropy=4;return t}
 let LOREG=null;const LRC=new T.Raycaster();
-function loreOk(o){if(!o.isMesh||o.isSkinnedMesh||o.isSprite||o.userData.lore)return false;const m=Array.isArray(o.material)?o.material[0]:o.material;if(!m||m.colorWrite===false||m.transparent||m.alphaTest>0||m.side===T.DoubleSide)return false;for(let p=o;p;p=p.parent)if(!p.visible)return false;return true}
+function loreOk(o){if(!o.isMesh||o.isSkinnedMesh||o.isSprite||o.userData.lore)return false;const m=Array.isArray(o.material)?o.material[0]:o.material;if(!m||m.colorWrite===false||m.transparent||m.alphaTest>0||m.side===T.DoubleSide)return false;for(let p=o;p;p=p.parent){if(!p.visible||p.userData.gad)return false}return true}
 function loreSet(){try{if(!MAP)return;if(LOREG){scene.remove(LOREG);LOREG.traverse(o=>{if(o.material){o.material.map&&o.material.map.dispose();o.material.dispose()}});}
  LOREG=new T.Group();LOREG.userData.lore=1;const R=loreRng((G.layoutSeed||1)*31+7),L=LORE[LANG==='zh'?'zh':'en'];
- const tg=[];scene.traverse(o=>{if(loreOk(o))tg.push(o)});const BB=new Map(),bb=o=>{let b=BB.get(o);if(!b){b=new T.Box3().setFromObject(o).getSize(new T.Vector3());BB.set(o,b)}return b};
+ const ex=new Set([P.c&&P.c.wrap,...G.zs.map(z=>z.c&&z.c.wrap),...actors().map(a=>a.c&&a.c.wrap)].filter(Boolean));const tg=[];scene.traverse(o=>{if(!loreOk(o))return;for(let q=o;q;q=q.parent)if(ex.has(q)||q.userData.dyn||q.userData.brk)return;tg.push(o)});const BB=new Map(),bb=o=>{let b=BB.get(o);if(!b){b=new T.Box3().setFromObject(o).getSize(new T.Vector3());BB.set(o,b)}return b};
  const placed=[],bx=MAP.bx||40,bz=MAP.bz||30;
  const want=[];L.p.forEach((q,i)=>{want.push(['p',q],['p',q])});L.g.forEach(q=>want.push(['g',q]));L.g.forEach(q=>want.push(['g',q]));L.s.forEach(q=>want.push(['s',q]));
  const N=new T.Vector3(),O=new T.Vector3(),D=new T.Vector3();
@@ -945,7 +945,7 @@ function loreSet(){try{if(!MAP)return;if(LOREG){scene.remove(LOREG);LOREG.traver
    const s=bb(h.object),big=Math.max(s.x,s.z);if(k!=='p'&&(s.y<2.6||big<3))continue;if(k==='p'&&big<.25)continue;
    if(placed.some(p=>p.distanceTo(h.point)<(k==='p'?2:4)))continue;
    const sz=k==='p'?(big<.8?[.38,.54]:[.62,.88]):k==='g'?[2.8,1.05]:[1.9,.6];const tex=k==='p'?texPoster(q,R):k==='g'?texSpray(q,R):texStencil(q,R);
-   const m=new T.Mesh(new T.PlaneGeometry(sz[0],sz[1]),new T.MeshStandardMaterial({map:tex,transparent:true,alphaTest:.04,roughness:.95,metalness:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+   const m=new T.Mesh(new T.PlaneGeometry(sz[0],sz[1]),new T.MeshStandardMaterial({map:tex,transparent:false,alphaTest:.3,roughness:.95,metalness:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
    m.userData.lore=1;m.position.copy(h.point).addScaledVector(N,.025);m.lookAt(m.position.clone().add(N));m.rotation.z+=(R()-.5)*(k==='p'?.12:.05);m.receiveShadow=true;LOREG.add(m);placed.push(h.point.clone());break}}
  scene.add(LOREG);G.loreN=placed.length;perfTune()}catch(e){console.warn('lore',e)}}
 function derelict(sd){if(!MAP)return;try{envBig(sd)}catch(e){console.warn("envBig",e)}try{swapBuildings()}catch(e){console.warn("swap",e)}let s=((sd|0)*9301+49297)&0x7fffffff;const R=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};const A=derelictAssets(),bx=(MAP.bx||60)-1,bz=(MAP.bz||60)-1,q=new T.Vector3(),d=new T.Object3D();
@@ -1898,7 +1898,7 @@ function gadDrone(pid){const mine=GAD.dr.filter(d=>d.pid===pid);if(mine.length>=
  const rot=[];for(const [x,z] of[[.22,.22],[-.22,.22],[.22,-.22],[-.22,-.22]]){const arm=new T.Mesh(new T.BoxGeometry(.04,.03,.04),gadMat(0x2a343a));arm.position.set(x,0,z);g.add(arm);const r=new T.Mesh(new T.CylinderGeometry(.11,.11,.006,16),new T.MeshBasicMaterial({color:0x9fdfff,transparent:true,opacity:.35,depthWrite:false}));r.position.set(x,.04,z);g.add(r);rot.push(r)}
  const gun=new T.Mesh(new T.CylinderGeometry(.02,.02,.2,8),gadMat(0x111111));gun.rotation.x=Math.PI/2;gun.position.set(0,-.07,.12);g.add(gun);
  let yo=0;const dm=gadModel('gad_drone',.75);if(dm){g.children.forEach(c=>c.visible=false);dm.position.y=-.2;g.add(dm);yo=-Math.PI/2}
- const side=GAD.dr.filter(d=>d.pid===pid).length?-1:1;const o=ownerOf(pid)||{x:0,y:0,z:0};g.position.set(o.x,o.y+2.3,o.z);scene.add(g);GAD.dr.push({g,pid,ammo:120,cd:0,side,t:0,rot,hp:150,yo,dm});if(AC&&pid===NET.me)tone(400,900,.3,.08,'sine')}
+ const side=GAD.dr.filter(d=>d.pid===pid).length?-1:1;const o=ownerOf(pid)||{x:0,y:0,z:0};g.position.set(o.x,o.y+2.3,o.z);g.userData.gad=1;scene.add(g);GAD.dr.push({g,pid,ammo:120,cd:0,side,t:0,rot,hp:150,yo,dm});if(AC&&pid===NET.me)tone(400,900,.3,.08,'sine')}
 // ---- 炮台球 → 自动机枪（同时最多 2 座，每座 200 发）
 function gadDeploy(k,x,y,z,pid,dir){if(k==='turret'){const mine=GAD.tur.filter(t=>t.pid===pid);if(mine.length>=1){const o=mine[0];gadBoom(o.g.position);scene.remove(o.g);GAD.tur.splice(GAD.tur.indexOf(o),1)}
   const g=new T.Group();g.position.set(x,y,z);const head=new T.Group();head.position.y=.95;g.add(head);
@@ -1907,7 +1907,7 @@ function gadDeploy(k,x,y,z,pid,dir){if(k==='turret'){const mine=GAD.tur.filter(t
   const led=new T.Mesh(new T.BoxGeometry(.12,.04,.02),new T.MeshBasicMaterial({color:0xff9a30,toneMapped:false}));led.position.set(0,.06,.26);head.add(led);
   let yo=0,mh=.95;const sm=gadModel('gad_sentry',1.15);if(sm){g.children.forEach(c=>{if(c!==head)c.visible=false});head.children.forEach(c=>c.visible=false);head.position.y=0;head.add(sm);yo=Math.PI;mh=.75}
   else if(PROPS.eb_fixed_ground_machine_gun){try{const mg=PROPS.eb_fixed_ground_machine_gun.clone(true);const bb=new T.Box3().setFromObject(mg),sz=bb.getSize(new T.Vector3());mg.scale.multiplyScalar(1.15/Math.max(sz.x,sz.y,sz.z));head.add(mg);mg.position.y=-.35;box.visible=false;br.visible=false}catch(e){}}
-  scene.add(g);g.scale.setScalar(.05);GAD.tur.push({g,head,pid,ammo:200,cd:.8,t:0,led,hp:450,yo,mh});if(AC)tone(300,1200,.4,.1,'square')}
+  g.userData.gad=1;scene.add(g);g.scale.setScalar(.05);GAD.tur.push({g,head,pid,ammo:200,cd:.8,t:0,led,hp:450,yo,mh});if(AC)tone(300,1200,.4,.1,'square')}
  else if(k==='shield'){const W=6,H=3.6;const g=new T.Group();g.position.set(x,y,z);g.rotation.y=dir;
   const mat=new T.MeshBasicMaterial({color:0x5ad8ff,transparent:true,opacity:.22,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false});
   const pl=new T.Mesh(new T.PlaneGeometry(W,H,12,7),mat);pl.position.y=H/2;g.add(pl);const wf=new T.Mesh(new T.PlaneGeometry(W,H,12,7),new T.MeshBasicMaterial({color:0x9ff4ff,wireframe:true,transparent:true,opacity:.35,depthWrite:false,toneMapped:false}));wf.position.y=H/2;g.add(wf);
@@ -1915,7 +1915,7 @@ function gadDeploy(k,x,y,z,pid,dir){if(k==='turret'){const mine=GAD.tur.filter(t
   let mm=null;const src=PROPS.eb_gad_shield;if(src){const o=src.clone(true);o.position.set(0,0,0);o.rotation.set(0,0,0);o.scale.setScalar(1);o.updateMatrixWorld(true);const bb=new T.Box3().setFromObject(o),sz=bb.getSize(new T.Vector3()),ct=bb.getCenter(new T.Vector3());
    const w=new T.Group();o.position.set(-ct.x,-bb.min.y,-ct.z);w.add(o);w.rotation.y=Math.PI/2;w.scale.set((H/sz.y)*.25,H/sz.y,W/sz.z);g.add(w);pl.visible=false;wf.visible=false;base.visible=false;mm=[];
    o.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;m.material.opacity=.7;m.material.depthWrite=false;m.material.side=T.DoubleSide;m.material.emissive=new T.Color(0x2a90ff);m.material.emissiveIntensity=.35;mm.push(m.material)}})}
-  scene.add(g);g.scale.set(.02,1,1);GAD.sh.push({g,pl,wf,mm,pid,hp:1500,max:1500,W,H,t:0,nx:Math.sin(dir),nz:Math.cos(dir),hitT:0});if(AC)tone(200,1400,.5,.1,'sine')}}
+  g.userData.gad=1;scene.add(g);g.scale.set(.02,1,1);GAD.sh.push({g,pl,wf,mm,pid,hp:1500,max:1500,W,H,t:0,nx:Math.sin(dir),nz:Math.cos(dir),hitT:0});if(AC)tone(200,1400,.5,.1,'sine')}}
 // ---- 手臂激光（永久，2 秒穿透光束，冷却 6 秒）
 function gadLaser(remote){const me=!remote;if(me){if(!G.gad||!G.gad.laser||G.gad.lcd>0||P.dead||P.dn||G.state!=='play')return;G.gad.lcd=8;nsend('gad',[NET.me,'las'])}
  const pid=me?NET.me:remote;const geo=new T.CylinderGeometry(.035,.035,1,8,1,true);geo.translate(0,.5,0);geo.rotateX(Math.PI/2);
