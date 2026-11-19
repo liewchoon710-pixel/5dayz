@@ -217,7 +217,7 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
 #hudFrame:before{left:0;top:0;border-right:0;border-bottom:0}#hudFrame:after{right:0;top:0;border-left:0;border-bottom:0}
 #hudFrame i:before{left:0;bottom:0;border-right:0;border-top:0}#hudFrame i:after{right:0;bottom:0;border-left:0;border-top:0}
 #hudFrame .rd{position:absolute;font-family:var(--hm);font-size:10px;letter-spacing:1px;color:var(--hc);opacity:.8;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#hudFrame .rd.l{left:0;right:0;top:-22px;text-align:center}#hudFrame .rd.r{left:0;right:0;bottom:-22px;text-align:center;color:var(--ha)}
+#hudFrame .rd.l{left:-90px;right:-90px;top:-22px;text-align:center}#hudFrame .rd.r{left:-90px;right:-90px;bottom:-22px;text-align:center;color:var(--ha)}
 #hudFrame .bar{position:absolute;left:10px;right:10px;top:50%;height:1px;background:linear-gradient(90deg,transparent,var(--hc),transparent);opacity:.5;animation:hudSweep 3.2s ease-in-out infinite}
 @keyframes hudSweep{0%,100%{transform:translateY(-30vh);opacity:0}10%,90%{opacity:.6}50%{transform:translateY(30vh)}}
 @media (max-width:760px),(max-height:430px){#hudFrame .rd{font-size:9px}#menu h1{font-size:34px!important}}
@@ -3115,7 +3115,11 @@ function menuShow(){if(!MSC){const sc=new T.Scene(),cam=new T.PerspectiveCamera(
  MSC.sc.environment=scene.environment}
 function menuFrame(dt){const M=MSC;if(!M||!M.bot)return false;M.t+=dt;const c=M.bot;c.wrap.rotation.y=-.35+Math.sin(M.t*.35)*.45;updChar(c,dt);
  const W=renderer.domElement.width,H=renderer.domElement.height,wide=W/H>1.25;M.cam.aspect=W/H;M.cam.position.set(0,1.25,wide?6.2:7.4);M.cam.lookAt(0,1.0,0);
- if(wide)M.cam.setViewOffset(W,H,-W*.22,0,W,H);else M.cam.clearViewOffset();M.cam.updateProjectionMatrix();renderer.render(M.sc,M.cam);return true}
+ if(wide)M.cam.setViewOffset(W,H,-W*.22,0,W,H);else M.cam.clearViewOffset();M.cam.updateProjectionMatrix();M.cam.updateMatrixWorld();renderer.render(M.sc,M.cam);
+ // 取景框跟着机器人：把脚底和头顶投影到屏幕上
+ const hf=$('hudFrame');if(hf&&!wide){hf.style.display='none'}else if(hf&&hf.style.display!=='none'||hf&&!$('menu').classList.contains('hid')){const cw=innerWidth,ch=innerHeight,pr=v=>{const q=new T.Vector3(...v).project(M.cam);return[(q.x+1)/2*cw,(1-q.y)/2*ch]};
+  const a=pr([0,-.05,0]),b=pr([0,2.05,0]),h=a[1]-b[1],w=h*.78,cx=(a[0]+b[0])/2;hf.style.left=(cx-w/2)+'px';hf.style.top=(b[1]-h*.06)+'px';hf.style.width=w+'px';hf.style.height=(h*1.1)+'px';hf.style.right='auto'}
+ return true}
 let FPSC={n:0,t:0,last:0};function loop(now){requestAnimationFrame(loop);if(now&&FPSC.last&&now-FPSC.last<1000/62)return;FPSC.last=now||performance.now();let dt=clock.getDelta();dt=Math.min(dt,.05);
  FPSC.n++;FPSC.t+=dt;if(FPSC.t>=.5){const f=Math.round(FPSC.n/FPSC.t);FPSC.n=0;FPSC.t=0;const e=$('fpsT');if(e)e.textContent=f+' FPS'}
  if(G.state==='play'){if(!(G.paused&&!NET.on)&&!G.hostPause)update(dt);netTick(dt)}
