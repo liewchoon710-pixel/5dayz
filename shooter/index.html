@@ -406,7 +406,7 @@ async function loadAll(){
  for(const [al,f,rot] of ENV2)jobs.push(loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;const w=new T.Group();g.scene.rotation.y=rot?Math.PI/2:0;w.add(g.scene);w.userData.env2=1;ENV2M[al]=w}));
  await Promise.all(jobs);Object.assign(PROPS,ENV2M);GFX&&GFX.props();
  // 大型建筑/桥/码头等在后台慢慢载入，不拖慢开始画面；下一局重建地图时就会摆出来
- for(const f of ['gad_orb','gad_sentry','gad_drone','gad_shield','shopping_mall','mall_bus_stop','school','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
+ for(const f of ['gad_orb','gad_sentry','gad_drone','gad_shield','gad_wings','gad_laser','shopping_mall','mall_bus_stop','school','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
   loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin);mallAttach();mallExtras();schoolAttach();loreSet()}catch(e){console.warn(e)}},300)});
 }
 const REST=1.0613;
@@ -1884,7 +1884,7 @@ function cycleThr(){const ks=['nade','molo','pipe','drone','turret','shield'];le
 // ================= 机器人辅助装备：无人机 / 炮台球 / 能量盾 / 手臂激光 / 声波翼 =================
 const GAD={tur:[],dr:[],sh:[],las:[]};
 function cycleSel(){$('tThr').textContent=THN[THR.sel].slice(0,2);hud(true)}
-function gadClear(){for(const a of [...GAD.tur,...GAD.dr,...GAD.sh,...GAD.las])scene.remove(a.g);GAD.tur=[];GAD.dr=[];GAD.sh=[];GAD.las=[]}
+function gadClear(){if(GW){scene.remove(GW);GW=null}if(GL2){scene.remove(GL2);GL2=null}for(const a of [...GAD.tur,...GAD.dr,...GAD.sh,...GAD.las])scene.remove(a.g);GAD.tur=[];GAD.dr=[];GAD.sh=[];GAD.las=[]}
 function ownerOf(pid){if(pid===NET.me)return{x:P.pos.x,y:P.y,z:P.pos.z,yaw:P.yaw,me:1};const a=actors().find(a=>a.id===pid);return a?{x:a.pos.x,y:a.pos.y||0,z:a.pos.z,yaw:a.yaw||0}:null}
 function gadTarget(o,R,y0){let best=null,bd=R;for(const z of G.zs){if(z.dead)continue;const p=z.c.wrap.position,d=Math.hypot(p.x-o.x,p.z-o.z,(z.y||0)-y0);if(d<bd){bd=d;best=z}}return best}
 function gadShoot(from,z,dmg,pid,col){const p=z.c.wrap.position,to=v2.set(p.x,(z.y||0)+1.2,p.z);tracer(from.clone(),to.clone(),col);emit(from,2,[1,.8,.4],2,.6,0,.12);if(isHost())hurtZ(z,dmg,false,null,0,pid,99)}
@@ -1931,7 +1931,15 @@ function gadRemote(e){const [pid,k]=e;if(k==='las')gadLaser(pid);else if(k==='so
 function gadBtns(){const l=$('tLas'),s2=$('tSon');if(l)l.style.display=G.gad&&G.gad.laser?'':'none';if(s2)s2.style.display=G.gad&&G.gad.sonic?'':'none'}
 // 丧尸贴近会把无人机/炮台打坏（无人机飞得低时也会被抓到）
 function gadDmg(a,x,z,y,r){const dt=1/60;a.hT=Math.max(0,(a.hT||0)-dt);for(const q of G.zs){if(q.dead)continue;const p=q.c.wrap.position;if(Math.hypot(p.x-x,p.z-z)<r&&Math.abs((q.y||0)-y)<1.6){a.hp-=(q.dmg||10)*dt*(q.t&&q.t.sp==='tank'||q.type==='boss'?4:1.2);a.hT=.3;if(!q.atkT||q.atkT<=0)q.face=Math.atan2(x-p.x,z-p.z)}}}
-function gadUpd(dt){if(G.gad){if(G.gad.lcd>0)G.gad.lcd-=dt;if(G.gad.scd>0)G.gad.scd-=dt;const l=$('tLas'),s2=$('tSon');if(l)l.style.opacity=G.gad.lcd>0?.4:1;if(s2)s2.style.opacity=G.gad.scd>0?.4:1}
+// 装在机体上的模型：后背声波翼、左前臂激光炮
+const GVQ=new T.Quaternion(),GVV=new T.Vector3(),GVF=new T.Vector3();let GW=null,GL2=null;
+function gadVis(){const c=P.c;if(!c||!c.bones||G.state!=='play'){if(GW)GW.visible=false;if(GL2)GL2.visible=false;return}const show=!P.dead&&c.wrap.visible;
+ if(G.gad&&G.gad.sonic&&PROPS.eb_gad_wings){if(!GW){const m=gadModel('gad_wings',.85);GW=new T.Group();m.position.y-=.5;m.rotation.y=GWR;GW.add(m);GW.userData.gad=1;scene.add(GW)}const sp=c.bones.mixamorigspine2;
+  if(sp){sp.getWorldPosition(GVV);c.wrap.getWorldQuaternion(GVQ);GVF.set(0,0,-1).applyQuaternion(GVQ);GW.position.copy(GVV).addScaledVector(GVF,.24*GWS);GW.position.y+=.08;GW.quaternion.copy(GVQ);const k=G.gad.scd>17?Math.sin((20-G.gad.scd)/3*Math.PI):0;GW.scale.setScalar(1+k*.25)}GW.visible=show}else if(GW)GW.visible=false;
+ if(G.gad&&G.gad.laser&&PROPS.eb_gad_laser){if(!GL2){const m=gadModel('gad_laser',.3);const w=new T.Group();m.position.y-=.15;w.add(m);m.rotation.y=-Math.PI/2;GL2=new T.Group();GL2.add(w);GL2.userData.gad=1;scene.add(GL2)}const fa=c.bones.mixamorigleftforearm,hd=c.bones.mixamoriglefthand;
+  if(fa&&hd){fa.getWorldPosition(GVV);hd.getWorldPosition(GVF);GL2.position.copy(GVV).lerp(GVF,.55);GL2.lookAt(GVF.clone().add(GVF.clone().sub(GVV)));}GL2.visible=show&&(VIEW!=='fp'||P.wake>0)}else if(GL2)GL2.visible=false}
+let GWR=-Math.PI/2,GWS=1;
+function gadUpd(dt){gadVis();if(G.gad){if(G.gad.lcd>0)G.gad.lcd-=dt;if(G.gad.scd>0)G.gad.scd-=dt;const l=$('tLas'),s2=$('tSon');if(l)l.style.opacity=G.gad.lcd>0?.4:1;if(s2)s2.style.opacity=G.gad.scd>0?.4:1}
  // 无人机
  for(let i=GAD.dr.length-1;i>=0;i--){const d=GAD.dr[i];d.t+=dt;const o=ownerOf(d.pid);if(!o){scene.remove(d.g);GAD.dr.splice(i,1);continue}
   const rx=Math.cos(o.yaw)*.9*d.side,rz=-Math.sin(o.yaw)*.9*d.side,bx=Math.sin(o.yaw)*.6,bz=Math.cos(o.yaw)*.6;const tx=o.x+rx+bx,ty=o.y+2.25+Math.sin(d.t*2.2+d.side)*.08,tz=o.z+rz+bz;d.g.position.lerp(v1.set(tx,ty,tz),Math.min(1,dt*4));
