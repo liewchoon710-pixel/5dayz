@@ -359,7 +359,7 @@ async function loadAll(){
  for(const [al,f,rot] of ENV2)jobs.push(loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;const w=new T.Group();g.scene.rotation.y=rot?Math.PI/2:0;w.add(g.scene);w.userData.env2=1;ENV2M[al]=w}));
  await Promise.all(jobs);Object.assign(PROPS,ENV2M);GFX&&GFX.props();
  // 大型建筑/桥/码头等在后台慢慢载入，不拖慢开始画面；下一局重建地图时就会摆出来
- for(const f of ['shopping_mall','mall_entrance','mall_bus_stop','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
+ for(const f of ['shopping_mall','mall_bus_stop','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
   loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin);mallAttach();mallExtras();loreSet()}catch(e){console.warn(e)}},300)});
 }
 const REST=1.0613;
@@ -697,7 +697,7 @@ const MAPS={
    iramp(10.6,0,.72,6.25,-3.95,-2.15,true);iramp(-2.0,6.25,3.8,10.9,.52,2.12,false);
    this.links=[{a:{x:11.6,z:-3.05,y:0},m:{x:.72,z:-3.05,y:6.25},b:{x:-.8,z:-3.05,y:6.25},w:1.8},{a:{x:1.32,z:-3.0,y:6.25},m:{x:1.32,z:3.8,y:10.9},b:{x:-.6,z:3.8,y:10.9},w:1.6}];
    MAP.mallOn=null;MAP.xs={};mallAttach();
-   addCol(13.1,-6.85,15.3,-2.5,6);addCol(13.1,.5,15.3,4.85,6);// 大门：两边是墙，中间 3 米是门口addCol(24-.7,-19-1.6,24+.7,-19+1.6,2.5);addCol(-24-.7,19-1.6,-24+.7,19+1.6,2.5);
+   addCol(24-.7,-19-1.6,24+.7,-19+1.6,2.5);addCol(-24-.7,19-1.6,-24+.7,19+1.6,2.5);
    for(const [x,z,w,d,h] of[[-34,-44,26,8,22],[0,-46,24,8,30],[32,-44,22,8,18],[-46,0,8,30,24],[46,8,8,28,20],[-30,44,30,8,16],[10,46,26,8,26],[38,44,14,8,34]])mbox(x,z,w,d,h,M(h>24?'glass':'brick'),{uv:9})},
   slots:{mg:[[-7.5,8,1,0,6.25],[-1,-9.5,-1,0,6.25],[-6.7,-6,0,1,10.9],[16,0,1,0],[-16,10,-1,0],[0,-16,0,-1]],
    wall:[[-20,-30,0],[0,-30,0],[20,-30,0],[-20,30,Math.PI],[0,30,Math.PI],[20,30,Math.PI],[-34,0,Math.PI/2],[34,0,-Math.PI/2]]},
@@ -737,7 +737,7 @@ function mallAttach(){if(!MAP||MAP.id!=='mall'||MAP.mallOn||!PROPS.eb_shopping_m
 // 商场大门（东侧开口）和停车场旁的巴士站
 function mallExtras(){if(!MAP||MAP.id!=='mall')return;const put=(k,x,z,ry)=>{MAP.xs=MAP.xs||{};const id=k+x;if(!PROPS[k]||MAP.xs[id])return;const o=PROPS[k].clone(true);o.position.set(0,0,0);o.rotation.set(0,0,0);o.scale.setScalar(1);o.updateMatrixWorld(true);const bb=new T.Box3().setFromObject(o),ct=bb.getCenter(new T.Vector3());
  const g=new T.Group();o.position.set(-ct.x,-bb.min.y,-ct.z);g.add(o);g.position.set(x,0,z);g.rotation.y=ry;g.traverse(m=>{if(m.isMesh){m.castShadow=false;m.receiveShadow=true}});g.userData.env2=1;scene.add(g);MAP.xs[id]=g};
- put('eb_mall_entrance',14.2,-1,Math.PI/2);put('eb_mall_bus_stop',24,-19,0);put('eb_mall_bus_stop',-24,19,Math.PI)}
+ put('eb_mall_bus_stop',24,-19,0);put('eb_mall_bus_stop',-24,19,Math.PI)}
 function iramp(ax,ay,bx,by,z0,z1,alongX){const n=Math.ceil((by-ay)/.3),rise=(by-ay)/n;for(let k=0;k<n;k++){const t0=k/n,t1=(k+1)/n,top=ay+rise*(k+1);if(alongX){const x0=ax+(bx-ax)*t0,x1=ax+(bx-ax)*t1;addCol(Math.min(x0,x1),z0,Math.max(x0,x1),z1,top,{y0:ay})}else{const q0=ax+(bx-ax)*t0,q1=ax+(bx-ax)*t1;addCol(z0,Math.min(q0,q1),z1,Math.max(q0,q1),top,{y0:ay})}}}
 // 单人：每次开局随机一张地图（不会和上一局同一张）
 // 世界规矩：随机换图时六张图机会一样（可能抽回同一张）；连续抽到同一张，丧尸强度每次翻倍，不限次数
