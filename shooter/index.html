@@ -1315,7 +1315,7 @@ function beginMatch0(cfg){G.introT=3.6;
  P.c=makeChar(skinId(skinI),'h_',1.8);scene.add(P.c.wrap);roboize(P.c,mySk(),()=>P.dead?0:P.hp/100,skNum(mySk()));
  P.guns=[];
  P.hp=100;P.ar=0;P.dead=false;P.relT=0;P.fireCd=0;P.aim=0;P.aimOn=false;P.aimT=false;P.hurtT=0;P.rec=0;P.respT=0;$('tAim').classList.remove('on');
- if(G.mode==='pvp'){const pw=pvpPrimary();G.slots[1]=pw;G.ws[pw].own=true;G.slot=1;equip(pw,true)}else{applyArmory();equip(G.slots[G.slot],true)}respawnP(true);hudClear();hud(true);
+ if(G.mode==='pvp'){const pw=pvpPrimary();G.slots[1]=pw;G.ws[pw].own=true;G.slot=1;equip(pw,true);G.pickT=14;pvpPick(true)}else{applyArmory();equip(G.slots[G.slot],true)}respawnP(true);hudClear();hud(true);
  $('hud').classList.remove('hid');if(TOUCH)$('touch').classList.remove('hid');$('tShop').style.display='none';
  G.state='play';NET.lastH=performance.now();try{renderer.compile(scene,camera)}catch(e){}P.nvg=false;P.lamp=false;$('nvgFx').style.display='none';nvCss();if(MAP.env.night)setTimeout(()=>popTxt(TOUCH?'夜间作战：「灯」开头灯 ·「夜视」开夜视':'夜间作战：L 开头灯 · N 开夜视 · X 部署照明灯'),7200);try{wakeStart()}catch(e){console.warn(e)}
  if(G.mode==='z'){if(isHost()){stInitHost();nextWave()}const mid=G.mid;setTimeout(()=>{if(G.state==='play'&&G.mid===mid&&G.wave<=1)banner('筑好防线',(TOUCH?'点「工事」':'按 X ')+'用资金部署防御工事 · 补给卡车会送来弹药和资金',5)},8400)}
@@ -1756,7 +1756,15 @@ function dailyList(){const t=today();if(!PROF.daily||PROF.daily.date!==t){let sd
 function missionEv(id,n=1){const L=dailyList();let ch=0;for(const m of L){if(m.id!==id||m.done)continue;const d=MISS.find(x=>x.id===id);m.p=d.max?Math.max(m.p,n):m.p+n;if(m.p>=d.g){m.p=d.g;m.done=1;PROF.coins+=150;addXP(200);popTxt('每日任务完成：'+d.t+'（金币+150）');sCash()}ch=1}if(ch)saveProf()}
 const ARM=[{k:'cash',n:'起始资金 +500',c:300,max:3},{k:'armor',n:'开局护甲 +50',c:400,max:2},{k:'nade',n:'开局手雷 +1',c:250,max:2},{k:'uzi',n:'开局带乌兹冲锋枪',c:500,max:1}];
 function applyArmory(){const a=PROF.arm;G.cash+=500*(a.cash|0);P.ar=Math.min(100,50*(a.armor|0));THR.inv={nade:2+(a.nade|0),molo:1,pipe:1};if(a.uzi){G.ws[WI.uzi].own=true;G.slots[1]=WI.uzi}}
-function pvpPrimary(){const id=LS.get('scqh-pvpw');const i=WI[id];if(i!=null&&WP[i].lvl<=PROF.lvl&&WP[i].cat!=='pistol'&&!WP[i].box)return i;
+// 机器人对战：开局和每次死亡后可以自由选主武器（不受等级限制）
+function pvpList(){return WP.map((w,i)=>i).filter(i=>WP[i].cat!=='pistol')}
+function pvpPick(show){let el=$('pvpPick');if(!show){if(el)el.style.display='none';return}
+ if(!el){el=document.createElement('div');el.id='pvpPick';document.body.appendChild(el);const st=document.createElement('style');st.textContent=`#pvpPick{position:fixed;left:50%;bottom:12vh;transform:translateX(-50%);z-index:40;background:rgba(10,14,16,.86);border:1px solid #3a4248;border-radius:12px;padding:10px 12px;max-width:94vw;color:#e8e2d6;font-size:13px}
+#pvpPick .t{font-weight:800;color:#ffb347;margin-bottom:6px}#pvpPick .g{display:flex;flex-wrap:wrap;gap:6px;max-height:34vh;overflow:auto}#pvpPick button{background:#1d2428;color:#e8e2d6;border:1px solid #3a4248;border-radius:8px;padding:6px 10px;font-size:13px}#pvpPick button.on{background:#ffb347;color:#111;border-color:#ffb347;font-weight:800}`;document.head.appendChild(st)}
+ const cur=pvpPrimary();el.innerHTML=`<div class="t">${LANG==='zh'?'选择主武器（随时可换，下次复活生效）':'Choose primary (applies on next respawn)'}</div><div class="g">`+pvpList().map(i=>`<button data-i="${i}" class="${i===cur?'on':''}">${LANG==='en'&&I18N[WP[i].n]?I18N[WP[i].n]:WP[i].n}</button>`).join('')+'</div>';
+ el.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+b.dataset.i;LS.set('scqh-pvpw',WP[i].id);if(G.state==='play'&&!P.dead&&(P.wake>0||G.pickT>0))pvpEquip(i);pvpPick(true)});el.style.display=''}
+function pvpEquip(i){if(G.slots[1]!==i){if(G.slots[1]>=0)G.ws[G.slots[1]].own=false;G.slots[1]=i;G.ws[i].own=true;G.ws[i].mag=WP[i].mag;G.ws[i].res=WP[i].res}G.slot=1;if(P.wake>0)G.cur=i;else equip(i,true)}
+function pvpPrimary(){const id=LS.get('scqh-pvpw');const i=WI[id];if(i!=null&&WP[i].cat!=='pistol')return i;
  for(const k of['ak47','mp7','m870','uzi']){const j=WI[k];if(WP[j].lvl<=PROF.lvl)return j}return WI.uzi}
 function profHTML(){const L=dailyList();const nx=needXP(PROF.lvl);
  return `<div style="font-size:18px;color:#f0c08a">Lv.${PROF.lvl} <span style="font-size:13px;color:#ddd">${PROF.xp} / ${nx} 经验</span>　<span style="color:#ffd84a">金币 ${PROF.coins}</span></div>
@@ -2282,7 +2290,7 @@ function gyroTest(){gyroInit();const Q=GYT[LANG==='zh'?'zh':'en'];let el=$('gyro
  let yaw=0,lt=performance.now();const loop=()=>{const n=performance.now(),dt=Math.min(.05,(n-lt)/1000);lt=n;if(GY.th0==null&&GY.th!=null)GY.th0=GY.th;const d=gyroTilt(),r=gyroRate();yaw+=r*dt;
   $('gcWh').style.transform=`rotate(${-d*180/Math.PI}deg)`;$('gcCp').style.transform=`rotate(${yaw*180/Math.PI}deg)`;const b=$('gcBar'),f=Math.min(1,Math.abs(r)/5)*50;b.style.width=f+'%';b.style.left=r>0?(50-f)+'%':'50%';
   $('gcSt').textContent=GY.th==null?Q.no:r===0?Q.st:(r>0?Q.tl:Q.tr)+(Math.abs(r)*180/Math.PI|0)+Q.ps;GY.raf=requestAnimationFrame(loop)};loop()}
-function aimAssist(dt){gyroApply();stepSnd(dt);if((G.zsT=(G.zsT||0)-dt)<0){G.zsT=.4;zShadowLod()}if((G.ambT=(G.ambT||0)-dt)<0){G.ambT=1;ambSync()}if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
+function aimAssist(dt){gyroApply();if(G.pickT>0){G.pickT-=dt;if(G.pickT<=0&&!P.dead)pvpPick(false)}stepSnd(dt);if((G.zsT=(G.zsT||0)-dt)<0){G.zsT=.4;zShadowLod()}if((G.ambT=(G.ambT||0)-dt)<0){G.ambT=1;ambSync()}if(!TOUCH||!AA||P.dead||!(IN.fire||P.aimOn))return;let best=null,ba=.11;const o=camera.position;
  for(const tg of targetsForMe()){const ch=chestOf(tg,v2);const d=v1.subVectors(ch,o);const L=d.length();if(L>45||L<1)continue;d.divideScalar(L);const ang=Math.acos(clamp(d.dot(camF),-1,1));if(ang<ba&&wallT(o,d,L)>=L-.3){ba=ang;best={yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}}
  if(best){const k=Math.min(1,dt*(IN.fire?5:3));P.yaw+=wrapA(best.yaw-P.yaw)*k;P.pitch+=(best.pitch-P.rec-P.pitch)*k}}
 function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=1}
@@ -2383,7 +2391,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  {const pk=Object.keys(PERK).map(k=>`<span style="color:#${PERKS[k].col.toString(16).padStart(6,'0')}">●${PERKS[k].n}</span>`).join(' ')+(G.x2>0?` <b style="color:#ffe060">2× ${Math.ceil(G.x2)}</b>`:'')+(G.ik>0?` <b style="color:#ff5050">秒杀 ${Math.ceil(G.ik)}</b>`:'');hset('perkHud',pk)}
  if(!P.dead){if(P.pin)$('msg').textContent='被扑倒了！连按「跳」或「开火」挣脱（'+P.mash+'/8）';else if(P.grab)$('msg').textContent='被长手尸拖走！朝它开火';else if($('msg').textContent.startsWith('被'))$('msg').textContent=''}
  if(!P.dead){if(P.regenT>0)P.regenT-=dt;else if(P.hp<mods().hp&&!P.dn){P.hp=Math.min(mods().hp,P.hp+3*dt*mods().regen);hudDirty=true}if(P.prot>0)P.prot-=dt}
- if(P.dead&&G.mode==='pvp'){P.respT-=dt;$('msg').innerHTML=Math.ceil(Math.max(0,P.respT))+' 秒后复活 · 主武器：'+WP[pvpPrimary()].n+(TOUCH?'':'（按 1-9 换下一条命的主武器）');if(P.respT<=0){respawnP();$('msg').textContent=''}}
+ if(P.dead&&G.mode==='pvp'){P.respT-=dt;$('msg').innerHTML=Math.ceil(Math.max(0,P.respT))+' 秒后复活 · 主武器：'+WP[pvpPrimary()].n+(TOUCH?'':'（按 1-9 换下一条命的主武器）');if(!$('pvpPick')||$('pvpPick').style.display==='none')pvpPick(true);if(P.respT<=0){respawnP();$('msg').textContent='';G.pickT=0;pvpPick(false)}}
  else if(P.dead&&G.mode==='z'&&NET.on)$('msg').textContent='你已阵亡 · 等待下一波复活（观战中）';
  if(P.hurtT>0)P.hurtT-=dt*1.5;
  if(isHost())hostSim(dt);else updZMirror(dt);
@@ -2472,7 +2480,7 @@ function pause(on){if(on){if(G.state!=='play'||G.paused)return;G.paused=true;IN.
 function setHostPause(v){if(NET.host||G.state!=='play')return;v=v?1:0;if(v===(G.hostPause||0))return;G.hostPause=v;
  if(v){G.paused=false;pause(true);IN.fire=false}else{if(G.paused){G.paused=false;$('pause').classList.add('hid')}popTxt('房主继续了游戏');clock.getDelta()}}
 $('bResume').onclick=()=>{pause(false);if(!TOUCH)lock()};
-function toMenu(){netLeave();clearWorld();G.state='menu';try{ambSync();stepSnd(0)}catch(e){}G.paused=false;['pause','over','hud','touch','lobby','board'].forEach(i=>$(i).classList.add('hid'));closeShop();document.body.classList.remove('pvp');showMenu()}
+function toMenu(){netLeave();clearWorld();G.state='menu';G.pickT=0;pvpPick(false);try{ambSync();stepSnd(0)}catch(e){}G.paused=false;['pause','over','hud','touch','lobby','board'].forEach(i=>$(i).classList.add('hid'));closeShop();document.body.classList.remove('pvp');showMenu()}
 $('bQuit').onclick=toMenu;$('bMenu').onclick=toMenu;
 $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 
