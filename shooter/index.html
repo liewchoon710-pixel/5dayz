@@ -175,6 +175,53 @@ body.touch #pvpBar{top:52px}
 body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 6px}
 .mk{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);white-space:nowrap;pointer-events:none;display:none;text-shadow:0 1px 2px #000}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style id="hudTheme">
+/* ===== 未来末日科技风：机体启动终端 ===== */
+:root{--hc:#3fe6ff;--hc2:rgba(63,230,255,.55);--hcd:rgba(63,230,255,.12);--ha:#ffb347;--hr:#ff4a3a;--hbg:rgba(4,10,14,.78);--hf:'Rajdhani','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;--hm:'Share Tech Mono','Noto Sans SC',monospace}
+#menu,#lobby,#over,#pause,#prof,#keys{font-family:var(--hf)}
+#menu,#lobby{background:
+  linear-gradient(90deg,rgba(2,6,9,.94) 0,rgba(2,8,12,.82) 38%,rgba(2,8,12,0) 64%),
+  repeating-linear-gradient(0deg,rgba(63,230,255,.035) 0 1px,transparent 1px 3px)!important}
+#menu:before,#lobby:before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(rgba(63,230,255,.05) 1px,transparent 1px) 0 0/100% 46px,linear-gradient(90deg,rgba(63,230,255,.05) 1px,transparent 1px) 0 0/46px 100%;
+  mask-image:linear-gradient(90deg,#000 0,rgba(0,0,0,.4) 55%,transparent 75%);-webkit-mask-image:linear-gradient(90deg,#000 0,rgba(0,0,0,.4) 55%,transparent 75%)}
+#menu:after,#lobby:after{content:'';position:fixed;left:0;right:0;height:120px;top:-120px;pointer-events:none;z-index:0;background:linear-gradient(transparent,rgba(63,230,255,.07),transparent);animation:hudScan 7s linear infinite}
+@keyframes hudScan{to{transform:translateY(calc(100vh + 240px))}}
+#menu>*,#lobby>*{position:relative;z-index:1}
+#menu h1,body.en #load h1{font-family:'Orbitron',var(--hf)!important;font-weight:900;color:#e9fbff!important;letter-spacing:6px!important;
+  text-shadow:0 0 18px rgba(63,230,255,.55),0 0 2px #fff,2px 0 0 rgba(255,74,58,.55),-2px 0 0 rgba(63,230,255,.6)!important;animation:hudFlick 6s infinite}
+@keyframes hudFlick{0%,92%,100%{opacity:1;transform:none}93%{opacity:.65;transform:translateX(2px)}94%{opacity:1;transform:translateX(-1px)}96%{opacity:.85}}
+#hudTag{font-family:var(--hm);font-size:12px;letter-spacing:3px;color:var(--hc);opacity:.85;margin:-2px 0 8px;display:flex;gap:14px;align-items:center}
+#hudTag i{display:inline-block;width:8px;height:8px;background:var(--hc);box-shadow:0 0 8px var(--hc);animation:hudBlink 1.4s steps(2) infinite}
+#hudTag b{color:var(--ha);font-weight:400}
+@keyframes hudBlink{50%{opacity:.15}}
+#menu .lbl,#lobby .lbl{font-family:var(--hm);text-transform:uppercase;color:var(--hc2)!important;letter-spacing:3px;font-size:12px;margin-top:9px;opacity:1}
+#menu .lbl:before{content:'▸ ';color:var(--ha)}
+#menu .chip,#lobby .chip,#pvpPick button{font-family:var(--hf);font-weight:600;letter-spacing:.06em;border-radius:0!important;border:1px solid rgba(63,230,255,.28)!important;background:linear-gradient(180deg,rgba(15,30,38,.85),rgba(6,14,18,.9))!important;color:#bfeffa!important;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:all .15s}
+#menu .chip:hover,#lobby .chip:hover{border-color:var(--hc)!important;color:#fff!important}
+#menu .chip.on,#lobby .chip.on,#menu .chip.sel,#lobby .chip.sel,#menu .chip.act,#pvpPick button.on{background:linear-gradient(180deg,#5af0ff,#18b8d6)!important;color:#021015!important;border-color:#9ff6ff!important;box-shadow:0 0 14px rgba(63,230,255,.45);font-weight:700}
+#menu .btn,#lobby .btn,#over .btn,#pause .btn{font-family:'Orbitron',var(--hf);font-weight:800;letter-spacing:.14em;border-radius:0!important;color:#fff4e4!important;
+  background:linear-gradient(180deg,rgba(255,74,58,.92),rgba(150,28,18,.95))!important;border:1px solid #ff8a6a!important;box-shadow:0 0 16px rgba(255,74,58,.28),inset 0 0 0 1px rgba(255,255,255,.08);
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+#menu .btn.g,#lobby .btn.g,#over .btn.g,#pause .btn.g{background:linear-gradient(180deg,rgba(18,40,50,.92),rgba(6,16,22,.95))!important;border-color:rgba(63,230,255,.5)!important;color:#c9f6ff!important;box-shadow:0 0 12px rgba(63,230,255,.15)}
+#menu .btn:hover,#lobby .btn:hover{filter:brightness(1.18)}
+#menu input,#lobby input{font-family:var(--hm)!important;background:rgba(2,10,14,.9)!important;border:1px solid rgba(63,230,255,.4)!important;border-radius:0!important;color:#9ff6ff!important;letter-spacing:2px;box-shadow:inset 0 0 12px rgba(63,230,255,.12)}
+.lbBox,#shopIn{background:linear-gradient(180deg,rgba(6,16,22,.94),rgba(3,8,11,.96))!important;border:1px solid rgba(63,230,255,.35)!important;border-radius:0!important;box-shadow:0 0 30px rgba(63,230,255,.12);
+  clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+.lbBox h1,#shopIn h2,#over h1,#pause h1{font-family:'Orbitron',var(--hf)!important;color:#e9fbff!important;text-shadow:0 0 14px rgba(63,230,255,.5)!important}
+/* 右侧机体展示：取景框 + 状态读数 */
+#hudFrame{position:fixed;right:5vw;top:14vh;width:34vw;height:70vh;pointer-events:none;z-index:1}
+#hudFrame:before,#hudFrame:after,#hudFrame i:before,#hudFrame i:after{content:'';position:absolute;width:26px;height:26px;border:2px solid var(--hc);opacity:.75}
+#hudFrame:before{left:0;top:0;border-right:0;border-bottom:0}#hudFrame:after{right:0;top:0;border-left:0;border-bottom:0}
+#hudFrame i:before{left:0;bottom:0;border-right:0;border-top:0}#hudFrame i:after{right:0;bottom:0;border-left:0;border-top:0}
+#hudFrame .rd{position:absolute;font-family:var(--hm);font-size:10px;letter-spacing:1px;color:var(--hc);opacity:.8;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hudFrame .rd.l{left:0;right:0;top:-22px;text-align:center}#hudFrame .rd.r{left:0;right:0;bottom:-22px;text-align:center;color:var(--ha)}
+#hudFrame .bar{position:absolute;left:10px;right:10px;top:50%;height:1px;background:linear-gradient(90deg,transparent,var(--hc),transparent);opacity:.5;animation:hudSweep 3.2s ease-in-out infinite}
+@keyframes hudSweep{0%,100%{transform:translateY(-30vh);opacity:0}10%,90%{opacity:.6}50%{transform:translateY(30vh)}}
+@media (max-width:760px),(max-height:430px){#hudFrame .rd{font-size:9px}#menu h1{font-size:34px!important}}
+</style>
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -229,8 +276,8 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
 <div id="rot"><div style="font-size:54px">📱↻</div><div>请把手机横过来玩</div><button class="btn" id="bRot">切换横屏</button></div>
 <div id="load" class="ov"><h1>人类之后</h1><div class="sub" style="letter-spacing:6px;opacity:.75">AFTER HUMANITY</div><div class="sub">当机器接管世界 · 人类变成怪物 · 战争才刚刚开始</div><div id="loadT">正在载入素材…</div><div id="loadbar"><div id="loadfill"></div></div></div>
 
-<div id="menu" class="ov hid" style="overflow:auto;justify-content:flex-start;padding:18px 0">
-  <h1 style="margin-top:auto">人类之后</h1><div class="sub" style="letter-spacing:6px;opacity:.75;margin-top:-4px">AFTER HUMANITY</div><div class="row" style="margin-top:4px"><button class="btn g" id="bKeys" style="padding:6px 16px;font-size:13px">操作说明</button></div>
+<div id="hudFrame"><i></i><div class="bar"></div><div class="rd l">AH-UNIT · CORE 41°C · SERVO 100%</div><div class="rd r">THREAT EXTREME · HUMAN SIGNAL 0 · INFECTED ∞</div></div><div id="menu" class="ov hid" style="overflow:auto;justify-content:flex-start;padding:18px 0">
+  <h1 style="margin-top:auto">人类之后</h1><div class="sub" style="letter-spacing:6px;opacity:.75;margin-top:-4px">AFTER HUMANITY</div><div id="hudTag"><i></i><span>UNIT ACTIVATION TERMINAL</span><b id="hudUnit">CORE-LINK ONLINE</b></div><div class="row" style="margin-top:4px"><button class="btn g" id="bKeys" style="padding:6px 16px;font-size:13px">操作说明</button></div>
   <div class="row"><input id="nm" maxlength="8" placeholder="你的名字"></div>
     <div class="lbl">语言 / Language</div><div class="row" id="langRow"></div>
     <div class="lbl">光色</div><div class="row" id="visRow"></div>
@@ -2487,6 +2534,7 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 // ---------- 菜单 / 大厅 ----------
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
+(()=>{const f=()=>{const h=$('hudFrame'),m=$('menu');if(h&&m)h.style.display=m.classList.contains('hid')?'none':''};const m=document.getElementById('menu');if(m){new MutationObserver(f).observe(m,{attributes:true,attributeFilter:['class']});setTimeout(f,0)}})();
 function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);try{menuShow()}catch(e){console.warn(e)}$('bKeys').onclick=$('bKeys2').onclick=()=>{$('keysTouch').textContent=TOUCH?'手机：左半屏拖动移动（推到底冲刺），右半屏拖动转视角；按住「开火」可边打边瞄。':'';$('keys').classList.remove('hid')};$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
  chips($('langRow'),['中文','English'],LANG==='zh'?0:1,i=>{LANG=i?'en':'zh';LS.set('scqh-lang',LANG);loreSet();showMenu();i18nApply()});chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
  chips($('modeRow'),MODE_L.map(m=>m[1]),MODE_L.findIndex(m=>m[0]===modeS),i=>{modeS=MODE_L[i][0];LS.set('scqh-mode',modeS);showMenu()});
