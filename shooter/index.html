@@ -1888,7 +1888,7 @@ function cycleThr(){const ks=['nade','molo','pipe','drone','turret','shield'];le
 // ================= 机器人辅助装备：无人机 / 炮台球 / 能量盾 / 手臂激光 / 声波翼 =================
 const GAD={tur:[],dr:[],sh:[],las:[]};
 function cycleSel(){$('tThr').textContent=THN[THR.sel].slice(0,2);hud(true)}
-function gadClear(){if(GW){scene.remove(GW);GW=null}if(GL2){scene.remove(GL2);GL2=null}for(const a of [...GAD.tur,...GAD.dr,...GAD.sh,...GAD.las])scene.remove(a.g);GAD.tur=[];GAD.dr=[];GAD.sh=[];GAD.las=[]}
+function gadClear(){for(const [c,e] of GEAR){if(e.w)scene.remove(e.w);if(e.l)scene.remove(e.l)}GEAR.clear();for(const a of [...GAD.tur,...GAD.dr,...GAD.sh,...GAD.las])scene.remove(a.g);GAD.tur=[];GAD.dr=[];GAD.sh=[];GAD.las=[]}
 function ownerOf(pid){if(pid===NET.me)return{x:P.pos.x,y:P.y,z:P.pos.z,yaw:P.yaw,me:1};const a=actors().find(a=>a.id===pid);return a?{x:a.pos.x,y:a.pos.y||0,z:a.pos.z,yaw:a.yaw||0}:null}
 function gadTarget(o,R,y0){let best=null,bd=R;for(const z of G.zs){if(z.dead)continue;const p=z.c.wrap.position,d=Math.hypot(p.x-o.x,p.z-o.z,(z.y||0)-y0);if(d<bd){bd=d;best=z}}return best}
 function gadShoot(from,z,dmg,pid,col){const p=z.c.wrap.position,to=v2.set(p.x,(z.y||0)+1.2,p.z);tracer(from.clone(),to.clone(),col);emit(from,2,[1,.8,.4],2,.6,0,.12);if(isHost())hurtZ(z,dmg,false,null,0,pid,99)}
@@ -1936,12 +1936,18 @@ function gadBtns(){const l=$('tLas'),s2=$('tSon');if(l)l.style.display=G.gad&&G.
 // 丧尸贴近会把无人机/炮台打坏（无人机飞得低时也会被抓到）
 function gadDmg(a,x,z,y,r){const dt=1/60;a.hT=Math.max(0,(a.hT||0)-dt);for(const q of G.zs){if(q.dead)continue;const p=q.c.wrap.position;if(Math.hypot(p.x-x,p.z-z)<r&&Math.abs((q.y||0)-y)<1.6){a.hp-=(q.dmg||10)*dt*(q.t&&q.t.sp==='tank'||q.type==='boss'?4:1.2);a.hT=.3;if(!q.atkT||q.atkT<=0)q.face=Math.atan2(x-p.x,z-p.z)}}}
 // 装在机体上的模型：后背声波翼、左前臂激光炮
-const GVQ=new T.Quaternion(),GVV=new T.Vector3(),GVF=new T.Vector3();let GW=null,GL2=null;
-function gadVis(){const c=P.c;if(!c||!c.bones||G.state!=='play'){if(GW)GW.visible=false;if(GL2)GL2.visible=false;return}const show=!P.dead&&c.wrap.visible;
- if(G.gad&&G.gad.sonic&&PROPS.eb_gad_wings){if(!GW){const m=gadModel('gad_wings',.85);GW=new T.Group();m.position.y-=.5;m.rotation.y=GWR;GW.add(m);GW.userData.gad=1;scene.add(GW)}const sp=c.bones.mixamorigspine2;
-  if(sp){sp.getWorldPosition(GVV);c.wrap.getWorldQuaternion(GVQ);GVF.set(0,0,-1).applyQuaternion(GVQ);GW.position.copy(GVV).addScaledVector(GVF,.24*GWS);GW.position.y+=.08;GW.quaternion.copy(GVQ);const k=G.gad.scd>17?Math.sin((20-G.gad.scd)/3*Math.PI):0;GW.scale.setScalar(1+k*.25)}GW.visible=show}else if(GW)GW.visible=false;
- if(G.gad&&G.gad.laser&&PROPS.eb_gad_laser){if(!GL2){const m=gadModel('gad_laser',.3);const w=new T.Group();m.position.y-=.15;w.add(m);m.rotation.y=-Math.PI/2;GL2=new T.Group();GL2.add(w);GL2.userData.gad=1;scene.add(GL2)}const fa=c.bones.mixamorigleftforearm,hd=c.bones.mixamoriglefthand;
-  if(fa&&hd){fa.getWorldPosition(GVV);hd.getWorldPosition(GVF);GL2.position.copy(GVV).lerp(GVF,.55);GL2.lookAt(GVF.clone().add(GVF.clone().sub(GVV)));}GL2.visible=show&&(VIEW!=='fp'||P.wake>0)}else if(GL2)GL2.visible=false}
+const GVQ=new T.Quaternion(),GVV=new T.Vector3(),GVF=new T.Vector3();let GW=null,GL2=null;const GEAR=new Map(),RGV={};
+// 谁身上装了什么：自己看商店购买；其他玩家靠网络同步；电脑机器人按编号固定分配（约三分之一装激光、三分之一装声波翼）
+function gearOf(a){if(a.me)return G.gad?{l:!!G.gad.laser,s:!!G.gad.sonic}:{l:0,s:0};if(a.bot){const h=[...String(a.id)].reduce((q,c)=>q*31+c.charCodeAt(0)|0,7)>>>0;return{l:h%3===0||h%7===0,s:h%3===1||h%7===0}}return RGV[a.id]||{l:0,s:0}}
+function gearSet(c,gw,on){let e=GEAR.get(c);if(!e){e={w:null,l:null};GEAR.set(c,e)}
+ if(on.s&&PROPS.eb_gad_wings){if(!e.w){const m=gadModel('gad_wings',.85);e.w=new T.Group();m.position.y-=.5;m.rotation.y=GWR;e.w.add(m);e.w.userData.gad=1;scene.add(e.w)}const sp=c.bones&&c.bones.mixamorigspine2;
+  if(sp){sp.getWorldPosition(GVV);c.wrap.getWorldQuaternion(GVQ);GVF.set(0,0,-1).applyQuaternion(GVQ);e.w.position.copy(GVV).addScaledVector(GVF,.24);e.w.position.y+=.08;e.w.quaternion.copy(GVQ);const k=gw.pulse||0;e.w.scale.setScalar(1+k*.25)}e.w.visible=gw.show}else if(e.w)e.w.visible=false;
+ if(on.l&&PROPS.eb_gad_laser){if(!e.l){const m=gadModel('gad_laser',.3);const w=new T.Group();m.position.y-=.15;w.add(m);m.rotation.y=-Math.PI/2;e.l=new T.Group();e.l.add(w);e.l.userData.gad=1;scene.add(e.l)}const fa=c.bones&&c.bones.mixamorigleftforearm,hd=c.bones&&c.bones.mixamoriglefthand;
+  if(fa&&hd){fa.getWorldPosition(GVV);hd.getWorldPosition(GVF);e.l.position.copy(GVV).lerp(GVF,.55);e.l.lookAt(GVF.clone().add(GVF.clone().sub(GVV)))}e.l.visible=gw.show&&gw.arm}else if(e.l)e.l.visible=false}
+function gadVis(){const live=new Set();if(G.state==='play'){for(const a of actors()){const c=a.c;if(!c||!c.wrap)continue;live.add(c);const me=!!a.me;const dead=me?P.dead:a.dead;
+  gearSet(c,{show:!dead&&c.wrap.visible,arm:!me||VIEW!=='fp'||P.wake>0,pulse:me&&G.gad&&G.gad.scd>17?Math.sin((20-G.gad.scd)/3*Math.PI):(a.pulseT>0?Math.sin(a.pulseT*Math.PI):0)},gearOf(a))}}
+ for(const [c,e] of GEAR)if(!live.has(c)){if(e.w)scene.remove(e.w);if(e.l)scene.remove(e.l);GEAR.delete(c)}
+ if(NET.on&&G.state==='play'&&G.gad){G.gvT=(G.gvT||0)-1/60;if(G.gvT<=0){G.gvT=4;nsend('gadv',[NET.me,G.gad.laser|0,G.gad.sonic|0])}}}
 let GWR=-Math.PI/2,GWS=1;
 function gadUpd(dt){gadVis();if(G.gad){if(G.gad.lcd>0)G.gad.lcd-=dt;if(G.gad.scd>0)G.gad.scd-=dt;const l=$('tLas'),s2=$('tSon');if(l)l.style.opacity=G.gad.lcd>0?.4:1;if(s2)s2.style.opacity=G.gad.scd>0?.4:1}
  // 无人机
@@ -2337,7 +2343,7 @@ function enterRoom(code,host){netLeave();myName=($('nm').value||'').trim().slice
  Object.assign(NET,{on:true,host,me:netId(code),room:code,started:false,list:[],T0:Date.now(),team:0,opt:{mode:modeS,diff:diffI,ai:aiS}});
  try{NET.tr=netTransport(code)}catch(e){NET.on=false;menuMsg(e.message);return}
  const Tr=NET.tr;Tr.on('p',onP);Tr.on('H',onH);Tr.on('kill',onKill);Tr.on('start',onStart);Tr.on('pz',o=>{if(o.m===G.mid)setHostPause(o.v)});Tr.on('crq',o=>{if(NET.host&&G.state==='play')pushEv(['crn',o.x,o.z,o.by])});Tr.on('end',p=>{if(p.m===G.mid)showEnd(p)});
- Tr.on('th',e=>{if(G.state==='play'&&e[7]!==NET.me)spawnThrow(e)});Tr.on('gad',e=>{if(G.state==='play'&&e[0]!==NET.me)gadRemote(e)});Tr.on('rv',o=>{if(o.v===NET.me)reviveMe(o.by)});Tr.on('brk',o=>{if(!NET.host)return;const z=zById(o.z);if(z&&z.hold===o.p){z.hDmg=999}});Tr.on('opt',o=>{if(!NET.host){NET.opt=o;lobbyRender()}});Tr.on('team',o=>{});Tr.presence(onPresence);
+ Tr.on('th',e=>{if(G.state==='play'&&e[7]!==NET.me)spawnThrow(e)});Tr.on('gad',e=>{if(G.state==='play'&&e[0]!==NET.me)gadRemote(e)});Tr.on('gadv',e=>{RGV[e[0]]={l:!!e[1],s:!!e[2]}});Tr.on('rv',o=>{if(o.v===NET.me)reviveMe(o.by)});Tr.on('brk',o=>{if(!NET.host)return;const z=zById(o.z);if(z&&z.hold===o.p){z.hDmg=999}});Tr.on('opt',o=>{if(!NET.host){NET.opt=o;lobbyRender()}});Tr.on('team',o=>{});Tr.presence(onPresence);
  showLobby();lbMsg('连接中……');
  Tr.subscribe(st=>{if(st==='SUBSCRIBED'){Tr.track(myPres());lbMsg(host?'把房号或邀请链接发给朋友（最多 '+MAXP+' 人）':'已连上，等房主开始');lobbyRender()}
   else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')lbMsg('连接失败，请检查网络后重试')})}
