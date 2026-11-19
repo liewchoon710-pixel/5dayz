@@ -718,7 +718,10 @@ function applyEnv(){const E=MAP.env;scene.fog.color.setHex(E.col);scene.backgrou
  FLASH.intensity=E.dark?2.4:0;FLASH.visible=!!E.dark;sun.color.setHex(E.night?0x7f90c8:E.dusk?0xffa070:0xfff1dc);sun.visible=!E.dark;P.lamp=false;GFX&&GFX.env()}
 // 每 10 局换一张图（房主/单人这边记录）
 // 单人：每次开局随机一张地图（不会和上一局同一张）
-function pickSolo(){const q=new URLSearchParams(location.search).get('map');if(q&&MAPS[q])return q;const last=LS.get('scqh-solomap');const c=MAPIDS.filter(m=>m!==last);const m=c[Math.random()*c.length|0];LS.set('scqh-solomap',m);return m}
+// 世界规矩：随机换图时六张图机会一样（可能抽回同一张）；连续抽到同一张，丧尸强度每次翻倍，不限次数
+function pickSolo(){const q=new URLSearchParams(location.search).get('map');if(q&&MAPS[q]){G.rep=1;return q}const last=LS.get('scqh-solomap');const m=MAPIDS[Math.random()*MAPIDS.length|0];
+ let n=+(LS.get('scqh-solorep')||1);n=m===last?n+1:1;LS.set('scqh-solomap',m);LS.set('scqh-solorep',String(n));G.rep=n;return m}
+function repM(){const n=G.cfg&&G.cfg.rep||1;return Math.pow(2,n-1)}
 function pickMap(){const q=new URLSearchParams(location.search).get('map');if(q&&MAPS[q])return q;let R={i:0,n:0};try{R=JSON.parse(LS.get('scqh-maprot')||'{"i":0,"n":0}')}catch(e){}
  R.n++;if(R.n>10){R.n=1;R.i=(R.i+1)%MAPIDS.length}LS.set('scqh-maprot',JSON.stringify(R));G.mapLeft=10-R.n;return MAPIDS[R.i]}
 // ---- 地图机关（房主模拟，客户端看事件）
@@ -1245,7 +1248,7 @@ function wakeFrame(dt){if(!(P.wake>0))return;P.wake-=dt;const t=(P.wakeT+=dt),e=
  const bt=$('boot');if(t>4.75&&!P.bootOn){P.bootOn=1;bt.innerHTML='';bt.style.display='block';const L=['> 系统重启……完成','> 视觉模块 ········· 正常','> 运动关节 ········· 正常','> 武装系统 ········· 在线','> 检测到生物信号：'+(G.mode==='pvp'?'无 · 敌对机体：'+(G.ffa?'全部':'敌方机团'):'大量'),'> 指令：'+(G.mode==='pvp'?'清除敌对单位':'清除一切血肉')];
   L.forEach((s2,i)=>setTimeout(()=>{if(!P.bootOn)return;const d=document.createElement('div');d.textContent=s2;bt.appendChild(d);if(AC)tone(1400+i*120,1400+i*120,.04,.06,'square')},i*330))}
  if(t>8.55&&!P.wakeDraw){P.wakeDraw=1;try{equip(G.cur,true)}catch(e){}if(AC)tone(300,600,.15,.12,'sawtooth')}
- if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=P.vo1=P.vo2=0;P.drawT=1;if(WPAN)WPAN.visible=false;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
+ if(P.wake<=0){e.style.display='none';P.c.one=null;P.wakeA=null;P.wakeOff=P.wakeDraw=P.vo1=P.vo2=0;if(G.cfg&&G.cfg.rep>1){const n=G.cfg.rep,m=Math.pow(2,n-1);setTimeout(()=>banner(LANG==='zh'?'重复区域 ×'+n:'REPEATED ZONE ×'+n,LANG==='zh'?'连续第 '+n+' 次投放到同一区域 · 丧尸强度 ×'+m:'Deployed to the same zone '+n+' times in a row · Infected strength ×'+m,3.5),400)}P.drawT=1;if(WPAN)WPAN.visible=false;gunOf(P.guns,G.cur).visible=true;P.bootOn=0;setTimeout(()=>{bt.style.transition='opacity .6s';bt.style.opacity=0;setTimeout(()=>{bt.style.display='none';bt.style.opacity=1;bt.style.transition=''},700)},600)}}
 // 抬起右手到眼前，翻转查看
 const WSIT=.33;let WPAN=null;
 function wakePanel(){if(WPAN)return WPAN;// 手指划过前臂留下的一道光
@@ -1330,8 +1333,8 @@ function spawnSpot(){const hs=actors().filter(a=>!a.dead&&!a.bot);
   if(hs.some(h=>Math.hypot(h.pos.x-x,h.pos.z-z)<18))continue;const p=new T.Vector3(x,0,z);const q=p.clone();pushOut(q,.5,'z');if(q.distanceTo(p)>.05)continue;return p}
  const sp=pick([[ZSP,0],[-ZSP,0],[0,ZSP],[0,-ZSP]]);return new T.Vector3(sp[0]+rand(-2,2),0,sp[1]+rand(-4,4))}
 function spawnZ(type,at){const t=ZT[type],D=DIFF[diffI],w=G.wave,n=humanCount();const mi=Math.floor(Math.random()*t.m.length);const mz=makeZChar(type,mi);if(!mz)return;const c=mz.c,m=mz.m;c.wrap.position.set(at.x+rand(-1.2,1.2),at.y||0,at.z+rand(-1.2,1.2));c.wrap.rotation.y=rand(0,6.28);scene.add(c.wrap);
- const hpm=(1+.15*(w-1))*D.hp*(1+.35*(n-1))*1.3;const spm=Math.min(1.55,1+.035*(w-1))*D.spd;
- const z={id:G.zid++,ti:ZTK.indexOf(type),mi:t.m.indexOf(m),c,type,t,hp:t.hp*hpm,max:t.hp*hpm,spd:t.spd*spm*rand(.88,1.12),dmg:t.dmg*D.dmg*(1+.04*(w-1)),r:t.r,dead:false,deadT:0,atkT:rand(0,.5),pend:-1,hitCd:0,groan:rand(1,6),stuck:0,det:0,detT:0,face:c.wrap.rotation.y,last:new T.Vector2(c.wrap.position.x,c.wrap.position.z),tid:null,st:0,y:at.y||0,vy:0,cd:rand(2,4),buffT:0};
+ const hpm=(1+.15*(w-1))*D.hp*(1+.35*(n-1))*1.3*repM();const spm=Math.min(1.55,1+.035*(w-1))*D.spd;
+ const z={id:G.zid++,ti:ZTK.indexOf(type),mi:t.m.indexOf(m),c,type,t,hp:t.hp*hpm,max:t.hp*hpm,spd:t.spd*spm*rand(.88,1.12),dmg:t.dmg*D.dmg*(1+.04*(w-1))*repM(),r:t.r,dead:false,deadT:0,atkT:rand(0,.5),pend:-1,hitCd:0,groan:rand(1,6),stuck:0,det:0,detT:0,face:c.wrap.rotation.y,last:new T.Vector2(c.wrap.position.x,c.wrap.position.z),tid:null,st:0,y:at.y||0,vy:0,cd:rand(2,4),buffT:0};
  if(type==='walker'&&w>=4&&Math.random()<Math.min(.5,.08*w))z.spd*=1.9;
  G.zs.push(z);stGoal(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.25,0,true);sfx('monster_brute_roar',.75,0,type==='boss'?.85:1,{must:true});say(type==='boss'?'尸王出现':'坦克尸出现')}else if(type!=='witch')playOnce(c,'standup',1.5);
  if(type==='mutant'){z.rise=2.5;z.y=-c.h;c.wrap.position.y=-c.h}if(type==='witch'){z.mode='cry';z.anger=0;z.face=rand(0,6.28)}
@@ -2457,7 +2460,7 @@ function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);tr
   'WASD 移动　Shift 冲刺　左键开火　右键瞄准/开镜　R 换弹　1-3/滚轮 换枪　F 刀　G 投掷　H 换投掷物　E 使用/救人　V 视角　空格 跳/攀爬　C 蹲　B 商店　X 部署工事　Tab 排行榜')+
   '<br>打丧尸：用打丧尸赚的资金部署沙袋墙、铁丝网、拒马栅栏、地雷（数量不限），丧尸会砸工事，数量够了还会踩着同伴翻过去；补给卡车每波送来弹药和资金。每局地图摆设（车、路障、机枪位、贩卖机、武器箱）都不一样；每波的特异丧尸种类、数量也随机，越后面越可能出现巨尸、坦克尸、尸王、异变体；女鬼随机出现（听到哭声别靠近、别开枪）<br>两队对打：蓝队 vs 红队，先到 '+PVP_KILLS+' 杀或 10 分钟结束，死后 5 秒复活'}
 function startSolo(){myName=($('nm').value||'').trim().slice(0,8)||myName;LS.set('scqh-name',myName);netLeave();audioInit();fullscreen();
- beginMatch({mid:'s'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickSolo(),ml:null,mode:modeS,diff:diffI,ai:modeS!=='z'?true:aiS,teams:{me:modeS==='ffa'?10:0}})}
+ beginMatch({mid:'s'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickSolo(),ml:null,rep:G.rep,mode:modeS,diff:diffI,ai:modeS!=='z'?true:aiS,teams:{me:modeS==='ffa'?10:0}})}
 function fullscreen(){if(!TOUCH)return;try{const de=document.documentElement;const r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de);r&&r.then&&r.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 function showLobby(){G.state='lobby';$('menu').classList.add('hid');$('over').classList.add('hid');$('lobby').classList.remove('hid');lobbyRender()}
 function lbMsg(t){$('lbMsg').textContent=t||''}
