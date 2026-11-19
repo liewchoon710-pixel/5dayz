@@ -1005,13 +1005,17 @@ function obbHit(cx,cz,hx,hz,ry,y0,y1,pad){const c=Math.cos(ry),s=Math.sin(ry);co
  const pj=(P,ax)=>{let mn=1e9,mx=-1e9;for(const p of P){const v=p[0]*ax[0]+p[1]*ax[1];if(v<mn)mn=v;if(v>mx)mx=v}return[mn,mx]};
  for(const C of COL){const o=C.o;if(!o||!o.hx)continue;if(Math.min(y1,C.b.max.y)-Math.max(y0,o.y0||0)<=.05)continue;const B=[o.cx,o.cz,o.hx,o.hz,o.c,o.s];
   const a=cor(A),b=cor(B);let sep=false;for(const q of[A,B])for(const ax of[[q[4],-q[5]],[q[5],q[4]]]){const p=pj(a,ax),r=pj(b,ax);if(Math.min(p[1],r[1])-Math.max(p[0],r[0])<=pad){sep=true;break}}if(!sep)return true}return false}
+const PFIT={k_vehicle_truck:{hu:2.5},k_vehicle_truck_armored:{hu:2.5},k_trafficbarrier_1:{h:1.1},container:{h:2.6,w:2.44},bus:{h:3.1,w:2.6}};
 function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return null;
  if(collide&&DYN){const b0=new T.Box3().setFromObject(src),s0=b0.getSize(new T.Vector3()),k0=len/Math.max(s0.x,s0.z,.01);if(obbHit(x,z,s0.x*k0/2,s0.z*k0/2,ry,y,y+s0.y*k0,-.05))return null}
  const o=src.clone(true);
  o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});if(src.userData.env2){const tk=tintOf(n);if(tk)applyTint(o,TINT[tk],x*1.7+z*3.3+ry)}
- const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());const k=len/Math.max(sz.x,sz.z,.01);o.scale.multiplyScalar(k);
- const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
- if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*k/2*(veh?.93:.97),sz.z*k/2*(veh?.93:.97),y+sz.y*k,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
+ const b=new T.Box3().setFromObject(o);const sz=b.getSize(new T.Vector3());let k=len/Math.max(sz.x,sz.z,.01);
+ // 尺寸校正：按现实比例限制高度/宽度（只对写实模型）
+ const F=src.userData.env2?PFIT[n]:null;if(F&&F.hu)k=F.hu/sz.y;let kx=k,ky=k,kz=k;if(F&&F.h)ky=F.h/sz.y;if(F&&F.w){if(sz.x<sz.z)kx=F.w/sz.x;else kz=F.w/sz.z}
+ o.scale.set(o.scale.x*kx,o.scale.y*ky,o.scale.z*kz);
+ const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*kx,-b.min.y*ky,-(b.min.z+b.max.z)/2*kz);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
+ if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*kx/2*(veh?.93:.97),sz.z*kz/2*(veh?.93:.97),y+sz.y*ky,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
 function groundH(p,r,y){let g=0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.36||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
 function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&&!c.p)continue;const b=c.b;if(b.max.y<=y+.35||y+1.75<b.min.y)continue;
  if(p.x+r<=b.min.x||p.x-r>=b.max.x||p.z+r<=b.min.z||p.z-r>=b.max.z)continue;const q=c.o;const L=obL(q,p.x,p.z);const lx=L.x,lz=L.z;
