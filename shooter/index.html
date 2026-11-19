@@ -1274,7 +1274,7 @@ function nameOf(id){if(id===NET.me)return myName;if(id==='Z')return '丧尸';if(
 function rost(id){return G.R[id]||(G.R[id]={n:nameOf(id),t:teamOf(id),k:0,d:0,b:id[0]==='b'?1:0})}
 
 // ---------- 开局 ----------
-function clearWorld(){stClear();for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG)dropTong(k);for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
+function clearWorld(){stClear();WRECKS.forEach(g=>scene.remove(g));WRECKS.length=0;for(const q of THR.list)scene.remove(q.m);THR.list.length=0;for(const f of THR.fires){f.sp.forEach(x=>scene.remove(x));if(f.li)scene.remove(f.li)}THR.fires.length=0;for(const u of PUS)scene.remove(u.g);PUS.length=0;if(BOX){BOX.st='idle';if(BOX.disp){scene.remove(BOX.disp);BOX.disp=null}}P.dn=false;P.papT=0;P.knife=0;P.thr=0;G.x2=0;G.ik=0;$('cards').classList.add('hid');for(const q of PROJ)scene.remove(q.m);PROJ.length=0;for(const o of POOLS)scene.remove(o.m);POOLS.length=0;for(const k in TONG)dropTong(k);for(const k in TONG){if(TONG[k].m)scene.remove(TONG[k].m);delete TONG[k]}P.grab=P.pin=null;P.climb=null;P.stun=0;P.kbv.set(0,0,0);for(const c of menuZ)scene.remove(c.wrap);menuZ=[];for(const z of G.zs)scene.remove(z.c.wrap);G.zs=[];for(const id in HUM)removeHuman(id);for(const p of PICKUPS)scene.remove(p.m);PICKUPS.length=0;
  if(P.c){scene.remove(P.c.wrap);P.c=null}P.guns.forEach(g=>g&&scene.remove(g));P.guns=[]}
 // 开场：黑屏 → 标题 → 无线电呼叫 → 画面淡入（代替原来的欢迎语音）
 const ZONES=['东区十字路口','旧城商业街','第七号检查站','中央大道','港湾路口'];
@@ -3038,13 +3038,15 @@ function heavySmash(z,p){if(G.mode!=='z'||z.climb)return;const tank=z.t.sp==='ta
   if(B.veh)for(const a of actors()){if(a.dead||a.bot)continue;const ax=a.pos.x-B.x,az=a.pos.z-B.z;if(Math.hypot(ax,az)<B.r+1.2&&ax*dx+az*dz>-.5){dmgTo(a,18*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}}
  if(all)for(const S of ST.slice()){if((S.k>2&&S.k!==9)||S.dead||Math.abs(S.y-z.y)>1.5)continue;if(stNear(S,p.x,p.z,SWV)<R)stHurt(S,1e9)}}
 function brkKill(i,dx,dz,fx){const B=BRK[i];if(!B||B.dead)return;B.dead=1;const j=COL.indexOf(B.c);if(j>=0)COL.splice(j,1);if(!fx){scene.remove(B.g);return}
- const sp=B.veh?9:7;BFX.push({g:B.g,y0:B.y,vx:dx*sp+rand(-1,1),vz:dz*sp+rand(-1,1),vy:B.veh?4.5:5.5,rx:rand(-1,1)*(B.veh?2.2:6),rz:rand(-1,1)*(B.veh?2.2:6),ry:rand(-2,2),t:0,b:0});
+ const sp=B.veh?9:7;BFX.push({veh:B.veh,g:B.g,y0:B.y,vx:dx*sp+rand(-1,1),vz:dz*sp+rand(-1,1),vy:B.veh?4.5:5.5,rx:rand(-1,1)*(B.veh?2.2:6),rz:rand(-1,1)*(B.veh?2.2:6),ry:rand(-2,2),t:0,b:0});
  v1.set(B.x,B.y+.8,B.z);emit(v1,B.veh?34:14,[.5,.5,.5],B.veh?7:4,1,7,B.veh?1.1:.7);if(B.veh)emit(v1,18,[1,.75,.3],9,.5,5,.5);
  const d=Math.hypot(P.pos.x-B.x,P.pos.z-B.z),v=clamp(1-d/45,0,1);if(AC&&v>0){sfxAt(B.veh?'impact_monster_car_ram':(B.k==='container'||/barrier|fence|metal/.test(B.n||'')?'impact_monster_metal_door_bash':'impact_monster_concrete_wall'),B.x,B.z,B.veh?1:.75,45,rand(.9,1.1));noise(B.veh?220:700,B.veh?.7:.3,(B.veh?.5:.25)*v);if(B.veh)tone(90,40,.5,.5*v,'square')}if(B.veh)P.shake=Math.max(P.shake,v*.45)}
 function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+=dt;g.position.x+=f.vx*dt;g.position.z+=f.vz*dt;g.position.y+=f.vy*dt;f.vy-=18*dt;const k=Math.exp(-1.6*dt);f.vx*=k;f.vz*=k;
   if(f.b<2){g.rotation.x+=f.rx*dt;g.rotation.z+=f.rz*dt;g.rotation.y+=f.ry*dt}
   if(g.position.y<=f.y0&&f.vy<0){if(f.t<2.2){g.position.y=f.y0;f.vy*=-.3;f.vx*=.5;f.vz*=.5;f.b++;if(f.b===1){v1.copy(g.position);v1.y+=.3;emit(v1,8,[.5,.48,.45],3,.6,5,.6)}}}
-  if(f.t>2.2){g.position.y-=dt*1.1;if(f.t>4.2){scene.remove(g);BFX.splice(i,1)}}}}
+  if(f.t>2.2){if(f.veh){/* 被撞飞的车：落地后翻正贴地，烧成残骸留在原地，不再漂浮或沉下去 */g.position.y=f.y0;g.rotation.x*=.2;g.rotation.z*=.2;g.traverse(o=>{if(o.isMesh)o.material=BURNT});BFX.splice(i,1);WRECKS.push(g);while(WRECKS.length>6)scene.remove(WRECKS.shift());continue}
+   g.position.y-=dt*1.1;if(f.t>4.2){scene.remove(g);BFX.splice(i,1)}}}}
+const WRECKS=[];
 function brkSnap(){let a=null;for(let i=0;i<BRK.length;i++)if(BRK[i].dead)(a||(a=[G.layoutSeed])).push(i);return a||undefined}
 function onBK(a){if(a[0]!==G.layoutSeed)return;for(let i=1;i<a.length;i++)brkKill(a[i],0,0,false)}
 // ---- RPG 火箭筒
