@@ -1353,7 +1353,7 @@ function spawnZ(type,at){const t=ZT[type],D=DIFF[diffI],w=G.wave,n=humanCount();
  const hpm=(1+.15*(w-1))*D.hp*(1+.35*(n-1))*1.3*repM();const spm=Math.min(1.55,1+.035*(w-1))*D.spd;
  const z={id:G.zid++,ti:ZTK.indexOf(type),mi:t.m.indexOf(m),c,type,t,hp:t.hp*hpm,max:t.hp*hpm,spd:t.spd*spm*rand(.88,1.12),dmg:t.dmg*D.dmg*(1+.04*(w-1))*repM(),r:t.r,dead:false,deadT:0,atkT:rand(0,.5),pend:-1,hitCd:0,groan:rand(1,6),stuck:0,det:0,detT:0,face:c.wrap.rotation.y,last:new T.Vector2(c.wrap.position.x,c.wrap.position.z),tid:null,st:0,y:at.y||0,vy:0,cd:rand(2,4),buffT:0};
  if(type==='walker'&&w>=4&&Math.random()<Math.min(.5,.08*w))z.spd*=1.9;
- G.zs.push(z);stGoal(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.25,0,true);sfx('monster_brute_roar',.75,0,type==='boss'?.85:1,{must:true});say(type==='boss'?'尸王出现':'坦克尸出现')}else if(type!=='witch')playOnce(c,'standup',1.5);
+ G.zs.push(z);stGoal(z);zPerch(z);if(type==='boss'||type==='tank'){playOnce(c,'scream',1);z.atkT=2.5;sGroan(.25,0,true);sfx('monster_brute_roar',.75,0,type==='boss'?.85:1,{must:true});say(type==='boss'?'尸王出现':'坦克尸出现')}else if(type!=='witch')playOnce(c,'standup',1.5);
  if(type==='mutant'){z.rise=2.5;z.y=-c.h;c.wrap.position.y=-c.h}if(type==='witch'){z.mode='cry';z.anger=0;z.face=rand(0,6.28)}
  zEntrance(z);emit(v1.set(c.wrap.position.x,.2,c.wrap.position.z),10,[.35,.3,.25],2,.8,6,.8)}
 function aliveZ(){let n=0;for(const z of G.zs)if(!z.dead&&z.type!=='witch')n++;return n}
@@ -2067,8 +2067,12 @@ function hostSim(dt){
  else{G.tl-=dt;G.botT-=dt;if(G.botT<=0){G.botT=2;syncBots()}
   for(const id in HUM){const H=HUM[id];if(H.bot)updBot(H,dt)}
   if((G.ffa?Object.values(G.R).some(o=>o.k>=FFA_KILLS):(G.sc[0]>=PVP_KILLS||G.sc[1]>=PVP_KILLS))||G.tl<=0)hostEnd()}}
-function climbBox(p,r,y,maxUp){let best=null;for(const c of COL){if(!c.p||!c.z)continue;const b=c.b,h=b.max.y;if(h<=y+.5||h>y+maxUp)continue;
- if(p.x+r+.2>b.min.x&&p.x-r-.2<b.max.x&&p.z+r+.2>b.min.z&&p.z-r-.2<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r+.25&&Math.abs(L.z)<c.o.hz+r+.25&&(!best||h>best.o.h))best=c}}return best}
+// 世界规矩 3：丧尸有智能——特殊丧尸/尸王会找高处埋伏（车顶、楼顶、商场楼层、桥面），任何丧尸都会爬墙追上高处的目标
+function zPerch(z){const sp=z.t&&z.t.sp;if(!(['spitter','thrower','pouncer','screamer','grabber'].includes(sp)||z.type==='boss')||Math.random()>(z.type==='boss'?.35:.55))return;
+ const C=COL.filter(c=>c.p&&c.z&&c.b.max.y>=3&&c.b.max.y<=26&&(c.b.max.x-c.b.min.x)>1.2&&(c.b.max.z-c.b.min.z)>1.2&&Math.hypot((c.b.min.x+c.b.max.x)/2-P.pos.x,(c.b.min.z+c.b.max.z)/2-P.pos.z)<34);
+ if(!C.length)return;const c=C[Math.random()*C.length|0],b=c.b;z.perch={x:b.min.x+(b.max.x-b.min.x)*(.3+Math.random()*.4),z:b.min.z+(b.max.z-b.min.z)*(.3+Math.random()*.4),y:b.max.y}}
+function climbBox(p,r,y,maxUp,ty){let best=null;for(const c of COL){if(!c.p||!c.z)continue;const b=c.b,h=b.max.y;if(h<=y+.5||h>y+maxUp)continue;
+ if(p.x+r+.2>b.min.x&&p.x-r-.2<b.max.x&&p.z+r+.2>b.min.z&&p.z-r-.2<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r+.25&&Math.abs(L.z)<c.o.hz+r+.25&&(!best||(ty!=null?Math.abs(h-ty)<Math.abs(best.o.h-ty):h>best.o.h)))best=c}}return best}
 function updZ(z,dt){const c=z.c,p=c.wrap.position;
  if(z.dead){z.deadT+=dt;if(z.y>0){z.vy-=20*dt;z.y=Math.max(0,z.y+z.vy*dt)}p.y=z.y-(z.deadT>3?(z.deadT-3)*.35:0);z.st=4;updChar(c,dt);return}
  z.hitCd-=dt;z.atkT-=dt;if(z.buffT>0)z.buffT-=dt;if(z.t.sp==='tank'||z.t.sp==='mutant'||z.type==='boss')heavySmash(z,p);
@@ -2081,10 +2085,12 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
   z.st=9;if(k>=1){z.climb=null;z.vy=0}setBase(c,'idle',.6);updChar(c,dt);p.y=z.y;if(k>.04&&k<.88)mantleHands(c,c.wrap.rotation.y+Math.PI,C.ex,C.ez,C.y1,1);return}
  let mv=0;const reach=z.r+.75;const on=c.one&&c.one.n;const busy=on&&['punch','scream','hitreact','standup','idle_attack','climb'].includes(on);
  if(z.pend>0){z.pend-=dt;if(z.pend<=0){z.pend=-1;const a=stActor(z.tid,p)||actors().find(a=>a.id===z.tid);if(a&&!a.dead&&Math.hypot(a.pos.x-p.x,a.pos.z-p.z)<reach+.5&&Math.abs((a.me?P.y:(a.pos.y||0))-z.y)<1.3){if(a.st)stHurt(a.st,z.dmg*(z.t.sp==='tank'||z.type==='boss'?4:z.type==='brute'?2:1)*(a.st.k===4?.5:a.st.k>=5?.6:1));else{dmgTo(a,z.dmg,p);if(z.t.sp==='tank'||z.type==='boss')knock(a,p,7,.4)}}}}
- const own=z.type==='witch'||z.type==='mutant';const spec=own?(z.type==='witch'?witchAI(z,dt):mutantAI(z,tg,td,dt)):(!busy||z.wind>0||z.charge>0||z.leap||z.hold||z.fuse>0||z.daze>0)&&specialAI(z,tg,td,dt);if(z.gone)return;
+ const own=z.type==='witch'||z.type==='mutant';const spec=own?(z.type==='witch'?witchAI(z,dt):mutantAI(z,tg,td,dt)):(!busy||z.wind>0||z.charge>0||z.leap||z.hold||z.fuse>0||z.daze>0)&&!(z.perch&&!z.perchOn)&&specialAI(z,tg,td,dt);if(z.gone)return;
  if(!spec&&!z.wind&&!z.charge&&!z.leap&&!z.hold&&!z.fuse&&!(z.daze>0)){
   let tx=tg?tg.pos.x:0,tz=tg?tg.pos.z:0;
   if(MAP.links&&tg){const w=navWP(p,z.y,tg.pos,tY);if(w){tx=w.x;tz=w.z}}
+  if(z.perch&&!z.perchOn){tx=z.perch.x;tz=z.perch.z;if(z.y>=z.perch.y-.3&&Math.hypot(p.x-z.perch.x,p.z-z.perch.z)<2.5){z.perchOn=1;z.perchW=0}}
+  else if(z.perchOn&&!z.perchGo){z.perchW+=dt;if(td<15||z.perchW>28||(z.hp<z.max))z.perchGo=1;else{tx=p.x;tz=p.z;if(tg)z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z)}}
   if(MAP.id!=='cross'){}else if(Math.abs(p.x)>BAR+.4&&Math.abs(p.z)<SW+1){tx=Math.sign(p.x)*(BAR-1);tz=0;if(Math.abs(p.z)>1.4)tx=Math.sign(p.x)*(BAR+1.4)}
   else if(Math.abs(p.z)>BAR+.4&&Math.abs(p.x)<SW+1){tz=Math.sign(p.z)*(BAR-1);tx=0;if(Math.abs(p.x)>1.4)tz=Math.sign(p.z)*(BAR+1.4)}
   let dx=tx-p.x,dz=tz-p.z;const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;
@@ -2092,8 +2098,9 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
   if(canHit){z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);if(z.atkT<=0&&!busy){playOnce(c,'punch',z.type==='boss'||z.t.sp==='tank'?1.3:1.7);z.tid=tg.id;z.pend=z.type==='boss'||z.t.sp==='tank'?.55:.42;z.atkT=z.type==='brute'||z.t.sp==='tank'?1.7:z.type==='boss'?1.5:1.15}}
   else if(!busy){
    // 目标在高处：贴着车/箱子就爬上去
-   if(tg&&tY>z.y+.6&&td<6&&z.t.sp!=='tank'&&z.type!=='boss'){const b=climbBox(p,z.r,z.y,3.4);if(b){const C1=topPt(b,tg.pos.x,tg.pos.z,.4,{x:0,z:0}),E1=topPt(b,p.x,p.z,.3,{x:0,z:0});
-     z.climb={t:0,d:1.5,x0:p.x,z0:p.z,y0:z.y,x1:E1.x+(C1.x-E1.x)*.2,z1:E1.z+(C1.z-E1.z)*.2,y1:b.o.h,ex:E1.x,ez:E1.z};z.face=Math.atan2(E1.x-p.x,E1.z-p.z);c.wrap.rotation.y=z.face;c.one=null;updChar(c,dt);return}}
+   const goPerch=z.perch&&!z.perchOn,big=!!z.t.sp||z.type==='boss';
+   if(tg&&((tY>z.y+1.2&&td<35)||goPerch)){const b=climbBox(p,z.r,z.y,goPerch?z.perch.y-z.y+.5:Math.min(big?30:14,tY-z.y+.6),goPerch?z.perch.y:tY);if(b){const aim=goPerch?z.perch:tg.pos;const C1=topPt(b,aim.x,aim.z,.4,{x:0,z:0}),E1=topPt(b,p.x,p.z,.3,{x:0,z:0});
+     z.climb={t:0,d:Math.max(1.5,1+(b.o.h-z.y)*(big?.16:.28)),x0:p.x,z0:p.z,y0:z.y,x1:E1.x+(C1.x-E1.x)*.2,z1:E1.z+(C1.z-E1.z)*.2,y1:b.o.h,ex:E1.x,ez:E1.z};z.face=Math.atan2(E1.x-p.x,E1.z-p.z);c.wrap.rotation.y=z.face;c.one=null;updChar(c,dt);return}}
    // 坦克尸/尸王爬不上车：砸车把车顶上的人震下来
    if(tg&&tY>z.y+.6&&td<5.5&&(z.t.sp==='tank'||z.type==='boss')){z.slamCd=(z.slamCd||0)-dt;if(z.slamCd<=0&&climbBox(p,z.r+.6,z.y,4.5)){z.slamCd=3;playOnce(c,'punch',1.2);pushEv(['warn',z.t.name+'在砸车！']);
      for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<5.5){dmgTo(a,16*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}if(AC){noise(160,.5,.7);tone(70,35,.4,.5)}P.shake=Math.max(P.shake,.3);z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);updChar(c,dt);p.y=z.y;return}}
@@ -2492,7 +2499,7 @@ function lobbyRender(){if(G.state!=='lobby')return;const o=NET.opt;$('lbRoom').t
  $('bTeam').style.display=o.mode==='pvp'?'':'none';$('bLbStart').style.display=NET.host?'':'none'}
 function hostStart(){if(!NET.host)return;const o=NET.opt;const teams={};const L=NET.list.length?NET.list:[myPres()];const cnt=[0,0];
  let fi=10;for(const p of L.slice(0,MAXP)){if(o.mode==='ffa'){teams[p.id]=fi++;continue}let t=o.mode==='pvp'?(p.team|0):0;if(o.mode==='pvp'&&cnt[t]>=TEAM_MAX)t=1-t;cnt[t]++;teams[p.id]=t}
- const cfg={mid:'m'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickMap(),ml:G.mapLeft,mode:o.mode,diff:o.diff,ai:o.ai,teams};NET.started=true;G.mid=cfg.mid;nsend('start',cfg);beginMatch(cfg)}
+ const cfg={mid:'m'+Date.now().toString(36),seed:Math.floor(Math.random()*1e9),map:pickSolo(),ml:null,rep:G.rep,mode:o.mode,diff:o.diff,ai:o.ai,teams};NET.started=true;G.mid=cfg.mid;nsend('start',cfg);beginMatch(cfg)}
 $('bSolo').onclick=startSolo;
 $('bRot').onclick=()=>{fullscreen();setTimeout(chkRot,600)};
 function chkRot(){const need=TOUCH&&(G.state==='play'||G.state==='lobby')&&innerHeight>innerWidth*1.05;$('rot').style.display=need?'flex':'none'}
