@@ -2428,7 +2428,19 @@ function onPresence(st){const list=[];for(const k in st){const o=st[k]&&st[k][0]
  if(NET.host&&NET.started&&G.cfg){let resend=false;for(const o of list)if(!prev.includes(o.id)&&o.id!==NET.me){const hum=[0,0];hum[P.team]++;for(const id in HUM)if(!HUM[id].bot)hum[HUM[id].team]++;G.cfg.teams[o.id]=G.ffa?10+Object.keys(G.cfg.teams).length+Math.floor(Math.random()*50):G.mode==='pvp'?(hum[0]<=hum[1]?0:1):0;resend=true}
   if(resend)nsend('start',G.cfg)}
  if(NET.host&&!NET.started)nsend('opt',Object.assign({},NET.opt));
+ if(NET.started&&!NET.host&&!hostPresent()&&!NET.toT)NET.toT=setTimeout(hostCheck,2500);
  if(!NET.started||G.state==='lobby')lobbyRender()}
+/* ---------- 房主转移：房主离开后，最早进房的玩家接手（丧尸、波数、分数接着打） ---------- */
+function hostCheck(){NET.toT=0;if(!NET.on||!NET.started||NET.host||hostPresent())return;if(G.state!=='play'&&G.state!=='over')return;
+ const c=NET.list.filter(o=>!o.host).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1))[0];if(!c)return;if(c.id!==NET.me){NET.toT=setTimeout(hostCheck,4000);return}hostTakeover()}
+function hostTakeover(){NET.host=true;NET.lagShown=0;NET.lastH=performance.now();LS.set('scqh-last',JSON.stringify({c:NET.room,t:Date.now(),h:1}));try{NET.tr.track(myPres())}catch(e){}
+ if(G.mode==='z'){const old=G.zs.splice(0);let mx=0;for(const Z of old){scene.remove(Z.c.wrap);mx=Math.max(mx,Z.id)}G.zid=Math.max(G.zid||0,mx+1);
+  for(const Z of old){if(Z.dead)continue;const at={x:Z.tgt.x,y:Z.tgt.y||0,z:Z.tgt.z};spawnZ(Z.type,at);const n=G.zs[G.zs.length-1];if(!n||n.id<mx+1)continue;n.id=Z.id;if(Z.hp!==undefined)n.hp=Math.min(n.max,Math.max(1,Z.hp));n.c.wrap.position.set(at.x,at.y,at.z);n.c.wrap.rotation.y=Z.ry||0;n.c.one=null}
+  const rem=Math.max(0,(G.left|0)-G.zs.filter(z=>!z.dead).length),rr=G.wave<2?0:Math.min(.4,.1+.05*(G.wave-2));G.queue=[];for(let i=0;i<rem;i++)G.queue.push(Math.random()<rr?'runner':'walker')}
+ let sm=0;for(const S of ST)sm=Math.max(sm,S.id|0);STID=Math.max(STID,sm+1);
+ if(G.mode!=='z'){for(const id in HUM)if(HUM[id].bot)removeHuman(id);syncBots()}
+ if(NET.opt&&NET.opt.pub){mmSetPub(true)}
+ hudDirty=true;popTxt('房主已离开，你接手成为新房主');say&&say('你成为新房主')}
 function onStart(cfg){if(cfg.mid===G.mid&&(G.state==='play'||G.state==='over'))return;if(!NET.on)return;NET.started=true;beginMatch(cfg)}
 function onP(s){if(s.m!==G.mid||s.i===NET.me||G.state==='lobby'||G.state==='menu')return;let H=HUM[s.i];
  if(!H){H=makeHuman(s.i,{name:s.n,team:s.t,sk:s.sk,w:s.w});H.pos.set(s.x,0,s.z);H.yaw=s.y}
@@ -2747,7 +2759,7 @@ $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
 (()=>{const f=()=>{const h=$('hudFrame'),m=$('menu');if(h&&m)h.style.display=m.classList.contains('hid')?'none':''};const m=document.getElementById('menu');if(m){new MutationObserver(f).observe(m,{attributes:true,attributeFilter:['class']});setTimeout(f,0)}})();
-function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);try{menuShow()}catch(e){console.warn(e)}$('bKeys').onclick=$('bKeys2').onclick=()=>{$('keysTouch').textContent=TOUCH?'手机：左半屏拖动移动（推到底冲刺），右半屏拖动转视角；按住「开火」可边打边瞄。':'';$('keys').classList.remove('hid')};$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&!L.h&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
+function showMenu(){$('menu').classList.remove('hid');setTimeout(i18nApply,0);try{menuShow()}catch(e){console.warn(e)}$('bKeys').onclick=$('bKeys2').onclick=()=>{$('keysTouch').textContent=TOUCH?'手机：左半屏拖动移动（推到底冲刺），右半屏拖动转视角；按住「开火」可边打边瞄。':'';$('keys').classList.remove('hid')};$('nm').value=myName;{let L=null;try{L=JSON.parse(LS.get('scqh-last')||'null')}catch(e){}const b=$('bRejoin');if(L&&L.c&&Date.now()-L.t<45*60000){b.style.display='';b.textContent='回到房间 '+L.c;b.onclick=()=>{audioInit();fullscreen();$('code').value=L.c;enterRoom(L.c,false)}}else b.style.display='none'}
  chips($('langRow'),['中文','English'],LANG==='zh'?0:1,i=>{LANG=i?'en':'zh';LS.set('scqh-lang',LANG);loreSet();showMenu();i18nApply()});chips($('visRow'),VCOL.map(v=>v.n),visC,i=>{visC=i;LS.set('scqh-vc',i);showMenu()})
  chips($('modeRow'),MODE_L.map(m=>m[1]),MODE_L.findIndex(m=>m[0]===modeS),i=>{modeS=MODE_L[i][0];LS.set('scqh-mode',modeS);showMenu()});
  chips($('diffRow'),DIFF.map(d=>d.n),diffI,i=>{diffI=i;LS.set('scqh-diff',i);showMenu()});
@@ -2790,12 +2802,12 @@ function mmOpen(cb){mmStop();try{MM.tr=netTransport('MATCH')}catch(e){menuMsg(e.
  let done=false;const to=setTimeout(()=>{if(!done){done=true;MM.busy=false;menuMsg('连接失败，请检查网络后重试')}},10000);
  MM.tr.subscribe(st=>{if(st==='SUBSCRIBED'&&!done){done=true;clearTimeout(to);MM.tr.track({id:MM.id});setTimeout(cb,1800)}})}
 function mmAd(){if(!MM.tr||!MM.pub||!NET.on)return;const o=NET.opt;MM.tr.track({id:MM.id,room:NET.room,mode:o.mode,n:Math.max(1,NET.list.length),st:NET.started?1:0,t:NET.T0})}
-function mmSetPub(on){if(!NET.on||!NET.host)return;if(!on){mmStop();lobbyRender();return}MM.own=true;MM.pub=true;
+function mmSetPub(on){if(!NET.on||!NET.host)return;NET.opt.pub=on?1:0;nsend('opt',Object.assign({},NET.opt));if(!on){mmStop();lobbyRender();return}MM.own=true;MM.pub=true;
  if(MM.tr){mmAd();lobbyRender();return}try{MM.tr=netTransport('MATCH')}catch(e){MM.pub=false;return}MM.tr.presence(st=>{MM.st=st||{}});MM.tr.subscribe(st=>{if(st==='SUBSCRIBED')mmAd()});lobbyRender()}
 function quickMatch(){MM.own=false;if(MM.busy)return;MM.busy=true;audioInit();fullscreen();menuMsg('正在寻找对手 / 队友……');
  mmOpen(()=>{MM.busy=false;const c=mmList().filter(o=>o.mode===modeS&&o.n<MAXP).sort((a,b)=>(b.n-a.n)||(a.st-b.st)||(a.t-b.t))[0];
   if(c){mmStop();menuMsg('');enterRoom(c.room,false);lbMsg('匹配成功！已进入房间，等房主开始');return}
-  const keep=MM.tr;MM.tr=null;enterRoom(roomCode(),true);MM.tr=keep;MM.pub=true;mmAd();lbMsg('匹配中……等待其他玩家加入（也可以直接开始，电脑补位）')})}
+  const keep=MM.tr;MM.tr=null;enterRoom(roomCode(),true);MM.tr=keep;MM.pub=true;NET.opt.pub=1;mmAd();lbMsg('匹配中……等待其他玩家加入（也可以直接开始，电脑补位）')})}
 setInterval(()=>{if(!MM.pub||!NET.on||!NET.host)return;mmAd();if(NET.started)return;
  // 多人同时按匹配各开了房：还没开打的房间，整房并进「人更多、或人一样多但更早开」的房间（合起来不超过 8 人）
  if(MM.own)return;
