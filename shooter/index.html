@@ -2417,7 +2417,7 @@ function enterRoom(code,host){netLeave();myName=($('nm').value||'').trim().slice
  Object.assign(NET,{on:true,host,me:netId(code),room:code,started:false,list:[],T0:Date.now(),team:0,opt:{mode:modeS,diff:diffI,ai:aiS}});
  try{NET.tr=netTransport(code)}catch(e){NET.on=false;menuMsg(e.message);return}
  const Tr=NET.tr;Tr.on('p',onP);Tr.on('H',onH);Tr.on('kill',onKill);Tr.on('start',onStart);Tr.on('pz',o=>{if(o.m===G.mid)setHostPause(o.v)});Tr.on('crq',o=>{if(NET.host&&G.state==='play')pushEv(['crn',o.x,o.z,o.by])});Tr.on('end',p=>{if(p.m===G.mid)showEnd(p)});
- Tr.on('th',e=>{if(G.state==='play'&&e[7]!==NET.me)spawnThrow(e)});Tr.on('gad',e=>{if(G.state==='play'&&e[0]!==NET.me)gadRemote(e)});Tr.on('gadv',e=>{RGV[e[0]]={l:!!e[1],s:!!e[2],g:!!e[3],d:!!e[4],n:!!e[5]}});Tr.on('rv',o=>{if(o.v===NET.me)reviveMe(o.by)});Tr.on('brk',o=>{if(!NET.host)return;const z=zById(o.z);if(z&&z.hold===o.p){z.hDmg=999}});Tr.on('opt',o=>{if(!NET.host){NET.opt=o;lobbyRender()}});Tr.on('team',o=>{});Tr.presence(onPresence);
+ Tr.on('th',e=>{if(G.state==='play'&&e[7]!==NET.me)spawnThrow(e)});Tr.on('gad',e=>{if(G.state==='play'&&e[0]!==NET.me)gadRemote(e)});Tr.on('gadv',e=>{RGV[e[0]]={l:!!e[1],s:!!e[2],g:!!e[3],d:!!e[4],n:!!e[5]}});Tr.on('rv',o=>{if(o.v===NET.me)reviveMe(o.by)});Tr.on('brk',o=>{if(!NET.host)return;const z=zById(o.z);if(z&&z.hold===o.p){z.hDmg=999}});Tr.on('opt',o=>{if(!NET.host){NET.opt=o;lobbyRender()}});Tr.on('team',o=>{});Tr.on('mv',o=>{if(!NET.host&&!NET.started&&o.r&&o.r!==NET.room)setTimeout(()=>{if(!NET.started){enterRoom(o.r,false);lbMsg('匹配成功！已并入更大的房间')}},250)});Tr.presence(onPresence);
  showLobby();lbMsg('连接中……');
  Tr.subscribe(st=>{if(st==='SUBSCRIBED'){Tr.track(myPres());lbMsg(host?'把房号或邀请链接发给朋友（最多 '+MAXP+' 人）':'已连上，等房主开始');lobbyRender()}
   else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')lbMsg('连接失败，请检查网络后重试')})}
@@ -2790,13 +2790,17 @@ function mmOpen(cb){mmStop();try{MM.tr=netTransport('MATCH')}catch(e){menuMsg(e.
  MM.tr.subscribe(st=>{if(st==='SUBSCRIBED'&&!done){done=true;clearTimeout(to);MM.tr.track({id:MM.id});setTimeout(cb,1800)}})}
 function mmAd(){if(!MM.tr||!MM.pub||!NET.on)return;const o=NET.opt;MM.tr.track({id:MM.id,room:NET.room,mode:o.mode,n:Math.max(1,NET.list.length),st:NET.started?1:0,t:NET.T0})}
 function quickMatch(){if(MM.busy)return;MM.busy=true;audioInit();fullscreen();menuMsg('正在寻找对手 / 队友……');
- mmOpen(()=>{MM.busy=false;const c=mmList().filter(o=>o.mode===modeS&&o.n<MAXP).sort((a,b)=>(a.st-b.st)||(b.n-a.n)||(a.t-b.t))[0];
+ mmOpen(()=>{MM.busy=false;const c=mmList().filter(o=>o.mode===modeS&&o.n<MAXP).sort((a,b)=>(b.n-a.n)||(a.st-b.st)||(a.t-b.t))[0];
   if(c){mmStop();menuMsg('');enterRoom(c.room,false);lbMsg('匹配成功！已进入房间，等房主开始');return}
   const keep=MM.tr;MM.tr=null;enterRoom(roomCode(),true);MM.tr=keep;MM.pub=true;mmAd();lbMsg('匹配中……等待其他玩家加入（也可以直接开始，电脑补位）')})}
 setInterval(()=>{if(!MM.pub||!NET.on||!NET.host)return;mmAd();if(NET.started)return;
- // 两个人同时按匹配各开了一个房：只有自己一人的那个，自动并到更早开的房
- if(NET.list.length<=1){const old=mmList().filter(o=>o.mode===NET.opt.mode&&!o.st&&o.n<MAXP&&o.t<NET.T0).sort((a,b)=>a.t-b.t)[0];if(old){mmStop();enterRoom(old.room,false);lbMsg('匹配成功！已进入房间，等房主开始');return}}
- if(NET.list.length>=2&&G.state==='lobby'){if(!MM.cd)MM.cd=15;MM.cd--;lbMsg('已匹配到 '+NET.list.length+' 名玩家，'+MM.cd+' 秒后自动开始');if(MM.cd<=0){MM.cd=0;hostStart()}}else MM.cd=0},1000);
+ // 多人同时按匹配各开了房：还没开打的房间，整房并进「人更多、或人一样多但更早开」的房间（合起来不超过 8 人）
+ const me={n:Math.max(1,NET.list.length),t:NET.T0};const better=o=>o.n>me.n||(o.n===me.n&&o.t<me.t);
+ const tgt=mmList().filter(o=>o.mode===NET.opt.mode&&!o.st&&o.n+me.n<=MAXP&&better(o)).sort((a,b)=>(b.n-a.n)||(a.t-b.t))[0];
+ if(tgt){nsend('mv',{r:tgt.room});const r=tgt.room;mmStop();setTimeout(()=>{enterRoom(r,false);lbMsg('匹配成功！已并入更大的房间')},400);return}
+ // 人数稳定 3 秒、没有可并的房间后才开始 15 秒倒数；有新人进来就重新等
+ const n=NET.list.length;if(n!==MM.ln){MM.ln=n;MM.stab=0;MM.cd=0}MM.stab=(MM.stab||0)+1;
+ if(n>=2&&G.state==='lobby'&&MM.stab>=3){if(!MM.cd)MM.cd=16;MM.cd--;lbMsg('已匹配到 '+n+' 名玩家，'+MM.cd+' 秒后自动开始');if(MM.cd<=0){MM.cd=0;hostStart()}}else if(n<2){MM.cd=0;lbMsg('匹配中……等待其他玩家加入（也可以直接开始，电脑补位）')}},1000);
 $('bMatch').onclick=quickMatch;
 $('bCreate').onclick=()=>{audioInit();fullscreen();enterRoom(roomCode(),true)};
 $('bJoin').onclick=()=>{const c=($('code').value||'').trim().toUpperCase();if(c.length<4){menuMsg('请输入房间号');return}audioInit();fullscreen();enterRoom(c,false)};
