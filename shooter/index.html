@@ -776,8 +776,10 @@ const MAPS={
   zs:[[50,15,0],[-50,-15,0],[50,-15,0],[-50,15,0],[47,0,6.2],[-47,0,6.2]],ps:()=>[rand(-3,3),rand(14,17)],pv:t=>[(t?-1:1)*rand(37,41),(t?-1:1)*rand(12,17)],
   build(){gplane(140,80,M('road'));for(const z of[-20,20])mbox(0,z,120,4,.16,M('walk'),{nocol:true,cast:false});
    // 桥面 z∈[-6,6]，高 5.6–6.2，桥墩
-   const dk=M('conc');mbox(0,0,100,12,.6,dk,{y0:5.6,uv:4});for(const [x0,x1,s] of[[-50,19.5,1],[23.5,50,1],[-50,-23.5,-1],[-19.5,50,-1]])mbox((x0+x1)/2,s*6,x1-x0,.3,.55,M('metal'),{y0:6.2});
-   for(let x=-45;x<=45;x+=15)for(const s of[1,-1])mbox(x,s*4,1.4,1.4,5.6,M('conc2'));
+   const cn=M('conc'),c2=M('conc2'),am=TEX.road?mat(TEX.road,{color:0x55545a}):M('dark');const dk=[cn,cn,am,cn,cn,cn];mbox(0,0,100,12,.6,dk,{y0:5.6,uv:4});for(const [x0,x1,s] of[[-50,19.5,1],[23.5,50,1],[-50,-23.5,-1],[-19.5,50,-1]])mbox((x0+x1)/2,s*5.8,x1-x0,.45,.9,c2,{y0:6.2});
+   // 现代高架：箱梁 + 单柱圆墩 + 盖梁
+   mbox(0,0,100,7,1.0,c2,{y0:4.6,nocol:true});
+   for(let x=-45;x<=45;x+=15){const h=3.9;const col=new T.Mesh(new T.CylinderGeometry(.85,.95,h,20),c2);col.position.set(x,h/2,0);col.castShadow=true;col.receiveShadow=true;col.userData.noPost=1;scene.add(col);addCol(x-.9,-.9,x+.9,.9,h,{mp:1});mbox(x,0,1.6,9,.7,c2,{y0:3.9,nocol:true})}
    // 两条坡道（台阶）连到桥面侧面的平台
    const R1=stairs(8,9.5,'+x',4,6.2,M('conc2')),R2=stairs(-8,-9.5,'-x',4,6.2,M('conc2'));
    mbox(21.5,8.6,4,5.6,.6,dk,{y0:5.6});mbox(-21.5,-8.6,4,5.6,.6,dk,{y0:5.6});for(const s of[1,-1]){mbox(s*21.5,s*11.5,4,.25,.55,M('metal'),{y0:6.2});mbox(s*23.6,s*8.6,.25,5.6,.55,M('metal'),{y0:6.2})}
