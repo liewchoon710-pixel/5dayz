@@ -2463,7 +2463,7 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
    const FE=fortEngage(z,p,dx,dz,tg,c,dt);if(FE===2){updChar(c,dt);return}if(!FE){
    let sx=0,sz=0;for(const o of G.zs){if(o===z||o.dead)continue;const ox=p.x-o.c.wrap.position.x,oz=p.z-o.c.wrap.position.z;const d2=ox*ox+oz*oz,rr=z.r+o.r;if(d2<rr*rr&&d2>1e-6){const d=Math.sqrt(d2);sx+=ox/d*(rr-d);sz+=oz/d*(rr-d)}}
    let vx=dx,vz=dz;if(z.detT>0){z.detT-=dt;vx+=-dz*z.det*1.2;vz+=dx*z.det*1.2;const l=Math.hypot(vx,vz);vx/=l;vz/=l}
-   const s=(tg?z.spd:z.spd*.4)*(z.buffT>0?1.4:1)*(z.slowT>0?.3:1);p.x+=(vx*s)*dt+sx*Math.min(1,dt*8);p.z+=(vz*s)*dt+sz*Math.min(1,dt*8);pushOut(p,z.r*.8,'z',z.y);
+   const s=(tg?z.spd:z.spd*.4)*(z.buffT>0?1.4:1)*(z.slowT>0?.3:1)*(WATER.rects.length&&(z.y||0)<.3&&inWater(p.x,p.z)?(z.type==='tank'||z.type==='boss'?.9:.75):1);p.x+=(vx*s)*dt+sx*Math.min(1,dt*8);p.z+=(vz*s)*dt+sz*Math.min(1,dt*8);pushOut(p,z.r*.8,'z',z.y);
    const moved=Math.hypot(p.x-z.last.x,p.z-z.last.y);mv=moved/dt;
    if(mv<s*.35&&td>reach+.3){z.stuck+=dt;if(z.stuck>.45){z.stuck=0;z.det=Math.random()<.5?1:-1;z.detT=rand(.8,1.6)}}else z.stuck=Math.max(0,z.stuck-dt);
    z.face=Math.atan2(vx,vz)}}
@@ -2700,7 +2700,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml}
  const held=P.stun>0||P.grab||P.pin||P.climb;if(held||P.mg){mx=0;mz=0}
  const hvy=G.ws&&WP[G.cur].heavy&&!P.mg;const sprint=inp&&!hvy&&!held&&!P.dn&&!P.cr&&!P.mg&&!P.aimOn&&!IN.fire&&mz>.3&&(k.ShiftLeft||k.ShiftRight||(TOUCH&&ml>.92));
- const spd=(P.dead?0:P.dn?.7:sprint?6.6:(P.aimOn?2.6:4.3)*(P.cr?.5:1))*(P.dn?1:mods().spd)*(hvy?.6:1)*(P.wake>0?0:1);
+ const spd=(P.dead?0:P.dn?.7:sprint?6.6:(P.aimOn?2.6:4.3)*(P.cr?.5:1))*(P.dn?1:mods().spd)*(hvy?.6:1)*(P.wake>0?0:1)*(WATER.rects.length&&P.pos.y<.3&&inWater(P.pos.x,P.pos.z)?.72:1);
  const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);
  const tvx=(fx*mz+rx*mx)*spd,tvz=(fz*mz+rz*mx)*spd;const ac=Math.min(1,dt*12);P.vel.x+=(tvx-P.vel.x)*ac;P.vel.z+=(tvz-P.vel.z)*ac;
  if(P.stun>0)P.stun-=dt;
