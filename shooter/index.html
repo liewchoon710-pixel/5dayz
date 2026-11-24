@@ -619,26 +619,37 @@ function buildCrossMap(){
   if(ax==='x')addCol(s*BAR-.5,-2.3,s*BAR+.5,2.3,2,{z:0,r:0});else addCol(-2.3,s*BAR-.5,2.3,s*BAR+.5,2,{z:0,r:0});
  }
  // 高架桥：现代混凝土高架（沥青桥面、单柱桥墩+盖梁、防撞护栏），西端断裂塌落
- {const cc=document.createElement('canvas');cc.width=cc.height=256;const g2=cc.getContext('2d');g2.fillStyle='#8c8b86';g2.fillRect(0,0,256,256);
-  for(let k=0;k<5000;k++){const v=120+Math.random()*60|0;g2.fillStyle=`rgba(${v},${v},${v-4},.22)`;g2.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*2,1+Math.random()*2)}
-  g2.fillStyle='rgba(40,38,36,.18)';for(let k=0;k<14;k++){const x=Math.random()*256;g2.fillRect(x,0,2+Math.random()*5,256)}
-  g2.strokeStyle='rgba(60,60,60,.35)';g2.lineWidth=1;for(let k=0;k<4;k++){g2.beginPath();g2.moveTo(0,k*64+.5);g2.lineTo(256,k*64+.5);g2.stroke()}
+ {const cc=document.createElement('canvas');cc.width=cc.height=512;const g2=cc.getContext('2d');g2.fillStyle='#6a6c6f';g2.fillRect(0,0,512,512);
+  for(let k=0;k<14000;k++){const v=80+Math.random()*70|0;g2.fillStyle=`rgba(${v},${v},${v+2},.25)`;g2.fillRect(Math.random()*512,Math.random()*512,1+Math.random()*3,1+Math.random()*3)}
+  // 雨水冲刷的黑色垂直污迹
+  for(let k=0;k<40;k++){const x=Math.random()*512,w=3+Math.random()*16,L=60+Math.random()*420,gr=g2.createLinearGradient(0,0,0,L);gr.addColorStop(0,'rgba(20,18,16,.55)');gr.addColorStop(1,'rgba(20,18,16,0)');g2.fillStyle=gr;g2.fillRect(x,0,w,L)}
+  // 锈水（从钢筋渗出来的红褐色）
+  for(let k=0;k<12;k++){const x=Math.random()*512,y0=Math.random()*200,L=80+Math.random()*200,gr=g2.createLinearGradient(0,y0,0,y0+L);gr.addColorStop(0,'rgba(120,55,25,.55)');gr.addColorStop(1,'rgba(120,55,25,0)');g2.fillStyle=gr;g2.fillRect(x,y0,2+Math.random()*6,L)}
+  // 青苔/霉斑
+  for(let k=0;k<30;k++){const x=Math.random()*512,y=380+Math.random()*130,r=6+Math.random()*28,gr=g2.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(48,62,34,.45)');gr.addColorStop(1,'rgba(48,62,34,0)');g2.fillStyle=gr;g2.fillRect(x-r,y-r,r*2,r*2)}
+  // 裂缝
+  g2.strokeStyle='rgba(15,14,12,.75)';for(let k=0;k<18;k++){let x=Math.random()*512,y=Math.random()*512;g2.lineWidth=.8+Math.random()*1.5;g2.beginPath();g2.moveTo(x,y);for(let t=0;t<8;t++){x+=(Math.random()-.5)*30;y+=Math.random()*26;g2.lineTo(x,y)}g2.stroke()}
+  // 施工缝 + 剥落露出的浅色混凝土
+  g2.strokeStyle='rgba(30,30,30,.5)';g2.lineWidth=2;for(let k=0;k<4;k++){g2.beginPath();g2.moveTo(0,k*128+1);g2.lineTo(512,k*128+1);g2.stroke()}
+  for(let k=0;k<10;k++){g2.fillStyle='rgba(150,146,138,.5)';g2.beginPath();const x=Math.random()*512,y=Math.random()*512;g2.moveTo(x,y);for(let t=0;t<6;t++)g2.lineTo(x+(Math.random()-.5)*40,y+(Math.random()-.5)*30);g2.fill()}
+  // 底部积灰泥污
+  {const gr=g2.createLinearGradient(0,400,0,512);gr.addColorStop(0,'rgba(40,34,28,0)');gr.addColorStop(1,'rgba(40,34,28,.6)');g2.fillStyle=gr;g2.fillRect(0,400,512,112)}
   const ct=new T.CanvasTexture(cc);ct.wrapS=ct.wrapT=T.RepeatWrapping;ct.encoding=T.sRGBEncoding;
-  const cm=new T.MeshStandardMaterial({map:ct,color:0xb0aea8,roughness:.88,metalness:0});
+  const cm=new T.MeshStandardMaterial({map:ct,color:0x9c9fa3,roughness:.95,metalness:0});cm.userData.su=1;
   const am=TEX.road?mat(TEX.road,{color:0x55545a}):new T.MeshStandardMaterial({color:0x2e2f33,roughness:.7});
   const y=8.2,W=10;const SEGS=[[-EDGE-20,-46],[-30,EDGE+20]];for(const [x0,x1] of SEGS){const L=x1-x0;
   // 桥面：顶面沥青，其余混凝土
-  const deck=new T.Mesh(uvBox(L,1.0,W,8,2),[cm,cm,am,cm,cm,cm]);deck.position.set((x0+x1)/2,y,0);deck.castShadow=true;deck.receiveShadow=true;scene.add(deck);
+  const deck=new T.Mesh(uvBox(L,1.0,W,8,2),[cm,cm,am,cm,cm,cm]);deck.position.set((x0+x1)/2,y,0);deck.castShadow=true;deck.receiveShadow=true;deck.userData.noPost=1;scene.add(deck);
   // 箱梁（桥面下方较窄的梁体）
-  const gd=new T.Mesh(uvBox(L,1.3,W*.6,8,2),cm);gd.position.set((x0+x1)/2,y-1.15,0);gd.castShadow=true;scene.add(gd);
+  const gd=new T.Mesh(uvBox(L,1.3,W*.6,8,2),cm);gd.position.set((x0+x1)/2,y-1.15,0);gd.castShadow=true;gd.userData.noPost=1;scene.add(gd);
   // 两侧防撞护栏（新泽西护栏）
-  for(const sz of[1,-1]){const r=new T.Mesh(uvBox(L,.9,.45,8,1),cm);r.position.set((x0+x1)/2,y+.95,sz*(W/2-.22));r.castShadow=true;scene.add(r)}
+  for(const sz of[1,-1]){const r=new T.Mesh(uvBox(L,.9,.45,8,1),cm);r.position.set((x0+x1)/2,y+.95,sz*(W/2-.22));r.userData.noPost=1;r.castShadow=true;scene.add(r)}
   // 桥墩：圆柱 + 盖梁
   for(let x=x0+7;x<x1-2;x+=14){if(Math.abs(x)<SW+3)continue;const h=y-1.8;const col=new T.Mesh(new T.CylinderGeometry(.85,.95,h,20),cm);col.position.set(x,h/2,0);col.castShadow=true;col.receiveShadow=true;scene.add(col);addCol(x-.9,-.9,x+.9,.9,h);
-   const cap=new T.Mesh(uvBox(1.6,1.1,W*.75,1,2),cm);cap.position.set(x,y-2.35+.55,0);cap.castShadow=true;scene.add(cap)}
+   const cap=new T.Mesh(uvBox(1.6,1.1,W*.75,1,2),cm);cap.position.set(x,y-2.35+.55,0);cap.userData.noPost=1;cap.castShadow=true;scene.add(cap)}
   }{const x0=-30;
   // 断口：一截桥面塌落，一端着地一端搭在桥头，露出钢筋
-  const BL=11,ba=Math.asin((y-.6)/BL),bh=Math.cos(ba)*BL;const br=new T.Mesh(uvBox(BL,1.0,W-.6,3,2),[cm,cm,am,cm,cm,cm]);br.position.set(x0-bh/2,(y-.6)/2,0);br.rotation.z=ba;br.castShadow=true;br.receiveShadow=true;scene.add(br);addCol(x0-bh,-4.5,x0-bh*.55,4.5,2.2);
+  const BL=11,ba=Math.asin((y-.6)/BL),bh=Math.cos(ba)*BL;const br=new T.Mesh(uvBox(BL,1.0,W-.6,3,2),[cm,cm,am,cm,cm,cm]);br.position.set(x0-bh/2,(y-.6)/2,0);br.rotation.z=ba;br.castShadow=true;br.receiveShadow=true;br.userData.noPost=1;scene.add(br);addCol(x0-bh,-4.5,x0-bh*.55,4.5,2.2);
   const rb=new T.MeshStandardMaterial({color:0x5a3a28,roughness:.6,metalness:.6});for(let k=0;k<9;k++){const r=new T.Mesh(new T.CylinderGeometry(.04,.04,1.6,5),rb);r.position.set(x0+.1,y-.1,-4+k);r.rotation.z=Math.PI/2+rand(-.5,.5);r.rotation.x=rand(-.3,.3);scene.add(r)}
   // 碎块散落在塌落处
   const rbm=new T.MeshStandardMaterial({map:ct,color:0x4a4845,roughness:.95,flatShading:true});
@@ -984,7 +995,7 @@ function texStencil(txt,R){const W=1024,H=320,c=document.createElement('canvas')
  g.globalCompositeOperation='destination-out';for(let i=0;i<1400;i++){g.globalAlpha=R()*.6;g.fillRect(R()*W,R()*H,R()*4+1,R()*2+1)}g.globalCompositeOperation='source-over';g.globalAlpha=1;
  const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;t.anisotropy=4;return t}
 let LOREG=null;const LRC=new T.Raycaster();
-function loreOk(o){if(!o.isMesh||o.isSkinnedMesh||o.isSprite||o.userData.lore)return false;const m=Array.isArray(o.material)?o.material[0]:o.material;if(!m||m.colorWrite===false||m.transparent||m.alphaTest>0||m.side===T.DoubleSide)return false;for(let p=o;p;p=p.parent){if(!p.visible||p.userData.gad)return false}return true}
+function loreOk(o){if(!o.isMesh||o.isSkinnedMesh||o.isSprite||o.userData.lore||o.userData.noPost||(o.geometry&&/Cylinder|Dodeca/.test(o.geometry.type)))return false;const m=Array.isArray(o.material)?o.material[0]:o.material;if(!m||m.colorWrite===false||m.transparent||m.alphaTest>0||m.side===T.DoubleSide)return false;for(let p=o;p;p=p.parent){if(!p.visible||p.userData.gad)return false}return true}
 function loreSet(){try{if(!MAP)return;if(LOREG){scene.remove(LOREG);LOREG.traverse(o=>{if(o.material){o.material.map&&o.material.map.dispose();o.material.dispose()}});}
  LOREG=new T.Group();LOREG.userData.lore=1;const R=loreRng((G.layoutSeed||1)*31+7),L=LORE[LANG==='zh'?'zh':'en'];
  const ex=new Set([P.c&&P.c.wrap,...G.zs.map(z=>z.c&&z.c.wrap),...actors().map(a=>a.c&&a.c.wrap)].filter(Boolean));const tg=[];scene.traverse(o=>{if(!loreOk(o))return;for(let q=o;q;q=q.parent)if(ex.has(q)||q.userData.dyn||q.userData.brk)return;tg.push(o)});const BB=new Map(),bb=o=>{let b=BB.get(o);if(!b){b=new T.Box3().setFromObject(o).getSize(new T.Vector3());BB.set(o,b)}return b};
@@ -1014,6 +1025,28 @@ function derelict(sd){if(!MAP)return;try{envBig(sd)}catch(e){console.warn("envBi
      if(R()<.3&&sc<SN&&h>9){const w=1.5+R()*2.5,hh=4+R()*8,y=Math.max(2,h-hh-R()*4);d.position.set(fx+tx*(u+1.5)+nx*.03,y,fz+tz*(u+1.5)+nz*.03);d.rotation.set(0,ry,0);d.scale.set(w,hh,1);d.updateMatrix();si.setMatrixAt(sc++,d.matrix)}}}}
   for(const im of [vi,si]){im.count=im===vi?0:sc;im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;scene.add(im)}}
  inst(A.rg,A.rm,Math.round(22*lo),.9,true,o=>{const k=.5+R()*.9;o.scale.set(k*(1+R()*.5),.18+R()*.22,k*(1+R()*.5));o.rotation.x=(R()-.5)*.3}).castShadow=true}
+/* ---------- 统一美术风格：现代 · 末日 · 破败 · 末日科技 ----------
+   所有建筑、车辆、设施、杂物：降低饱和、压暗、加粗糙度、统一做旧（锈迹/积灰/掉漆）；
+   楼房外墙点缀残存的科技元素：青色灯条（有的坏掉一闪一闪）、楼顶红色警示灯、天线 */
+const STY={tech:[]};
+function styleUnify(){const skip=new Set();if(P&&P.c)skip.add(P.c.wrap);for(const id in HUM)HUM[id].c&&skip.add(HUM[id].c.wrap);for(const z of G.zs)skip.add(z.c.wrap);
+ const under=o=>{let q=o;while(q){if(skip.has(q)||q.userData.gad||q.userData.fx)return true;q=q.parent}return false};
+ scene.traverse(o=>{if(!o.isMesh||o.isSkinnedMesh||under(o)||(o.geometry&&o.geometry.type==='PlaneGeometry'))return;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(!m||!m.isMeshStandardMaterial||m.userData.su||m.userData.wet||m.map===TEX.road||m.map===TEX.walk||m.transparent||(m.emissive&&m.emissive.getHex()&&m.emissiveIntensity>0))continue;m.userData.su=1;
+   if(m.color){const h={};m.color.getHSL(h);m.color.setHSL(h.h,h.s*.6,h.l*(m.map?.88:.8))}m.roughness=Math.max(m.roughness,.72);m.metalness=Math.min(m.metalness,.45);m.envMapIntensity=Math.min(m.envMapIntensity==null?1:m.envMapIntensity,.5);
+   GFX&&GFX.weather&&GFX.weather(m,m.metalness>.3?.45:.06,.35);m.needsUpdate=true}});
+ // 科技点缀（每张图只加一次）
+ for(const t of STY.tech)scene.remove(t.o);STY.tech.length=0;if(MAP&&MAP.env&&MAP.env.dark)return;
+ let k=0;const ledM=c=>new T.MeshBasicMaterial({color:c,toneMapped:false,fog:true});
+ scene.traverse(o=>{if(k>=28||!o.isMesh||!o.userData.bld)return;const b=o.userData.bld;if(b.h<10)return;const p=o.position;if(((p.x*7.3+p.z*3.1)|0)%2)return;k++;
+  const sx=Math.sign(p.x)||1,sz=Math.sign(p.z)||1;
+  // 朝向路口那一面的竖向青色灯条
+  const L=b.h*(.45+((p.x*13|0)%3)*.12),st=new T.Mesh(new T.BoxGeometry(.12,L,.12),ledM(0x38e6ff));st.position.set(p.x-sx*(b.w/2+.07),2+L/2,p.z-sz*(b.d/2-.6));scene.add(st);LAYOUT.push(st);
+  STY.tech.push({o:st,br:((p.x*31+p.z*17)|0)%3===0,t:Math.random()*9});
+  // 楼顶红色警示灯 + 天线
+  const ant=new T.Mesh(new T.CylinderGeometry(.05,.07,3.2,6),new T.MeshStandardMaterial({color:0x2a2c30,metalness:.7,roughness:.5}));ant.position.set(p.x+b.w*.25,b.h+1.6,p.z-b.d*.2);scene.add(ant);LAYOUT.push(ant);
+  const rl=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff2a1a,blending:T.AdditiveBlending,depthWrite:false,transparent:true}));rl.position.set(ant.position.x,b.h+3.3,ant.position.z);rl.scale.set(1.4,1.4,1);scene.add(rl);LAYOUT.push(rl);STY.tech.push({o:rl,blink:1,t:Math.random()*3})});
+}
+function styleFrame(dt){for(const s of STY.tech){s.t+=dt;if(s.blink){s.o.material.opacity=(s.t%2.2)<.35?1:.08}else if(s.br){s.o.visible=Math.sin(s.t*23)+Math.sin(s.t*7.1)>-.2||(s.t%4>3.4)}}}
 function buildLayout(sd){
  for(const o of LAYOUT)scene.remove(o);LAYOUT.length=0;for(const f of BFX)scene.remove(f.g);BFX.length=0;BRK.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].dyn)COL.splice(i,1);
  for(const m of MGS){if(m.ru&&HUM[m.ru])HUM[m.ru].u=-1}MGS.length=0;MACH.length=0;BOX=null;VENDS.length=0;for(const f of FIRES)if(f.li)plRel(f.li);FIRES=[];if(P.mg)P.mg=null;
@@ -1411,7 +1444,7 @@ function wakeHand(){const t=P.wakeT,c=P.c,sm=x=>{x=clamp(x,0,1);return x*x*(3-2*
  tip.position.set(L7,0,.002);tip.material.opacity=t>4.35&&t<5.0?1:Math.max(0,1-(t-5.0)/.25)*(t>4.35?1:0);tip.lookAt(camera.position);
  if(sw>.05&&!P.wbt){P.wbt=1;if(AC)tone(900,2200,.35,.07,'sine')}}
 function beginMatch0(cfg){G.introT=3.6;
- clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));buildMapById(cfg.map||'cross');if(MAP.train){MAP.train.act=0;MAP.train.g.visible=false;MAP.train.next=rand(35,55)}if(MAP.crane){const C=MAP.crane;C.st=0;C.box.position.y=-10.3;C.tx=C.x;C.tz=C.z}if(cfg.seed!=null)buildLayout(cfg.seed);
+ clearWorld();closeShop();['menu','lobby','over','pause'].forEach(i=>$(i).classList.add('hid'));buildMapById(cfg.map||'cross');if(MAP.train){MAP.train.act=0;MAP.train.g.visible=false;MAP.train.next=rand(35,55)}if(MAP.crane){const C=MAP.crane;C.st=0;C.box.position.y=-10.3;C.tx=C.x;C.tz=C.z}if(cfg.seed!=null)buildLayout(cfg.seed);styleUnify();
  G.cfg=cfg;G.ffa=cfg.mode==='ffa';G.mode=G.ffa?'pvp':cfg.mode;G.mid=cfg.mid;diffI=cfg.diff;document.body.classList.toggle('pvp',G.mode==='pvp');
  Object.assign(G,{wave:0,queue:[],spawnT:0,cash:0,score:0,kills:0,heads:0,deaths:0,cur:0,last:0,inter:0,left:0,sc:[0,0],tl:PVP_TIME,zid:1,R:{},paused:false,botT:0,allDeadT:0,ended:false,sup:8,radDead:0,trkT:0,stDirty:1,stN:0,radWarn:0});
  P.team=(cfg.teams&&cfg.teams[NET.me])|0;rost(NET.me);
@@ -2738,7 +2771,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  $('rel').textContent=P.dead?'':P.relT>0?'换弹中…':(G.ws[G.cur].mag===0&&G.ws[G.cur].res===0?'弹药耗尽！换手枪':'');
  if(G.mode==='pvp'&&G.ffa){const t=Math.max(0,Math.ceil(G.tl)),L=Object.entries(G.R).sort((a,b)=>b[1].k-a[1].k),mk=(G.R[NET.me]||{}).k|0,tp=L[0];hset('pvpBar',`你 <b>${mk}</b> 杀　${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}　领先：${tp?(nameOf(tp[0])||tp[1].n):'-'} <b>${tp?tp[1].k:0}</b> / ${FFA_KILLS}`)}
  else if(G.mode==='pvp'){const t=Math.max(0,Math.ceil(G.tl));const s=`<b style="color:${TEAM_CSS[0]}">${G.sc[0]}</b> 蓝队　${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}　红队 <b style="color:${TEAM_CSS[1]}">${G.sc[1]}</b>`;hset('pvpBar',s)}
- stFrame(dt);zTrack();hzFrame(dt);
+ stFrame(dt);zTrack();hzFrame(dt);styleFrame(dt);
  if(hudDirty)hud()}
 function fxUpdate(dt){updParts(dt);updWeather(dt);if(!(G.paused&&!NET.on)&&!G.hostPause)updMapMech(dt);updDN(dt);for(const q of TRC){if(q.t>0){q.t-=dt;q.l.material.opacity=Math.max(0,q.t/.06)*.85}}
  if(flashS.visible){flashS.userData.t-=dt;if(flashS.userData.t<=0){flashS.visible=false;flashL.intensity=0}}
@@ -3440,7 +3473,7 @@ let FPSC={n:0,t:0,last:0};function loop(now){requestAnimationFrame(loop);if(now&
 (async()=>{try{await loadAll()}catch(e){console.error(e)}
  if(!ANIMS||!ANIMS.length||!HUMANS.some(h=>MODELS[h.id])){$('loadT').innerHTML='素材载入失败（'+FAILS.length+' 个文件）<br><span style="font-size:13px;opacity:.75">请检查网络，或用浏览器（Chrome）直接打开本页面</span><br><button class="btn" onclick="location.reload()" style="margin-top:12px">重新载入</button>';return}
  if(!MODELS[HUMANS[skinI].id])skinI=Math.max(0,HUMANS.findIndex(h=>MODELS[h.id]));
- buildMapById('cross');buildLayout(Math.floor(Math.random()*1e9));$('load').classList.add('hid');G.state='menu';
+ buildMapById('cross');buildLayout(Math.floor(Math.random()*1e9));styleUnify();$('load').classList.add('hid');G.state='menu';
  for(let i=0;i<5;i++){const t=ZT.walker;const m=pick(t.m.filter(n=>MODELS[n]));if(!m)break;const c=makeChar(m,'z_',1.78,.9);c.wrap.position.set(rand(-8,8),0,rand(-8,8));c.wrap.rotation.y=rand(0,6);setBase(c,'idle',1);scene.add(c.wrap);menuZ.push(c)}
  setView(VIEW);$('pop').style.opacity=0;showMenu();
  const qr=new URLSearchParams(location.search).get('room');if(qr){$('code').value=qr.toUpperCase();menuMsg('已收到邀请：填好名字后点「加入房间」')}
