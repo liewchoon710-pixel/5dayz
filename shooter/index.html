@@ -589,7 +589,7 @@ function mat(t,o={}){const m=new T.MeshStandardMaterial(Object.assign({map:t||nu
  if(t){const c=m.color;if(t===TEX.fac_glass_a||t===TEX.fac_glass_b){c.r*=.68;c.g*=.7;c.b*=.68}else if(t===TEX.fac_brick_a||t===TEX.fac_brick_b||t===TEX.fac_conc||t===TEX.shopfront){c.r*=.7;c.g*=.65;c.b*=.58}else if(t===TEX.wall_conc||t===TEX.roof_a){c.r*=.8;c.g*=.76;c.b*=.7}else if(t===TEX.walk||t===TEX.road){c.r*=.84;c.g*=.81;c.b*=.76}}return m}// 整体做旧：墙面发灰发黄、玻璃蒙尘
 const PICKUPS=[],DECALS=[];let FIRES=[],SMOKES=[];
 // 地图尺寸：马路半宽 RW，楼房起点 SW，路障 BAR，地图尽头 EDGE
-const VENDS=[];const RW=11,SW=14,BAR=48,EDGE=72,ZSP=62;
+const VENDS=[];const RW=11,SW=14,BAR=66,EDGE=92,ZSP=82;
 function buildCrossMap(){
  seed=11;
  const GS=EDGE*2+20;const gnd=new T.Mesh(new T.PlaneGeometry(GS,GS),mat(TEX.road,{color:0x9a958e}));gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;
@@ -600,7 +600,7 @@ function buildCrossMap(){
  // 楼房（四个街区，每区 3×3 栋）
  const facs=['fac_brick_a','fac_brick_b','fac_conc','fac_glass_a','fac_glass_b','fac_brick_a','fac_conc'];
  const roofM=mat(TEX.roof_a,{color:0x777777});const shopM=mat(TEX.shopfront,{color:0xbbbbbb});
- const SEG=[[SW,33],[33,52],[52,EDGE]];
+ const SEG=[[SW,33],[33,52],[52,72],[72,EDGE]];
  for(const sx of[1,-1])for(const sz of[1,-1])for(const [x0,x1] of SEG)for(const [z0,z1] of SEG){
   const w=x1-x0,d=z1-z0,h=Math.round(14+srand()*34);const ft=TEX[facs[Math.floor(srand()*facs.length)]];
   const fm=mat(ft,{color:new T.Color().setHSL(.07,.08,.55+srand()*.25)});
@@ -618,6 +618,13 @@ function buildCrossMap(){
    P('k_vehicle_pickup',sg*5.2,Math.PI/2+.08,5.4);P('k_trafficbarrier_1',sg*9.6,Math.PI/2,2.3);P('k_trafficbarrier_2',sg*11.8,Math.PI/2+.1,2.3);P('k_plasticbarrier',sg*2.7,Math.PI/2+.3,1.3)}
   if(ax==='x')addCol(s*BAR-.5,-2.3,s*BAR+.5,2.3,2,{z:0,r:0});else addCol(-2.3,s*BAR-.5,2.3,s*BAR+.5,2,{z:0,r:0});
  }
+ // 高架桥：横跨东边街道上空的断裂高架（桥墩可当掩体）
+ {const cm=new T.MeshStandardMaterial({color:0x5a5d62,roughness:.92,map:TEX.walk||null});if(TEX.walk){cm.color.setHex(0x6a6c70)}const y=8.2,x0=20,x1=EDGE-6;const L=x1-x0;
+  const deck=new T.Mesh(uvBox(L,1.3,9,6,2),cm);deck.position.set((x0+x1)/2,y,0);deck.castShadow=true;deck.receiveShadow=true;scene.add(deck);
+  for(const sz of[1,-1]){const r=new T.Mesh(uvBox(L,1.1,.35,6,1),cm);r.position.set((x0+x1)/2,y+1.2,sz*4.3);scene.add(r)}
+  for(let x=x0+4;x<x1;x+=13)for(const sz of[1,-1]){const p=new T.Mesh(uvBox(1.4,y-.6,1.4,1,3),cm);p.position.set(x,(y-.6)/2,sz*7.8);p.castShadow=true;p.receiveShadow=true;scene.add(p);addCol(x-.7,sz*7.8-.7,x+.7,sz*7.8+.7,y-.6)}
+  // 断口：桥头一截掉下来斜插在路上
+  const br=new T.Mesh(uvBox(9,1.2,8.5,2,2),cm);br.position.set(x0-3.2,4.2,0);br.rotation.z=-.62;br.castShadow=true;scene.add(br);addCol(x0-6.5,-4.2,x0+.5,4.2,1.6)}
  // 街尾黑烟，挡住地图边缘
  for(const ax of['x','z'])for(const s of[1,-1])for(let i=0;i<11;i++){const sp=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:0x111113,transparent:true,depthWrite:false,opacity:.95,fog:false}));
   const d=rand(EDGE-12,EDGE-1),l=rand(-15,15),sz=rand(14,24);sp.position.set(ax==='x'?s*d:l,rand(2,8),ax==='x'?l:s*d);sp.scale.set(sz,sz,1);sp.material.rotation=rand(0,6);scene.add(sp);SMOKES.push({sp,v:rand(-.08,.08)})}
@@ -660,7 +667,7 @@ function containerMesh(x,z,ry,lv,col,y0){const g=new T.Group();const body=new T.
  g.position.set(x,y0,z);g.rotation.y=ry;scene.add(g);addColO(x,z,3.05,1.22,y0+2.55,ry,{y0,rs:.05});return g}
 // ---------------- 地图定义 ----------------
 const MAPS={
- cross:{name:'十字路口',bx:47,bz:47,build(){buildCrossMap()},env:{fog:.008,col:0x1b1d22,sun:1.35,hemi:.62}},
+ cross:{name:'十字路口',bx:65,bz:65,build(){buildCrossMap()},env:{fog:.0105,col:0x262d36,sun:.85,hemi:.5,storm:1}},
  plaza:{name:'中央广场·夜',bx:25,bz:25,env:{fog:.034,col:0x04060a,sun:.07,hemi:.035,night:1},
   zs:[[0,32],[0,-32],[32,0],[-32,0]],ps:()=>[rand(-3,3),rand(9,11)],pv:t=>[(t?-1:1)*rand(19,22),rand(-6,6)],
   build(){gplane(120,120,M('road'));gplane(52,52,M('tile'),.01);
@@ -2549,7 +2556,7 @@ function hzTex(){if(HZ.tx)return HZ.tx;const c=document.createElement('canvas');
   x+=w+(Math.random()<.3?Math.random()*18:0)}
  g.fillRect(0,236,1024,20);HZ.tx=new T.CanvasTexture(c);HZ.tx.wrapS=T.RepeatWrapping;HZ.tx.repeat.set(5,1);return HZ.tx}
 function hzGrad(){const c=document.createElement('canvas');c.width=4;c.height=128;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,128);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.55,'rgba(255,255,255,.55)');gr.addColorStop(1,'rgba(255,255,255,1)');g.fillStyle=gr;g.fillRect(0,0,4,128);return new T.CanvasTexture(c)}
-function horizonFx(){if(HZ.g){scene.remove(HZ.g);HZ.g.traverse(o=>{if(o.geometry)o.geometry.dispose()})}HZ.g=null;HZ.pl.length=0;const E=MAP&&MAP.env;if(!E||E.dark||MAP.id==='subway')return;
+function horizonFx(){if(HZ.rain){scene.remove(HZ.rain);HZ.rain.geometry.dispose();scene.remove(HZ.ash);HZ.ash.geometry.dispose();HZ.rain=HZ.ash=null}if(typeof skyU!=='undefined')skyU.uFlash.value=0;if(HZ.g){scene.remove(HZ.g);HZ.g.traverse(o=>{if(o.geometry)o.geometry.dispose()})}HZ.g=null;HZ.pl.length=0;const E=MAP&&MAP.env;if(!E||E.dark||MAP.id==='subway')return;
  const g=new T.Group();HZ.g=g;const fc=new T.Color(E.col),R=Math.max(MAP.bx||40,MAP.bz||40);
  // 远处城市剪影（两层，远的淡一点）
  for(const [r,h,k,o] of [[175,50,.42,.85],[140,32,.26,.95]]){const t=hzTex().clone();t.needsUpdate=true;t.repeat.set(r>150?6:4,1);t.offset.x=Math.random();
@@ -2562,8 +2569,20 @@ function horizonFx(){if(HZ.g){scene.remove(HZ.g);HZ.g.traverse(o=>{if(o.geometry
  // 天上的云（低画质没有天空着色器时也有云）
  const cc=fc.clone().lerp(new T.Color(E.night?0x445066:0xf2f2f4),E.night?.3:.55);for(let i=0;i<14;i++){const a=rand(0,6.283),r=rand(70,165),sp=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:cc,transparent:true,depthWrite:false,opacity:rand(.35,.6),fog:false}));
   const w=rand(40,80);sp.position.set(Math.cos(a)*r,rand(38,75),Math.sin(a)*r);sp.scale.set(w,w*rand(.35,.55),1);sp.material.rotation=rand(-.2,.2);sp.renderOrder=-95;g.add(sp);HZ.pl.push({cl:1,sp,a,r,v:rand(.004,.01)})}
+ // 暴风雨：雨丝、飘灰、湿路面反光、远处闪电
+ HZ.rain=null;HZ.ash=null;if(E.storm){const N=TOUCH?900:1800,pos=new Float32Array(N*6);for(let i=0;i<N;i++){const x=rand(-30,30),y=rand(0,26),z=rand(-30,30);pos.set([x,y,z,x+.06,y-.75,z+.03],i*6)}
+  const rg=new T.BufferGeometry();rg.setAttribute('position',new T.BufferAttribute(pos,3));const rain=new T.LineSegments(rg,new T.LineBasicMaterial({color:0xa9b8c8,transparent:true,opacity:.32,depthWrite:false}));rain.frustumCulled=false;rain.renderOrder=5;scene.add(rain);HZ.rain=rain;
+  const M=TOUCH?160:320,ap=new Float32Array(M*3);for(let i=0;i<M;i++)ap.set([rand(-25,25),rand(0,14),rand(-25,25)],i*3);const ag=new T.BufferGeometry();ag.setAttribute('position',new T.BufferAttribute(ap,3));
+  const ash=new T.Points(ag,new T.PointsMaterial({color:0x8a8580,size:.07,transparent:true,opacity:.7,depthWrite:false}));ash.frustumCulled=false;scene.add(ash);HZ.ash=ash;
+  scene.traverse(o=>{const m=o.material;if(m&&!Array.isArray(m)&&m.map&&m.map===TEX.road&&!m.userData.wet){m.userData.wet=1;m.roughness=.26;m.envMapIntensity=1.35;m.color&&m.color.multiplyScalar(.72);m.needsUpdate=true}});
+  // 远处火光（贴在黑烟柱底部）
+  for(const p of HZ.pl)if(!p.cl&&p.ph<.16){const gl=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:0xff6a20,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.55,fog:false}));gl.position.set(p.x,3,p.z);gl.scale.set(16,9,1);gl.renderOrder=-84;g.add(gl)}}
+ HZ.flT=rand(6,14);
  scene.add(g)}
-function hzFrame(dt){for(const p of HZ.pl){if(p.cl){p.a+=dt*p.v;p.sp.position.x=Math.cos(p.a)*p.r;p.sp.position.z=Math.sin(p.a)*p.r;continue}p.ph=(p.ph+dt*p.sp0)%1;const f=p.ph,sz=(8+f*30)*p.w;p.sp.position.set(p.x+f*f*14,4+f*55,p.z+f*6);p.sp.scale.set(sz,sz,1);p.sp.material.opacity=Math.min(1,f*6)*(1-f)*.85;p.sp.material.rotation+=dt*.05}}
+function hzFrame(dt){if(HZ.rain&&HZ.rain.parent){const c=camera.position;HZ.rain.position.set(c.x,0,c.z);const a=HZ.rain.geometry.attributes.position,v=a.array;for(let i=0;i<v.length;i+=6){v[i+1]-=dt*22;v[i+4]-=dt*22;if(v[i+4]<0){const y=26+Math.random()*2;v[i+1]=y;v[i+4]=y-.75}}a.needsUpdate=true;
+  HZ.ash.position.set(c.x,0,c.z);const b=HZ.ash.geometry.attributes.position.array;for(let i=0;i<b.length;i+=3){b[i+1]-=dt*.5;b[i]+=Math.sin(performance.now()*.0005+i)*dt*.3;if(b[i+1]<0)b[i+1]=14}HZ.ash.geometry.attributes.position.needsUpdate=true;
+  HZ.flT-=dt;if(HZ.flT<0){HZ.flT=rand(7,16);HZ.fl=.35}if(HZ.fl>0){HZ.fl-=dt;const k=HZ.fl>.25||(HZ.fl<.15&&HZ.fl>.08)?1:0;if(typeof skyU!=='undefined')skyU.uFlash.value=k*.5;hemi&&(hemi.intensity=MAP.env.hemi+k*.9)}else if(typeof skyU!=='undefined'&&skyU.uFlash.value){skyU.uFlash.value=0;hemi&&(hemi.intensity=MAP.env.hemi)}}
+for(const p of HZ.pl){if(p.cl){p.a+=dt*p.v;p.sp.position.x=Math.cos(p.a)*p.r;p.sp.position.z=Math.sin(p.a)*p.r;continue}p.ph=(p.ph+dt*p.sp0)%1;const f=p.ph,sz=(8+f*30)*p.w;p.sp.position.set(p.x+f*f*14,4+f*55,p.z+f*6);p.sp.scale.set(sz,sz,1);p.sp.material.opacity=Math.min(1,f*6)*(1-f)*.85;p.sp.material.rotation+=dt*.05}}
 function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=1}
  const inp=!(G.paused||P.dead);const k=IN.k;let mx=0,mz=0;
  if(inp){mx=(k.KeyD?1:0)-(k.KeyA?1:0);mz=(k.KeyW?1:0)-(k.KeyS?1:0);if(TOUCH){mx=IN.joy.x;mz=-IN.joy.y}}
@@ -2881,7 +2900,7 @@ GFX=(()=>{
  const G_={q,hk:1,lock:false};
  // ---------- 天空 ----------
  const NOISE='float h1(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h1(i),h1(i+vec2(1.,0.)),f.x),mix(h1(i+vec2(0.,1.)),h1(i+vec2(1.,1.)),f.x),f.y);}float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<OCT;i++){s+=a*n2(p);p=p*2.03+vec2(17.,9.);a*=.5;}return s;}';
- const skyU={uHor:{value:new T.Color()},uZen:{value:new T.Color()},uSun:{value:new T.Vector3(40,60,-26).normalize()},uSunC:{value:new T.Color()},uCov:{value:.4},uT:{value:0},uRain:{value:0},uFlash:{value:0}};
+ const skyU={uHor:{value:new T.Color()},uZen:{value:new T.Color()},uSun:{value:new T.Vector3(40,60,-26).normalize()},uSunC:{value:new T.Color()},uCov:{value:.4},uT:{value:0},uRain:{value:0},uFlash:{value:0}};window.skyU=skyU;
  const skyM=new T.ShaderMaterial({uniforms:skyU,side:T.BackSide,depthWrite:false,depthTest:false,fog:false,defines:{OCT:TOUCH?4:5},
   vertexShader:'varying vec3 vD;void main(){vD=position;vec4 p=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*p;}',
   fragmentShader:'varying vec3 vD;uniform vec3 uHor,uZen,uSun,uSunC;uniform float uCov,uT,uRain,uFlash;'+NOISE+
@@ -2891,7 +2910,7 @@ GFX=(()=>{
   'float lit=smoothstep(-.15,.35,n-fbm(p+uSun.xz*.22));vec3 cc=mix(uZen*.55,uHor*1.25+uSunC*.22*dry,lit);cc+=uSunC*pow(sd,8.)*.6*dry*(1.-c*.6);col=mix(col,cc,c*smoothstep(.015,.22,y));}'+
   'col*=1.-.5*uRain;col+=vec3(.7,.75,.9)*uFlash;gl_FragColor=vec4(col,1.);}'});
  const sky=new T.Mesh(new T.SphereGeometry(190,32,16),skyM);sky.renderOrder=-100;sky.frustumCulled=false;scene.add(sky);
- const SKY={cross:{hor:0x77818a,zen:0x333f4e,sun:0xffd6ae,cov:.36},plaza:{hor:0x8a8d8c,zen:0x414b58,sun:0xffe2c0,cov:.42},docks:{hor:0xa6aeb2,zen:0x7d878d,sun:0xdfe6ea,cov:.85},
+ const SKY={cross:{hor:0x4c5663,zen:0x161d28,sun:0x8d9bb0,cov:.9},plaza:{hor:0x8a8d8c,zen:0x414b58,sun:0xffe2c0,cov:.42},docks:{hor:0xa6aeb2,zen:0x7d878d,sun:0xdfe6ea,cov:.85},
   bridge:{hor:0xa39078,zen:0x46505e,sun:0xffcf9a,cov:.44},gas:{hor:0xc07a40,zen:0x5a3a2a,sun:0xff8a3c,cov:.62}};
  const TX_FADE=ctex(64,(g,s)=>{const r=g.createLinearGradient(0,0,0,s);r.addColorStop(0,'#000');r.addColorStop(.45,'#777');r.addColorStop(.8,'#fff');r.addColorStop(1,'#fff');g.fillStyle=r;g.fillRect(0,0,s,s)});
  const fogBase=new T.Color(),tmpC=new T.Color();let pm=null,envRT=null,dark=false;
