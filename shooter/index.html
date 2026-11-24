@@ -639,6 +639,7 @@ function buildCrossMap(){
   // 碎块散落在塌落处
   const rbm=new T.MeshStandardMaterial({map:ct,color:0x4a4845,roughness:.95,flatShading:true});
   for(let k=0;k<7;k++){const s=rand(.5,1.3);const d=new T.Mesh(new T.DodecahedronGeometry(s,0),rbm);d.position.set(x0-bh+rand(-2,3),s*.55,rand(-5,5));d.rotation.set(rand(0,3),rand(0,3),rand(0,3));d.castShadow=true;scene.add(d)}}}
+ addWater(SW+4,EDGE-14,-RW+.3,RW-.3,.38);addWater(-EDGE+14,-SW-4,-RW+.3,RW-.3,.38);
  // 街尾黑烟，挡住地图边缘
  for(const ax of['x','z'])for(const s of[1,-1])for(let i=0;i<11;i++){const sp=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:0x111113,transparent:true,depthWrite:false,opacity:.95,fog:false}));
   const d=rand(EDGE-12,EDGE-1),l=rand(-15,15),sz=rand(14,24);sp.position.set(ax==='x'?s*d:l,rand(2,8),ax==='x'?l:s*d);sp.scale.set(sz,sz,1);sp.material.rotation=rand(0,6);scene.add(sp);SMOKES.push({sp,v:rand(-.08,.08)})}
@@ -672,6 +673,38 @@ function fireUpd(F,dt){const s=F.s;for(const q of F.fl){q.t+=dt/q.L;if(q.t>=1){q
   q.sp.position.set(q.ox*(1-k*.7)+Math.sin(k*9+q.L*20)*.08*s,(k*1.35+.3)*s,q.oz*(1-k*.7));const w=(.8-.5*k)*s*(1+.2*Math.sin(k*20));q.sp.scale.set(w,w*1.8,1);q.sp.material.opacity=Math.min(1,k*6)*(1-k)*1.1;q.sp.material.color.setRGB(1,1-.35*k,1-.75*k)}
  for(const e of F.em){e.t+=dt;if(e.t>e.L){e.t=0;e.vx=rand(-.4,.4);e.vz=rand(-.4,.4);e.vy=rand(1.6,2.8)}const k=e.t;e.sp.position.set(e.vx*k+Math.sin(k*5)*.1,.3*s+e.vy*k-.4*k*k,e.vz*k);e.sp.material.opacity=1-k/e.L}
  for(const m of F.sm){m.t+=dt;if(m.t>m.L)m.t-=m.L;const k=m.t/m.L;m.sp.position.set(Math.sin(k*3)*.3,(1.3+k*4.5)*s,k*.6);const w=(.8+k*2.6)*s;m.sp.scale.set(w,w,1);m.sp.material.opacity=Math.min(1,k*5)*(1-k)*.8;m.sp.material.rotation=k*1.5}}
+/* ---------- 积水：桥下淹过车轮的透明积水，走动/射击/爆炸都会起涟漪和水花 ---------- */
+const WATER={rects:[],y:.38,ms:[],rip:[],drp:[],ri:0,di:0,nT:null,st:{}};
+function waterTex(){if(WATER.nT)return WATER.nT;const S=256,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d'),H=new Float32Array(S*S);
+ for(let o=0;o<4;o++){const f=4<<o,a=1/(o+1);const r=[];for(let i=0;i<f*f;i++)r.push(Math.random());for(let y=0;y<S;y++)for(let x=0;x<S;x++){const gx=x/S*f,gy=y/S*f,ix=gx|0,iy=gy|0,fx=gx-ix,fy=gy-iy,q=(i,j)=>r[((iy+j)%f)*f+(ix+i)%f];const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);H[y*S+x]+=a*((q(0,0)*(1-sx)+q(1,0)*sx)*(1-sy)+(q(0,1)*(1-sx)+q(1,1)*sx)*sy)}}
+ const im=g.createImageData(S,S);for(let y=0;y<S;y++)for(let x=0;x<S;x++){const dx=(H[y*S+(x+1)%S]-H[y*S+(x+S-1)%S])*3,dy=(H[((y+1)%S)*S+x]-H[((y+S-1)%S)*S+x])*3,l=1/Math.hypot(dx,dy,1),i=(y*S+x)*4;im.data[i]=(-dx*l*.5+.5)*255;im.data[i+1]=(dy*l*.5+.5)*255;im.data[i+2]=(l*.5+.5)*255;im.data[i+3]=255}
+ g.putImageData(im,0,0);const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;return WATER.nT=t}
+function edgeFade(w,d){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,128,128);const bx=Math.min(40,128*1.2/w*8),bz=Math.min(40,128*1.2/d*8);
+ g.filter='blur('+Math.max(bx,bz)*.5+'px)';g.fillStyle='#fff';g.fillRect(bx,bz,128-bx*2,128-bz*2);return new T.CanvasTexture(c)}
+function addWater(x0,x1,z0,z1,y){WATER.y=y||.38;const w=x1-x0,d=z1-z0;const n=waterTex().clone();n.needsUpdate=true;n.repeat.set(w/6,d/6);
+ const m=new T.MeshStandardMaterial({color:0x1c262b,transparent:true,opacity:.72,roughness:.06,metalness:.05,envMapIntensity:.85,normalMap:n,normalScale:new T.Vector2(.35,.35),depthWrite:false});
+ m.userData.su=1;const p=new T.Mesh(new T.PlaneGeometry(w,d),m);p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,WATER.y,(z0+z1)/2);p.renderOrder=3;p.userData.noPost=1;scene.add(p);
+ WATER.rects.push([x0,x1,z0,z1]);WATER.ms.push(m)}
+function inWater(x,z,pad=0){for(const r of WATER.rects)if(x>r[0]+pad&&x<r[1]-pad&&z>r[2]+pad&&z<r[3]-pad)return true;return false}
+function waterPool(){if(WATER.rip.length)return;const rg=new T.RingGeometry(.82,1,40);rg.rotateX(-Math.PI/2);
+ for(let i=0;i<36;i++){const m=new T.Mesh(rg,new T.MeshBasicMaterial({color:0xcfe0e8,transparent:true,opacity:0,depthWrite:false}));m.visible=false;m.renderOrder=4;scene.add(m);WATER.rip.push({m,t:9,L:1,s:1})}
+ for(let i=0;i<70;i++){const sp=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xdff0ff,transparent:true,depthWrite:false,opacity:0}));sp.visible=false;scene.add(sp);WATER.drp.push({sp,t:9,L:1,v:new T.Vector3()})}}
+function ripple(x,z,s=1,L=1.1){if(!WATER.rects.length)return;waterPool();const r=WATER.rip[WATER.ri++%WATER.rip.length];r.m.position.set(x,WATER.y+.012,z);r.t=0;r.L=L*rand(.85,1.15);r.s=s;r.m.visible=true}
+function splash(x,z,n=8,pw=1){if(!WATER.rects.length)return;waterPool();ripple(x,z,.6*pw,.9);ripple(x,z,1.1*pw,1.4);
+ for(let i=0;i<n;i++){const d=WATER.drp[WATER.di++%WATER.drp.length];d.sp.position.set(x,WATER.y+.05,z);const a=rand(0,6.28),h=rand(.3,1.2)*pw;d.v.set(Math.cos(a)*h,rand(1.8,3.6)*pw,Math.sin(a)*h);d.t=0;d.L=rand(.45,.8);d.sp.visible=true;d.sp.scale.setScalar(rand(.05,.11)*Math.sqrt(pw))}
+ waterSnd(Math.min(1,.25+pw*.25))}
+function waterSnd(v){try{if(!AC)return;const now=AC.currentTime;if(WATER.sT&&now-WATER.sT<.06)return;WATER.sT=now;const len=.25,b=AC.createBuffer(1,AC.sampleRate*len,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++){const t=i/AC.sampleRate;d[i]=(Math.random()*2-1)*Math.exp(-t*14)*(1+.6*Math.sin(t*900*(1+t*3)))}
+ const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=rand(900,1600);f.Q.value=.8;const g=AC.createGain();g.gain.value=.22*v;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
+// 子弹/曳光穿过水面时（所有人的枪、炮台都会走这里）
+function waterShot(a,b){if(!WATER.rects.length)return;const y=WATER.y;if((a.y-y)*(b.y-y)>0)return;const k=(a.y-y)/(a.y-b.y);const x=a.x+(b.x-a.x)*k,z=a.z+(b.z-a.z)*k;if(!inWater(x,z))return;if((WATER.shT=(WATER.shT||0)+1)%2)splash(x,z,6,.55)}
+function waterFrame(dt){if(!WATER.rects.length)return;const t=performance.now()*.001;for(const m of WATER.ms){m.normalMap.offset.set(t*.018,t*.011);m.normalScale.set(.32+Math.sin(t*.7)*.05,.32)}
+ for(const r of WATER.rip){if(r.t>r.L)continue;r.t+=dt;const k=r.t/r.L;const sc=r.s*(.15+k*1.6);r.m.scale.set(sc,1,sc);r.m.material.opacity=(1-k)*.55;if(r.t>r.L)r.m.visible=false}
+ for(const d of WATER.drp){if(d.t>d.L)continue;d.t+=dt;d.v.y-=9.8*dt;d.sp.position.addScaledVector(d.v,dt);d.sp.material.opacity=Math.min(1,(1-d.t/d.L)*1.4)*.9;if(d.t>d.L||d.sp.position.y<WATER.y){d.sp.visible=false;d.t=9}}
+ // 走动的涟漪：玩家、其他玩家/机器人、丧尸
+ const walk=(id,p,v,big)=>{if(!inWater(p.x,p.z)||p.y>WATER.y+.2)return;const sp=v?Math.hypot(v.x,v.z):0;const st=WATER.st[id]||(WATER.st[id]={t:0,x:p.x,z:p.z});
+  const mv=sp||Math.hypot(p.x-st.x,p.z-st.z)/Math.max(dt,1e-3);st.x=p.x;st.z=p.z;st.t-=dt;if(mv>.6&&st.t<=0){st.t=big?.22:.3;ripple(p.x,p.z,big?1.3:.8,1.2);if(mv>3.5&&Math.random()<.5)splash(p.x,p.z,3,.35);else if(id==='me')waterSnd(.3)}};
+ if(P&&!P.dead)walk('me',P.pos,P.vel);for(const id in HUM){const H=HUM[id];if(H&&!H.dead&&H.pos)walk(id,H.pos,null)}
+ for(let i=0;i<G.zs.length;i++){const z=G.zs[i];if(!z.dead)walk('z'+z.id,z.c.wrap.position,null,z.type==='tank'||z.type==='boss')}}
 const EXPL=[];function addExpl(x,y,z,r,hp,R,dmg,mesh){EXPL.push({id:EXPL.length,p:new T.Vector3(x,y,z),r,hp,h0:hp,R,dmg,m:mesh,dead:false})}
 function hitExpl(id,d,by){const e=EXPL[id];if(!e||e.dead)return;e.hp-=d;if(e.hp>0)return;e.dead=true;pushEv(['xb',id]);boomAt(e.p,e.R,e.dmg,by);
  for(const a of actors()){if(a.dead||a.bot)continue;const dd=Math.hypot(a.pos.x-e.p.x,a.pos.z-e.p.z);if(dd<e.R){dmgTo(a,70*DIFF[diffI].dmg*Math.pow(1-dd/e.R,.6),e.p);knock(a,e.p,11*(1-dd/e.R)+3,.6)}}}
@@ -778,6 +811,7 @@ const MAPS={
    // 桥面 z∈[-6,6]，高 5.6–6.2，桥墩
    const cn=M('conc'),c2=M('conc2'),am=TEX.road?mat(TEX.road,{color:0x55545a}):M('dark');const dk=[cn,cn,am,cn,cn,cn];mbox(0,0,100,12,.6,dk,{y0:5.6,uv:4});for(const [x0,x1,s] of[[-50,19.5,1],[23.5,50,1],[-50,-23.5,-1],[-19.5,50,-1]])mbox((x0+x1)/2,s*5.8,x1-x0,.45,.9,c2,{y0:6.2});
    // 现代高架：箱梁 + 单柱圆墩 + 盖梁
+   addWater(-48,48,-6.5,6.5,.36);
    mbox(0,0,100,7,1.0,c2,{y0:4.6,nocol:true});
    for(let x=-45;x<=45;x+=15){const h=3.9;const col=new T.Mesh(new T.CylinderGeometry(.85,.95,h,20),c2);col.position.set(x,h/2,0);col.castShadow=true;col.receiveShadow=true;col.userData.noPost=1;scene.add(col);addCol(x-.9,-.9,x+.9,.9,h,{mp:1});mbox(x,0,1.6,9,.7,c2,{y0:3.9,nocol:true})}
    // 两条坡道（台阶）连到桥面侧面的平台
@@ -823,7 +857,7 @@ const MAPS={
    wall:[[-6,16,Math.PI],[-3,16,Math.PI],[19.6,3,-Math.PI/2],[-35.6,-6,Math.PI/2],[35.6,-6,-Math.PI/2],[-35.6,8,Math.PI/2],[35.6,8,-Math.PI/2],[-24,13.6,Math.PI]]},
   cover:{rects:[[-28,28,-22,-8],[-28,-10,-7,22],[10,28,-7,22]],avoid:[[-9,9,-7,3],[18,28,1,11]],n:14,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_vehicle_truck',6.8],['k_plasticbarrier',1.4],['k_wheels_stack',1.3],['k_pallet',1.4]]},barrels:4}};
 const MAPIDS=['plaza','docks','subway','bridge','gas','cross','mall'];
-function buildMapById(id){if(!MAPS[id])id='cross';if(MAP&&MAP.id===id)return;for(const o of MAPOBJ)scene.remove(o);MAPOBJ.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].mp)COL.splice(i,1);
+function buildMapById(id){if(!MAPS[id])id='cross';if(MAP&&MAP.id===id)return;WATER.rects=[];WATER.ms=[];WATER.st={};for(const o of MAPOBJ)scene.remove(o);MAPOBJ.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].mp)COL.splice(i,1);
  for(const s of SMOKES)scene.remove(s.sp);SMOKES=[];EXPL.length=0;MAP=MAPS[id];MAP.id=id;delete MAP.links;
  const add0=scene.add;scene.add=function(...o){MAPOBJ.push(...o);return add0.apply(scene,o)};MPF=true;seed=11;try{MAP.build()}finally{scene.add=add0;MPF=false}
  if(MAP.id==='cross')MAP.links=null;applyEnv()}
@@ -1217,7 +1251,7 @@ const flashL=new T.PointLight(0xffb060,0,9,2);scene.add(flashL);
 /* 固定灯光池：灯数不变就不会重新编译着色器（燃烧弹/火堆不再卡顿） */const FPL=[];for(let i=0;i<5;i++){const l=new T.PointLight(0xff7a2a,0,10,2);l.used=0;scene.add(l);FPL.push(l)}
 function plGet(col,int,dist){const l=FPL.find(l=>!l.used);if(!l)return null;l.used=1;l.color.setHex(col);l.intensity=int;l.distance=dist;return l}function plRel(l){if(l&&l.used!==undefined){l.used=0;l.intensity=0}}
 const TRC=[];for(let i=0;i<24;i++){const g=new T.BufferGeometry().setFromPoints([new T.Vector3(),new T.Vector3()]);const l=new T.Line(g,new T.LineBasicMaterial({color:0xffe6a8,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}));l.frustumCulled=false;scene.add(l);TRC.push({l,t:0})}
-let trI=0;function tracer(a,b,col){const q=TRC[trI];q.l.material.color.setHex(col||0xffe6a8);trI=(trI+1)%TRC.length;const p=q.l.geometry.attributes.position;p.setXYZ(0,a.x,a.y,a.z);p.setXYZ(1,b.x,b.y,b.z);p.needsUpdate=true;q.t=.06;q.l.material.opacity=.85}
+let trI=0;function tracer(a,b,col){waterShot(a,b);const q=TRC[trI];q.l.material.color.setHex(col||0xffe6a8);trI=(trI+1)%TRC.length;const p=q.l.geometry.attributes.position;p.setXYZ(0,a.x,a.y,a.z);p.setXYZ(1,b.x,b.y,b.z);p.needsUpdate=true;q.t=.06;q.l.material.opacity=.85}
 const decM=new T.MeshBasicMaterial({map:TX_BLOOD,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
 function decal(x,z,s){if(GFX){GFX.pool(x,z,s*1.2);return}let d;if(DECALS.length>40){d=DECALS.shift()}else{d=new T.Mesh(new T.PlaneGeometry(1,1),decM);d.rotation.x=-Math.PI/2;scene.add(d)}d.position.set(x,.025,z);d.scale.set(s,s,1);d.rotation.z=rand(0,6);DECALS.push(d)}
 
@@ -2143,7 +2177,7 @@ function spawnThrow(e){if(PJ[e[0]])return rkSpawn(e);const [k,x,y,z,vx,vy,vz,pid
  const m=new T.Mesh(geo,thrM[k]);m.position.set(x,y,z);m.castShadow=true;scene.add(m);let li=null;if(k==='pipe'){li=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff2020,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));li.scale.setScalar(.5);m.add(li)}
  if(k==='molo'){const f=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xff8030,blending:T.AdditiveBlending,transparent:true,depthWrite:false}));f.scale.setScalar(.35);f.position.y=.12;m.add(f)}
  THR.list.push({k,m,v:new T.Vector3(vx,vy,vz),pid,tid,t:k==='nade'?2.3:k==='pipe'?6.5:9,li,rest:false,beep:0})}
-function boomAt(p,R,dmg,pid){pushEv(['ex',r2(p.x),r2(p.y),r2(p.z),R]);stBlast(p.x,p.y,p.z,R*.7,dmg*.2,1);for(const e of EXPL){if(!e.dead&&Math.hypot(e.p.x-p.x,e.p.z-p.z)<R*.8){const id=e.id;setTimeout(()=>hitExpl(id,9999,pid),140)}}for(const z of G.zs){if(z.dead)continue;const d=z.c.wrap.position.distanceTo(p);if(d<R)hurtZ(z,dmg*Math.pow(1-d/R,.5),false,null,0,pid,98)}}
+function boomAt(p,R,dmg,pid){if(inWater(p.x,p.z)&&p.y<WATER.y+1.5)splash(p.x,p.z,26,2.4);pushEv(['ex',r2(p.x),r2(p.y),r2(p.z),R]);stBlast(p.x,p.y,p.z,R*.7,dmg*.2,1);for(const e of EXPL){if(!e.dead&&Math.hypot(e.p.x-p.x,e.p.z-p.z)<R*.8){const id=e.id;setTimeout(()=>hitExpl(id,9999,pid),140)}}for(const z of G.zs){if(z.dead)continue;const d=z.c.wrap.position.distanceTo(p);if(d<R)hurtZ(z,dmg*Math.pow(1-d/R,.5),false,null,0,pid,98)}}
 function updThrows(dt){for(let i=THR.list.length-1;i>=0;i--){const q=THR.list[i];const p=q.m.position;q.t-=dt;if(q.pj){if(rkStep(q,p,dt)){scene.remove(q.m);THR.list.splice(i,1)}continue}
   if(!q.rest){q.v.y-=14*dt;const ox=p.x,oz=p.z;p.addScaledVector(q.v,dt);q.m.rotation.x+=dt*8;const tmp=new T.Vector3(p.x,0,p.z);pushOut(tmp,.08,'p',p.y);if(tmp.x!==p.x||tmp.z!==p.z){if(q.k==='molo'){q.t=0}p.x=tmp.x;p.z=tmp.z;q.v.x*=-.4;q.v.z*=-.4}
    const g=groundH(p,.05,p.y+.2);if(p.y<=g+.06){p.y=g+.06;if(q.k==='molo')q.t=0;else{q.v.y*=-.35;q.v.x*=.6;q.v.z*=.6;if(Math.abs(q.v.y)<.8){q.rest=true}if(AC&&p.distanceTo(P.pos)<20)tone(900,600,.05,.06,'triangle')}}}
@@ -2775,7 +2809,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  $('rel').textContent=P.dead?'':P.relT>0?'换弹中…':(G.ws[G.cur].mag===0&&G.ws[G.cur].res===0?'弹药耗尽！换手枪':'');
  if(G.mode==='pvp'&&G.ffa){const t=Math.max(0,Math.ceil(G.tl)),L=Object.entries(G.R).sort((a,b)=>b[1].k-a[1].k),mk=(G.R[NET.me]||{}).k|0,tp=L[0];hset('pvpBar',`你 <b>${mk}</b> 杀　${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}　领先：${tp?(nameOf(tp[0])||tp[1].n):'-'} <b>${tp?tp[1].k:0}</b> / ${FFA_KILLS}`)}
  else if(G.mode==='pvp'){const t=Math.max(0,Math.ceil(G.tl));const s=`<b style="color:${TEAM_CSS[0]}">${G.sc[0]}</b> 蓝队　${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}　红队 <b style="color:${TEAM_CSS[1]}">${G.sc[1]}</b>`;hset('pvpBar',s)}
- stFrame(dt);zTrack();hzFrame(dt);styleFrame(dt);
+ stFrame(dt);zTrack();hzFrame(dt);styleFrame(dt);waterFrame(dt);
  if(hudDirty)hud()}
 function fxUpdate(dt){updParts(dt);updWeather(dt);if(!(G.paused&&!NET.on)&&!G.hostPause)updMapMech(dt);updDN(dt);for(const q of TRC){if(q.t>0){q.t-=dt;q.l.material.opacity=Math.max(0,q.t/.06)*.85}}
  if(flashS.visible){flashS.userData.t-=dt;if(flashS.userData.t<=0){flashS.visible=false;flashL.intensity=0}}
