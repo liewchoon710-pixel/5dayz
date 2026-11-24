@@ -618,13 +618,29 @@ function buildCrossMap(){
    P('k_vehicle_pickup',sg*5.2,Math.PI/2+.08,5.4);P('k_trafficbarrier_1',sg*9.6,Math.PI/2,2.3);P('k_trafficbarrier_2',sg*11.8,Math.PI/2+.1,2.3);P('k_plasticbarrier',sg*2.7,Math.PI/2+.3,1.3)}
   if(ax==='x')addCol(s*BAR-.5,-2.3,s*BAR+.5,2.3,2,{z:0,r:0});else addCol(-2.3,s*BAR-.5,2.3,s*BAR+.5,2,{z:0,r:0});
  }
- // 高架桥：横跨东边街道上空的断裂高架（桥墩可当掩体）
- {const cm=new T.MeshStandardMaterial({color:0x5a5d62,roughness:.92,map:TEX.walk||null});if(TEX.walk){cm.color.setHex(0x6a6c70)}const y=8.2,x0=20,x1=EDGE-6;const L=x1-x0;
-  const deck=new T.Mesh(uvBox(L,1.3,9,6,2),cm);deck.position.set((x0+x1)/2,y,0);deck.castShadow=true;deck.receiveShadow=true;scene.add(deck);
-  for(const sz of[1,-1]){const r=new T.Mesh(uvBox(L,1.1,.35,6,1),cm);r.position.set((x0+x1)/2,y+1.2,sz*4.3);scene.add(r)}
-  for(let x=x0+6;x<x1;x+=13)for(const sz of[1,-1]){const p=new T.Mesh(uvBox(1.4,y-.65,1.4,1,3),cm);p.position.set(x,(y-.65)/2,sz*3.2);p.castShadow=true;p.receiveShadow=true;scene.add(p);addCol(x-.7,sz*3.2-.7,x+.7,sz*3.2+.7,y-.65)}
-  // 断口：桥头一截掉下来斜插在路上
-  const BL=11,ba=Math.asin((y-.6)/BL),bh=Math.cos(ba)*BL;const br=new T.Mesh(uvBox(BL,1.2,8.5,2,2),cm);br.position.set(x0-bh/2,(y-.6)/2,0);br.rotation.z=ba;br.castShadow=true;br.receiveShadow=true;scene.add(br);addCol(x0-bh,-4.2,x0-bh*.55,4.2,2.2)}
+ // 高架桥：现代混凝土高架（沥青桥面、单柱桥墩+盖梁、防撞护栏），西端断裂塌落
+ {const cc=document.createElement('canvas');cc.width=cc.height=256;const g2=cc.getContext('2d');g2.fillStyle='#8c8b86';g2.fillRect(0,0,256,256);
+  for(let k=0;k<5000;k++){const v=120+Math.random()*60|0;g2.fillStyle=`rgba(${v},${v},${v-4},.22)`;g2.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*2,1+Math.random()*2)}
+  g2.fillStyle='rgba(40,38,36,.18)';for(let k=0;k<14;k++){const x=Math.random()*256;g2.fillRect(x,0,2+Math.random()*5,256)}
+  g2.strokeStyle='rgba(60,60,60,.35)';g2.lineWidth=1;for(let k=0;k<4;k++){g2.beginPath();g2.moveTo(0,k*64+.5);g2.lineTo(256,k*64+.5);g2.stroke()}
+  const ct=new T.CanvasTexture(cc);ct.wrapS=ct.wrapT=T.RepeatWrapping;ct.encoding=T.sRGBEncoding;
+  const cm=new T.MeshStandardMaterial({map:ct,color:0xb0aea8,roughness:.88,metalness:0});
+  const am=TEX.road?mat(TEX.road,{color:0x55545a}):new T.MeshStandardMaterial({color:0x2e2f33,roughness:.7});
+  const y=8.2,x0=20,x1=EDGE-6,L=x1-x0,W=10;
+  // 桥面：顶面沥青，其余混凝土
+  const deck=new T.Mesh(uvBox(L,1.0,W,8,2),[cm,cm,am,cm,cm,cm]);deck.position.set((x0+x1)/2,y,0);deck.castShadow=true;deck.receiveShadow=true;scene.add(deck);
+  // 箱梁（桥面下方较窄的梁体）
+  const gd=new T.Mesh(uvBox(L,1.3,W*.6,8,2),cm);gd.position.set((x0+x1)/2,y-1.15,0);gd.castShadow=true;scene.add(gd);
+  // 两侧防撞护栏（新泽西护栏）
+  for(const sz of[1,-1]){const r=new T.Mesh(uvBox(L,.9,.45,8,1),cm);r.position.set((x0+x1)/2,y+.95,sz*(W/2-.22));r.castShadow=true;scene.add(r)}
+  // 桥墩：圆柱 + 盖梁
+  for(let x=x0+7;x<x1-2;x+=14){const h=y-1.8;const col=new T.Mesh(new T.CylinderGeometry(.85,.95,h,20),cm);col.position.set(x,h/2,0);col.castShadow=true;col.receiveShadow=true;scene.add(col);addCol(x-.9,-.9,x+.9,.9,h);
+   const cap=new T.Mesh(uvBox(1.6,1.1,W*.75,1,2),cm);cap.position.set(x,y-2.35+.55,0);cap.castShadow=true;scene.add(cap)}
+  // 断口：一截桥面塌落，一端着地一端搭在桥头，露出钢筋
+  const BL=11,ba=Math.asin((y-.6)/BL),bh=Math.cos(ba)*BL;const br=new T.Mesh(uvBox(BL,1.0,W-.6,3,2),[cm,cm,am,cm,cm,cm]);br.position.set(x0-bh/2,(y-.6)/2,0);br.rotation.z=ba;br.castShadow=true;br.receiveShadow=true;scene.add(br);addCol(x0-bh,-4.5,x0-bh*.55,4.5,2.2);
+  const rb=new T.MeshStandardMaterial({color:0x5a3a28,roughness:.6,metalness:.6});for(let k=0;k<9;k++){const r=new T.Mesh(new T.CylinderGeometry(.04,.04,1.6,5),rb);r.position.set(x0+.1,y-.1,-4+k);r.rotation.z=Math.PI/2+rand(-.5,.5);r.rotation.x=rand(-.3,.3);scene.add(r)}
+  // 碎块散落在塌落处
+  for(let k=0;k<7;k++){const s=rand(.5,1.3);const d=new T.Mesh(new T.DodecahedronGeometry(s,0),cm);d.position.set(x0-bh+rand(-2,3),s*.55,rand(-5,5));d.rotation.set(rand(0,3),rand(0,3),rand(0,3));d.castShadow=true;scene.add(d)}}
  // 街尾黑烟，挡住地图边缘
  for(const ax of['x','z'])for(const s of[1,-1])for(let i=0;i<11;i++){const sp=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:0x111113,transparent:true,depthWrite:false,opacity:.95,fog:false}));
   const d=rand(EDGE-12,EDGE-1),l=rand(-15,15),sz=rand(14,24);sp.position.set(ax==='x'?s*d:l,rand(2,8),ax==='x'?l:s*d);sp.scale.set(sz,sz,1);sp.material.rotation=rand(0,6);scene.add(sp);SMOKES.push({sp,v:rand(-.08,.08)})}
