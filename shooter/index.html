@@ -619,22 +619,7 @@ function buildCrossMap(){
   if(ax==='x')addCol(s*BAR-.5,-2.3,s*BAR+.5,2.3,2,{z:0,r:0});else addCol(-2.3,s*BAR-.5,2.3,s*BAR+.5,2,{z:0,r:0});
  }
  // 高架桥：现代混凝土高架（沥青桥面、单柱桥墩+盖梁、防撞护栏），西端断裂塌落
- {const cc=document.createElement('canvas');cc.width=cc.height=512;const g2=cc.getContext('2d');g2.fillStyle='#6a6c6f';g2.fillRect(0,0,512,512);
-  for(let k=0;k<14000;k++){const v=80+Math.random()*70|0;g2.fillStyle=`rgba(${v},${v},${v+2},.25)`;g2.fillRect(Math.random()*512,Math.random()*512,1+Math.random()*3,1+Math.random()*3)}
-  // 雨水冲刷的黑色垂直污迹
-  for(let k=0;k<40;k++){const x=Math.random()*512,w=3+Math.random()*16,L=60+Math.random()*420,gr=g2.createLinearGradient(0,0,0,L);gr.addColorStop(0,'rgba(20,18,16,.55)');gr.addColorStop(1,'rgba(20,18,16,0)');g2.fillStyle=gr;g2.fillRect(x,0,w,L)}
-  // 锈水（从钢筋渗出来的红褐色）
-  for(let k=0;k<12;k++){const x=Math.random()*512,y0=Math.random()*200,L=80+Math.random()*200,gr=g2.createLinearGradient(0,y0,0,y0+L);gr.addColorStop(0,'rgba(120,55,25,.55)');gr.addColorStop(1,'rgba(120,55,25,0)');g2.fillStyle=gr;g2.fillRect(x,y0,2+Math.random()*6,L)}
-  // 青苔/霉斑
-  for(let k=0;k<30;k++){const x=Math.random()*512,y=380+Math.random()*130,r=6+Math.random()*28,gr=g2.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(48,62,34,.45)');gr.addColorStop(1,'rgba(48,62,34,0)');g2.fillStyle=gr;g2.fillRect(x-r,y-r,r*2,r*2)}
-  // 裂缝
-  g2.strokeStyle='rgba(15,14,12,.75)';for(let k=0;k<18;k++){let x=Math.random()*512,y=Math.random()*512;g2.lineWidth=.8+Math.random()*1.5;g2.beginPath();g2.moveTo(x,y);for(let t=0;t<8;t++){x+=(Math.random()-.5)*30;y+=Math.random()*26;g2.lineTo(x,y)}g2.stroke()}
-  // 施工缝 + 剥落露出的浅色混凝土
-  g2.strokeStyle='rgba(30,30,30,.5)';g2.lineWidth=2;for(let k=0;k<4;k++){g2.beginPath();g2.moveTo(0,k*128+1);g2.lineTo(512,k*128+1);g2.stroke()}
-  for(let k=0;k<10;k++){g2.fillStyle='rgba(150,146,138,.5)';g2.beginPath();const x=Math.random()*512,y=Math.random()*512;g2.moveTo(x,y);for(let t=0;t<6;t++)g2.lineTo(x+(Math.random()-.5)*40,y+(Math.random()-.5)*30);g2.fill()}
-  // 底部积灰泥污
-  {const gr=g2.createLinearGradient(0,400,0,512);gr.addColorStop(0,'rgba(40,34,28,0)');gr.addColorStop(1,'rgba(40,34,28,.6)');g2.fillStyle=gr;g2.fillRect(0,400,512,112)}
-  const ct=new T.CanvasTexture(cc);ct.wrapS=ct.wrapT=T.RepeatWrapping;ct.encoding=T.sRGBEncoding;
+ {const ct=concTex();
   const cm=new T.MeshStandardMaterial({map:ct,color:0x9c9fa3,roughness:.95,metalness:0});cm.userData.su=1;
   const am=TEX.road?mat(TEX.road,{color:0x55545a}):new T.MeshStandardMaterial({color:0x2e2f33,roughness:.7});
   const y=8.2,W=10;const SEGS=[[-EDGE-20,-46],[-30,EDGE+20]];for(const [x0,x1] of SEGS){const L=x1-x0;
@@ -701,8 +686,25 @@ function navWP(p,y,tg,ty){const Ls=MAP.links;if(!Ls)return null;const D=(a,b)=>M
  if(up){if(y<L.a.y+.25){if(inLane&&along>-6&&along<1.3)return m;return D(L.a,p)<.4?m:L.a}return m}
  if(y>m.y-.3){if(inLane&&along<ul+1.6)return L.a;if(L.m&&D(L.b,p)>1.2&&D(p,m)>D(L.b,m))return L.b;return m}return L.a}
 function rndOpen(r=.5,y=0){for(let i=0;i<40;i++){const x=rand(-MAP.bx+2,MAP.bx-2),z=rand(-MAP.bz+2,MAP.bz-2);const p=new T.Vector3(x,0,z);const q=p.clone();pushOut(q,r,'z',y);if(q.distanceTo(p)<.05&&groundH(p,.3,y)<=y+.05)return p}return new T.Vector3(0,0,0)}
-const MATS={};function M(k){if(MATS[k])return MATS[k];const D={conc:[TEX.wall_conc,0x9a958c],conc2:[TEX.wall_conc,0x6e6a64],metal:[TEX.metal_a,0x7a7d82],rust:[TEX.metal_a,0x8a5a3a],walk:[TEX.walk,0xa8a39a],road:[TEX.road,0x9a958e],roof:[TEX.roof_a,0x777777],brick:[TEX.fac_brick_a,0xb0a090],glass:[TEX.fac_glass_a,0x9aa8b8],shop:[TEX.shopfront,0xbbbbbb],tile:[TEX.walk,0xd8d2c4],dark:[TEX.wall_conc,0x3a3a3e]}[k];
- return MATS[k]=mat(D?D[0]:null,{color:D?D[1]:0x888888})}
+/* 统一的做旧混凝土贴图（高架桥、地铁、所有 conc 材质共用） */
+let CONC_TX=null;function concTex(){if(CONC_TX)return CONC_TX;const cc=document.createElement('canvas');cc.width=cc.height=512;const g2=cc.getContext('2d');g2.fillStyle='#6a6c6f';g2.fillRect(0,0,512,512);
+  for(let k=0;k<14000;k++){const v=80+Math.random()*70|0;g2.fillStyle=`rgba(${v},${v},${v+2},.25)`;g2.fillRect(Math.random()*512,Math.random()*512,1+Math.random()*3,1+Math.random()*3)}
+  // 雨水冲刷的黑色垂直污迹
+  for(let k=0;k<40;k++){const x=Math.random()*512,w=3+Math.random()*16,L=60+Math.random()*420,gr=g2.createLinearGradient(0,0,0,L);gr.addColorStop(0,'rgba(20,18,16,.55)');gr.addColorStop(1,'rgba(20,18,16,0)');g2.fillStyle=gr;g2.fillRect(x,0,w,L)}
+  // 锈水（从钢筋渗出来的红褐色）
+  for(let k=0;k<12;k++){const x=Math.random()*512,y0=Math.random()*200,L=80+Math.random()*200,gr=g2.createLinearGradient(0,y0,0,y0+L);gr.addColorStop(0,'rgba(120,55,25,.55)');gr.addColorStop(1,'rgba(120,55,25,0)');g2.fillStyle=gr;g2.fillRect(x,y0,2+Math.random()*6,L)}
+  // 青苔/霉斑
+  for(let k=0;k<30;k++){const x=Math.random()*512,y=380+Math.random()*130,r=6+Math.random()*28,gr=g2.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(48,62,34,.45)');gr.addColorStop(1,'rgba(48,62,34,0)');g2.fillStyle=gr;g2.fillRect(x-r,y-r,r*2,r*2)}
+  // 裂缝
+  g2.strokeStyle='rgba(15,14,12,.75)';for(let k=0;k<18;k++){let x=Math.random()*512,y=Math.random()*512;g2.lineWidth=.8+Math.random()*1.5;g2.beginPath();g2.moveTo(x,y);for(let t=0;t<8;t++){x+=(Math.random()-.5)*30;y+=Math.random()*26;g2.lineTo(x,y)}g2.stroke()}
+  // 施工缝 + 剥落露出的浅色混凝土
+  g2.strokeStyle='rgba(30,30,30,.5)';g2.lineWidth=2;for(let k=0;k<4;k++){g2.beginPath();g2.moveTo(0,k*128+1);g2.lineTo(512,k*128+1);g2.stroke()}
+  for(let k=0;k<10;k++){g2.fillStyle='rgba(150,146,138,.5)';g2.beginPath();const x=Math.random()*512,y=Math.random()*512;g2.moveTo(x,y);for(let t=0;t<6;t++)g2.lineTo(x+(Math.random()-.5)*40,y+(Math.random()-.5)*30);g2.fill()}
+  // 底部积灰泥污
+  {const gr=g2.createLinearGradient(0,400,0,512);gr.addColorStop(0,'rgba(40,34,28,0)');gr.addColorStop(1,'rgba(40,34,28,.6)');g2.fillStyle=gr;g2.fillRect(0,400,512,112)}
+  CONC_TX=new T.CanvasTexture(cc);CONC_TX.wrapS=CONC_TX.wrapT=T.RepeatWrapping;CONC_TX.encoding=T.sRGBEncoding;return CONC_TX}
+const MATS={};function M(k){if(MATS[k])return MATS[k];const D={conc:[concTex(),0x9c9fa3],conc2:[concTex(),0x7c7f83],metal:[TEX.metal_a,0x7a7d82],rust:[TEX.metal_a,0x8a5a3a],walk:[TEX.walk,0xa8a39a],road:[TEX.road,0x9a958e],roof:[TEX.roof_a,0x777777],brick:[TEX.fac_brick_a,0xb0a090],glass:[TEX.fac_glass_a,0x9aa8b8],shop:[TEX.shopfront,0xbbbbbb],tile:[TEX.walk,0x8e8a84],dark:[TEX.wall_conc,0x3a3a3e]}[k];
+ const m=MATS[k]=mat(D?D[0]:null,{color:D?D[1]:0x888888});if(/conc|dark|tile/.test(k))m.userData.su=1;return m}
 let CMAT=null;function cmat(i){if(!CMAT)CMAT=[0x6a1c12,0x14325e,0x1c4a26,0x7a5212,0x3c4046,0x4c1c3a].map(c=>mat(TEX.metal_a,{color:c,roughness:.75,metalness:.3}));return CMAT[i%CMAT.length]}
 function containerMesh(x,z,ry,lv,col,y0){const g=new T.Group();const body=new T.Mesh(new T.BoxGeometry(6.1,2.55,2.44),cmat(col));body.position.y=1.275;body.castShadow=body.receiveShadow=true;g.add(body);
  for(let i=0;i<14;i++){const r=new T.Mesh(new T.BoxGeometry(.06,2.4,2.5),cmat(col));r.position.set(-2.9+i*.45,1.275,0);g.add(r)}
@@ -728,7 +730,7 @@ const MAPS={
   slots:{mg:[[0,5.4,0,1,1.2],[0,-5.4,0,-1,1.2],[5.2,0,1,0,1.2],[-5.2,0,-1,0,1.2],[0,19,0,1],[0,-19,0,-1],[19,0,1,0],[-19,0,-1,0]],
    wall:[[-14,25.2,Math.PI],[14,25.2,Math.PI],[-14,-25.2,0],[14,-25.2,0],[25.2,-14,-Math.PI/2],[25.2,14,-Math.PI/2],[-25.2,-14,Math.PI/2],[-25.2,14,Math.PI/2],[-20,25.2,Math.PI],[20,-25.2,0]]},
   cover:{rects:[[-24,24,-24,24]],avoid:[[-9,9,-9,9]],n:16,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_plasticbarrier',1.4],['k_trafficbarrier_1',2.3],['k_wheels_stack',1.3],['k_pipes',3],['k_pallet',1.4]]},barrels:0},
- docks:{name:'集装箱码头·浓雾',bx:40,bz:34,env:{fog:.075,col:0x8b9499,sun:.55,hemi:.85,mist:1},
+ docks:{name:'集装箱码头·浓雾',bx:40,bz:34,env:{fog:.048,col:0x8b9499,sun:.55,hemi:.85,mist:1},
   zs:[[-15,44],[15,44],[0,38],[46,14],[-46,14]],ps:()=>[rand(-3,3),rand(-26,-23)],pv:t=>[(t?-1:1)*rand(33,37),rand(-20,0)],
   build(){gplane(140,100,M('road'),0,0,8);const sea=new T.Mesh(new T.PlaneGeometry(220,80),new T.MeshStandardMaterial({color:0x1b3a4a,roughness:.15,metalness:.6}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-1.6,-74);scene.add(sea);this.sea=sea;
    mbox(0,-34.6,90,1.2,.4,M('conc2'),{cast:false});addCol(-60,-36,60,-34.2,3,{z:1,r:0});
@@ -799,11 +801,11 @@ const MAPS={
   slots:{mg:[[-7.5,8,1,0,6.25],[-1,-9.5,-1,0,6.25],[-6.7,-6,0,1,10.9],[16,0,1,0],[-16,10,-1,0],[0,-16,0,-1]],
    wall:[[-8,-30,0],[4,-30,0],[20,-30,0],[-20,30,Math.PI],[0,30,Math.PI],[20,30,Math.PI],[-34,0,Math.PI/2],[34,0,-Math.PI/2]]},
   cover:{along:0,rects:[[-44,44,14,42],[-10,44,-42,-14],[16,44,-14,14],[-44,-16,-10,14]],avoid:[[-14,14,-12,12],[-47,-12,-43,-11]],n:26,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_vehicle_truck',6.8],['bus',11.5],['k_vehicle_pickup_armored',5.4],['k_trafficbarrier_1',2.3],['k_plasticbarrier',1.4],['container',6]]},barrels:4},
- gas:{name:'公路加油站·沙尘黄昏',bx:30,bz:24,env:{fog:.05,col:0x8a5a34,sun:.9,hemi:.6,dusk:1,dust:1},
+ gas:{name:'公路加油站·沙尘黄昏',bx:30,bz:24,env:{fog:.03,col:0x6e5038,sun:.9,hemi:.6,dusk:1,dust:1},
   zs:[[38,-14],[-38,-14],[0,32],[-26,30],[26,30]],ps:()=>[rand(-3,3),rand(1.6,2.6)],pv:t=>[(t?-1:1)*rand(23,27),rand(-8,6)],
   build(){gplane(120,90,M('walk'));gplane(120,10,M('road'),.01,0,-14);
    // 加油站顶棚（只是遮挡，站不上去）
-   const cm=mat(null,{color:0xd8d4cc});mbox(0,-2,18,10,.6,cm,{y0:4.6,nocol:true});mbox(0,-2,18.2,10.2,.5,mat(null,{color:0xc0301e}),{y0:4.3,nocol:true});for(const x of[-7,7])for(const z of[-6,2])mbox(x,z,.6,.6,4.6,M('metal'));
+   const cm=mat(TEX.metal_a,{color:0x6e6c68,metalness:.5,roughness:.7});mbox(0,-2,18,10,.6,cm,{y0:4.6,nocol:true});mbox(0,-2,18.2,10.2,.5,mat(TEX.metal_a,{color:0x5a2a20,metalness:.4,roughness:.7}),{y0:4.3,nocol:true});for(const x of[-7,7])for(const z of[-6,2])mbox(x,z,.6,.6,4.6,M('metal'));
    lamp(0,4,-2,0xfff0d0,1.8,20);
    // 便利店（可以进去）：三面墙+门口
    const sm=M('shop'),wm=M('conc');mbox(0,16.5,16,.5,4.4,wm);mbox(-8,12,.5,9,4.4,wm);mbox(8,12,.5,9,4.4,wm);mbox(-5,7.6,6,.5,4.4,sm);mbox(5,7.6,6,.5,4.4,sm);mbox(0,12,16.5,9.5,.4,M('roof'),{y0:4.4,nocol:true});
@@ -813,7 +815,7 @@ const MAPS={
    for(const [x,z,w,d,h] of[[-24,18,10,8,6],[-40,12,8,24,10],[40,12,8,24,10]])mbox(x,z,w,d,h,M('brick'),{uv:6});
    const bb=mbox(-20,-22,10,.4,4,mat(null,{color:0x2a3a6a}),{y0:4,nocol:true});mbox(-23,-22,.4,.4,4,M('metal'));mbox(-17,-22,.4,.4,4,M('metal'));
    // 加油机（可打爆）
-   const pm=mat(null,{color:0xe0e0e0}),pr=mat(null,{color:0xc0301e});for(const x of[-5,0,5])for(const z of[-4,0]){mbox(x,z,1.6,.9,.22,M('conc2'),{cast:false});const g=new T.Group();const b1=new T.Mesh(new T.BoxGeometry(.9,1.7,.55),pm);b1.position.y=1.07;g.add(b1);const b2=new T.Mesh(new T.BoxGeometry(.95,.35,.6),pr);b2.position.y=1.75;g.add(b2);for(const sz of[1,-1]){const sc=new T.Mesh(new T.PlaneGeometry(.5,.3),new T.MeshBasicMaterial({color:0x2a4a3a}));sc.position.set(0,1.35,sz*.28);if(sz<0)sc.rotation.y=Math.PI;g.add(sc);const ho=new T.Mesh(new T.TorusGeometry(.22,.025,6,12,Math.PI),mat(null,{color:0x111111}));ho.position.set(.47,.85,sz*.12);ho.rotation.set(0,Math.PI/2,Math.PI/2);g.add(ho)}g.position.set(x,.22,z);scene.add(g);addCol(x-.45,z-.28,x+.45,z+.28,2.1);addExpl(x,1.1,z,.75,140,7,420,g)}
+   const pm=mat(TEX.metal_a,{color:0x4a4d52,metalness:.6,roughness:.6}),pr=mat(TEX.metal_a,{color:0x6a2c20,metalness:.4,roughness:.7});for(const x of[-5,0,5])for(const z of[-4,0]){mbox(x,z,1.6,.9,.22,M('conc2'),{cast:false});const g=new T.Group();const b1=new T.Mesh(new T.BoxGeometry(.9,1.7,.55),pm);b1.position.y=1.07;g.add(b1);const b2=new T.Mesh(new T.BoxGeometry(.95,.35,.6),pr);b2.position.y=1.75;g.add(b2);for(const sz of[1,-1]){const sc=new T.Mesh(new T.PlaneGeometry(.5,.3),new T.MeshBasicMaterial({color:0x2a4a3a}));sc.position.set(0,1.35,sz*.28);if(sz<0)sc.rotation.y=Math.PI;g.add(sc);const ho=new T.Mesh(new T.TorusGeometry(.22,.025,6,12,Math.PI),mat(null,{color:0x111111}));ho.position.set(.47,.85,sz*.12);ho.rotation.set(0,Math.PI/2,Math.PI/2);g.add(ho)}g.position.set(x,.22,z);scene.add(g);addCol(x-.45,z-.28,x+.45,z+.28,2.1);addExpl(x,1.1,z,.75,140,7,420,g)}
    smokeWall(0,-44,110,'x')},
   slots:{mg:[[-12,-8,-1,0],[12,-8,1,0],[-12,6,-1,0],[0,-9,0,-1],[0,21,0,1]],
    wall:[[-6,16,Math.PI],[-3,16,Math.PI],[19.6,3,-Math.PI/2],[-35.6,-6,Math.PI/2],[35.6,-6,-Math.PI/2],[-35.6,8,Math.PI/2],[35.6,8,-Math.PI/2],[-24,13.6,Math.PI]]},
@@ -1033,7 +1035,7 @@ function styleUnify(){const skip=new Set();if(P&&P.c)skip.add(P.c.wrap);for(cons
  const under=o=>{let q=o;while(q){if(skip.has(q)||q.userData.gad||q.userData.fx)return true;q=q.parent}return false};
  scene.traverse(o=>{if(!o.isMesh||o.isSkinnedMesh||under(o)||(o.geometry&&o.geometry.type==='PlaneGeometry'))return;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(!m||!m.isMeshStandardMaterial||m.userData.su||m.userData.wet||m.map===TEX.road||m.map===TEX.walk||m.transparent||(m.emissive&&m.emissive.getHex()&&m.emissiveIntensity>0))continue;m.userData.su=1;
    if(m.color){const h={};m.color.getHSL(h);m.color.setHSL(h.h,h.s*.6,h.l*(m.map?.88:.8))}m.roughness=Math.max(m.roughness,.72);m.metalness=Math.min(m.metalness,.45);m.envMapIntensity=Math.min(m.envMapIntensity==null?1:m.envMapIntensity,.5);
-   GFX&&GFX.weather&&GFX.weather(m,m.metalness>.3?.45:.06,.35);m.needsUpdate=true}});
+   GFX&&GFX.weather&&GFX.weather(m,m.metalness>.3?.4:.04,.2);m.needsUpdate=true}});
  // 科技点缀（每张图只加一次）
  for(const t of STY.tech)scene.remove(t.o);STY.tech.length=0;if(MAP&&MAP.env&&MAP.env.dark)return;
  let k=0;const ledM=c=>new T.MeshBasicMaterial({color:c,toneMapped:false,fog:true});
@@ -1925,9 +1927,9 @@ function buildMachines(vends,bxp,ppp){const lab=(t,col,y)=>{const s=nameTag(t,co
  BOX={pos:new T.Vector3(bxp[0]+Math.sin(bxp[2])*.95,0,bxp[1]+Math.cos(bxp[2])*.95),g:bx,lid,st:'idle',t:0,gun:-1,disp:null};MACH.push({k:'box',pos:BOX.pos});
  // 武器强化机
  const pp=new T.Group();pp.position.set(ppp[0],ppp[3]||0,ppp[1]);pp.rotation.y=ppp[2];scene.add(pp);
- const pm=new T.MeshStandardMaterial({color:0x2a1440,roughness:.5,metalness:.6,emissive:0x1a0630});
+ const pm=new T.MeshStandardMaterial({map:TEX.metal_a||null,color:0x2a2d31,roughness:.55,metalness:.7});pm.userData.su=1;
  const b1=new T.Mesh(new T.BoxGeometry(1.5,1.9,1),pm);b1.position.y=.95;b1.castShadow=true;pp.add(b1);
- const sl=new T.Mesh(new T.BoxGeometry(1,.15,.05),new T.MeshBasicMaterial({color:0xb060ff}));sl.position.set(0,1.2,.52);pp.add(sl);
+ const sl=new T.Mesh(new T.BoxGeometry(1,.15,.05),new T.MeshBasicMaterial({color:0x38e6ff}));sl.position.set(0,1.2,.52);pp.add(sl);{const dm=new T.MeshStandardMaterial({color:0x1c1f23,metalness:.8,roughness:.4});for(const y of[.35,.55,.75]){const v=new T.Mesh(new T.BoxGeometry(1.2,.06,.04),dm);v.position.set(0,y,.52);pp.add(v)}const sc=new T.Mesh(new T.PlaneGeometry(.8,.42),new T.MeshBasicMaterial({color:0x0e3a44}));sc.position.set(0,1.55,.505);pp.add(sc);const ant=new T.Mesh(new T.CylinderGeometry(.03,.03,.7,6),dm);ant.position.set(.55,2.25,0);pp.add(ant);for(const sx of[-1,1]){const p2=new T.Mesh(new T.BoxGeometry(.12,1.6,.9),dm);p2.position.set(sx*.8,.9,0);pp.add(p2)}}
  const pg=new T.Sprite(new T.SpriteMaterial({map:TX_GLOW,color:0xa040ff,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:.6}));pg.scale.set(2.4,2.4,1);pg.position.y=1.2;pp.add(pg);
  pp.add(lab('武器强化机 $2000','#d0a0ff',2.4));colOf(pp);MACH.push({k:'pap',pos:new T.Vector3(ppp[0]+Math.sin(ppp[2])*1.1,0,ppp[1]+Math.cos(ppp[2])*1.1),g:pp,glow:pg});
  // 能力饮料：直接改造地图上的贩卖机
@@ -2632,10 +2634,10 @@ function hzGrad(){const c=document.createElement('canvas');c.width=4;c.height=12
 function horizonFx(){if(HZ.rain){scene.remove(HZ.rain);HZ.rain.geometry.dispose();scene.remove(HZ.ash);HZ.ash.geometry.dispose();HZ.rain=HZ.ash=null}if(typeof skyU!=='undefined')skyU.uFlash.value=0;if(HZ.g){scene.remove(HZ.g);HZ.g.traverse(o=>{if(o.geometry)o.geometry.dispose()})}HZ.g=null;HZ.pl.length=0;const E=MAP&&MAP.env;if(!E||E.dark||MAP.id==='subway')return;
  const g=new T.Group();HZ.g=g;const fc=new T.Color(E.col),R=Math.max(MAP.bx||40,MAP.bz||40);
  // 远处城市剪影（两层，远的淡一点）
- for(const [r,h,k,o] of [[175,50,.42,.85],[140,32,.26,.95]]){const t=hzTex().clone();t.needsUpdate=true;t.repeat.set(r>150?6:4,1);t.offset.x=Math.random();
+ for(const [r,h,k,o] of [[175,50,.4,.5],[140,32,.3,.65]]){const t=hzTex().clone();t.needsUpdate=true;t.repeat.set(r>150?6:4,1);t.offset.x=Math.random();
   const m=new T.Mesh(new T.CylinderGeometry(r,r,h,64,1,true),new T.MeshBasicMaterial({map:t,color:fc.clone().multiplyScalar(k),transparent:true,opacity:o,side:T.BackSide,depthWrite:false,fog:false}));m.position.y=h/2-3;m.renderOrder=-90;g.add(m)}
  // 地平线白雾带
- const gt=hzGrad();for(const [r,h,o] of [[R+22,14,.7],[Math.min(125,R+60),20,.5]]){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,48,1,true),new T.MeshBasicMaterial({map:gt,color:fc.clone().lerp(new T.Color(0xe8ecf0),.35),transparent:true,opacity:o,side:T.BackSide,depthWrite:false,fog:false}));m.position.y=h/2-1.5;m.renderOrder=-80;g.add(m)}
+ const gt=hzGrad();for(const [r,h,o] of [[R+22,14,.7],[Math.min(125,R+60),20,.5]]){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,48,1,true),new T.MeshBasicMaterial({map:gt,color:fc.clone(),transparent:true,opacity:o,side:T.BackSide,depthWrite:false,fog:false}));m.position.y=h/2-1.5;m.renderOrder=-80;g.add(m)}
  // 远处几柱黑烟（慢慢往上飘）
  const n=E.night?4:6;for(let i=0;i<n;i++){const a=i/n*6.283+rand(-.35,.35),r=rand(R+35,Math.min(150,R+95)),x=Math.cos(a)*r,z=Math.sin(a)*r;
   for(let k=0;k<7;k++){const sp=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:fc.clone().multiplyScalar(.28),transparent:true,depthWrite:false,opacity:0,fog:false}));sp.renderOrder=-85;g.add(sp);HZ.pl.push({sp,x,z,ph:k/7,sp0:rand(.035,.06),w:rand(.8,1.3)})}}
@@ -2643,18 +2645,18 @@ function horizonFx(){if(HZ.rain){scene.remove(HZ.rain);HZ.rain.geometry.dispose(
  const cc=fc.clone().lerp(new T.Color(E.night?0x445066:0xf2f2f4),E.night?.3:.55);for(let i=0;i<14;i++){const a=rand(0,6.283),r=rand(70,165),sp=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:cc,transparent:true,depthWrite:false,opacity:rand(.35,.6),fog:false}));
   const w=rand(40,80);sp.position.set(Math.cos(a)*r,rand(38,75),Math.sin(a)*r);sp.scale.set(w,w*rand(.35,.55),1);sp.material.rotation=rand(-.2,.2);sp.renderOrder=-95;g.add(sp);HZ.pl.push({cl:1,sp,a,r,v:rand(.004,.01)})}
  // 暴风雨：雨丝、飘灰、湿路面反光、远处闪电
- HZ.rain=null;HZ.ash=null;if(E.storm){const N=TOUCH?900:1800,pos=new Float32Array(N*6);for(let i=0;i<N;i++){const x=rand(-30,30),y=rand(0,26),z=rand(-30,30);pos.set([x,y,z,x+.06,y-.75,z+.03],i*6)}
-  const rg=new T.BufferGeometry();rg.setAttribute('position',new T.BufferAttribute(pos,3));const rain=new T.LineSegments(rg,new T.LineBasicMaterial({color:0xa9b8c8,transparent:true,opacity:.32,depthWrite:false}));rain.frustumCulled=false;rain.renderOrder=5;scene.add(rain);HZ.rain=rain;
+ HZ.rain=null;HZ.ash=null;const WET=E.storm||E.rain||E.night;if(true){const N=TOUCH?900:1800,pos=new Float32Array(N*6);for(let i=0;i<N;i++){const x=rand(-30,30),y=rand(0,26),z=rand(-30,30);pos.set([x,y,z,x+.06,y-.75,z+.03],i*6)}
+  const rg=new T.BufferGeometry();rg.setAttribute('position',new T.BufferAttribute(pos,3));const rain=new T.LineSegments(rg,new T.LineBasicMaterial({color:0xa9b8c8,transparent:true,opacity:E.night?.18:.32,depthWrite:false}));rain.frustumCulled=false;rain.renderOrder=5;scene.add(rain);HZ.rain=rain;rain.visible=!!(E.storm||E.rain||E.night);
   const M=TOUCH?160:320,ap=new Float32Array(M*3);for(let i=0;i<M;i++)ap.set([rand(-25,25),rand(0,14),rand(-25,25)],i*3);const ag=new T.BufferGeometry();ag.setAttribute('position',new T.BufferAttribute(ap,3));
-  const ash=new T.Points(ag,new T.PointsMaterial({color:0x8a8580,size:.07,transparent:true,opacity:.7,depthWrite:false}));ash.frustumCulled=false;scene.add(ash);HZ.ash=ash;
-  scene.traverse(o=>{const m=o.material;if(m&&!Array.isArray(m)&&m.map&&m.map===TEX.road&&!m.userData.wet){m.userData.wet=1;m.roughness=.26;m.envMapIntensity=1.35;m.color&&m.color.multiplyScalar(.72);m.needsUpdate=true}});
+  const ash=new T.Points(ag,new T.PointsMaterial({color:E.dust?0xb08a5a:E.mist?0xc8ccd0:0x8a8580,size:E.dust?.05:.07,transparent:true,opacity:.7,depthWrite:false}));ash.frustumCulled=false;scene.add(ash);HZ.ash=ash;
+  if(WET)scene.traverse(o=>{const m=o.material;if(m&&!Array.isArray(m)&&m.map&&m.map===TEX.road&&!m.userData.wet){m.userData.wet=1;m.roughness=.26;m.envMapIntensity=1.35;m.color&&m.color.multiplyScalar(.72);m.needsUpdate=true}});
   // 远处火光（贴在黑烟柱底部）
   for(const p of HZ.pl)if(!p.cl&&p.ph<.16){const gl=new T.Sprite(new T.SpriteMaterial({map:TX_SMOKE,color:0xff6a20,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.55,fog:false}));gl.position.set(p.x,3,p.z);gl.scale.set(16,9,1);gl.renderOrder=-84;g.add(gl)}}
  HZ.flT=rand(6,14);
  scene.add(g)}
-function hzFrame(dt){if(HZ.rain&&HZ.rain.parent){const c=camera.position;HZ.rain.position.set(c.x,0,c.z);const a=HZ.rain.geometry.attributes.position,v=a.array;for(let i=0;i<v.length;i+=6){v[i+1]-=dt*22;v[i+4]-=dt*22;if(v[i+4]<0){const y=26+Math.random()*2;v[i+1]=y;v[i+4]=y-.75}}a.needsUpdate=true;
+function hzFrame(dt){if(HZ.rain&&HZ.rain.parent){if(!HZ.rain.visible){HZ.rain.position.y=-999}const c=camera.position;HZ.rain.position.set(c.x,0,c.z);const a=HZ.rain.geometry.attributes.position,v=a.array;for(let i=0;i<v.length;i+=6){v[i+1]-=dt*22;v[i+4]-=dt*22;if(v[i+4]<0){const y=26+Math.random()*2;v[i+1]=y;v[i+4]=y-.75}}a.needsUpdate=true;
   HZ.ash.position.set(c.x,0,c.z);const b=HZ.ash.geometry.attributes.position.array;for(let i=0;i<b.length;i+=3){b[i+1]-=dt*.5;b[i]+=Math.sin(performance.now()*.0005+i)*dt*.3;if(b[i+1]<0)b[i+1]=14}HZ.ash.geometry.attributes.position.needsUpdate=true;
-  HZ.flT-=dt;if(HZ.flT<0){HZ.flT=rand(7,16);HZ.fl=.35}if(HZ.fl>0){HZ.fl-=dt;const k=HZ.fl>.25||(HZ.fl<.15&&HZ.fl>.08)?1:0;if(typeof skyU!=='undefined')skyU.uFlash.value=k*.5;hemi&&(hemi.intensity=MAP.env.hemi+k*.9)}else if(typeof skyU!=='undefined'&&skyU.uFlash.value){skyU.uFlash.value=0;hemi&&(hemi.intensity=MAP.env.hemi)}}
+  HZ.flT-=dt;if(HZ.flT<0){HZ.flT=rand(7,16);HZ.fl=(MAP.env.storm||MAP.env.rain)?.35:0}if(HZ.fl>0){HZ.fl-=dt;const k=HZ.fl>.25||(HZ.fl<.15&&HZ.fl>.08)?1:0;if(typeof skyU!=='undefined')skyU.uFlash.value=k*.5;hemi&&(hemi.intensity=MAP.env.hemi+k*.9)}else if(typeof skyU!=='undefined'&&skyU.uFlash.value){skyU.uFlash.value=0;hemi&&(hemi.intensity=MAP.env.hemi)}}
 for(const p of HZ.pl){if(p.cl){p.a+=dt*p.v;p.sp.position.x=Math.cos(p.a)*p.r;p.sp.position.z=Math.sin(p.a)*p.r;continue}p.ph=(p.ph+dt*p.sp0)%1;const f=p.ph,sz=(8+f*30)*p.w;p.sp.position.set(p.x+f*f*14,4+f*55,p.z+f*6);p.sp.scale.set(sz,sz,1);p.sp.material.opacity=Math.min(1,f*6)*(1-f)*.85;p.sp.material.rotation+=dt*.05}}
 function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=1}
  const inp=!(G.paused||P.dead);const k=IN.k;let mx=0,mz=0;
