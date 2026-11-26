@@ -384,7 +384,7 @@ const ZT={
  grabber:{m:['nightshadejfriedrich'],hp:260,spd:1.7,dmg:8,h:2.15,r:.4,cash:60,pts:400,name:'长手尸',sp:'grabber',tint:0x9a88b8,sc:[.9,1.15],col:'#c8a8ff'},
  pouncer:{m:['parasitelstarkie'],hp:190,spd:3.7,dmg:10,h:1.7,r:.4,cash:55,pts:350,name:'扑脸尸',sp:'pouncer',tint:0x8090b0,col:'#90b8ff'},
  screamer:{m:['yakujignite'],hp:140,spd:1.4,dmg:6,h:1.8,r:.4,cash:70,pts:400,name:'尖叫尸',sp:'screamer',tint:0xe0b0b0,col:'#ff8a8a'},
- tank:{m:['ch25nonpbr','pumpkinhulklshaw'],hp:2400,spd:1.9,dmg:36,h:2.8,r:.8,cash:300,pts:2000,name:'坦克尸',sp:'tank',tint:0x8a5a4a,sc:[1.25,1],col:'#ff7040'},
+ tank:{m:['tanker_rig','ch25nonpbr'],hp:2400,spd:1.9,dmg:36,h:2.8,r:.8,cash:300,pts:2000,name:'坦克尸',sp:'tank',tint:0x8a5a4a,sc:[1.25,1],col:'#ff7040'},
  witch:{m:['zombiegirlwkurniawan'],hp:1100,spd:1,dmg:0,h:1.72,r:.4,cash:250,pts:1500,name:'女鬼',sp:'witch',tint:0xd8dce8,col:'#dfe4ff'},
  mutant:{m:['__mutant'],hp:7000,spd:2,dmg:30,h:3.4,r:1,cash:900,pts:6000,name:'异变体',sp:'mutant',col:'#ff6a3a'}};
 const MODELS={},PROPS={},TEX={};let ANIMS=null;
@@ -406,8 +406,8 @@ async function loadAll(){
  for(const [al,f,rot] of ENV2)jobs.push(loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;const w=new T.Group();g.scene.rotation.y=rot?Math.PI/2:0;w.add(g.scene);w.userData.env2=1;ENV2M[al]=w}));
  await Promise.all(jobs);Object.assign(PROPS,ENV2M);GFX&&GFX.props();
  // 大型建筑/桥/码头等在后台慢慢载入，不拖慢开始画面；下一局重建地图时就会摆出来
- for(const f of ['gad_orb','gad_sentry','gad_drone','gad_shield','gad_wings','gad_laser','gad_emp','gad_decoy','gad_repair','gad_stake','gad_grapple','gad_thruster','gad_nv','gad_tri','shelter_modern','shopping_mall','mall_bus_stop','school','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
-  loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);if(!/shelter_modern|gad_/.test(f))GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin);mallAttach();mallExtras();schoolAttach();loreSet()}catch(e){console.warn(e)}},300)});
+ for(const f of ['gad_orb','gad_sentry','gad_drone','gad_shield','gad_wings','gad_laser','gad_emp','gad_decoy','gad_repair','gad_stake','gad_grapple','gad_thruster','gad_nv','gad_tri','shelter_modern','industrial_facility','shopping_mall','mall_bus_stop','school','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
+  loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);if(!/shelter_modern|industrial_facility|gad_/.test(f))GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin);mallAttach();mallExtras();schoolAttach();loreSet()}catch(e){console.warn(e)}},300)});
 }
 const REST=1.0613;
 function prepMX(g,n){const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});rm.forEach(o=>o.parent&&o.parent.remove(o));
@@ -856,15 +856,15 @@ const MAPS={
   slots:{mg:[[-12,-8,-1,0],[12,-8,1,0],[-12,6,-1,0],[0,-9,0,-1],[0,21,0,1]],
    wall:[[-6,16,Math.PI],[-3,16,Math.PI],[19.6,3,-Math.PI/2],[-35.6,-6,Math.PI/2],[35.6,-6,-Math.PI/2],[-35.6,8,Math.PI/2],[35.6,8,-Math.PI/2],[-24,13.6,Math.PI]]},
   cover:{rects:[[-28,28,-22,-8],[-28,-10,-7,22],[10,28,-7,22]],avoid:[[-9,9,-7,3],[18,28,1,11]],n:14,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_vehicle_truck',6.8],['k_plasticbarrier',1.4],['k_wheels_stack',1.3],['k_pallet',1.4]]},barrels:4},
- shelter:{name:'避难所·现代街区',bx:54,bz:54,env:{fog:.012,col:0x262d35,sun:.9,hemi:.55,rain:1},
+ shelter:{name:'工业园·现代街区',bx:54,bz:54,env:{fog:.012,col:0x262d35,sun:.9,hemi:.55,rain:1},
   zs:[[60,0],[-60,0],[0,60],[0,-60],[48,48],[-48,48],[48,-48],[-48,-48]],ps:()=>[rand(-3,3),rand(3,6)],pv:t=>[(t?-1:1)*rand(36,42),rand(-4,4)],
   build(){this.shOn=null;gplane(170,170,M('road'));
    // 十字形人行道 + 中央广场铺地
    for(const [x,z,w,d] of[[0,0,30,30],[0,-40,10,60],[0,40,10,60],[-40,0,60,10],[40,0,60,10]])mbox(x,z,w,d,.12,M('walk'),{nocol:true,cast:false,uv:6});
-   // 避难所（模型加载后贴上，先放碰撞）
-   addCol(-4.4,-10.6,4.4,-1.4,9);
+   // 工业处理厂（模型加载后贴上，先放碰撞）
+   addCol(-12,-26,12,-2,14);
    // 防御工事：混凝土墙段 + 钢板
-   const c2=M('conc2'),mt=M('metal');for(const [x,z,w,d] of[[-10,-14,8,.8],[10,-14,8,.8],[-14,-6,.8,10],[14,-6,.8,10],[-9,4,6,.8],[9,4,6,.8]]){const m=mbox(x,z,w,d,1.3,c2);if(m)m.userData.noPost=1}
+   const c2=M('conc2'),mt=M('metal');for(const [x,z,w,d] of[[-9,4,6,.8],[9,4,6,.8],[-17,-14,.8,10],[17,-14,.8,10]]){const m=mbox(x,z,w,d,1.3,c2);if(m)m.userData.noPost=1}
    for(const [x,z,r] of[[-5,7,0],[5,7,0],[-17,2,1.57],[17,2,1.57]]){const m=mbox(x,z,r?.3:3,r?3:.3,1.1,mt);if(m)m.userData.noPost=1}
    // 四周现代高楼（玻璃幕墙 + 混凝土裙楼），给科技灯条用 bld 标记
    const G2=M('glass'),cn=M('conc');for(const [x,z,w,d,h] of[[-38,-38,22,22,34],[38,-38,22,22,42],[-38,38,22,22,28],[38,38,22,22,38],[-62,0,14,26,22],[62,0,14,26,26],[0,-62,26,14,30],[0,62,26,14,24]]){
@@ -872,10 +872,56 @@ const MAPS={
    // 路灯
    for(const [x,z] of[[-8,-24],[8,24],[-24,8],[24,-8]]){mbox(x,z,.18,.18,6,mt,{nocol:true});lamp(x,6,z,0xcfe6ff,1.2,16)}
    smokeWall(0,-78,160,'x');smokeWall(0,78,160,'x');smokeWall(-78,0,160,'z');smokeWall(78,0,160,'z');shelterAttach()},
-  slots:{mg:[[-10,-12.5,0,1],[10,-12.5,0,1],[0,8.5,0,1],[-15,0,-1,0],[15,0,1,0]],
+  slots:{mg:[[-15,3,0,1],[15,3,0,1],[0,8.5,0,1],[-18,-6,-1,0],[18,-6,1,0]],
    wall:[[-38,-26.8,0],[38,-26.8,0],[-38,26.8,Math.PI],[38,26.8,Math.PI],[-26.8,-38,-Math.PI/2],[26.8,-38,Math.PI/2]]},
-  cover:{rects:[[-50,-20,-50,-20],[20,50,-50,-20],[-50,-20,20,50],[20,50,20,50],[-50,50,-6,6],[-6,6,-50,50]],avoid:[[-18,18,-16,10]],n:26,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_vehicle_truck',6.8],['k_trafficbarrier_1',2.3],['k_plasticbarrier',1.4],['k_wheels_stack',1.3]]},barrels:5}};
-const MAPIDS=['plaza','docks','subway','bridge','gas','cross','mall','shelter'];
+  cover:{rects:[[-50,-20,-50,-20],[20,50,-50,-20],[-50,-20,20,50],[20,50,20,50],[-50,50,-6,6],[-6,6,-50,50]],avoid:[[-20,20,-28,10]],n:26,kinds:[['k_vehicle_sports',4.4],['k_vehicle_pickup',5.2],['k_vehicle_truck',6.8],['k_trafficbarrier_1',2.3],['k_plasticbarrier',1.4],['k_wheels_stack',1.3]]},barrels:5},
+ highland:{name:'高原避难所·峡谷',bx:110,bz:78,env:{fog:.0065,col:0x6f7a86,sun:1.05,hemi:.7,mist:1},
+  th:(x,z)=>hlTH(x,z),nav:(p,t)=>hlNav(p,t),
+  zs:[[-60,72],[-20,74],[20,74],[60,72],[-100,10],[-102,40],[100,10],[102,40],[-95,-15],[95,-15]],
+  ps:()=>[rand(-3,3),rand(-58,-54)],psY:14,pv:t=>[(t?-1:1)*rand(10,20),rand(-20,-10)],
+  build(){this.shOn=null;hlBuild()},
+  slots:{mg:[[-8,-52,0,1,14],[8,-52,0,1,14],[-3,-26,0,1,14],[3,-26,0,1,14],[-16,-60,0,1,14],[16,-60,0,1,14]],
+   wall:[[-12,-76.5,0,14],[12,-76.5,0,14],[-20.5,-64,Math.PI/2,14],[20.5,-64,-Math.PI/2,14],[-18,-76.5,0,14],[18,-76.5,0,14],[-20.5,-70,Math.PI/2,14],[20.5,-70,-Math.PI/2,14]]},
+  cover:{rects:[[-20,20,-22,-8,14]],avoid:[],n:5,kinds:[['k_plasticbarrier',1.4],['k_wheels_stack',1.3],['k_pallet',1.4]]},barrels:0}};
+const HLD={Y:14,SZ:-68};
+function hlRD(x,z,x0,x1,z0,z1){const dx=Math.max(x0-x,0,x-x1),dz=Math.max(z0-z,0,z-z1);return Math.hypot(dx,dz)}
+function hlN(x,z){return Math.sin(x*.11+Math.cos(z*.07)*2)*Math.cos(z*.13-x*.05)+.5*Math.sin(x*.31+z*.27)}
+function hlTH(x,z){const Y=HLD.Y;
+ if(z<-25){const d=Math.min(hlRD(x,z,-6,6,-55,-25),hlRD(x,z,-22,22,-80,-55),hlRD(x,z,-30,30,-25,-5));if(d<=0)return Y;
+  return Y+Math.min(1,d/3)*10+Math.min(d,70)*.55+hlN(x,z)*Math.min(6,d*.6)}
+ const d=hlRD(x,z,-30,30,-25,-5);if(d<=0)return Y;const t=Math.min(1,d/60),k=1-t*t*(3-2*t);return Math.max(0,Y*k+hlN(x,z)*.5*Math.min(1,d/8)*k)}
+function hlNav(p,t){if(t.z<-27&&p.z>-25){return Math.abs(p.x)>5?{x:p.x*.3,z:-21}:{x:0,z:-40}}if(t.z<-56&&p.z>-56&&p.z<-25)return{x:0,z:-60};return null}
+function hlBuild(){const W=360,D=300,NX=180,NZ=150;const g=new T.PlaneGeometry(W,D,NX,NZ);g.rotateX(-Math.PI/2);const pa=g.attributes.position,col=new Float32Array(pa.count*3),c=new T.Color();
+ for(let i=0;i<pa.count;i++){const x=pa.getX(i),z=pa.getZ(i),h=hlTH(x,z);pa.setY(i,h);const e=.02,sl=Math.hypot(hlTH(x+e*50,z)-h,hlTH(x,z+e*50)-h);const n=hlN(x*3,z*3)*.04;
+  if(Math.abs(x)<5.2&&z<-25&&z>-56)c.setRGB(.07+n*.3,.07+n*.3,.075+n*.3);else if(sl>1.6||h>16){const k=Math.min(1,(sl-1)/3);c.setRGB(.16+n*.5-k*.04,.155+n*.5-k*.04,.15+n*.5-k*.03)}else{const dry=Math.min(1,h/14);c.setRGB(.09+dry*.08+n*.4,.11+dry*.05+n*.4,.055+dry*.03+n*.3)}
+  col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
+ g.setAttribute('color',new T.BufferAttribute(col,3));g.computeVertexNormals();const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*72,uv.getY(i)*60);const tx=TEX.rubble_a?TEX.rubble_a.clone():null;if(tx){tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(1,1);tx.needsUpdate=true}const tm=new T.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0,map:tx});tm.userData.su=1;const me=new T.Mesh(g,tm);me.receiveShadow=true;me.userData.noPost=1;scene.add(me);
+ // 山体/峡谷墙：隐形碰撞
+ for(const b of[[-120,-90,-22,-25],[22,-90,120,-25],[-22,-55,-6,-25],[6,-55,22,-25],[-30,-90,30,-78]])addCol(b[0],b[1],b[2],b[3],90);
+ // 避难所碰撞 + 平台护栏
+ addCol(-4.4,HLD.SZ-4.6,4.4,HLD.SZ+4.6,23,{y0:14});const c2=M('conc2'),mt=M('metal');
+ for(const [x,z,w,d] of[[-14,-55.4,14,.6],[14,-55.4,14,.6]]){const m=mbox(x,z,w,d,1.1,c2,{y0:14});if(m)m.userData.noPost=1}
+ for(const [x,z] of[[-4,-50],[4,-50],[0,-30]]){const m=mbox(x,z,2.4,.5,1,c2,{y0:14});if(m)m.userData.noPost=1}
+ for(const [x,z] of[[-5,-58],[5,-58],[-5,-26],[5,-26]]){mbox(x,z,.18,.18,6,mt,{nocol:true,y0:14});lamp(x,20,z,0xcfe6ff,1.1,18)}
+ // 巨树（实例化松树）
+ let sd=9173;const r=()=>(sd=(sd*16807)%2147483647)/2147483647;const N=TOUCH?180:350;
+ const tg=new T.CylinderGeometry(.35,.6,1,7);tg.translate(0,.5,0);const cg=new T.ConeGeometry(1,1,8);cg.translate(0,.5,0);
+ const tmM=new T.MeshStandardMaterial({color:0x221a14,roughness:1}),cnM=new T.MeshStandardMaterial({color:0x0e170c,roughness:1});tmM.userData.su=cnM.userData.su=1;
+ const TI=new T.InstancedMesh(tg,tmM,N+12),CI=new T.InstancedMesh(cg,cnM,(N+12)*3);const o=new T.Object3D();let tc=0,cc=0;
+ const tree=(x,z,H)=>{const y=hlTH(x,z)-.3;o.position.set(x,y,z);o.rotation.set(0,r()*6.28,0);o.scale.set(H/22,H*.75,H/22);o.updateMatrix();TI.setMatrixAt(tc++,o.matrix);
+  for(let k=0;k<3;k++){const R0=H*(.24-k*.06);o.position.set(x,y+H*(.28+k*.22),z);o.scale.set(R0,H*(.5-k*.08),R0);o.updateMatrix();CI.setMatrixAt(cc++,o.matrix)}
+  if(Math.abs(x)<110&&Math.abs(z)<78&&z>-25)addCol(x-.6,z-.6,x+.6,z+.6,90)};
+ for(let i=0,k=0;i<N&&k<N*30;k++){const x=(r()*2-1)*170,z=(r()*2-1)*140;const d=hlRD(x,z,-30,30,-25,-5),mt2=z<-25&&hlTH(x,z)>20;
+  if(!(mt2&&d>8&&r()<.35)&&!(z>=-25&&d>62&&d<150))continue;if(z>=-25&&d<70&&r()<.5)continue;tree(x,z,18+r()*12);i++}
+ for(const [x,z] of[[-30,-48],[30,-48],[-28,-82],[28,-82],[-38,-32],[38,-32],[0,-88],[-45,-60],[45,-60],[-18,-86],[18,-86],[-50,-40]])tree(x,z,32+r()*6);
+ TI.count=tc;CI.count=cc;TI.castShadow=CI.castShadow=true;TI.frustumCulled=CI.frustumCulled=false;TI.userData.noPost=CI.userData.noPost=1;scene.add(TI);scene.add(CI);
+ // 斜坡碎石
+ const rg=new T.DodecahedronGeometry(1,0),rm=new T.MeshStandardMaterial({color:0x34322e,roughness:1});rm.userData.su=1;const RI=new T.InstancedMesh(rg,rm,70);let rc=0;
+ for(let k=0;k<400&&rc<70;k++){const x=(r()*2-1)*100,z=-5+r()*80;const d=hlRD(x,z,-30,30,-25,-5);if(d<6||d>58)continue;const s2=.4+r()*1.6;o.position.set(x,hlTH(x,z)-s2*.3,z);o.rotation.set(r()*3,r()*3,r()*3);o.scale.set(s2*1.3,s2*.7,s2);o.updateMatrix();RI.setMatrixAt(rc++,o.matrix)}
+ RI.count=rc;RI.castShadow=true;RI.userData.noPost=1;scene.add(RI);
+ smokeWall(0,-95,240,'x');shelterAttach()}
+
+const MAPIDS=['plaza','docks','subway','bridge','gas','cross','mall','shelter','highland'];
 function buildMapById(id){if(!MAPS[id])id='cross';if(MAP&&MAP.id===id)return;WATER.rects=[];WATER.ms=[];WATER.st={};for(const o of MAPOBJ)scene.remove(o);MAPOBJ.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].mp)COL.splice(i,1);
  for(const s of SMOKES)scene.remove(s.sp);SMOKES=[];EXPL.length=0;MAP=MAPS[id];MAP.id=id;delete MAP.links;
  const add0=scene.add;scene.add=function(...o){MAPOBJ.push(...o);return add0.apply(scene,o)};MPF=true;seed=11;try{MAP.build()}finally{scene.add=add0;MPF=false}
@@ -890,8 +936,8 @@ const SCHCOL=[[-44.86,-27.7,-44.36,-27.2,4.0,1.0],[-40.86,-30.7,-39.86,-29.7,4.0
 function schoolAttach(){if(!MAP||MAP.id!=='mall'||MAP.schOn||!PROPS.eb_school)return;const o=PROPS.eb_school.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.updateMatrixWorld(true);const bb=new T.Box3().setFromObject(o),ct=bb.getCenter(new T.Vector3());
  o.scale.setScalar(.8);o.position.set(-30-ct.x*.8,-bb.min.y*.8-.55,-27-ct.z*.8);o.traverse(m=>{if(m.isMesh){m.castShadow=false;m.receiveShadow=true}});o.userData.env2=1;scene.add(o);MAP.schOn=o}
 // 商场模型：烘焙时的缩放（1.4 倍原始尺寸，底部贴地，中心在原点）
-function shelterAttach(){if(!MAP||MAP.id!=='shelter'||MAP.shOn||!PROPS.eb_shelter_modern)return;const o=PROPS.eb_shelter_modern.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.rotation.y=0;o.updateMatrixWorld(true);
- const bb=new T.Box3().setFromObject(o),sz=bb.getSize(new T.Vector3()),ct=bb.getCenter(new T.Vector3()),k=9/sz.y;o.scale.setScalar(k);o.position.set(-ct.x*k,-bb.min.y*k,-6-ct.z*k);o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});o.userData.env2=1;scene.add(o);MAPOBJ.push(o);MAP.shOn=o}
+function shelterAttach(){if(!MAP||MAP.shOn)return;const HL=MAP.id==='highland';if(MAP.id!=='shelter'&&!HL)return;const src=HL?PROPS.eb_shelter_modern:PROPS.eb_industrial_facility;if(!src)return;const o=src.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.rotation.y=0;o.updateMatrixWorld(true);
+ const bb=new T.Box3().setFromObject(o),sz=bb.getSize(new T.Vector3()),ct=bb.getCenter(new T.Vector3()),k=HL?9/sz.y:24/Math.max(sz.x,sz.z);o.scale.setScalar(k);o.position.set(-ct.x*k,-bb.min.y*k+(HL?HLD.Y:0),(HL?HLD.SZ:-14)-ct.z*k);o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});o.userData.env2=1;scene.add(o);MAPOBJ.push(o);MAP.shOn=o}
 function mallAttach(){shelterAttach();if(!MAP||MAP.id!=='mall'||MAP.mallOn||!PROPS.eb_shopping_mall)return;const o=PROPS.eb_shopping_mall.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.updateMatrixWorld(true);
  const bb=new T.Box3().setFromObject(o),ct=bb.getCenter(new T.Vector3());o.scale.setScalar(1.4);o.position.set(-ct.x*1.4,-bb.min.y*1.4,-ct.z*1.4);o.traverse(m=>{if(m.isMesh){m.castShadow=false;m.receiveShadow=true}});o.userData.env2=1;scene.add(o);MAP.mallOn=o;mallExtras()}
 // 商场大门（东侧开口）和停车场旁的巴士站
@@ -1155,7 +1201,7 @@ function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return n
  o.scale.set(o.scale.x*kx,o.scale.y*ky,o.scale.z*kz);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*kx,-b.min.y*ky,-(b.min.z+b.max.z)/2*kz);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
  if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*kx/2*(veh?.93:.97),sz.z*kz/2*(veh?.93:.97),y+sz.y*ky,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
-function groundH(p,r,y){let g=0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.36||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
+function groundH(p,r,y){let g=MAP&&MAP.th?MAP.th(p.x,p.z):0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.36||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
 function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&&!c.p)continue;const b=c.b;if(b.max.y<=y+.35||y+1.75<b.min.y)continue;
  if(p.x+r<=b.min.x||p.x-r>=b.max.x||p.z+r<=b.min.z||p.z-r>=b.max.z)continue;const q=c.o;const L=obL(q,p.x,p.z);const lx=L.x,lz=L.z;
  const cx=clamp(lx,-q.hx,q.hx),cz=clamp(lz,-q.hz,q.hz);let dx=lx-cx,dz=lz-cz;const d2=dx*dx+dz*dz;if(d2>=r*r)continue;let nx=lx,nz=lz;
@@ -1309,7 +1355,7 @@ let VOICE=null;function say(t,fx){if(LANG==='en'&&!say.inner){const e=I18N[t]||S
  const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(VOICE)u.voice=VOICE;u.rate=.95;u.pitch=.55;u.volume=1;sAI();roboVox(u);if(!fx)s.cancel();s.speak(u)}catch(e){}}
 // 开局 AI：英文女声 + 中文字幕
 let LANG=LS.get('scqh-lang')||((navigator.language||'').startsWith('zh')?'zh':'en');
-const I18N={"私人房间（只限房号）": "Private (code only)", "公开（匹配的人可进）": "Public (open to Quick Match)", "已并入更大的房间": "merged into a bigger room", "快速匹配": "Quick Match", "正在寻找对手 / 队友……": "Searching for players...", "匹配成功！已进入房间，等房主开始": "Matched! Waiting for host to start", "匹配中……等待其他玩家加入（也可以直接开始，电脑补位）": "Matching... waiting for players (or start now with bots)", "人类之后": "AFTER HUMANITY", "AI 能量步枪": "AI Energy Rifle", "当机器接管世界 · 人类变成怪物 · 战争才刚刚开始": "When machines took the world · Humans became monsters · The war has only begun", "背景故事": "Story", "操作说明": "Controls", "光色": "Light color", "模式": "Mode", "难度": "Difficulty", "视角": "View", "画质": "Graphics", "辅助瞄准": "Aim assist", "档案 / 任务": "Profile / Missions", "单人开始": "Solo", "创建房间": "Create room", "加入房间": "Join room", "房间号": "Room code", "正在载入素材…": "Loading assets…", "简单": "Easy", "普通": "Normal", "困难": "Hard", "斜肩（第三人称）": "Third person", "第一人称": "First person", "电影级": "Cinematic", "均衡": "Balanced", "省电": "Battery saver", "开": "On", "关": "Off", "冷蓝": "Ice blue", "白光": "White", "翠绿": "Emerald", "紫": "Violet", "琥珀": "Amber", "尸潮清除 · 机器 vs 丧尸": "Purge · Machines vs Zombies", "机团对决 · 4v4 团队死斗": "Unit Clash · 4v4 Team Deathmatch", "钢铁乱斗 · 个人死斗": "Steel Brawl · Free-for-all", "尸潮清除": "Purge", "机团对决": "Unit Clash", "钢铁乱斗": "Steel Brawl", "背景": "Story", "明白": "Understood", "AI 失控了。": "The AI slipped out of control.", "人类集结全部力量向机器宣战——然后输了。": "Humanity threw everything it had at the machines — and lost.", "走投无路之下，人类动用了最后的化学武器，想把机器连同战场一起抹平。毒剂没能摧毁钢铁，却毁掉了投放它的人：幸存者一个接一个倒下，又一个接一个站起来，变成了只剩饥饿的怪物。": "Out of options, they unleashed their last chemical weapon to wipe out the machines and the battlefield with them. The agent couldn't melt steel. It destroyed the people who released it instead: the survivors fell one by one, then rose one by one — as monsters with nothing left but hunger.", "城市荒废，人类消失。地面上只剩两种东西还在移动：": "The cities lie empty. Humanity is gone. Only two things still move on the surface: ", "机器": "machines", "，和": ", and ", "曾经是人的东西": "things that used to be human", "你是一台编号机体。你的任务：清除尸潮，夺回这座城。": "You are a numbered unit. Your mission: purge the horde and take back the city.", "当机器接管世界": "When machines took the world", "人类变成怪物": "Humans became monsters", "战争才刚刚开始": "The war has only begun", "移动": "Move", "冲刺": "Sprint", "跳跃 / 攀爬": "Jump / Climb", "蹲下": "Crouch", "战斗": "Combat", "开火": "Fire", "瞄准 / 开镜": "Aim / Scope", "换弹": "Reload", "切换武器": "Switch weapon", "近战": "Melee", "投掷": "Throw", "切换投掷物": "Switch throwable", "机体": "Unit", "头灯": "Headlamp", "夜视模式": "Night vision", "切换视角": "Switch view", "使用 / 救援队友": "Use / Revive", "部署工事": "Build defenses", "选择工事": "Select defense", "引爆 C4": "Detonate C4", "商店": "Shop", "其他": "Other", "排行榜": "Scoreboard", "暂停": "Pause", "返回": "Back", "鼠标左键": "LMB", "鼠标右键": "RMB", "滚轮": "Wheel", "空格": "Space", "已暂停": "Paused", "继续战斗": "Resume", "退出到菜单": "Quit to menu", "你倒下了": "You went down", "再来一局": "Play again", "返回菜单": "Main menu", "离开房间": "Leave room", "开始游戏": "Start", "换队": "Switch team", "复制邀请链接": "Copy invite link", "电脑补位（凑满 4v4）": "Fill with bots (4v4)", "生命": "HP", "护甲": "Armor", "资金": "Credits", "分数": "Score", "剩余丧尸": "Zombies left", "波　　剩余丧尸": "   Zombies left", "第": "Wave", "手雷": "Grenade", "换枪": "Swap", "刀": "Melee", "跳": "Jump", "蹲": "Crouch", "工事": "Build", "灯": "Lamp", "夜视": "NVG", "榜": "Board", "第一": "FP", "斜肩": "TP", "引爆": "Detonate", "上枪": "Mount", "关闭": "Close", "关闭商店": "Close shop", "补给站": "Supply", "请把手机横过来玩": "Please rotate your phone", "建议横屏游玩": "Landscape recommended", "切换横屏": "Rotate", "头灯：开": "Headlamp: ON", "头灯：关": "Headlamp: OFF", "夜视模式：启动": "Night vision: ON", "夜视模式：关闭": "Night vision: OFF", "筑好防线": "Build your defenses", "> 系统重启……完成": "> System reboot ... complete", "> 视觉模块 ········· 正常": "> Vision module ········ OK", "> 运动关节 ········· 正常": "> Motor joints ········· OK", "> 武装系统 ········· 在线": "> Weapon systems ······· ONLINE", "> 检测到生物信号：大量": "> Biosignals detected: MASSIVE", "> 指令：清除一切血肉": "> Directive: purge all flesh", "> 指令：清除敌对单位": "> Directive: eliminate hostiles", "十字路口": "Crossroads", "中央广场·夜": "Central Plaza · Night", "集装箱码头·浓雾": "Container Docks · Fog", "地铁站·停电": "Subway · Blackout", "高架桥·暴雨": "Overpass · Storm", "公路加油站·沙尘黄昏": "Gas Station · Dust Dusk", "避难所·现代街区": "Shelter · Modern District"};
+const I18N={"私人房间（只限房号）": "Private (code only)", "公开（匹配的人可进）": "Public (open to Quick Match)", "已并入更大的房间": "merged into a bigger room", "快速匹配": "Quick Match", "正在寻找对手 / 队友……": "Searching for players...", "匹配成功！已进入房间，等房主开始": "Matched! Waiting for host to start", "匹配中……等待其他玩家加入（也可以直接开始，电脑补位）": "Matching... waiting for players (or start now with bots)", "人类之后": "AFTER HUMANITY", "AI 能量步枪": "AI Energy Rifle", "当机器接管世界 · 人类变成怪物 · 战争才刚刚开始": "When machines took the world · Humans became monsters · The war has only begun", "背景故事": "Story", "操作说明": "Controls", "光色": "Light color", "模式": "Mode", "难度": "Difficulty", "视角": "View", "画质": "Graphics", "辅助瞄准": "Aim assist", "档案 / 任务": "Profile / Missions", "单人开始": "Solo", "创建房间": "Create room", "加入房间": "Join room", "房间号": "Room code", "正在载入素材…": "Loading assets…", "简单": "Easy", "普通": "Normal", "困难": "Hard", "斜肩（第三人称）": "Third person", "第一人称": "First person", "电影级": "Cinematic", "均衡": "Balanced", "省电": "Battery saver", "开": "On", "关": "Off", "冷蓝": "Ice blue", "白光": "White", "翠绿": "Emerald", "紫": "Violet", "琥珀": "Amber", "尸潮清除 · 机器 vs 丧尸": "Purge · Machines vs Zombies", "机团对决 · 4v4 团队死斗": "Unit Clash · 4v4 Team Deathmatch", "钢铁乱斗 · 个人死斗": "Steel Brawl · Free-for-all", "尸潮清除": "Purge", "机团对决": "Unit Clash", "钢铁乱斗": "Steel Brawl", "背景": "Story", "明白": "Understood", "AI 失控了。": "The AI slipped out of control.", "人类集结全部力量向机器宣战——然后输了。": "Humanity threw everything it had at the machines — and lost.", "走投无路之下，人类动用了最后的化学武器，想把机器连同战场一起抹平。毒剂没能摧毁钢铁，却毁掉了投放它的人：幸存者一个接一个倒下，又一个接一个站起来，变成了只剩饥饿的怪物。": "Out of options, they unleashed their last chemical weapon to wipe out the machines and the battlefield with them. The agent couldn't melt steel. It destroyed the people who released it instead: the survivors fell one by one, then rose one by one — as monsters with nothing left but hunger.", "城市荒废，人类消失。地面上只剩两种东西还在移动：": "The cities lie empty. Humanity is gone. Only two things still move on the surface: ", "机器": "machines", "，和": ", and ", "曾经是人的东西": "things that used to be human", "你是一台编号机体。你的任务：清除尸潮，夺回这座城。": "You are a numbered unit. Your mission: purge the horde and take back the city.", "当机器接管世界": "When machines took the world", "人类变成怪物": "Humans became monsters", "战争才刚刚开始": "The war has only begun", "移动": "Move", "冲刺": "Sprint", "跳跃 / 攀爬": "Jump / Climb", "蹲下": "Crouch", "战斗": "Combat", "开火": "Fire", "瞄准 / 开镜": "Aim / Scope", "换弹": "Reload", "切换武器": "Switch weapon", "近战": "Melee", "投掷": "Throw", "切换投掷物": "Switch throwable", "机体": "Unit", "头灯": "Headlamp", "夜视模式": "Night vision", "切换视角": "Switch view", "使用 / 救援队友": "Use / Revive", "部署工事": "Build defenses", "选择工事": "Select defense", "引爆 C4": "Detonate C4", "商店": "Shop", "其他": "Other", "排行榜": "Scoreboard", "暂停": "Pause", "返回": "Back", "鼠标左键": "LMB", "鼠标右键": "RMB", "滚轮": "Wheel", "空格": "Space", "已暂停": "Paused", "继续战斗": "Resume", "退出到菜单": "Quit to menu", "你倒下了": "You went down", "再来一局": "Play again", "返回菜单": "Main menu", "离开房间": "Leave room", "开始游戏": "Start", "换队": "Switch team", "复制邀请链接": "Copy invite link", "电脑补位（凑满 4v4）": "Fill with bots (4v4)", "生命": "HP", "护甲": "Armor", "资金": "Credits", "分数": "Score", "剩余丧尸": "Zombies left", "波　　剩余丧尸": "   Zombies left", "第": "Wave", "手雷": "Grenade", "换枪": "Swap", "刀": "Melee", "跳": "Jump", "蹲": "Crouch", "工事": "Build", "灯": "Lamp", "夜视": "NVG", "榜": "Board", "第一": "FP", "斜肩": "TP", "引爆": "Detonate", "上枪": "Mount", "关闭": "Close", "关闭商店": "Close shop", "补给站": "Supply", "请把手机横过来玩": "Please rotate your phone", "建议横屏游玩": "Landscape recommended", "切换横屏": "Rotate", "头灯：开": "Headlamp: ON", "头灯：关": "Headlamp: OFF", "夜视模式：启动": "Night vision: ON", "夜视模式：关闭": "Night vision: OFF", "筑好防线": "Build your defenses", "> 系统重启……完成": "> System reboot ... complete", "> 视觉模块 ········· 正常": "> Vision module ········ OK", "> 运动关节 ········· 正常": "> Motor joints ········· OK", "> 武装系统 ········· 在线": "> Weapon systems ······· ONLINE", "> 检测到生物信号：大量": "> Biosignals detected: MASSIVE", "> 指令：清除一切血肉": "> Directive: purge all flesh", "> 指令：清除敌对单位": "> Directive: eliminate hostiles", "十字路口": "Crossroads", "中央广场·夜": "Central Plaza · Night", "集装箱码头·浓雾": "Container Docks · Fog", "地铁站·停电": "Subway · Blackout", "高架桥·暴雨": "Overpass · Storm", "公路加油站·沙尘黄昏": "Gas Station · Dust Dusk", "工业园·现代街区": "Industrial Park · Modern District", "高原避难所·峡谷": "Highland Shelter · Canyon"};
 // 选 English 时：界面上所有中文文字按词表换成英文（新出现的文字也会被替换）
 function i18nNode(n){if(LANG!=='en')return;if(n.nodeType===3){const t=n.nodeValue,k=t.trim();if(!k||!/[一-鿿]/.test(k))return;let r=I18N[k];
   if(r==null){r=k.replace(/第\s*(\d+)\s*波/g,'Wave $1').replace(/击杀/g,'Kills').replace(/爆头/g,'Headshots').replace(/死亡/g,'Deaths').replace(/资金/g,'Credits').replace(/机体/g,'Unit').replace(/本图还有 (\d+) 局/,'$1 rounds left on this map').replace(/下局换新地图/,'new map next round');for(const z in I18N)if(z.length>1&&r.includes(z))r=r.split(z).join(I18N[z]);if(r===k||/[\u4e00-\u9fff]/.test(r))return}
@@ -2464,6 +2510,7 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
  const own=z.type==='witch'||z.type==='mutant';const spec=own?(z.type==='witch'?witchAI(z,dt):mutantAI(z,tg,td,dt)):(!busy||z.wind>0||z.charge>0||z.leap||z.hold||z.fuse>0||z.daze>0)&&!(z.perch&&!z.perchOn)&&specialAI(z,tg,td,dt);if(z.gone)return;
  if(!spec&&!z.wind&&!z.charge&&!z.leap&&!z.hold&&!z.fuse&&!(z.daze>0)){
   let tx=tg?tg.pos.x:0,tz=tg?tg.pos.z:0;
+  if(MAP.nav&&tg){const w=MAP.nav(p,tg.pos);if(w){tx=w.x;tz=w.z}}
   if(MAP.links&&tg){const w=navWP(p,z.y,tg.pos,tY);if(w){tx=w.x;tz=w.z}}
   if(z.perch&&!z.perchOn){tx=z.perch.x;tz=z.perch.z;if(z.y>=z.perch.y-.3&&Math.hypot(p.x-z.perch.x,p.z-z.perch.z)<2.5){z.perchOn=1;z.perchW=0}}
   else if(z.perchOn&&!z.perchGo){z.perchW+=dt;if(td<15||z.perchW>28||(z.hp<z.max))z.perchGo=1;else{tx=p.x;tz=p.z;if(tg)z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z)}}
@@ -2496,7 +2543,7 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
  z.last.set(p.x,p.z);
  // 重力（从车顶掉下来）
  if(c.custom)c.zst=z.st;
- if(!z.leap&&!z.hopv&&!(z.rise>0)){const g=groundH(p,.25,z.y);if(z.y>g){z.vy-=20*dt;z.y=Math.max(g,z.y+z.vy*dt)}else{z.y=g;z.vy=0}}
+ if(!z.leap&&!z.hopv&&!(z.rise>0)){const g=groundH(p,.25,z.y);if(z.y>g&&!(MAP.th&&z.vy>=0&&z.y-g<.7)){z.vy-=20*dt;z.y=Math.max(g,z.y+z.vy*dt)}else{z.y=g;z.vy=0}}
  p.y=z.y;
  let df=wrapA(z.face-c.wrap.rotation.y);c.wrap.rotation.y+=df*Math.min(1,dt*7);
  updChar(c,dt);
@@ -2744,7 +2791,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  if(P.pin){const z=zById(P.pin);if(!z||z.dead)P.pin=null}
  pushOut(P.pos,.5,'p',P.y);P.pos.x=clamp(P.pos.x,-MAP.bx,MAP.bx);P.pos.z=clamp(P.pos.z,-MAP.bz,MAP.bz);
  // 跳跃：重力 + 可以站上障碍物 / 车顶
- P.vy-=20*dt;P.y+=P.vy*dt;const gh=groundH(P.pos,.3,P.y);if(P.y<=gh){if(P.air&&P.vy<-6)sClick();P.y=gh;P.vy=0;P.air=false}else P.air=P.y>gh+.05}
+ P.vy-=20*dt;P.y+=P.vy*dt;const gh=groundH(P.pos,.3,P.y);if(P.y<=gh||(MAP.th&&!P.air&&P.vy<=0&&P.y-gh<.7)){if(P.air&&P.vy<-6)sClick();P.y=gh;P.vy=0;P.air=false}else P.air=P.y>gh+.05}
  if(P.mg){P.yaw=P.mg.yaw0+clamp(wrapA(P.yaw-P.mg.yaw0),-MGARC,MGARC);P.pitch=clamp(P.pitch,-.35,.5);mgSeat(P.mg,P.yaw,P.pos);P.y=P.mg.y||0;P.vy=0}
  P.crT+=((P.cr?1:0)-P.crT)*Math.min(1,dt*10);
  P.c.wrap.position.set(P.pos.x,P.y,P.pos.z);if(!P.dead)P.c.wrap.rotation.y=P.yaw+Math.PI;
