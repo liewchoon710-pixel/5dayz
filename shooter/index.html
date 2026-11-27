@@ -406,8 +406,8 @@ async function loadAll(){
  for(const [al,f,rot] of ENV2)jobs.push(loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;const w=new T.Group();g.scene.rotation.y=rot?Math.PI/2:0;w.add(g.scene);w.userData.env2=1;ENV2M[al]=w}));
  await Promise.all(jobs);Object.assign(PROPS,ENV2M);GFX&&GFX.props();
  // 大型建筑/桥/码头等在后台慢慢载入，不拖慢开始画面；下一局重建地图时就会摆出来
- for(const f of ['gad_orb','gad_sentry','gad_drone','gad_shield','gad_wings','gad_laser','gad_emp','gad_decoy','gad_repair','gad_stake','gad_grapple','gad_thruster','gad_nv','gad_tri','shelter_modern','industrial_facility','fir','relay_station','shopping_mall','mall_bus_stop','school','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
-  loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);if(!/shelter_modern|industrial_facility|fir|relay_station|gad_/.test(f))GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin);mallAttach();mallExtras();schoolAttach();loreSet()}catch(e){console.warn(e)}},300)});
+ for(const f of ['gad_orb','gad_sentry','gad_drone','gad_shield','gad_wings','gad_laser','gad_emp','gad_decoy','gad_repair','gad_stake','gad_grapple','gad_thruster','gad_nv','gad_tri','shelter_modern','industrial_facility','fir','relay_station','lamp_kit','castle_gate','shopping_mall','mall_bus_stop','school','abandoned_shop_front','ruined_street_storefront','abandoned_school','abandoned_supermarket','abandoned_residential_block','abandoned_industrial_block','damaged_highrise_building','abandoned_construction_site','abandoned_large_dock','collapsed_highway_bridge','ruined_elevated_bridge','abandoned_subway_entrance','abandoned_central_square','fixed_ground_machine_gun'])
+  loadGLB('mx/env2/'+f+'.glb').then(g=>{if(!g)return;g.scene.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;const m=o.material;if(m&&'roughness' in m){m.roughness=Math.max(m.roughness,.75);m.metalness=Math.min(m.metalness,.25);if(!/shelter_modern|industrial_facility|fir|relay_station|lamp_kit|castle_gate|gad_/.test(f))GFX&&GFX.weather&&GFX.weather(m,.35,.6)}}});PROPS['eb_'+f]=g.scene;clearTimeout(window._swT);window._swT=setTimeout(()=>{try{swapBuildings();MGS.forEach(mgSkin);mallAttach();mallExtras();schoolAttach();loreSet()}catch(e){console.warn(e)}},300)});
 }
 const REST=1.0613;
 function prepMX(g,n){const rm=[];g.scene.traverse(o=>{if(o.isMesh&&/BattleAxe|Weapons_Geo/i.test(o.name))rm.push(o)});rm.forEach(o=>o.parent&&o.parent.remove(o));
@@ -890,7 +890,7 @@ function hlTH(x,z){const Y=HLD.Y;
  if(z<-25){const d=Math.min(hlRD(x,z,-4,4,-55,-25),hlRD(x,z,-22,22,-80,-55),hlRD(x,z,-30,30,-25,-5));if(d<=0)return Y;
   return Y+Math.min(1,d/2.5)*30+Math.min(d,70)*1.1+hlN(x,z)*Math.min(9,d*.8)+Math.max(0,hlN(x*.4,z*.4))*Math.min(d,40)*.6}
  const d=hlRD(x,z,-30,30,-25,-5);if(d<=0)return Y;const t=Math.min(1,d/64),k=1-t*t*(3-2*t);return Math.max(0,Y*k+hlN(x,z)*.5*Math.min(1,d/8)*k)}
-function hlNav(p,t){if(t.z<-27&&p.z>-25){return Math.abs(p.x)>3?{x:p.x*.3,z:-21}:{x:0,z:-40}}if(t.z<-56&&p.z>-56&&p.z<-25)return{x:0,z:-60};return null}
+function hlNav(p,t){if(t.z<-27&&p.z>-25){return Math.abs(p.x)>1.1?{x:p.x*.15,z:-20}:{x:0,z:-40}}if(t.z<-56&&p.z>-56&&p.z<-25)return{x:0,z:-60};return null}
 function hlBuild(){const W=360,D=300,NX=180,NZ=150;const g=new T.PlaneGeometry(W,D,NX,NZ);g.rotateX(-Math.PI/2);const pa=g.attributes.position,col=new Float32Array(pa.count*3),c=new T.Color();
  for(let i=0;i<pa.count;i++){const x=pa.getX(i),z=pa.getZ(i),h=hlTH(x,z);pa.setY(i,h);const e=.02,sl=Math.hypot(hlTH(x+e*50,z)-h,hlTH(x,z+e*50)-h);const n=hlN(x*3,z*3)*.04;
   if(Math.abs(x)<3.6&&z<-25&&z>-56)c.setRGB(.07+n*.3,.07+n*.3,.075+n*.3);else if(sl>1.6||h>HLD.Y+2){const k=Math.min(1,(sl-1)/3);c.setRGB(.16+n*.5-k*.04,.155+n*.5-k*.04,.15+n*.5-k*.03)}else{const dry=Math.min(1,h/HLD.Y);c.setRGB(.09+dry*.08+n*.4,.11+dry*.05+n*.4,.055+dry*.03+n*.3)}
@@ -902,8 +902,15 @@ function hlBuild(){const W=360,D=300,NX=180,NZ=150;const g=new T.PlaneGeometry(W
  // 避难所碰撞 + 平台护栏
  addCol(-4.4,HLD.SZ-4.6,4.4,HLD.SZ+4.6,31,{y0:22});const c2=M('conc2'),mt=M('metal');
  for(const [x,z,w,d] of[[-13,-55.4,18,.6],[13,-55.4,18,.6]]){const m=mbox(x,z,w,d,1.1,c2,{y0:22});if(m)m.userData.noPost=1}
- for(const [x,z] of[[-2.2,-50],[2.2,-42],[0,-32]]){const m=mbox(x,z,1.5,.5,1,c2,{y0:22});if(m)m.userData.noPost=1}
- const LH=new T.MeshBasicMaterial({color:0xfff2d8});LH.userData.su=1;for(const [x,z,c,i,d] of[[-6,-58,0xcfe6ff,1.6,26],[6,-58,0xcfe6ff,1.6,26],[-8,-23,0xffd9a0,1.8,30],[8,-23,0xffd9a0,1.8,30],[-3.4,-48,0xffc070,1.3,20],[3.4,-38,0xffc070,1.3,20],[-3.4,-30,0xffc070,1.3,20],[-16,-74,0xcfe6ff,1.4,24],[16,-62,0xcfe6ff,1.4,24],[0,-12,0xffd9a0,1.6,30]]){const cv=Math.abs(x)<4;mbox(x,z,.18,.18,cv?3:6,mt,{nocol:true,y0:hlTH(x,z)});const hy=hlTH(x,z)+(cv?3:6);const hd=new T.Mesh(new T.BoxGeometry(.5,.18,.3),LH);hd.position.set(x,hy,z);hd.userData.noPost=1;scene.add(hd);lamp(x,hy-.2,z,c,i,d)}
+ for(const [x,z] of[[-2.2,-48],[2.2,-41],[0,-35]]){const m=mbox(x,z,1.5,.5,1,c2,{y0:22});if(m)m.userData.noPost=1}
+ // 灯具（模型加载后贴上）：[型号,x,z,朝向目标x,目标z,颜色,强度,距离]
+ const LK=[[7,-18,-58,0,-66,0xcfe6ff,1.7,28],[6,18,-58,0,-66,0xcfe6ff,1.7,28],[7,-19,-75,0,-66,0xcfe6ff,1.5,26],[1,5,-77,0,-66,0xcfe6ff,1.2,20],
+  [3,-3.3,-51,0,-51,0xffc070,1.4,20],[1,3.3,-44,0,-44,0xffc070,1.4,20],[3,-3.3,-37,0,-37,0xffc070,1.4,20],
+  [6,-8,-22,0,-14,0xffd9a0,1.8,30],[7,8,-22,0,-14,0xffd9a0,1.8,30],[0,-12,-13,0,0,0xffe0b0,1.3,24],[2,12,-13,0,0,0xffe0b0,1.3,24],[5,-4,-21,0,-10,0xff5030,.6,8],[4,4,-21,0,-10,0xffe0b0,1,14]];
+ const LKH=[2.8,3.4,2.8,3.8,3.1,2.1,6.9,6.9];MAP.lk=[];
+ for(const [t,x,z,tx,tz,c,i,d] of LK){const y=hlTH(x,z);MAP.lk.push([t,x,y,z,Math.atan2(tx-x,tz-z)]);lamp(x+(tx-x)*.06,y+LKH[t]*.9,z+(tz-z)*.06,c,i,d)}
+ // 城门碰撞（门洞 3 米）
+ addCol(-12,-32,-1.5,-25,HLD.Y+10,{y0:HLD.Y});addCol(1.5,-32,12,-25,HLD.Y+10,{y0:HLD.Y});addCol(-1.5,-32,1.5,-25,HLD.Y+10,{y0:HLD.Y+4.6});
  // 巨树（实例化松树）
  let sd=9173;const r=()=>(sd=(sd*16807)%2147483647)/2147483647;const N=TOUCH?320:650;
  const TR=[];const o=new T.Object3D();
@@ -942,11 +949,15 @@ function hlTrees(){if(!MAP||MAP.id!=='highland'||!MAP.trees||MAP.trOn==='fir')re
  const TI=new T.InstancedMesh(tg,tmM,TR.length),CI=new T.InstancedMesh(cg,cnM,TR.length*3);CI.userData.k=3;let cc=0;
  TR.forEach((t,i)=>{const [x,y,z,H]=t;o.position.set(x,y,z);o.rotation.set(0,t[4],0);o.scale.set(H/22,H*.75,H/22);o.updateMatrix();TI.setMatrixAt(i,o.matrix);
   for(let k=0;k<3;k++){const R0=H*(.24-k*.06);o.position.set(x,y+H*(.28+k*.22),z);o.scale.set(R0,H*(.5-k*.08),R0);o.updateMatrix();CI.setMatrixAt(cc++,o.matrix)}});add(TI);add(CI);MAP.trOn='cone'}
+function hlKit(){if(!MAP||MAP.id!=='highland')return;const su=o=>o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});
+ if(!MAP.kOn&&PROPS.eb_lamp_kit&&MAP.lk){MAP.kOn=1;for(const [t,x,y,z,ry] of MAP.lk){const n=PROPS.eb_lamp_kit.getObjectByName('L'+t);if(!n)continue;const o=n.clone(true);o.position.set(x,y-.05,z);o.rotation.set(0,ry,0);o.scale.setScalar(7);su(o);scene.add(o);MAPOBJ.push(o)}}
+ if(!MAP.gOn&&PROPS.eb_castle_gate){MAP.gOn=1;const o=PROPS.eb_castle_gate.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.rotation.set(0,0,0);o.updateMatrixWorld(true);const bb=new T.Box3().setFromObject(o),k=20/(bb.max.z-bb.min.z);
+  o.scale.setScalar(k);o.rotation.y=Math.PI/2;o.position.set(0,0,0);o.updateMatrixWorld(true);const b2=new T.Box3().setFromObject(o);o.position.set(-2-(b2.min.x+b2.max.x)/2,HLD.Y-b2.min.y,-28.5-(b2.min.z+b2.max.z)/2);su(o);scene.add(o);MAPOBJ.push(o)}}
 function relayAttach(){if(!MAP||MAP.id!=='highland'||MAP.rsOn||!PROPS.eb_relay_station)return;const o=PROPS.eb_relay_station.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.updateMatrixWorld(true);
  const bb=new T.Box3().setFromObject(o),sz=bb.getSize(new T.Vector3()),ct=bb.getCenter(new T.Vector3()),k=9/Math.max(sz.x,sz.z);o.scale.setScalar(k);o.rotation.y=-Math.PI/2;o.position.set(15-ct.z*k*0,HLD.Y-bb.min.y*k,-71);
  o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});o.userData.env2=1;scene.add(o);MAPOBJ.push(o);MAP.rsOn=o;
  o.updateMatrixWorld(true);const b2=new T.Box3().setFromObject(o);o.position.x-=b2.getCenter(new T.Vector3()).x-15;o.position.z-=b2.getCenter(new T.Vector3()).z+71;o.updateMatrixWorld(true);const b3=new T.Box3().setFromObject(o);addCol(b3.min.x,b3.min.z,b3.max.x,b3.max.z,b3.max.y,{y0:HLD.Y});MAP.rsCol=COL[COL.length-1];MAP.rsCol.mp=true}
-function shelterAttach(){hlTrees();relayAttach();if(!MAP||MAP.shOn)return;const HL=MAP.id==='highland';if(MAP.id!=='shelter'&&!HL)return;const src=HL?PROPS.eb_shelter_modern:PROPS.eb_industrial_facility;if(!src)return;const o=src.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.rotation.y=0;o.updateMatrixWorld(true);
+function shelterAttach(){hlTrees();relayAttach();hlKit();if(!MAP||MAP.shOn)return;const HL=MAP.id==='highland';if(MAP.id!=='shelter'&&!HL)return;const src=HL?PROPS.eb_shelter_modern:PROPS.eb_industrial_facility;if(!src)return;const o=src.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.rotation.y=0;o.updateMatrixWorld(true);
  const bb=new T.Box3().setFromObject(o),sz=bb.getSize(new T.Vector3()),ct=bb.getCenter(new T.Vector3()),k=HL?9/sz.y:24/Math.max(sz.x,sz.z);o.scale.setScalar(k);o.position.set(-ct.x*k,-bb.min.y*k+(HL?HLD.Y:0),(HL?HLD.SZ:-14)-ct.z*k);o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});o.userData.env2=1;scene.add(o);MAPOBJ.push(o);MAP.shOn=o}
 function mallAttach(){shelterAttach();if(!MAP||MAP.id!=='mall'||MAP.mallOn||!PROPS.eb_shopping_mall)return;const o=PROPS.eb_shopping_mall.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.updateMatrixWorld(true);
  const bb=new T.Box3().setFromObject(o),ct=bb.getCenter(new T.Vector3());o.scale.setScalar(1.4);o.position.set(-ct.x*1.4,-bb.min.y*1.4,-ct.z*1.4);o.traverse(m=>{if(m.isMesh){m.castShadow=false;m.receiveShadow=true}});o.userData.env2=1;scene.add(o);MAP.mallOn=o;mallExtras()}
