@@ -908,7 +908,7 @@ function hlBuild(){const W=360,D=300,NX=180,NZ=150;const g=new T.PlaneGeometry(W
   [3,-3.3,-51,0,-51,0xffc070,1.4,20],[1,3.3,-44,0,-44,0xffc070,1.4,20],[3,-3.3,-37,0,-37,0xffc070,1.4,20],
   [6,-8,-22,0,-14,0xffd9a0,1.8,30],[7,8,-22,0,-14,0xffd9a0,1.8,30],[0,-12,-13,0,0,0xffe0b0,1.3,24],[2,12,-13,0,0,0xffe0b0,1.3,24],[5,-4,-21,0,-10,0xff5030,.6,8],[4,4,-21,0,-10,0xffe0b0,1,14]];
  const LKH=[2.8,3.4,2.8,3.8,3.1,2.1,6.9,6.9];MAP.lk=[];
- for(const [t,x,z,tx,tz,c,i,d] of LK){const y=hlTH(x,z);MAP.lk.push([t,x,y,z,Math.atan2(tx-x,tz-z)]);lamp(x+(tx-x)*.06,y+LKH[t]*.9,z+(tz-z)*.06,c,i,d)}
+ for(const [t,x,z,tx,tz,c,i,d] of LK){const y=hlTH(x,z);MAP.lk.push([t,x,y,z,Math.atan2(tx-x,tz-z)])}
  // 城门碰撞（门洞 3 米）
  addCol(-12,-32,-1.5,-25,HLD.Y+10,{y0:HLD.Y});addCol(1.5,-32,12,-25,HLD.Y+10,{y0:HLD.Y});addCol(-1.5,-32,1.5,-25,HLD.Y+10,{y0:HLD.Y+4.6});
  // 巨树（实例化松树）
@@ -950,7 +950,7 @@ function hlTrees(){if(!MAP||MAP.id!=='highland'||!MAP.trees||MAP.trOn==='fir')re
  TR.forEach((t,i)=>{const [x,y,z,H]=t;o.position.set(x,y,z);o.rotation.set(0,t[4],0);o.scale.set(H/22,H*.75,H/22);o.updateMatrix();TI.setMatrixAt(i,o.matrix);
   for(let k=0;k<3;k++){const R0=H*(.24-k*.06);o.position.set(x,y+H*(.28+k*.22),z);o.scale.set(R0,H*(.5-k*.08),R0);o.updateMatrix();CI.setMatrixAt(cc++,o.matrix)}});add(TI);add(CI);MAP.trOn='cone'}
 function hlKit(){if(!MAP||MAP.id!=='highland')return;const su=o=>o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});
- if(!MAP.kOn&&PROPS.eb_lamp_kit&&MAP.lk){MAP.kOn=1;for(const [t,x,y,z,ry] of MAP.lk){const n=PROPS.eb_lamp_kit.getObjectByName('L'+t);if(!n)continue;const o=n.clone(true);o.position.set(x,y-.05,z);o.rotation.set(0,ry,0);o.scale.setScalar(7);su(o);scene.add(o);MAPOBJ.push(o)}}
+ if(PROPS.eb_lamp_kit)for(const S of ST)if(S.k===10&&S.g.userData.fb){scene.remove(S.g);S.g=kitModel(S.ex);S.g.position.set(S.x,S.y,S.z);S.g.rotation.y=S.ry;scene.add(S.g)}
  if(!MAP.gOn&&PROPS.eb_castle_gate){MAP.gOn=1;const o=PROPS.eb_castle_gate.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.rotation.set(0,0,0);o.updateMatrixWorld(true);const bb=new T.Box3().setFromObject(o),k=20/(bb.max.z-bb.min.z);
   o.scale.setScalar(k);o.rotation.y=Math.PI/2;o.position.set(0,0,0);o.updateMatrixWorld(true);const b2=new T.Box3().setFromObject(o);o.position.set(-2-(b2.min.x+b2.max.x)/2,HLD.Y-b2.min.y,-28.5-(b2.min.z+b2.max.z)/2);su(o);scene.add(o);MAPOBJ.push(o)}}
 function relayAttach(){if(!MAP||MAP.id!=='highland'||MAP.rsOn||!PROPS.eb_relay_station)return;const o=PROPS.eb_relay_station.clone(true);o.scale.setScalar(1);o.position.set(0,0,0);o.updateMatrixWorld(true);
@@ -1580,7 +1580,7 @@ function beginMatch0(cfg){G.introT=3.6;
  P.hp=100;P.ar=0;P.dead=false;P.relT=0;P.fireCd=0;P.aim=0;P.aimOn=false;P.aimT=false;P.hurtT=0;P.rec=0;P.respT=0;$('tAim').classList.remove('on');
  if(G.mode==='pvp'){const pw=pvpPrimary();G.slots[1]=pw;G.ws[pw].own=true;G.slot=1;equip(pw,true);G.pickT=14;pvpPick(true)}else{applyArmory();equip(G.slots[G.slot],true)}respawnP(true);hudClear();hud(true);
  $('hud').classList.remove('hid');if(TOUCH)$('touch').classList.remove('hid');$('tShop').style.display='none';
- G.state='play';NET.lastH=performance.now();try{renderer.compile(scene,camera)}catch(e){}P.nvg=false;P.lamp=false;$('nvgFx').style.display='none';nvCss();if(MAP.env.night)setTimeout(()=>popTxt(TOUCH?'夜间作战：「灯」开头灯 ·「夜视」开夜视':'夜间作战：L 开头灯 · N 开夜视 · X 部署照明灯'),7200);try{wakeStart()}catch(e){console.warn(e)}
+ G.state='play';P.carry=null;lampSpawn();NET.lastH=performance.now();try{renderer.compile(scene,camera)}catch(e){}P.nvg=false;P.lamp=false;$('nvgFx').style.display='none';nvCss();if(MAP.env.night)setTimeout(()=>popTxt(TOUCH?'夜间作战：「灯」开头灯 ·「夜视」开夜视':'夜间作战：L 开头灯 · N 开夜视 · X 部署照明灯'),7200);try{wakeStart()}catch(e){console.warn(e)}
  if(G.mode==='z'){if(isHost()){stInitHost();nextWave()}const mid=G.mid;setTimeout(()=>{if(G.state==='play'&&G.mid===mid&&G.wave<=1)banner('筑好防线',(TOUCH?'点「工事」':'按 X ')+'用资金部署防御工事 · 补给卡车会送来弹药和资金',5)},8400)}
  else{setTimeout(()=>G.ffa?banner('钢铁乱斗','人人皆敌 · 先到 '+FFA_KILLS+' 杀获胜',3):banner('机团对决',(TEAM_N[P.team])+' · 先到 '+PVP_KILLS+' 杀获胜',3),3600);if(isHost())syncBots()}
  playIntro(G.mode);
@@ -3267,7 +3267,7 @@ GFX=(()=>{
 // 种类：0 沙袋墙 1 铁丝网 2 拒马栅栏 3 地雷 4 电台 5 补给卡车 6 补给托盘（地铁站）
 const FK=[{n:'沙袋墙',c:60,hp:320,hx:1.2,hz:.31,h:.96,solid:1,need:1},{n:'铁丝网',c:60,hp:260,hx:1.5,hz:.65,h:.8,solid:0},{n:'拒马栅栏',c:150,hp:850,hx:1.5,hz:.3,h:2.05,solid:1,need:3},{n:'地雷',c:80,hp:1,hx:.2,hz:.2,h:.08,solid:0},
  {n:'电台',hp:1000,hx:.95,hz:.6,h:1.15,solid:1},{n:'补给卡车',hp:520,hx:1.2,hz:3,h:2.4,solid:1},{n:'补给托盘',hp:300,hx:.75,hz:.75,h:.9,solid:1},
- {n:'阔剑雷',c:120,hp:1,hx:.2,hz:.1,h:.25,solid:0,mine:1},{n:'C4 炸药',c:160,hp:1,hx:.15,hz:.1,h:.1,solid:0,mine:1},{n:'照明灯',c:100,hp:180,hx:.35,hz:.35,h:2.2,solid:1}];FK[3].mine=1;const BK=[0,1,2,3,7,8,9];
+ {n:'阔剑雷',c:120,hp:1,hx:.2,hz:.1,h:.25,solid:0,mine:1},{n:'C4 炸药',c:160,hp:1,hx:.15,hz:.1,h:.1,solid:0,mine:1},{n:'照明灯',c:100,hp:180,hx:.35,hz:.35,h:2.2,solid:1},{n:'灯具',hp:999999,hx:.3,hz:.3,h:3,solid:0}];FK[3].mine=1;const BK=[0,1,2,3,7,8,9];
 const ST=[];let STID=1,RADIO=null,TRUCK=null;const SUP_MAX=20,FORT_MAX=36,SID=s=>'#'+s.id;
 const BLD={on:false,sel:0,prev:false,ghost:[],ok:false,p:new T.Vector3(),ry:0,cd:0};
 // ---------- 模型（一次做好，所有同类工事共用几何体和材质） ----------
@@ -3331,7 +3331,22 @@ function stGeo(){if(SG.g)return SG.g;const X=stTex();
   ok:new T.MeshBasicMaterial({color:0x5cff8a,transparent:true,opacity:.42,depthWrite:false}),no:new T.MeshBasicMaterial({color:0xff4a3a,transparent:true,opacity:.42,depthWrite:false})};
  return SG.g={sand,wire,jer,frame,mesh,mine,M:M_}}
 function sh1(m){m.castShadow=true;m.receiveShadow=true;return m}
-function stModel(k,ex){const Gg=stGeo(),M_=Gg.M,g=new T.Group();const B=(w,h,d,x,y,z,m,ry=0)=>{const b=sh1(new T.Mesh(new T.BoxGeometry(w,h,d),m));b.position.set(x,y,z);b.rotation.y=ry;g.add(b);return b};
+
+// ---- 可搬动的灯具（高原地图）：ST k=10，ex=型号 0..7；5 号是红色警示灯
+const LKH=[2.8,3.4,2.8,3.8,3.1,2.1,6.9,6.9],LKC=[0xffe0b0,0xffc070,0xffe0b0,0xffc070,0xffe0b0,0xff3020,0xcfe6ff,0xcfe6ff],LKI=[1.4,1.4,1.4,1.4,1.2,.9,1.8,1.8],LKD=[22,20,22,20,16,10,30,30];
+function kitModel(t){const g=new T.Group();const n=PROPS.eb_lamp_kit&&PROPS.eb_lamp_kit.getObjectByName('L'+t);
+ if(n){const o=n.clone(true);o.scale.setScalar(7);o.traverse(m=>{if(m.isMesh){m.castShadow=m.receiveShadow=true;m.userData.noPost=1;(Array.isArray(m.material)?m.material:[m.material]).forEach(q=>{if(q&&q.userData)q.userData.su=1})}});g.add(o)}
+ else{g.userData.fb=1;const m=new T.MeshStandardMaterial({color:0x3a3c3e,metalness:.6,roughness:.5});const p=new T.Mesh(new T.CylinderGeometry(.06,.09,LKH[t],6),m);p.position.y=LKH[t]/2;g.add(p)}
+ const hm=new T.Mesh(new T.SphereGeometry(t===5?.16:.22,8,6),new T.MeshBasicMaterial({color:LKC[t]}));hm.position.y=LKH[t]*.92;g.add(hm);g.userData.head=hm;g.userData.noPost=1;return g}
+const MLAMPS=[];function mlampPool(){if(MLAMPS.length)return;for(let i=0;i<14;i++){const l=new T.PointLight(0xffffff,0,20,2);scene.add(l);MLAMPS.push(l)}}
+function mlampFrame(t){if(!MAP||!MAP.lk){for(const l of MLAMPS)l.intensity=0;return}mlampPool();const L=ST.filter(S=>S.k===10&&!S.dead);let i=0;
+ const set=(x,y,z,k,ph)=>{if(i>=MLAMPS.length)return;const l=MLAMPS[i++];l.position.set(x,y,z);l.color.setHex(LKC[k]);l.distance=LKD[k];l.intensity=k===5?(Math.sin(t*6+ph)>0?LKI[k]*1.6:.05):LKI[k]};
+ for(const S of L){set(S.x,S.y+LKH[S.ex]*.9,S.z,S.ex,S.id);const h=S.g.userData.head;if(h&&S.ex===5)h.visible=Math.sin(t*6+S.id)>0}
+ if(P.carry!=null&&!P.dead)set(P.pos.x,P.y+1.6,P.pos.z,P.carry,0);
+ for(;i<MLAMPS.length;i++)MLAMPS[i].intensity=0;
+ if(P.carry!=null&&P.dead){stSend(['pd',P.carry,r2(P.pos.x),r2(P.y),r2(P.pos.z),0]);P.carry=null}}
+function lampSpawn(){if(!MAP.lk)return;if(G.mode==='z'&&!isHost())return;for(const [t,x,y,z,ry] of MAP.lk)stAdd(STID++,10,x,y,z,ry,FK[10].hp,t);G.stDirty=1}
+function stModel(k,ex){if(k===10)return kitModel(ex);const Gg=stGeo(),M_=Gg.M,g=new T.Group();const B=(w,h,d,x,y,z,m,ry=0)=>{const b=sh1(new T.Mesh(new T.BoxGeometry(w,h,d),m));b.position.set(x,y,z);b.rotation.y=ry;g.add(b);return b};
  if(k===0)g.add(sh1(new T.Mesh(Gg.sand,M_.sand)));
  else if(k===1){const m=new T.Mesh(Gg.wire,M_.metal);m.castShadow=true;g.add(m)}
  else if(k===2){g.add(sh1(new T.Mesh(Gg.jer,M_.conc)));g.add(sh1(new T.Mesh(Gg.frame,M_.steel)));const m=new T.Mesh(Gg.mesh,M_.link);m.castShadow=true;g.add(m)}
@@ -3378,7 +3393,7 @@ function stNear(S,x,z,out){stLocal(S,x,z,SLV);const cx=clamp(SLV.x,-S.hx,S.hx),c
 function openNear(x,z,y,r){const q=new T.Vector3();for(let rad=0;rad<=7;rad+=.8){const n=rad?10:1;for(let i=0;i<n;i++){const a=i/n*6.2832+rad;const px=x+Math.sin(a)*rad,pz=z+Math.cos(a)*rad;if(Math.abs(px)>MAP.bx-1.5||Math.abs(pz)>MAP.bz-1.5)continue;
    let ok=true;for(const [ox,oz] of[[0,0],[r,0],[-r,0],[0,r],[0,-r]]){q.set(px+ox,0,pz+oz);const q0x=q.x,q0z=q.z;pushOut(q,.3,'p',y);if(Math.hypot(q.x-q0x,q.z-q0z)>.03||Math.abs(groundH(q,.2,y+.3)-y)>.08){ok=false;break}}if(ok)return{x:px,z:pz}}}return null}
 // ---------- 房主：开局摆电台、每波来一辆补给卡车 ----------
-function stInitHost(){stClear();G.stDirty=1;G.radDead=0;G.trkT=0}
+function stInitHost(){stClear();lampSpawn();G.stDirty=1;G.radDead=0;G.trkT=0}
 function spawnTruck(){if(TRUCK){pushEv(['$l',0]);stDel(TRUCK)}const sub=MAP.id==='subway',k=sub?6:5,y=sub?(MAP.psY||0):0,D=truckDim(k),rr=Math.max(D.hx,D.hz)+.3;
  const hs=actors().filter(a=>!a.dead&&!a.bot);let best=null,bs=-1;
  for(let i=0;i<50;i++){const p=rndOpen(.6,y);if(p.lengthSq()<1)continue;if(Math.abs(groundH(p,.3,y+.3)-y)>.08)continue;const ry=Math.floor(Math.random()*4)*Math.PI/2+rand(-.3,.3);
@@ -3517,7 +3532,7 @@ function stHost(dt){for(const S of ST.slice()){if(S.k!==7)continue;const fx=-Mat
 function stReq(q,pid){if(!isHost()||G.mode!=='z')return;const a=actors().find(a=>a.id===pid)||(pid===NET.me?meActor():null);
  if(q[0]==='f'){if(THR.fires.length<8)pushEv(['fire',+q[1],+q[2],+q[3],1.5,4,pid]);return}
  if(q[0]==='d'){for(const S of ST.slice())if(S.k===8&&S.own===pid){const p=new T.Vector3(S.x,S.y+.2,S.z);stDel(S);G.stDirty=1;G.c4b=1;try{rkBoom(p,pid,1700*expW(),PJ.c4)}finally{G.c4b=0}}return}
- if(q[0]==='b'){const k=q[1]|0;if(!BK.includes(k))return;stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
+ if(q[0]==='pk'){const S=stById(+q[1]);if(S&&S.k===10){stDel(S);G.stDirty=1}return}if(q[0]==='pd'){const t=q[1]|0;if(t<0||t>7||!MAP.lk)return;stAdd(STID++,10,+q[2],+q[3],+q[4],+q[5],FK[10].hp,t);G.stDirty=1;return}if(q[0]==='b'){const k=q[1]|0;if(!BK.includes(k))return;stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
  else if(q[0]==='t'){if(!TRUCK||TRUCK.ex<=0||!a)return;pilePos(TRUCK,SWV);if(Math.hypot(a.pos.x-SWV.x,a.pos.z-SWV.z)>4.5)return;TRUCK.ex--;stCrates(TRUCK.g,TRUCK.ex);G.stDirty=1;pushEv(['$s',pid,120]);if(TRUCK.ex<=0)TRUCK.leaveT=5}
  else if(q[0]==='r'){if(!RADIO||RADIO.hp>=RADIO.max)return;RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.1);G.stDirty=1;pushEv(['$r',pid])}}
 function stSend(q){if(isHost())stReq(q,NET.me);else NET.out.rq.push(q)}
@@ -3538,11 +3553,11 @@ function onST(list){const seen=new Set();for(const e of list){const [id,k,x,y,z,
   if(!S){if(k===4)G.radMax=mx;S=stAdd(id,k,x,y,z,ry,hp,ex,ow||null)}else{if(hp<S.hp-.5){stHitFx(S);if(k===4)radWarn()}S.hp=hp;if(S.ex!==ex){S.ex=ex;stCrates(S.g,ex)}}S.max=mx}
  for(const S of ST.slice())if(!seen.has(S.id))stDel(S)}
 // ---------- 交互：搬物资 / 修电台 ----------
-function stUseLabel(){if(G.mode!=='z')return null;
+function stUseLabel(){if(G.mode!=='z')return null;if(P.carry!=null)return['放下灯具',(TOUCH?'点「放下灯具」':'按 E ')+'把灯具放在面前'];{let b=null,bd=2;for(const S of ST)if(S.k===10){const d=Math.hypot(P.pos.x-S.x,P.pos.z-S.z);if(d<bd&&Math.abs(P.y-S.y)<1.5){bd=d;b=S}}if(b){P.lkT=b.id;return['搬起灯具',(TOUCH?'点「搬起灯具」':'按 E ')+'搬起'+(b.ex===5?'警示灯':'灯具')]}}
  if(TRUCK&&TRUCK.ex>0&&Math.abs(P.y-TRUCK.y)<1.2){pilePos(TRUCK,SWV);if(Math.hypot(P.pos.x-SWV.x,P.pos.z-SWV.z)<2.6)return['搬补给',(TOUCH?'点「搬补给」':'按 E ')+'搬一箱：弹药补满、资金 +$120（剩 '+TRUCK.ex+' 箱）']}
  if(RADIO&&RADIO.hp<RADIO.max*.985&&Math.abs(P.y-RADIO.y)<1.2&&stNear(RADIO,P.pos.x,P.pos.z,SWV)<1.5)return['修电台',G.sup>0?(TOUCH?'点「修电台」':'按 E ')+'用 1 份物资修理电台（+10%）':'没有物资，修不了电台'];return null}
 function stUse(){const L=stUseLabel();if(!L)return false;if(BLD.cd>0)return true;BLD.cd=.45;
- if(L[0]==='搬补给'){stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
+ if(L[0]==='搬起灯具'){const S=stById(P.lkT);if(S){P.carry=S.ex;stSend(['pk',S.id]);if(!isHost()){stDel(S)}sClick()}}else if(L[0]==='放下灯具'){const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);v3.set(P.pos.x+fx*1.3,0,P.pos.z+fz*1.3);const y=groundH(v3,.2,P.y+.4);if(Math.abs(y-P.y)>1.2){popTxt('这里放不下');return true}stSend(['pd',P.carry,r2(v3.x),r2(y),r2(v3.z),r2(P.yaw+Math.PI)]);P.carry=null;sClick()}else if(L[0]==='搬补给'){stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
 // ---------- 部署模式 ----------
 function bldSet(on){on=!!on&&G.mode==='z'&&G.state==='play'&&!P.dead&&!P.dn&&!P.mg;BLD.on=on;const b=$('bbar');if(!b)return;b.classList.toggle('hid',!on);const tb=$('tBuild');if(tb)tb.classList.toggle('on',on);for(const g of BLD.ghost)if(g)g.visible=false;if(on){bldBar();if(!TOUCH)popTxt('部署模式：1-7 选工事，左键放下，X 退出')}}
 function bldBar(){const b=$('bbar');let h='';BK.forEach((i,n)=>{h+=`<div class="bi${i===BLD.sel?' on':''}${G.cash<FK[i].c?' no':''}" data-i="${i}"><b>${TOUCH?'':(n+1)+' '}${FK[i].n}</b><span>$${FK[i].c}</span></div>`});
@@ -3575,7 +3590,7 @@ function nvCss(){const cv=renderer.domElement,usePost=GFX&&GFX.q>0;cv.style.filt
 const LAMPS=[];function lampPool(){if(LAMPS.length)return;for(let i=0;i<3;i++){const l=new T.SpotLight(0xfff0d0,0,40,.62,.45,1.3);l.castShadow=false;scene.add(l,l.target);LAMPS.push(l)}}
 function lampFrame(t){if(MAP&&MAP.env&&!MAP.env.dark){FLASH.visible=!!P.lamp&&!P.dead;FLASH.intensity=P.lamp?6:0}
  lampPool();const L=ST.filter(S=>S.k===9&&!S.dead);for(let i=0;i<LAMPS.length;i++){const l=LAMPS[i],S=L[i];if(!S){l.intensity=0;continue}const fx=-Math.sin(S.ry),fz=-Math.cos(S.ry);l.position.set(S.x,S.y+2.1,S.z);l.target.position.set(S.x+fx*14,S.y,S.z+fz*14);l.intensity=MAP.env.night||MAP.env.dark?6:2.5*(.9+.1*Math.sin(t*37+i))}}
-function stFrame(dt){const t=performance.now()/1000;lampFrame(t);if(BFX.length)brkFrame(dt);rkFrame(dt);
+function stFrame(dt){const t=performance.now()/1000;lampFrame(t);mlampFrame(t);if(BFX.length)brkFrame(dt);rkFrame(dt);
  for(const S of ST){if(S.shk>0){S.shk-=dt;const k=Math.max(0,S.shk)/.16;S.g.rotation.z=Math.sin(t*70)*.035*k;S.g.rotation.x=Math.cos(t*61)*.025*k}else if(S.g.rotation.z){S.g.rotation.z=0;S.g.rotation.x=0}
   const u=S.g.userData;if(u.led)u.led.visible=(t*2.2+S.id*.37)%1<.3;if(u.bea){const on=(t*1.1)%1<.5;u.bea.material.opacity=on?1:.15}if(u.beam)u.beam.material.opacity=.38+Math.sin(t*3)*.12}
  bldFrame(dt);
