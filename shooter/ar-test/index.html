@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>人类之后 · AR 测试</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#05080c;color:#d8f6ff;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+canvas{display:block}
+#menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;
+ background:radial-gradient(ellipse at 50% 30%,#10283a 0%,#05080c 70%);z-index:20}
+#menu h1{margin:0;font-size:30px;letter-spacing:6px;color:#7ff3ff;text-shadow:0 0 18px #19c8ff}
+#menu h2{margin:0 0 6px;font-size:13px;font-weight:400;letter-spacing:4px;color:#6aa8c0}
+.btn{min-width:240px;padding:14px 22px;border:1px solid #2fd8ff;border-radius:6px;background:rgba(10,60,80,.55);color:#bff6ff;font-size:17px;letter-spacing:2px}
+.btn:active{background:#1aa6c8}
+.btn.alt{border-color:#56707c;color:#9cb5c0;background:rgba(30,40,46,.6);font-size:15px}
+.row{display:flex;gap:8px;align-items:center;font-size:14px;color:#9cc8d8}
+.row button{padding:6px 12px;border:1px solid #3a6a7a;background:#0b1a22;color:#9cc8d8;border-radius:4px;font-size:14px}
+.row button.on{border-color:#2fd8ff;color:#e8fbff;background:#0f4a60}
+#msg{font-size:13px;color:#ffb46a;max-width:330px;line-height:1.5;min-height:20px}
+.hint{font-size:12px;color:#5d8494;max-width:330px;line-height:1.6}
+#hud{position:fixed;inset:0;display:none;z-index:10;pointer-events:none}
+#hud *{pointer-events:none}
+#top{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;font-size:14px;text-shadow:0 0 6px #000;letter-spacing:1px}
+#hpbar{position:absolute;top:36px;left:12px;width:170px;height:8px;border:1px solid #2fd8ff;background:rgba(0,0,0,.4)}
+#hpfill{height:100%;width:100%;background:linear-gradient(90deg,#1ad0ff,#7ff3ff)}
+#notice{position:absolute;top:22%;left:0;right:0;text-align:center;font-size:20px;letter-spacing:3px;color:#7ff3ff;text-shadow:0 0 12px #0af;opacity:0;transition:opacity .4s}
+#cross{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px}
+#cross:before,#cross:after{content:"";position:absolute;background:#7ff3ff;box-shadow:0 0 4px #0af}
+#cross:before{left:16px;top:0;width:2px;height:34px}
+#cross:after{top:16px;left:0;height:2px;width:34px}
+#cross.hit:before,#cross.hit:after{background:#ff4040;box-shadow:0 0 6px #f00}
+#hitmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:12px;color:#ff5050;margin-top:28px;opacity:0}
+#flash{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,0,0,0) 40%,rgba(255,0,0,.55) 100%);opacity:0;transition:opacity .25s}
+#muzzle{position:absolute;right:16%;bottom:18%;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#fff8c8 0%,#ffb030 35%,rgba(255,120,0,0) 70%);opacity:0}
+.ind{position:absolute;top:50%;font-size:40px;color:#ff3a3a;text-shadow:0 0 10px #f00;opacity:0;transform:translateY(-50%)}
+#indL{left:8px}#indR{right:8px}
+#ammo{position:absolute;right:18px;bottom:150px;font-size:22px;text-shadow:0 0 6px #000}
+#fire,#reload,#exit{position:absolute;pointer-events:auto!important;border-radius:50%;border:2px solid #2fd8ff;background:rgba(10,60,80,.45);color:#cff8ff;font-weight:600}
+#fire{right:22px;bottom:30px;width:104px;height:104px;font-size:18px}
+#fire:active,#fire.down{background:rgba(255,80,40,.55);border-color:#ff8050}
+#reload{left:22px;bottom:40px;width:72px;height:72px;font-size:14px}
+#exit{left:12px;top:56px;width:48px;height:48px;font-size:12px;border-radius:8px}
+#place{position:absolute;bottom:34%;left:0;right:0;text-align:center;font-size:16px;color:#bff6ff;text-shadow:0 0 6px #000;letter-spacing:2px}
+#over{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,.6);pointer-events:auto!important}
+#over *{pointer-events:auto!important}
+#over h3{margin:0;font-size:26px;color:#ff6a5a;letter-spacing:4px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/utils/SkeletonUtils.js"></script>
+</head>
+<body>
+<div id="menu">
+ <h1>人类之后</h1>
+ <h2>AFTER HUMANITY · AR 测试</h2>
+ <div class="row">尺寸：<button data-s="1" class="on">真人大小</button><button data-s="0.6">小房间</button></div>
+ <button class="btn" id="startAR">进入 AR 模式</button>
+ <button class="btn alt" id="startPV">无 AR 预览（电脑 / iPhone）</button>
+ <div id="msg">正在载入模型…</div>
+ <div class="hint">AR 需要 Android 手机 + Chrome，并允许使用相机。<br>开始后对着地板慢慢移动手机，出现圆圈后点一下屏幕，就把那里设为地面。<br>僵尸会从你周围的地板冒出来，转动身体瞄准，按「开火」射击。<br>请在空旷、安全的地方玩，留意家具和楼梯。</div>
+</div>
+
+<div id="hud">
+ <div id="top"><span id="wave">第 1 波</span><span id="score">击杀 0</span></div>
+ <div id="hpbar"><div id="hpfill"></div></div>
+ <div id="flash"></div><div id="muzzle"></div>
+ <div id="cross"></div><div id="hitmark">HIT</div>
+ <div id="indL" class="ind">◀</div><div id="indR" class="ind">▶</div>
+ <div id="notice"></div>
+ <div id="place">对着地板慢慢移动手机…</div>
+ <div id="ammo">30 / ∞</div>
+ <button id="fire">开火</button>
+ <button id="reload">换弹</button>
+ <button id="exit">退出</button>
+ <div id="over"><h3>系统离线</h3><div id="overTxt"></div><button class="btn" id="again">重新启动</button></div>
+</div>
+
+<script>
+'use strict';
+const T=THREE,$=id=>document.getElementById(id);
+const ASSET='../../assets/';
+const Z_MODELS=['warzombiefpedroso','zombiegirlwkurniawan','copzombielactisdato','parasitelstarkie'];
+const REST=1.0613;
+let SCALE=1;
+
+// ---------- renderer / scene ----------
+const renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputEncoding=T.sRGBEncoding;
+renderer.xr.enabled=true;
+document.body.appendChild(renderer.domElement);
+const scene=new T.Scene();
+const camera=new T.PerspectiveCamera(70,innerWidth/innerHeight,.02,60);
+scene.add(new T.HemisphereLight(0xdde8ff,0x403830,1.1));
+const sun=new T.DirectionalLight(0xffffff,.9);sun.position.set(2,5,3);scene.add(sun);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+// reticle
+const reticle=new T.Mesh(new T.RingGeometry(.12,.16,32).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0x2fd8ff}));
+reticle.matrixAutoUpdate=false;reticle.visible=false;scene.add(reticle);
+// floor shadow catcher (soft dark disc under zombies)
+const blobGeo=new T.CircleGeometry(.45,24).rotateX(-Math.PI/2);
+const blobMat=new T.MeshBasicMaterial({color:0,transparent:true,opacity:.35,depthWrite:false});
+
+// ---------- loading ----------
+const loader=new T.GLTFLoader();
+let ANIMS=[];const MODELS={};let loaded=0,need=1+Z_MODELS.length;
+function loadGLB(p){return new Promise(r=>loader.load(ASSET+p,g=>{loaded++;upd();r(g)},undefined,e=>{console.warn(p,e);loaded++;upd();r(null)}))}
+function upd(){$('msg').textContent=loaded<need?`正在载入模型… ${loaded}/${need}`:'准备完成'}
+const ready=Promise.all([
+ loadGLB('mx/anims.glb').then(g=>{ANIMS=g?g.animations:[]}),
+ ...Z_MODELS.map(n=>loadGLB('mx/'+n+'.glb').then(g=>{if(!g)return;
+   g.scene.updateMatrixWorld(true);const b=new T.Box3().setFromObject(g.scene);g.h=Math.max(.5,b.max.y-b.min.y);g.minY=b.min.y;g.hipsY=REST;
+   g.scene.traverse(o=>{if(o.isBone&&/Hips$/.test(o.name)&&g.hipsY===REST)g.hipsY=o.position.y;if(o.isMesh){o.frustumCulled=false;if(o.material)o.material.side=T.FrontSide}});
+   MODELS[n]=g}))
+]);
+function clipsFor(g){if(g.clips)return g.clips;const C={},k=g.hipsY/REST;
+ for(const c of ANIMS){const cl=c.clone();for(const t of cl.tracks)if(/Hips\.position$/.test(t.name)){t.values=t.values.slice();for(let i=0;i<t.values.length;i++)t.values[i]*=k}C[c.name]=cl}
+ return g.clips=C}
+
+// ---------- audio ----------
+let AC=null;const SFX={};
+function audioInit(){if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();
+ ['zombie_single_growl_breath','zombie_lunge_snarl','monster_low_growl_snarl','ai_robot_boot_sequence','ai_robot_damage_shutdown'].forEach(n=>
+  fetch(ASSET+'sfx/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((a,z)=>AC.decodeAudioData(b,a,z))).then(x=>SFX[n]=x).catch(()=>{}))}
+function play(n,vol=1,rate=1){if(!AC||!SFX[n])return;const s=AC.createBufferSource();s.buffer=SFX[n];s.playbackRate.value=rate;const g=AC.createGain();g.gain.value=vol;s.connect(g).connect(AC.destination);s.start()}
+let noiseBuf=null;
+function gunSound(){if(!AC)return;const t=AC.currentTime;
+ if(!noiseBuf){noiseBuf=AC.createBuffer(1,AC.sampleRate*.25,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.5)}
+ const n=AC.createBufferSource();n.buffer=noiseBuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(5200,t);f.frequency.exponentialRampToValueAtTime(700,t+.18);
+ const g=AC.createGain();g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.22);n.connect(f).connect(g).connect(AC.destination);n.start(t);
+ const o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+.12);
+ const g2=AC.createGain();g2.gain.setValueAtTime(.8,t);g2.gain.exponentialRampToValueAtTime(.001,t+.14);o.connect(g2).connect(AC.destination);o.start(t);o.stop(t+.15)}
+function clickSound(){if(!AC)return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=900;g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.06)}
+
+// ---------- particles (blood / dirt) ----------
+const PG=new T.SphereGeometry(1,5,4);const parts=[];
+function burst(p,n,col,spd,size,life){for(let i=0;i<n;i++){const m=new T.Mesh(PG,new T.MeshBasicMaterial({color:col,transparent:true}));
+ m.scale.setScalar(size*(.5+Math.random()));m.position.copy(p);scene.add(m);
+ parts.push({m,v:new T.Vector3((Math.random()-.5)*spd,Math.random()*spd*.8,(Math.random()-.5)*spd),life,max:life})}}
+function updParts(dt){for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.life-=dt;q.v.y-=6*dt;q.m.position.addScaledVector(q.v,dt);
+ if(floorY!==null&&q.m.position.y<floorY){q.m.position.y=floorY;q.v.set(0,0,0)}
+ q.m.material.opacity=Math.max(0,q.life/q.max);if(q.life<=0){scene.remove(q.m);q.m.material.dispose();parts.splice(i,1)}}}
+
+// ---------- game state ----------
+let mode=null,session=null,refSpace=null,hitSrc=null,floorY=null;
+let zs=[],wave=0,toSpawn=0,spawnT=0,kills=0,hp=100,ammo=30,reloading=0,fireDown=false,fireCD=0,alive=false,waveGap=0;
+const viewPos=new T.Vector3(),viewDir=new T.Vector3(),viewQ=new T.Quaternion();
+const MAG=30,ROF=.11,DMG=34;
+
+function notice(t,ms=1600){const n=$('notice');n.textContent=t;n.style.opacity=1;clearTimeout(notice.t);notice.t=setTimeout(()=>n.style.opacity=0,ms)}
+function hud(){$('wave').textContent=`第 ${wave} 波`;$('score').textContent=`击杀 ${kills}`;$('hpfill').style.width=Math.max(0,hp)+'%';
+ $('ammo').textContent=reloading>0?'换弹中…':`${ammo} / ∞`}
+
+function startWave(){wave++;toSpawn=3+wave*2;spawnT=.5;notice(`系统通告：第 ${wave} 波生物信号接近`);hud()}
+
+function spawnZombie(){
+ const runner=wave>=3&&Math.random()<Math.min(.5,.12*wave);
+ const pool=runner?['parasitelstarkie']:Z_MODELS.filter(n=>n!=='parasitelstarkie');
+ const name=pool[Math.floor(Math.random()*pool.length)],g=MODELS[name];if(!g)return;
+ const obj=T.SkeletonUtils.clone(g.scene);
+ const H=(runner?1.72:1.78)*SCALE,s=H/g.h;obj.scale.setScalar(s);
+ const root=new T.Group();root.add(obj);obj.position.y=-g.minY*s;
+ const blob=new T.Mesh(blobGeo,blobMat);blob.scale.setScalar(SCALE);blob.position.y=.005;root.add(blob);
+ // spawn around player: early waves in front, later all around
+ const yaw=Math.atan2(viewDir.x,viewDir.z);const spread=wave<=2?Math.PI*.45:Math.PI;
+ const a=yaw+(Math.random()*2-1)*spread,r=(2.6+Math.random()*1.6)*SCALE;
+ root.position.set(viewPos.x+Math.sin(a)*r,floorY-H,viewPos.z+Math.cos(a)*r);
+ scene.add(root);
+ const mixer=new T.AnimationMixer(obj),C=clipsFor(g);
+ const z={root,obj,mixer,C,H,hp:(runner?70:100)+wave*8,spd:(runner?1.5:.55+wave*.04)*SCALE,r:.32*SCALE,state:'rise',t:0,atkT:0,act:null,runner};
+ setAnim(z,'z_idle');zs.push(z);
+ burst(new T.Vector3(root.position.x,floorY+.02,root.position.z),14,0x4a3a2a,1.6*SCALE,.03*SCALE,1);
+ if(Math.random()<.6)play('zombie_single_growl_breath',.6,.9+Math.random()*.3)}
+
+function setAnim(z,n,once){const c=z.C[n];if(!c||z.cur===n)return;const a=z.mixer.clipAction(c);a.reset();
+ if(once){a.setLoop(T.LoopOnce);a.clampWhenFinished=true}else a.setLoop(T.LoopRepeat);
+ if(z.act)a.crossFadeFrom(z.act,.25,false);a.play();z.act=a;z.cur=n}
+
+function updZombies(dt){let lAlert=0,rAlert=0;const yaw=Math.atan2(viewDir.x,viewDir.z);
+ for(let i=zs.length-1;i>=0;i--){const z=zs[i];z.mixer.update(dt);z.t+=dt;const p=z.root.position;
+  const dx=viewPos.x-p.x,dz=viewPos.z-p.z,d=Math.hypot(dx,dz);
+  if(z.state!=='dead')z.root.rotation.y=Math.atan2(dx,dz);
+  if(z.state==='rise'){p.y=Math.min(floorY,p.y+dt*z.H/1.1);if(Math.random()<dt*20)burst(new T.Vector3(p.x,floorY+.02,p.z),1,0x4a3a2a,1.2*SCALE,.025*SCALE,.8);
+   if(p.y>=floorY){z.state='walk';setAnim(z,z.runner?'z_run':'z_walk')}}
+  else if(z.state==='walk'){if(d>.75*SCALE){p.x+=dx/d*z.spd*dt;p.z+=dz/d*z.spd*dt}else{z.state='atk';z.atkT=.35;setAnim(z,'z_punch')}}
+  else if(z.state==='atk'){z.atkT-=dt;if(d>1.1*SCALE){z.state='walk';setAnim(z,z.runner?'z_run':'z_walk')}
+   else if(z.atkT<=0){z.atkT=1.15;hurt(z.runner?7:10)}}
+  else if(z.state==='hit'){if(z.t>.35){z.state='walk';setAnim(z,z.runner?'z_run':'z_walk')}}
+  else if(z.state==='dead'){if(z.t>2.2)p.y-=dt*.6*SCALE;if(z.t>4.5){scene.remove(z.root);zs.splice(i,1);continue}}
+  // off-screen direction indicator
+  if(z.state!=='dead'){let rel=Math.atan2(-dx,-dz)-yaw;rel=Math.atan2(Math.sin(rel),Math.cos(rel));
+   if(rel>.75)lAlert=1;else if(rel<-.75)rAlert=1}}
+ $('indL').style.opacity=lAlert;$('indR').style.opacity=rAlert}
+
+function hurt(n){if(!alive)return;hp-=n;const f=$('flash');f.style.opacity=1;setTimeout(()=>f.style.opacity=0,180);
+ play('zombie_lunge_snarl',.7);navigator.vibrate&&navigator.vibrate(60);hud();
+ if(hp<=0){alive=false;play('ai_robot_damage_shutdown',.9);$('overTxt').textContent=`坚持到第 ${wave} 波 · 击杀 ${kills}`;$('over').style.display='flex'}}
+
+// ---------- shooting ----------
+function shoot(){if(!alive||reloading>0||fireCD>0)return;
+ if(ammo<=0){clickSound();doReload();return}
+ ammo--;fireCD=ROF;gunSound();navigator.vibrate&&navigator.vibrate(15);
+ const mz=$('muzzle');mz.style.opacity=1;mz.style.transform=`scale(${.8+Math.random()*.5}) rotate(${Math.random()*360}deg)`;setTimeout(()=>mz.style.opacity=0,50);
+ // small random spread
+ const dir=viewDir.clone();dir.x+=(Math.random()-.5)*.012;dir.y+=(Math.random()-.5)*.012;dir.normalize();
+ let best=null,bt=1e9,hy=0;
+ for(const z of zs){if(z.state==='dead')continue;const p=z.root.position;
+  const dxz=dir.x*dir.x+dir.z*dir.z;if(dxz<1e-6)continue;
+  const t=((p.x-viewPos.x)*dir.x+(p.z-viewPos.z)*dir.z)/dxz;if(t<0||t>=bt)continue;
+  const hx=viewPos.x+dir.x*t,hz=viewPos.z+dir.z*t,y=viewPos.y+dir.y*t;
+  if(Math.hypot(hx-p.x,hz-p.z)<z.r&&y>p.y&&y<p.y+z.H){bt=t;best=z;hy=y}}
+ if(best){const head=hy>best.root.position.y+best.H*.82,dmg=head?DMG*2.5:DMG;best.hp-=dmg;
+  const hp3=viewPos.clone().addScaledVector(dir,bt);burst(hp3,head?16:9,0x7a0000,2.2*SCALE,.018*SCALE,.7);
+  const c=$('cross');c.classList.add('hit');setTimeout(()=>c.classList.remove('hit'),90);
+  const hm=$('hitmark');hm.textContent=head?'爆头':'命中';hm.style.opacity=1;clearTimeout(hm.t);hm.t=setTimeout(()=>hm.style.opacity=0,250);
+  if(best.hp<=0){best.state='dead';best.t=0;setAnim(best,'z_death',true);kills++;hud();if(Math.random()<.5)play('monster_low_growl_snarl',.5,1.2)}
+  else if(best.state!=='rise'&&best.state!=='hit'&&Math.random()<.35){best.state='hit';best.t=0;setAnim(best,'z_hitreact',true)}}
+ hud();if(ammo<=0)doReload()}
+function doReload(){if(reloading>0||ammo===MAG)return;reloading=1.8;hud()}
+
+// buttons
+const fb=$('fire');
+fb.addEventListener('pointerdown',e=>{e.preventDefault();fireDown=true;fb.classList.add('down')});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>fb.addEventListener(ev,()=>{fireDown=false;fb.classList.remove('down')}));
+$('reload').addEventListener('pointerdown',e=>{e.preventDefault();doReload()});
+$('exit').addEventListener('click',()=>end());
+$('again').addEventListener('click',()=>{reset();if(floorY!==null){alive=true;startWave()}});
+// stop overlay buttons from also firing an XR "select"
+['fire','reload','exit','over'].forEach(id=>$(id).addEventListener('beforexrselect',e=>e.preventDefault()));
+
+function reset(){zs.forEach(z=>scene.remove(z.root));zs=[];wave=0;kills=0;hp=100;ammo=MAG;reloading=0;toSpawn=0;waveGap=0;$('over').style.display='none';hud()}
+
+// ---------- menu ----------
+document.querySelectorAll('.row button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.row button').forEach(x=>x.classList.remove('on'));b.classList.add('on');SCALE=+b.dataset.s});
+$('startAR').onclick=async()=>{audioInit();
+ if(!navigator.xr||!(await navigator.xr.isSessionSupported('immersive-ar').catch(()=>false))){$('msg').textContent='这台设备 / 浏览器不支持 WebXR AR。请用 Android 手机的 Chrome 打开，或先用「无 AR 预览」。';return}
+ await ready;
+ try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test','local-floor'],optionalFeatures:['dom-overlay'],domOverlay:{root:$('hud')}})}
+ catch(e){try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:$('hud')}})}catch(e2){$('msg').textContent='无法启动 AR：'+e2.message;return}}
+ mode='ar';renderer.xr.setReferenceSpaceType('local');await renderer.xr.setSession(session);
+ refSpace=renderer.xr.getReferenceSpace();
+ const vs=await session.requestReferenceSpace('viewer');hitSrc=await session.requestHitTestSource({space:vs});
+ session.addEventListener('select',onSelect);session.addEventListener('end',()=>end(true));
+ enterHUD()};
+$('startPV').onclick=async()=>{audioInit();await ready;mode='pv';
+ scene.background=new T.Color(0x1a2028);const grid=new T.GridHelper(20,40,0x2fd8ff,0x24404c);grid.name='pvgrid';scene.add(grid);
+ camera.position.set(0,1.6,0);floorY=0;enterHUD();$('place').style.display='none';alive=true;play('ai_robot_boot_sequence',.6);startWave()};
+
+function enterHUD(){$('menu').style.display='none';$('hud').style.display='block';$('place').style.display='block';reset()}
+function onSelect(){if(floorY===null&&reticle.visible){floorY=reticle.matrix.elements[13];reticle.visible=false;$('place').style.display='none';
+ alive=true;play('ai_robot_boot_sequence',.6);notice('地面锁定 · 战斗系统启动');setTimeout(startWave,1400)}}
+function end(fromSession){alive=false;if(session&&!fromSession){session.end();return}
+ session=null;hitSrc=null;floorY=null;mode=null;reset();const g=scene.getObjectByName('pvgrid');if(g)scene.remove(g);scene.background=null;
+ renderer.setAnimationLoop(loop);$('hud').style.display='none';$('menu').style.display='flex';$('msg').textContent='准备完成'}
+
+// preview drag-look
+let yawPV=0,pitchPV=0,drag=null;
+renderer.domElement.addEventListener('pointerdown',e=>{if(mode==='pv')drag={x:e.clientX,y:e.clientY}});
+addEventListener('pointermove',e=>{if(!drag)return;yawPV-=(e.clientX-drag.x)*.005;pitchPV=Math.max(-1.2,Math.min(1.2,pitchPV-(e.clientY-drag.y)*.005));drag={x:e.clientX,y:e.clientY}});
+addEventListener('pointerup',()=>drag=null);
+addEventListener('keydown',e=>{if(e.code==='Space')fireDown=true});addEventListener('keyup',e=>{if(e.code==='Space')fireDown=false});
+
+// ---------- main loop ----------
+const clock=new T.Clock();
+function loop(t,frame){const dt=Math.min(.05,clock.getDelta());
+ if(mode==='ar'&&frame){const pose=frame.getViewerPose(refSpace);
+  if(pose){const p=pose.transform.position,o=pose.transform.orientation;viewPos.set(p.x,p.y,p.z);viewQ.set(o.x,o.y,o.z,o.w);viewDir.set(0,0,-1).applyQuaternion(viewQ)}
+  if(floorY===null&&hitSrc){const hs=frame.getHitTestResults(hitSrc);
+   if(hs.length){const hp2=hs[0].getPose(refSpace);reticle.visible=true;reticle.matrix.fromArray(hp2.transform.matrix);
+    $('place').textContent='看到圆圈了 · 点一下屏幕把这里设为地面'}else reticle.visible=false}}
+ else if(mode==='pv'){camera.rotation.set(pitchPV,yawPV,0,'YXZ');viewPos.copy(camera.position);viewDir.set(0,0,-1).applyQuaternion(camera.quaternion)}
+ if(alive){fireCD-=dt;if(reloading>0){reloading-=dt;if(reloading<=0){reloading=0;ammo=MAG;hud()}}
+  if(fireDown)shoot();
+  if(toSpawn>0){spawnT-=dt;const aliveN=zs.filter(z=>z.state!=='dead').length;if(spawnT<=0&&aliveN<6){spawnZombie();toSpawn--;spawnT=Math.max(.7,2.2-wave*.15)}}
+  else if(!zs.some(z=>z.state!=='dead')){waveGap+=dt;if(waveGap>3){waveGap=0;startWave()}}}
+ updZombies(dt);updParts(dt);
+ renderer.render(scene,camera)}
+renderer.setAnimationLoop(loop);
+ready.then(upd);
+</script>
+</body>
+</html>
