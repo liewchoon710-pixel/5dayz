@@ -282,6 +282,7 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
     <div class="lbl">语言 / Language</div><div class="row" id="langRow"></div>
     <div class="lbl">光色</div><div class="row" id="visRow"></div>
   <div class="lbl">模式</div><div class="row" id="modeRow"></div>
+  <div class="lbl">即将推出</div><div class="row" style="flex-wrap:wrap;gap:10px"><div class="soonC" onclick="soonShow(0)"><b>🚁 最后一班直升机</b><span>合作撤离 · 开发中</span></div><div class="soonC" onclick="soonShow(1)"><b>⚔ 机器 vs 丧尸</b><span>阵营对抗 · 开发中</span></div></div>
   <div class="lbl">难度</div><div class="row" id="diffRow"></div>
   <div class="lbl">视角<span class="aaL">　　　　　　　辅助瞄准</span></div><div class="row" style="flex-wrap:wrap"><div class="row" id="viewRow" style="margin:0"></div><div id="aaWrap" class="row" style="margin:0 0 0 18px;gap:inherit"><div class="row" id="aaRow" style="margin:0"></div></div></div>
   <div class="lbl tOnly">陀螺仪转视角（第一人称）</div><div class="row tOnly" id="gyroRow"></div>
@@ -295,6 +296,12 @@ body.touch #bbar{bottom:auto;top:54px}body.touch .bi{min-width:58px;padding:5px 
   <div class="help" id="helpTxt" style="display:none"></div><div style="margin-bottom:auto"></div>
 </div>
 
+<div id="soon" class="ov hid" onclick="if(event.target===this)this.classList.add('hid')"><div class="soonBox"><div id="soonBody"></div><button class="btn" onclick="$('soon').classList.add('hid')">关闭</button></div></div>
+<style>.soonC{border:1px solid #7a5a3a;background:linear-gradient(135deg,#2a1d14cc,#120d0acc);padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;min-width:150px;position:relative}
+.soonC:hover{border-color:#f0a050}.soonC b{color:#f0c08a;font-size:15px}.soonC span{font-size:12px;opacity:.7;margin-top:2px}.soonC:after{content:'开发中';position:absolute;top:-8px;right:-6px;background:#b8402a;color:#fff;font-size:10px;padding:1px 6px;border-radius:6px}
+.soonBox{max-width:640px;width:92vw;max-height:86vh;overflow:auto;background:#140f0c;border:1px solid #6a4a2a;border-radius:12px;padding:18px 22px;text-align:left;line-height:1.6}
+.soonBox h2{color:#f0c08a;margin:0 0 2px}.soonBox .tg{opacity:.65;font-size:13px;margin-bottom:10px}.soonBox h3{color:#ffb070;font-size:15px;margin:14px 0 4px;border-left:3px solid #b8402a;padding-left:8px}.soonBox ul{margin:0;padding-left:20px;font-size:14px}.soonBox li{margin:2px 0}
+.soonBox .flow{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;margin:6px 0}.soonBox .flow i{font-style:normal;background:#2a1d14;border:1px solid #5a3a22;padding:3px 8px;border-radius:6px}.soonBox .flow em{opacity:.5;font-style:normal}</style>
 <div id="lobby" class="ov hid"><div class="lbBox">
   <div style="font-size:14px;opacity:.7">房间号</div><div id="lbRoom" style="font-size:38px;letter-spacing:.25em;color:#f0c08a">-----</div>
   <button class="btn g" id="bCopy" style="padding:6px 14px;font-size:13px;min-width:0">复制邀请链接</button><div id="lbLink"></div>
@@ -2998,6 +3005,24 @@ $('bQuit').onclick=toMenu;$('bMenu').onclick=toMenu;
 $('bAgain').onclick=()=>{if(NET.on){if(NET.host)hostStart()}else startSolo()};
 
 // ---------- 菜单 / 大厅 ----------
+const SOON=[`<h2>🚁 最后一班直升机</h2><div class="tg">合作撤离模式 · 1–8 人 · 约 15–20 分钟</div>
+<div class="flow"><i>防守待援</i><em>→</em><i>电台呼叫</i><em>→</em><i>撤离点开放</i><em>→</em><i>突围冲刺</i><em>→</em><i>登机起飞</i></div>
+<h3>玩法流程</h3><ul><li><b>防守待援</b>：先在出生点守住电台，撑过若干波（简单 6 / 普通 8 / 困难 10 波）。</li>
+<li><b>电台呼叫</b>：最后一波后电台联系上直升机，全图广播「直升机 3 分钟后抵达」。</li>
+<li><b>撤离点开放</b>：撤离点随机出现在地图远端（红色信号烟 + 地图标记），每局位置不同。</li>
+<li><b>突围冲刺</b>：尸潮数量暴增并从四面涌来，全队离开防线一路杀到撤离点。路上可能有燃烧车、尸墙、坦克尸拦路，可以推车、搬障碍开路。</li>
+<li><b>登机起飞</b>：直升机降落后只等 60 秒，倒数结束就起飞。没上机的玩家算个人失败（被丢下），至少一人登机就算全队任务完成。</li></ul>
+<h3>特色</h3><ul><li>队友倒地可以<b>背着走</b>（移动变慢、不能开枪），背上直升机也算救出。</li><li>直升机盘旋时机枪手会帮忙扫射，但弹药有限。</li><li>途中随机事件：桥塌、加油站爆炸、尸潮改道。</li></ul>
+<h3>结算</h3><ul><li>按登机人数、用时、救下的队友、击杀数评分；全员登机有额外奖励。</li></ul>
+<h3>适合地图</h3><ul><li>十字路口、高桥、工业园、高原避难所（撤离点在山顶，要从峡谷冲出城门）。</li></ul>`,
+`<h2>⚔ 机器 vs 丧尸</h2><div class="tg">阵营对抗模式 · 玩家可选机器人或丧尸 · 2–8 人</div>
+<div class="flow"><i>选阵营</i><em>→</em><i>机器人布防</i><em>→</em><i>丧尸玩家带尸潮进攻</i><em>→</em><i>守住或攻破电台</i></div>
+<h3>阵营</h3><ul><li><b>机器人队</b>：用现有的枪、商店、工事、炮台，可以复活（每人有限次数）。目标是守住电台直到倒计时结束。</li>
+<li><b>丧尸队（玩家）</b>：选尸种出战，例如普通尸、快尸、爆炸尸、坦克尸，尸王要击杀积分解锁。<b>死了就出局，不能复活</b>，只能观战。目标是摧毁电台或消灭全部机器人。</li></ul>
+<h3>丧尸玩家能力</h3><ul><li>近战扑咬、攀爬、和电脑尸群一起<b>叠人墙</b>。</li><li>能闻到机器人的位置，墙后会显示轮廓。</li><li>电脑尸潮照常出现当炮灰，丧尸玩家是带头冲锋的精英指挥者。</li></ul>
+<h3>平衡</h3><ul><li>丧尸玩家人少时属性加成（血量、速度）。</li><li>机器人复活次数按人数调整。</li><li>房主开房时可选：阵营自由选 / 自动平均分。</li></ul>
+<h3>胜负</h3><ul><li>机器人胜：倒计时结束时电台还在，并且还有人活着。</li><li>丧尸胜：电台被毁，或机器人全灭且没有复活次数。</li></ul>`];
+function soonShow(i){$('soonBody').innerHTML=SOON[i];$('soon').classList.remove('hid')}
 function chips(el,items,cur,fn){el.innerHTML='';items.forEach((n,i)=>{const b=document.createElement('div');b.className='chip'+(i===cur?' sel':'');b.textContent=n;b.onclick=()=>fn(i);el.appendChild(b)})}
 function menuMsg(t){$('menuMsg').textContent=t||''}
 (()=>{const f=()=>{const h=$('hudFrame'),m=$('menu');if(h&&m)h.style.display=m.classList.contains('hid')?'none':''};const m=document.getElementById('menu');if(m){new MutationObserver(f).observe(m,{attributes:true,attributeFilter:['class']});setTimeout(f,0)}})();
