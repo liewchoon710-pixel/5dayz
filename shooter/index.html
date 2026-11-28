@@ -2543,8 +2543,19 @@ function updZ(z,dt){const c=z.c,p=c.wrap.position;
   else if(!busy){
    // 目标在高处：贴着车/箱子就爬上去
    const goPerch=z.perch&&!z.perchOn,big=!!z.t.sp||z.type==='boss';
-   if(tg&&((tY>z.y+1.2&&td<35)||goPerch)){const b=climbBox(p,z.r,z.y,goPerch?z.perch.y-z.y+.5:Math.min(big?30:14,tY-z.y+.6),goPerch?z.perch.y:tY);if(b){const aim=goPerch?z.perch:tg.pos;const C1=topPt(b,aim.x,aim.z,.4,{x:0,z:0}),E1=topPt(b,p.x,p.z,.3,{x:0,z:0});
+   if(tg&&((tY>z.y+1.2&&td<35)||goPerch)){const b=climbBox(p,z.r,z.y,goPerch?z.perch.y-z.y+.5:Math.min(big?30:40,tY-z.y+.6),goPerch?z.perch.y:tY);
+    // 尸墙：墙太高就叠人墙，墙下丧尸越多叠得越高
+    if(b&&!big&&!goPerch&&b.o.h-z.y>1.9){const need=b.o.h-z.y;if(!z.pile||z.pile.b!==b.o)z.pile={b:b.o,t:performance.now()+z.id*.001,y0:z.y};const Q=z.pile;let rank=0;
+     for(const o of G.zs){if(o===z||o.dead||!o.pile||o.pile.b!==b.o)continue;const op=o.c.wrap.position;if(Math.hypot(op.x-p.x,op.z-p.z)<6&&o.pile.t<Q.t)rank++}
+     const PA=b.o.pa&&performance.now()-b.o.pa.t<4000?b.o.pa:(b.o.pa={x:p.x,z:p.z,t:0});if(rank===0){PA.x=p.x;PA.z=p.z}PA.t=performance.now();{const ddx=PA.x-p.x,ddz=PA.z-p.z,dl=Math.hypot(ddx,ddz),want=.35+Math.min(1.2,rank*.12);if(dl>want){const mv=Math.min(dl-want,dt*2.2);p.x+=ddx/dl*mv;p.z+=ddz/dl*mv}}
+     const ty=Q.y0+Math.min(b.o.h-Q.y0-1.5,rank*.6);z.y+=(ty-z.y)*Math.min(1,dt*2.5);p.y=z.y;const E1=topPt(b,p.x,p.z,.3,{x:0,z:0});z.face=Math.atan2(E1.x-p.x,E1.z-p.z);c.wrap.rotation.y=z.face;
+     if(rank>=3&&(G.pileW||0)<performance.now()){G.pileW=performance.now()+25000;if(isHost())pushEv(['warn','尸潮在叠人墙往上爬！'])}
+     setBase(c,'idle',.6);updChar(c,dt);mantleHands(c,z.face+Math.PI,E1.x,E1.z,Math.min(b.o.h,z.y+2),1);
+     if(z.y+1.6>=b.o.h-.05){const C1=topPt(b,tg.pos.x,tg.pos.z,.4,{x:0,z:0});z.climb={t:0,d:1.3,x0:p.x,z0:p.z,y0:z.y,x1:E1.x+(C1.x-E1.x)*.2,z1:E1.z+(C1.z-E1.z)*.2,y1:b.o.h,ex:E1.x,ez:E1.z};z.pile=null}
+     return}
+    if(b){const aim=goPerch?z.perch:tg.pos;const C1=topPt(b,aim.x,aim.z,.4,{x:0,z:0}),E1=topPt(b,p.x,p.z,.3,{x:0,z:0});
      z.climb={t:0,d:Math.max(1.5,1+(b.o.h-z.y)*(big?.16:.28)),x0:p.x,z0:p.z,y0:z.y,x1:E1.x+(C1.x-E1.x)*.2,z1:E1.z+(C1.z-E1.z)*.2,y1:b.o.h,ex:E1.x,ez:E1.z};z.face=Math.atan2(E1.x-p.x,E1.z-p.z);c.wrap.rotation.y=z.face;c.one=null;updChar(c,dt);return}}
+   z.pile=null;
    // 坦克尸/尸王爬不上车：砸车把车顶上的人震下来
    if(tg&&tY>z.y+.6&&td<5.5&&(z.t.sp==='tank'||z.type==='boss')){z.slamCd=(z.slamCd||0)-dt;if(z.slamCd<=0&&climbBox(p,z.r+.6,z.y,4.5)){z.slamCd=3;playOnce(c,'punch',1.2);pushEv(['warn',z.t.name+'在砸车！']);
      for(const a of actors()){if(a.dead||a.bot)continue;const d=Math.hypot(a.pos.x-p.x,a.pos.z-p.z);if(d<5.5){dmgTo(a,16*DIFF[diffI].dmg,p);knock(a,p,8,.5)}}if(AC){noise(160,.5,.7);tone(70,35,.4,.5)}P.shake=Math.max(P.shake,.3);z.face=Math.atan2(tg.pos.x-p.x,tg.pos.z-p.z);updChar(c,dt);p.y=z.y;return}}
