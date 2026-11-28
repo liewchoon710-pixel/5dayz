@@ -236,22 +236,36 @@ function reset(){zs.forEach(z=>scene.remove(z.root));zs=[];wave=0;kills=0;hp=100
 
 // ---------- menu ----------
 document.querySelectorAll('.row button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.row button').forEach(x=>x.classList.remove('on'));b.classList.add('on');SCALE=+b.dataset.s});
+let noOverlay=false;
 $('startAR').onclick=async()=>{audioInit();
- if(!navigator.xr||!(await navigator.xr.isSessionSupported('immersive-ar').catch(()=>false))){$('msg').textContent='这台设备 / 浏览器不支持 WebXR AR。请用 Android 手机的 Chrome 打开，或先用「无 AR 预览」。';return}
+ if(!navigator.xr){$('msg').textContent='这个浏览器没有 WebXR。请用 Chrome 打开（不要在 Facebook / WhatsApp 等 App 内置浏览器里打开）。';return}
  await ready;
- try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test','local-floor'],optionalFeatures:['dom-overlay'],domOverlay:{root:$('hud')}})}
- catch(e){try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:$('hud')}})}catch(e2){$('msg').textContent='无法启动 AR：'+e2.message;return}}
+ const ov={root:$('hud')};
+ const tries=[
+  {requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:ov},
+  {optionalFeatures:['hit-test','dom-overlay'],domOverlay:ov},
+  {optionalFeatures:['hit-test']},
+  {}];
+ let err='';session=null;
+ for(const o of tries){try{session=await navigator.xr.requestSession('immersive-ar',o);break}catch(e){err=e.message}}
+ if(!session){$('msg').innerHTML='无法启动 AR：'+err+'<br>请检查：① 用真正的 Chrome 打开（右上角 ⋮ →「在 Chrome 中打开」）② 已安装 / 更新「Google Play Services for AR」③ 你的手机型号支持 ARCore';return}
  mode='ar';renderer.xr.setReferenceSpaceType('local');await renderer.xr.setSession(session);
  refSpace=renderer.xr.getReferenceSpace();
- const vs=await session.requestReferenceSpace('viewer');hitSrc=await session.requestHitTestSource({space:vs});
- session.addEventListener('select',onSelect);session.addEventListener('end',()=>end(true));
- enterHUD()};
+ try{const vs=await session.requestReferenceSpace('viewer');hitSrc=await session.requestHitTestSource({space:vs})}catch(e){hitSrc=null}
+ noOverlay=!session.domOverlayState;
+ session.addEventListener('select',onSelect);
+ session.addEventListener('selectstart',()=>{if(noOverlay&&alive)fireDown=true});
+ session.addEventListener('selectend',()=>{if(noOverlay)fireDown=false});
+ session.addEventListener('end',()=>end(true));
+ enterHUD();
+ if(!hitSrc){$('place').textContent='此手机不支持地面检测 · 手机放在胸口高度，点一下屏幕开始'}
+ if(noOverlay)setTimeout(()=>notice('点住屏幕任何地方 = 开火',3000),300)};
 $('startPV').onclick=async()=>{audioInit();await ready;mode='pv';
  scene.background=new T.Color(0x1a2028);const grid=new T.GridHelper(20,40,0x2fd8ff,0x24404c);grid.name='pvgrid';scene.add(grid);
  camera.position.set(0,1.6,0);floorY=0;enterHUD();$('place').style.display='none';alive=true;play('ai_robot_boot_sequence',.6);startWave()};
 
 function enterHUD(){$('menu').style.display='none';$('hud').style.display='block';$('place').style.display='block';reset()}
-function onSelect(){if(floorY===null&&reticle.visible){floorY=reticle.matrix.elements[13];reticle.visible=false;$('place').style.display='none';
+function onSelect(){if(floorY===null&&(reticle.visible||!hitSrc)){floorY=reticle.visible?reticle.matrix.elements[13]:viewPos.y-1.3;reticle.visible=false;$('place').style.display='none';
  alive=true;play('ai_robot_boot_sequence',.6);notice('地面锁定 · 战斗系统启动');setTimeout(startWave,1400)}}
 function end(fromSession){alive=false;if(session&&!fromSession){session.end();return}
  session=null;hitSrc=null;floorY=null;mode=null;reset();const g=scene.getObjectByName('pvgrid');if(g)scene.remove(g);scene.background=null;
