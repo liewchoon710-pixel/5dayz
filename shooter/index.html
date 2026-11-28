@@ -1174,7 +1174,7 @@ function styleUnify(){const skip=new Set();if(P&&P.c)skip.add(P.c.wrap);for(cons
 }
 function styleFrame(dt){for(const s of STY.tech){s.t+=dt;if(s.blink){s.o.material.opacity=(s.t%2.2)<.35?1:.08}else if(s.br){s.o.visible=Math.sin(s.t*23)+Math.sin(s.t*7.1)>-.2||(s.t%4>3.4)}}}
 function buildLayout(sd){
- for(const o of LAYOUT)scene.remove(o);LAYOUT.length=0;for(const f of BFX)scene.remove(f.g);BFX.length=0;BRK.length=0;for(let i=COL.length-1;i>=0;i--)if(COL[i].dyn)COL.splice(i,1);
+ for(const o of LAYOUT)scene.remove(o);LAYOUT.length=0;for(const f of BFX)scene.remove(f.g);BFX.length=0;BRK.length=0;MVD={};P.carryB=null;for(let i=COL.length-1;i>=0;i--)if(COL[i].dyn)COL.splice(i,1);
  for(const m of MGS){if(m.ru&&HUM[m.ru])HUM[m.ru].u=-1}MGS.length=0;MACH.length=0;BOX=null;VENDS.length=0;for(const f of FIRES)if(f.li)plRel(f.li);FIRES=[];if(P.mg)P.mg=null;
  EXPL.splice(0,EXPL.length,...EXPL.filter(e=>!e.lay));for(const e of EXPL){e.dead=false;e.hp=e.h0;if(e.m)e.m.visible=true}
  seed=(sd%2147483646)+1;for(let i=0;i<5;i++)srand();const sr=(a,b)=>a+srand()*(b-a),sg=()=>srand()<.5?1:-1,sp=a=>a[Math.floor(srand()*a.length)];
@@ -1221,7 +1221,7 @@ function placeProp(n,x,z,ry,len,collide,y=0){const src=PROPS[n];if(!src)return n
  const F=src.userData.env2?PFIT[n]:null;if(F&&F.hu)k=F.hu/sz.y;let kx=k,ky=k,kz=k;if(F&&F.h)ky=F.h/sz.y;if(F&&F.w){if(sz.x<sz.z)kx=F.w/sz.x;else kz=F.w/sz.z}
  o.scale.set(o.scale.x*kx,o.scale.y*ky,o.scale.z*kz);
  const g=new T.Group();g.add(o);o.position.set(-(b.min.x+b.max.x)/2*kx,-b.min.y*ky,-(b.min.z+b.max.z)/2*kz);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
- if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*kx/2*(veh?.93:.97),sz.z*kz/2*(veh?.93:.97),y+sz.y*ky,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
+ if(collide){const veh=/vehicle|bus|truck|forklift|container/.test(n);addColO(x,z,sz.x*kx/2*(veh?.93:.97),sz.z*kz/2*(veh?.93:.97),y+sz.y*ky,ry,{rs:veh?.12:0,y0:y});if(DYN&&!/container|vending|^eb_/.test(n))BRK.push({g,c:COL[COL.length-1],veh:veh?1:0,x,z,y,r:len*.5,dead:0,ry,hx:sz.x*kx/2*(veh?.93:.97),hz:sz.z*kz/2*(veh?.93:.97),ht:sz.y*ky,rs:veh?.12:0,w:veh?3:len>2.6?2:1})}if(/vehicle|bus|forklift/.test(n))wreck(g,x,z);return g}
 function groundH(p,r,y){let g=MAP&&MAP.th?MAP.th(p.x,p.z):0;for(const c of COL){if(!c.p)continue;const b=c.b,h=b.max.y;if(h>y+.36||h<=g)continue;if(p.x+r>b.min.x&&p.x-r<b.max.x&&p.z+r>b.min.z&&p.z-r<b.max.z){const L=obL(c.o,p.x,p.z);if(Math.abs(L.x)<c.o.hx+r&&Math.abs(L.z)<c.o.hz+r)g=h}}return g}
 function pushOut(p,r,who,y=0){for(const c of COL){if(who==='z'&&!c.z||who==='p'&&!c.p)continue;const b=c.b;if(b.max.y<=y+.35||y+1.75<b.min.y)continue;
  if(p.x+r<=b.min.x||p.x-r>=b.max.x||p.z+r<=b.min.z||p.z-r>=b.max.z)continue;const q=c.o;const L=obL(q,p.x,p.z);const lx=L.x,lz=L.z;
@@ -1919,7 +1919,7 @@ const PROJ=[],POOLS=[],TONG={};function dropTong(zid){const T0=TONG[zid];if(T0&&
 const rockM=new T.MeshStandardMaterial({color:0x6a625a,roughness:1}),acidM=new T.MeshBasicMaterial({color:0x7dff3a}),poolM=new T.MeshBasicMaterial({color:0x5aff2a,transparent:true,opacity:.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3});
 const tongM=new T.MeshBasicMaterial({color:0x8a2030});
 function zById(id){return G.zs.find(z=>z.id===id)}
-function applyEv(e){const k=e[0];if(k[0]==='$'){stEv(e);return}
+function applyEv(e){const k=e[0];if(k==='$mv'){const [,i,x,z,ry,st,y]=e;const B=BRK[i];if(B&&!B.dead){brkMove(i,x,z,ry,st,y);MVD[i]=[x,z,ry,st,y];if(st===0&&AC){const d=Math.hypot(P.pos.x-x,P.pos.z-z);if(d<25)noise(B.veh?260:600,.3,.3*(1-d/25),'lowpass')}}return}if(k[0]==='$'){stEv(e);return}
  if(k==='xb'){explGone(e[1]);return}if(k==='trn'){trainEv(e[1]);return}if(k==='crn'){craneEv(e[1],e[2],e[3]);return}
  if(k==='ex'){const [,x,y,z,r]=e;v1.set(x,y+.6,z);emit(v1,40,[1,.55,.15],9,1,6,.9);emit(v1,30,[.25,.22,.2],5,1.2,2,1.4);emit(v1,20,[.45,.6,.15],6,1,8,.8);flashS.position.copy(v1);flashS.scale.setScalar(5);flashS.visible=true;flashS.userData.t=.12;flashL.position.copy(v1);flashL.intensity=12;
   decal(x,z,r*.9);const d=Math.hypot(P.pos.x-x,P.pos.z-z);if(AC){noise(160,1.1,1.2*clamp(1-d/60,.1,1));tone(70,30,.9,.7*clamp(1-d/60,.1,1))}P.shake=Math.max(P.shake,clamp(1-d/25,0,1)*.6)}
@@ -2667,7 +2667,7 @@ function applyHit(h,s){const [v,d,hd,w]=h;
 function onH(h){if(h.g&&h.m===G.mid)setHostPause(h.g.hp);if(h.ps){h.ps.m=h.m;try{onP(h.ps)}catch(e){}}if(h.m!==G.mid||G.state==='lobby'||G.state==='menu')return;NET.lastH=performance.now();if(NET.lagShown){NET.lagShown=0;popTxt('连接已恢复')}const g=h.g;
  G.sc=g.sc;G.tl=g.tl;G.left=g.q;
  if(G.mode==='z'){if(g.w>G.wave)onWaveStart(g.w,g.sl);if(g.it>0&&!(G.inter>0))onWaveClear(g.w);G.inter=g.it}
- if(h.z)onZSnap(h.z);if(h.st)onST(h.st);if(h.bk)onBK(h.bk);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
+ if(h.z)onZSnap(h.z);if(h.st)onST(h.st);if(h.bk)onBK(h.bk);if(h.mv)onMV(h.mv);if(h.ev)for(const e of h.ev)applyEv(e);if(h.b)onBSnap(h.b);
  if(h.zh)for(const [v,d,x,z] of h.zh)if(v===NET.me)hurtP(d,{x,z},'Z');
  if(h.bh)for(const [v,d,hd,s,w] of h.bh)if(v===NET.me)hurtP(d,HUM[s]?HUM[s].pos:null,s,hd,w);
  if(h.f)for(const f of h.f)remoteShot(f);
@@ -2683,7 +2683,7 @@ function netTick(dt){if(!NET.on){NET.out.f.length=NET.out.h.length=NET.out.rq.le
  if(!NET.host)nsend('p',PS);
  if(NET.host){const H={ps:PS,g:{hp:G.hostPause?1:0,w:G.wave,q:G.queue.length+aliveZ(),it:r2(G.inter),sc:G.sc,tl:Math.round(G.tl),sl:G.sl||''}};
   if(G.mode==='z')H.z=G.zs.map(z=>[z.id,z.ti,z.mi,r2(z.c.wrap.position.x),r2(z.c.wrap.position.z),r2(z.c.wrap.rotation.y),z.st,r2(z.y||0),Math.ceil(z.hp),Math.ceil(z.max)]);
-  if(G.mode==='z'&&(++G.stN%8===0||G.stDirty&&G.stN%2===0)){H.st=stSnap();H.bk=brkSnap();G.stDirty=0}
+  if(G.mode==='z'&&(++G.stN%8===0||G.stDirty&&G.stN%2===0)){H.st=stSnap();H.bk=brkSnap();H.mv=mvSnap();G.stDirty=0}
   if(G.mode!=='z'){H.b=[];for(const id in HUM){const B=HUM[id];if(B.bot)H.b.push([id,B.team,r2(B.pos.x),r2(B.pos.z),r2(B.yaw),r2(B.pitch),B.a,B.w,Math.ceil(B.hp),B.dead?1:0,B.sk,B.name])}}
   for(const k in NET.H)if(NET.H[k].length)H[k]=NET.H[k].splice(0);
   if(++NET.hn%5===0){H.r={};for(const id in G.R){const o=G.R[id];H.r[id]=[nameOf(id),o.t,o.k,o.d,o.b]}}
@@ -2801,7 +2801,7 @@ function update(dt){if(G.introT>0)G.introT-=dt;if(P.wake>0){wakeFrame(dt);P.whF=
  const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml}
  const held=P.stun>0||P.grab||P.pin||P.climb;if(held||P.mg){mx=0;mz=0}
  const hvy=G.ws&&WP[G.cur].heavy&&!P.mg;const sprint=inp&&!hvy&&!held&&!P.dn&&!P.cr&&!P.mg&&!P.aimOn&&!IN.fire&&mz>.3&&(k.ShiftLeft||k.ShiftRight||(TOUCH&&ml>.92));
- const spd=(P.dead?0:P.dn?.7:sprint?6.6:(P.aimOn?2.6:4.3)*(P.cr?.5:1))*(P.dn?1:mods().spd)*(hvy?.6:1)*(P.wake>0?0:1)*(WATER.rects.length&&P.pos.y<.3&&inWater(P.pos.x,P.pos.z)?.72:1);
+ const spd=(P.dead?0:P.dn?.7:sprint?6.6:(P.aimOn?2.6:4.3)*(P.cr?.5:1))*(P.dn?1:mods().spd)*(hvy?.6:1)*(P.wake>0?0:1)*carrySpd()*(WATER.rects.length&&P.pos.y<.3&&inWater(P.pos.x,P.pos.z)?.72:1);
  const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw);
  const tvx=(fx*mz+rx*mx)*spd,tvz=(fz*mz+rz*mx)*spd;const ac=Math.min(1,dt*12);P.vel.x+=(tvx-P.vel.x)*ac;P.vel.z+=(tvz-P.vel.z)*ac;
  if(P.stun>0)P.stun-=dt;
@@ -3443,6 +3443,20 @@ function brkFrame(dt){for(let i=BFX.length-1;i>=0;i--){const f=BFX[i],g=f.g;f.t+
   if(f.t>2.2){if(f.veh){/* 被撞飞的车：落地后翻正贴地，烧成残骸留在原地，不再漂浮或沉下去 */g.position.y=f.y0;g.rotation.x*=.2;g.rotation.z*=.2;g.traverse(o=>{if(o.isMesh)o.material=BURNT});BFX.splice(i,1);WRECKS.push(g);while(WRECKS.length>6)scene.remove(WRECKS.shift());continue}
    g.position.y-=dt*1.1;if(f.t>4.2){scene.remove(g);BFX.splice(i,1)}}}}
 const WRECKS=[];
+let MVD={};
+// ---- 搬动/推动摆设：小件搬起放下，车辆推动；人多更快
+function nearHelpers(x,z,r){let n=0;for(const a of actors())if(a&&a.pos&&!a.dead&&Math.hypot(a.pos.x-x,a.pos.z-z)<r)n++;return Math.max(1,n)}
+function brkMove(i,x,z,ry,st,y){const B=BRK[i];if(!B||B.dead)return;const j=B.c?COL.indexOf(B.c):-1;const old=j>=0?COL[j]:B.c0;if(j>=0)COL.splice(j,1);B.c0=old||B.c0;B.c=null;
+ if(st===1){B.car=1;B.g.visible=false;return}
+ const wasVis=B.g.visible&&!B.car,fx=B.g.position.x,fz=B.g.position.z;B.car=0;B.g.visible=true;B.x=x;B.z=z;B.y=y;B.ry=ry;
+ if(wasVis&&Math.hypot(fx-x,fz-z)>.05)B.tw={fx,fz,t:0};else B.g.position.set(x,y,z);B.g.position.y=y;B.g.rotation.y=ry;
+ const D=DYN,M0=MPF;DYN=old?old.dyn:true;MPF=old?old.mp:false;addColO(x,z,B.hx,B.hz,y+B.ht,ry,{rs:B.rs,y0:y});DYN=D;MPF=M0;B.c=COL[COL.length-1]}
+function brkTw(dt){for(const B of BRK)if(B.tw){B.tw.t=Math.min(1,B.tw.t+dt/.45);const k=1-Math.pow(1-B.tw.t,3);B.g.position.x=B.tw.fx+(B.x-B.tw.fx)*k;B.g.position.z=B.tw.fz+(B.z-B.tw.fz)*k;if(B.tw.t>=1)B.tw=null}}
+function mvReq(q){const i=q[1]|0,B=BRK[i];if(!B||B.dead)return;const st=q[5]|0;if(st===1&&B.car)return;const a=[i,+q[2],+q[3],+q[4],st,+q[6]||0];MVD[i]=a.slice(1);G.stDirty=1;pushEv(['$mv',...a])}
+function mvSnap(){const k=Object.keys(MVD);if(!k.length)return undefined;return [G.layoutSeed,...k.map(i=>[+i,...MVD[i]])]}
+function onMV(a){if(a[0]!==G.layoutSeed)return;for(let n=1;n<a.length;n++){const [i,x,z,ry,st,y]=a[n],B=BRK[i];if(!B||B.dead)continue;if(st===1?!B.car:(B.car||Math.hypot(B.x-x,B.z-z)>.05||Math.abs(B.ry-ry)>.01))brkMove(i,x,z,ry,st,y);MVD[i]=[x,z,ry,st,y]}}
+function brkNear(){let b=-1,bd=1.1;for(let i=0;i<BRK.length;i++){const B=BRK[i];if(B.dead||B.car||!B.c)continue;if(Math.abs(P.y-B.y)>1.5)continue;const o=B.c.o,L=obL(o,P.pos.x,P.pos.z);const d=Math.hypot(Math.max(0,Math.abs(L.x)-o.hx),Math.max(0,Math.abs(L.z)-o.hz));if(d<bd){bd=d;b=i}}return b}
+function carrySpd(){if(P.carryB==null)return 1;const B=BRK[P.carryB];if(!B)return 1;const n=nearHelpers(P.pos.x,P.pos.z,3.2);return Math.min(1,.15+.85*n/B.w)}
 function brkSnap(){let a=null;for(let i=0;i<BRK.length;i++)if(BRK[i].dead)(a||(a=[G.layoutSeed])).push(i);return a||undefined}
 function onBK(a){if(a[0]!==G.layoutSeed)return;for(let i=1;i<a.length;i++)brkKill(a[i],0,0,false)}
 // ---- RPG 火箭筒
@@ -3532,7 +3546,7 @@ function stHost(dt){for(const S of ST.slice()){if(S.k!==7)continue;const fx=-Mat
 function stReq(q,pid){if(!isHost()||G.mode!=='z')return;const a=actors().find(a=>a.id===pid)||(pid===NET.me?meActor():null);
  if(q[0]==='f'){if(THR.fires.length<8)pushEv(['fire',+q[1],+q[2],+q[3],1.5,4,pid]);return}
  if(q[0]==='d'){for(const S of ST.slice())if(S.k===8&&S.own===pid){const p=new T.Vector3(S.x,S.y+.2,S.z);stDel(S);G.stDirty=1;G.c4b=1;try{rkBoom(p,pid,1700*expW(),PJ.c4)}finally{G.c4b=0}}return}
- if(q[0]==='pk'){const S=stById(+q[1]);if(S&&S.k===10){stDel(S);G.stDirty=1}return}if(q[0]==='pd'){const t=q[1]|0;if(t<0||t>7||!MAP.lk)return;stAdd(STID++,10,+q[2],+q[3],+q[4],+q[5],FK[10].hp,t);G.stDirty=1;return}if(q[0]==='b'){const k=q[1]|0;if(!BK.includes(k))return;stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
+ if(q[0]==='mv'){mvReq(q);return}if(q[0]==='pk'){const S=stById(+q[1]);if(S&&S.k===10){stDel(S);G.stDirty=1}return}if(q[0]==='pd'){const t=q[1]|0;if(t<0||t>7||!MAP.lk)return;stAdd(STID++,10,+q[2],+q[3],+q[4],+q[5],FK[10].hp,t);G.stDirty=1;return}if(q[0]==='b'){const k=q[1]|0;if(!BK.includes(k))return;stAdd(STID++,k,+q[2],+q[3],+q[4],+q[5],FK[k].hp,0,pid);G.stDirty=1;pushEv(['$b',k,r2(+q[2]),r2(+q[3]),r2(+q[4])])}
  else if(q[0]==='t'){if(!TRUCK||TRUCK.ex<=0||!a)return;pilePos(TRUCK,SWV);if(Math.hypot(a.pos.x-SWV.x,a.pos.z-SWV.z)>4.5)return;TRUCK.ex--;stCrates(TRUCK.g,TRUCK.ex);G.stDirty=1;pushEv(['$s',pid,120]);if(TRUCK.ex<=0)TRUCK.leaveT=5}
  else if(q[0]==='r'){if(!RADIO||RADIO.hp>=RADIO.max)return;RADIO.hp=Math.min(RADIO.max,RADIO.hp+RADIO.max*.1);G.stDirty=1;pushEv(['$r',pid])}}
 function stSend(q){if(isHost())stReq(q,NET.me);else NET.out.rq.push(q)}
@@ -3553,11 +3567,17 @@ function onST(list){const seen=new Set();for(const e of list){const [id,k,x,y,z,
   if(!S){if(k===4)G.radMax=mx;S=stAdd(id,k,x,y,z,ry,hp,ex,ow||null)}else{if(hp<S.hp-.5){stHitFx(S);if(k===4)radWarn()}S.hp=hp;if(S.ex!==ex){S.ex=ex;stCrates(S.g,ex)}}S.max=mx}
  for(const S of ST.slice())if(!seen.has(S.id))stDel(S)}
 // ---------- 交互：搬物资 / 修电台 ----------
-function stUseLabel(){if(G.mode!=='z')return null;if(P.carry!=null)return['放下灯具',(TOUCH?'点「放下灯具」':'按 E ')+'把灯具放在面前'];{let b=null,bd=2;for(const S of ST)if(S.k===10){const d=Math.hypot(P.pos.x-S.x,P.pos.z-S.z);if(d<bd&&Math.abs(P.y-S.y)<1.5){bd=d;b=S}}if(b){P.lkT=b.id;return['搬起灯具',(TOUCH?'点「搬起灯具」':'按 E ')+'搬起'+(b.ex===5?'警示灯':'灯具')]}}
+function stUseLabel(){if(G.mode!=='z')return null;if(P.carryB!=null)return['放下物品',(TOUCH?'点「放下物品」':'按 E ')+'放在面前'+(BRK[P.carryB]&&BRK[P.carryB].w>1?' · 队友靠近一起搬会更快':'')];if(P.carry!=null)return['放下灯具',(TOUCH?'点「放下灯具」':'按 E ')+'把灯具放在面前'];{let b=null,bd=2;for(const S of ST)if(S.k===10){const d=Math.hypot(P.pos.x-S.x,P.pos.z-S.z);if(d<bd&&Math.abs(P.y-S.y)<1.5){bd=d;b=S}}if(b){P.lkT=b.id;return['搬起灯具',(TOUCH?'点「搬起灯具」':'按 E ')+'搬起'+(b.ex===5?'警示灯':'灯具')]}}if(P.carry==null){const i=brkNear();if(i>=0){P.bkT=i;const B=BRK[i];return B.veh?['推动车辆',(TOUCH?'点「推动车辆」':'按 E ')+'推一下 · 人越多推得越远']:['搬起物品',(TOUCH?'点「搬起物品」':'按 E ')+'搬起'+(B.w>1?' · 重物，人多搬得快':'')]}}
  if(TRUCK&&TRUCK.ex>0&&Math.abs(P.y-TRUCK.y)<1.2){pilePos(TRUCK,SWV);if(Math.hypot(P.pos.x-SWV.x,P.pos.z-SWV.z)<2.6)return['搬补给',(TOUCH?'点「搬补给」':'按 E ')+'搬一箱：弹药补满、资金 +$120（剩 '+TRUCK.ex+' 箱）']}
  if(RADIO&&RADIO.hp<RADIO.max*.985&&Math.abs(P.y-RADIO.y)<1.2&&stNear(RADIO,P.pos.x,P.pos.z,SWV)<1.5)return['修电台',G.sup>0?(TOUCH?'点「修电台」':'按 E ')+'用 1 份物资修理电台（+10%）':'没有物资，修不了电台'];return null}
 function stUse(){const L=stUseLabel();if(!L)return false;if(BLD.cd>0)return true;BLD.cd=.45;
- if(L[0]==='搬起灯具'){const S=stById(P.lkT);if(S){P.carry=S.ex;stSend(['pk',S.id]);if(!isHost()){stDel(S)}sClick()}}else if(L[0]==='放下灯具'){const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);v3.set(P.pos.x+fx*1.3,0,P.pos.z+fz*1.3);const y=groundH(v3,.2,P.y+.4);if(Math.abs(y-P.y)>1.2){popTxt('这里放不下');return true}stSend(['pd',P.carry,r2(v3.x),r2(y),r2(v3.z),r2(P.yaw+Math.PI)]);P.carry=null;sClick()}else if(L[0]==='搬补给'){stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
+ if(L[0]==='搬起物品'){const i=P.bkT,B=BRK[i];if(B&&!B.dead&&!B.car){P.carryB=i;if(!isHost())brkMove(i,0,0,0,1,0);stSend(['mv',i,0,0,0,1,0]);sClick()}}
+ else if(L[0]==='放下物品'){const i=P.carryB,B=BRK[i];if(!B){P.carryB=null;return true}const ry=P.yaw+Math.PI/2,fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),dd=Math.max(B.hx,B.hz)+.7;v3.set(P.pos.x+fx*dd,0,P.pos.z+fz*dd);const y=groundH(v3,.2,P.y+.4);
+  if(Math.abs(y-P.y)>1.2||obbHit(v3.x,v3.z,B.hx,B.hz,ry,y,y+B.ht,-.05)){popTxt('这里放不下');return true}const q=['mv',i,r2(v3.x),r2(v3.z),r2(ry),0,r2(y)];if(!isHost())brkMove(i,q[2],q[3],q[4],0,q[6]);stSend(q);P.carryB=null;sClick()}
+ else if(L[0]==='推动车辆'){const i=P.bkT,B=BRK[i];if(B&&!B.dead&&B.c){const n=Math.min(4,nearHelpers(B.x,B.z,Math.max(B.hx,B.hz)+2.6));let dx=B.x-P.pos.x,dz=B.z-P.pos.z;const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l;let dist=.8*n,x=B.x,z=B.z;
+  const c=B.c,j=COL.indexOf(c);if(j>=0)COL.splice(j,1);for(let s=0;s<8;s++){const nx=B.x+dx*dist,nz=B.z+dz*dist;if(!obbHit(nx,nz,B.hx,B.hz,B.ry,B.y,B.y+B.ht,-.05)){x=nx;z=nz;break}dist*=.7}if(j>=0)COL.splice(j,0,c);
+  if(x===B.x&&z===B.z){popTxt('推不动，前面有东西挡住');return true}const ry=B.ry+(Math.random()-.5)*.08*n;const q=['mv',i,r2(x),r2(z),r2(ry),0,r2(B.y)];if(!isHost())brkMove(i,q[2],q[3],q[4],0,q[6]);stSend(q);if(n>1)popTxt(n+' 人一起推！');sClick();BLD.cd=.7}}
+ else if(L[0]==='搬起灯具'){const S=stById(P.lkT);if(S){P.carry=S.ex;stSend(['pk',S.id]);if(!isHost()){stDel(S)}sClick()}}else if(L[0]==='放下灯具'){const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);v3.set(P.pos.x+fx*1.3,0,P.pos.z+fz*1.3);const y=groundH(v3,.2,P.y+.4);if(Math.abs(y-P.y)>1.2){popTxt('这里放不下');return true}stSend(['pd',P.carry,r2(v3.x),r2(y),r2(v3.z),r2(P.yaw+Math.PI)]);P.carry=null;sClick()}else if(L[0]==='搬补给'){stSend(['t'])}else{if(G.sup<=0){popTxt('没有物资');return true}G.sup--;hud(true);stSend(['r'])}return true}
 // ---------- 部署模式 ----------
 function bldSet(on){on=!!on&&G.mode==='z'&&G.state==='play'&&!P.dead&&!P.dn&&!P.mg;BLD.on=on;const b=$('bbar');if(!b)return;b.classList.toggle('hid',!on);const tb=$('tBuild');if(tb)tb.classList.toggle('on',on);for(const g of BLD.ghost)if(g)g.visible=false;if(on){bldBar();if(!TOUCH)popTxt('部署模式：1-7 选工事，左键放下，X 退出')}}
 function bldBar(){const b=$('bbar');let h='';BK.forEach((i,n)=>{h+=`<div class="bi${i===BLD.sel?' on':''}${G.cash<FK[i].c?' no':''}" data-i="${i}"><b>${TOUCH?'':(n+1)+' '}${FK[i].n}</b><span>$${FK[i].c}</span></div>`});
@@ -3590,7 +3610,7 @@ function nvCss(){const cv=renderer.domElement,usePost=GFX&&GFX.q>0;cv.style.filt
 const LAMPS=[];function lampPool(){if(LAMPS.length)return;for(let i=0;i<3;i++){const l=new T.SpotLight(0xfff0d0,0,40,.62,.45,1.3);l.castShadow=false;scene.add(l,l.target);LAMPS.push(l)}}
 function lampFrame(t){if(MAP&&MAP.env&&!MAP.env.dark){FLASH.visible=!!P.lamp&&!P.dead;FLASH.intensity=P.lamp?6:0}
  lampPool();const L=ST.filter(S=>S.k===9&&!S.dead);for(let i=0;i<LAMPS.length;i++){const l=LAMPS[i],S=L[i];if(!S){l.intensity=0;continue}const fx=-Math.sin(S.ry),fz=-Math.cos(S.ry);l.position.set(S.x,S.y+2.1,S.z);l.target.position.set(S.x+fx*14,S.y,S.z+fz*14);l.intensity=MAP.env.night||MAP.env.dark?6:2.5*(.9+.1*Math.sin(t*37+i))}}
-function stFrame(dt){const t=performance.now()/1000;lampFrame(t);mlampFrame(t);if(BFX.length)brkFrame(dt);rkFrame(dt);
+function stFrame(dt){const t=performance.now()/1000;lampFrame(t);mlampFrame(t);brkTw(dt);if(P.carryB!=null&&P.dead){const i=P.carryB,B=BRK[i];P.carryB=null;if(B){const y=groundH(P.pos,.2,P.y+.4);stSend(['mv',i,r2(P.pos.x),r2(P.pos.z),r2(B.ry),0,r2(y)])}}if(BFX.length)brkFrame(dt);rkFrame(dt);
  for(const S of ST){if(S.shk>0){S.shk-=dt;const k=Math.max(0,S.shk)/.16;S.g.rotation.z=Math.sin(t*70)*.035*k;S.g.rotation.x=Math.cos(t*61)*.025*k}else if(S.g.rotation.z){S.g.rotation.z=0;S.g.rotation.x=0}
   const u=S.g.userData;if(u.led)u.led.visible=(t*2.2+S.id*.37)%1<.3;if(u.bea){const on=(t*1.1)%1<.5;u.bea.material.opacity=on?1:.15}if(u.beam)u.beam.material.opacity=.38+Math.sin(t*3)*.12}
  bldFrame(dt);
